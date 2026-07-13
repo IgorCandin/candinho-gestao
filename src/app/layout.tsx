@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Candinho Gestão",
-  description: "Gestão de estoque, vendas, clientes e rotina operacional da Candinho Suplementos.",
-  applicationName: "Candinho Gestão",
+  title: "Candinho Company",
+  description: "Gestão integrada da Candinho Suplementos, Candinho Fitness e novas operações da Candinho Company.",
+  applicationName: "Candinho Company",
   manifest: "/manifest.webmanifest",
 };
 

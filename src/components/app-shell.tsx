@@ -16,7 +16,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <Link href="/dashboard" className="brand"><span className="brand-mark">CS</span><span><strong>CANDINHO</strong><span>Gestão interna</span></span></Link>
+        <Link href="/dashboard" className="brand"><span className="brand-mark">CC</span><span><strong>CANDINHO COMPANY</strong><span>Gestão integrada</span></span></Link>
         <nav className="nav">
           {nav.map(({ href, label, icon: Icon, primary }) => <Link className={`nav-link ${primary ? "primary" : ""}`} href={href} key={href}><Icon size={18} />{label}</Link>)}
         </nav>
