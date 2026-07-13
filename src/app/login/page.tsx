@@ -6,15 +6,16 @@ export default function LoginPage() {
     <main className="login-page">
       <section className="login-shell">
         <div className="login-visual">
-          <div className="brand">
-            <span className="brand-mark">CC</span>
-            <span>
-              <strong>CANDINHO COMPANY</strong>
-              <span>Gestão operacional</span>
-            </span>
-          </div>
+          <Image
+            className="login-company-logo"
+            src="/candinho-company-logo.webp"
+            alt="Candinho Company"
+            width={1000}
+            height={343}
+            priority
+          />
 
-          <div>
+          <div className="login-intro">
             <h1>A operação da Candinho em um só lugar.</h1>
             <p>
               Estoque, vendas, clientes, catálogo e histórico com regras seguras e
@@ -27,17 +28,29 @@ export default function LoginPage() {
           <h2>Entrar</h2>
           <LoginForm />
 
-          <div className="login-business-brand" aria-label="Candinho Suplementos">
-            <Image
-              className="login-business-logo"
-              src="/candinho-suplementos-logo.webp"
-              alt="Candinho Suplementos"
-              width={420}
-              height={150}
-              priority
-            />
-            <span>Qualidade que entrega resultado.</span>
+          <div className="login-operations" aria-label="Operações da Candinho Company">
+            <div className="login-operation-logo">
+              <Image
+                src="/candinho-suplementos-logo.webp"
+                alt="Candinho Suplementos"
+                width={900}
+                height={326}
+              />
+            </div>
+
+            <span className="login-operation-divider" aria-hidden="true" />
+
+            <div className="login-operation-logo">
+              <Image
+                src="/candinho-fitness-logo.webp"
+                alt="Candinho Fitness"
+                width={900}
+                height={333}
+              />
+            </div>
           </div>
+
+          <p className="login-slogan">Qualidade que entrega resultado.</p>
         </div>
       </section>
     </main>
