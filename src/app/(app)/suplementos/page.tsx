@@ -1,5 +1,15 @@
 import Link from "next/link";
-import { AlertTriangle, Boxes, CircleDollarSign, PackageCheck, TrendingUp, WalletCards } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowRight,
+  BarChart3,
+  Boxes,
+  CircleDollarSign,
+  ClipboardClock,
+  PackageCheck,
+  TrendingUp,
+  WalletCards,
+} from "lucide-react";
 import { Badge } from "@/components/badge";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
@@ -25,11 +35,40 @@ export default async function SupplementsDashboardPage() {
           </Link>
         }
       />
+
+      <section className="overview-shortcuts">
+        <Link className="overview-shortcut pending" href="/pedidos-pendentes">
+          <div className="overview-shortcut-icon"><ClipboardClock size={22} /></div>
+          <div className="overview-shortcut-copy">
+            <span className="overview-shortcut-label">Pedidos pendentes</span>
+            <strong>{data.pendingOrdersCount}</strong>
+            <p>{data.pendingDeliveryCount} para entregar · {data.pendingPaymentCount} a receber</p>
+          </div>
+          <div className="overview-shortcut-side">
+            <span>{formatCurrency(data.pendingOrdersValue)}</span>
+            <ArrowRight size={18} />
+          </div>
+        </Link>
+
+        <Link className="overview-shortcut panel-cs" href="/painel-cs">
+          <div className="overview-shortcut-icon"><BarChart3 size={22} /></div>
+          <div className="overview-shortcut-copy">
+            <span className="overview-shortcut-label">Painel CS</span>
+            <strong>{formatCurrency(data.currentMonthRevenue)}</strong>
+            <p>Mês atual · mês anterior · visão geral</p>
+          </div>
+          <div className="overview-shortcut-side">
+            <span>{data.currentMonthSalesCount} vendas</span>
+            <ArrowRight size={18} />
+          </div>
+        </Link>
+      </section>
+
       <section className="grid stats-grid">
         <StatCard label="Unidades disponíveis" value={String(data.totalUnits)} note={`${data.totalProducts} produtos ativos`} icon={Boxes} />
         <StatCard label="Valor do estoque" value={formatCurrency(data.stockCostValue)} note="Calculado pelo custo atual" icon={WalletCards} />
         <StatCard label="Potencial de venda" value={formatCurrency(data.stockSaleValue)} note={`${formatCurrency(profitPotential)} de lucro potencial`} icon={TrendingUp} />
-        <StatCard label="A receber" value={formatCurrency(data.receivable)} note={`${data.lowStockCount} saldos exigem atenção`} icon={AlertTriangle} />
+        <StatCard label="A receber" value={formatCurrency(data.receivable)} note="Vendas com pagamento pendente" icon={AlertTriangle} />
       </section>
       <section className="grid dashboard-grid">
         <article className="panel">

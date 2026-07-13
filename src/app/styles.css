@@ -410,3 +410,118 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
   .login-operations { gap: 10px; }
   .login-operation-logo img { max-height: 58px; }
 }
+
+/* Atalhos operacionais da visão geral */
+.overview-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.overview-shortcut {
+  min-height: 126px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 19px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: linear-gradient(145deg, rgba(21,26,36,.97), rgba(12,16,23,.97));
+  box-shadow: var(--shadow);
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.overview-shortcut::after {
+  content: "";
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  right: -72px;
+  top: -78px;
+  border-radius: 50%;
+  background: var(--gold-soft);
+}
+
+.overview-shortcut:hover {
+  transform: translateY(-3px);
+  border-color: rgba(217,164,65,.52);
+  background: linear-gradient(145deg, rgba(25,31,42,.98), rgba(14,18,26,.98));
+}
+
+.overview-shortcut-icon {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.overview-shortcut-copy { min-width: 0; }
+.overview-shortcut-label { display: block; color: var(--muted); font-size: 12px; font-weight: 750; }
+.overview-shortcut-copy strong { display: block; margin-top: 7px; font-size: 25px; letter-spacing: -.03em; }
+.overview-shortcut-copy p { margin: 5px 0 0; color: var(--muted); font-size: 12px; }
+.overview-shortcut-side { position: relative; z-index: 1; display: grid; justify-items: end; gap: 14px; color: var(--gold); }
+.overview-shortcut-side span { color: var(--muted); font-size: 12px; font-weight: 700; }
+
+.pending-stats-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.pending-orders-panel, .panel-cs-sales { margin-top: 18px; }
+
+.period-tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  margin-bottom: 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--panel);
+}
+
+.period-tab {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.period-tab:hover { color: var(--text); background: rgba(255,255,255,.035); }
+.period-tab.active { color: #090b10; background: linear-gradient(145deg, #e9bd61, #b77b1e); }
+
+.panel-period-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.panel-period-title span { color: var(--muted); font-size: 12px; }
+.panel-period-title strong { font-size: 15px; }
+
+.panel-cs-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 1080px) {
+  .pending-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .panel-cs-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 760px) {
+  .overview-shortcuts { grid-template-columns: 1fr; }
+  .period-tabs { width: 100%; overflow-x: auto; }
+  .period-tab { flex: 1 0 auto; }
+}
+
+@media (max-width: 560px) {
+  .overview-shortcut { grid-template-columns: auto minmax(0, 1fr); min-height: 116px; }
+  .overview-shortcut-side { grid-column: 2; grid-row: 2; display: flex; justify-content: space-between; width: 100%; margin-top: -3px; }
+  .overview-shortcut-copy p { line-height: 1.45; }
+  .pending-stats-grid, .panel-cs-stats { grid-template-columns: 1fr; }
+}

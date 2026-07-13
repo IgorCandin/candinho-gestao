@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3,
   ChartNoAxesCombined,
   CircleDollarSign,
+  ClipboardClock,
   ClipboardPlus,
   ContactRound,
   Dumbbell,
@@ -22,6 +24,8 @@ import { getUserAccess } from "@/lib/access";
 
 const supplementNav = [
   { href: "/suplementos", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/pedidos-pendentes", label: "Pedidos pendentes", icon: ClipboardClock },
+  { href: "/painel-cs", label: "Painel CS", icon: BarChart3 },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/estoque", label: "Estoque", icon: Warehouse },
   { href: "/vendas", label: "Vendas e leads", icon: ShoppingBag },

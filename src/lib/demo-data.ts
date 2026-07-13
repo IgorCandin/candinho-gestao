@@ -1,4 +1,4 @@
-import type { Customer, DashboardData, Movement, Product, SaleRow, StockRow } from "./types";
+import type { Customer, Movement, Product, SaleRow, StockRow } from "./types";
 
 export const demoProducts: Product[] = [
   { id: "p1", name: "Creatina Candinho 300g", sku: "CREA-CAND-300", category: "Força", brand: "Candinho", cost_price: 29.9, sale_price: 70, min_stock: 10, active: true, image_url: null },
@@ -35,14 +35,3 @@ export const demoMovements: Movement[] = [
   { id: "m3", created_at: "2026-07-11T09:00:00-03:00", movement_type: "transfer_out", quantity_delta: -10, product_name: "Creatina Candinho 300g", location_code: "CS", notes: "Transferência para Itapharma" },
   { id: "m4", created_at: "2026-07-11T09:00:00-03:00", movement_type: "transfer_in", quantity_delta: 10, product_name: "Creatina Candinho 300g", location_code: "ITAPHARMA", notes: "Recebido de CS" },
 ];
-
-export const demoDashboard: DashboardData = {
-  totalProducts: demoProducts.length,
-  totalUnits: demoStock.reduce((sum, row) => sum + row.quantity, 0),
-  stockCostValue: demoStock.reduce((sum, row) => sum + row.stock_cost_value, 0),
-  stockSaleValue: demoStock.reduce((sum, row) => sum + row.stock_sale_value, 0),
-  receivable: demoSales.filter((sale) => sale.payment_status === "receivable").reduce((sum, sale) => sum + sale.total_amount, 0),
-  lowStockCount: demoStock.filter((row) => row.quantity <= row.min_stock).length,
-  recentSales: demoSales,
-  lowStock: demoStock.filter((row) => row.quantity <= row.min_stock),
-};

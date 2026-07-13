@@ -66,6 +66,26 @@ export type DashboardData = {
   stockSaleValue: number;
   receivable: number;
   lowStockCount: number;
+  pendingOrdersCount: number;
+  pendingDeliveryCount: number;
+  pendingPaymentCount: number;
+  pendingOrdersValue: number;
+  currentMonthRevenue: number;
+  currentMonthSalesCount: number;
   recentSales: SaleRow[];
   lowStock: StockRow[];
+};
+
+export type PanelPeriod = "current" | "previous" | "all";
+
+export type PanelCSData = {
+  period: PanelPeriod;
+  periodLabel: string;
+  grossRevenue: number;
+  profit: number;
+  saleCount: number;
+  receivable: number;
+  pendingOrdersCount: number;
+  averageTicket: number;
+  sales: SaleRow[];
 };
