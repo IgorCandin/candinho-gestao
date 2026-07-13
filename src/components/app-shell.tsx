@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, ChartNoAxesCombined, CircleDollarSign, ContactRound, History, LogOut, PackageSearch, Settings, ShoppingBag, Warehouse } from "lucide-react";
+import { ChartNoAxesCombined, CircleDollarSign, ClipboardPlus, ContactRound, History, LogOut, PackageSearch, Settings, ShoppingBag, UserRoundPlus, Warehouse } from "lucide-react";
 
 const nav = [
   { href: "/dashboard", label: "Visão geral", icon: ChartNoAxesCombined, primary: true },
@@ -27,7 +27,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </aside>
       <main className="main">
-        <header className="topbar"><div className="topbar-title">Qualidade que entrega resultado</div><div className="topbar-actions"><Link className="button ghost" href="/estoque"><Boxes size={16} />Ver estoque</Link><Link className="button gold" href="/vendas"><CircleDollarSign size={16} />Nova venda</Link></div></header>
+        <header className="topbar">
+          <div className="topbar-title">Qualidade que entrega resultado</div>
+          <div className="topbar-actions">
+            <Link className="button ghost" href="/vendas?novo=lead"><UserRoundPlus size={16} />Novo lead</Link>
+            <Link className="button ghost" href="/movimentacoes?novo=pedido-fornecedor"><ClipboardPlus size={16} />Novo pedido de fornecedor</Link>
+            <Link className="button gold" href="/vendas?novo=venda"><CircleDollarSign size={16} />Nova venda</Link>
+          </div>
+        </header>
         <div className="content">{children}</div>
       </main>
       <nav className="mobile-nav">{mobile.map(({ href, label, icon: Icon, primary }) => <Link className={`mobile-link ${primary ? "primary" : ""}`} href={href} key={href}><Icon size={19} /><span>{label}</span></Link>)}</nav>
