@@ -15,6 +15,8 @@ import type {
   CommercialDashboardSummary,
   Customer,
   CustomerDetails,
+  CustomerInteraction,
+  CustomerCRMSummary,
   CustomerOption,
   DashboardData,
   DashboardOperationalSummary,
@@ -440,12 +442,77 @@ export async function getLeadDetails(leadId: string): Promise<LeadDetails | null
   return { id: String(row.id), customer_id: typeof row.customer_id === "string" ? row.customer_id : null, customer_name: text(customer?.name, "Cliente não informado"), lead_at: String(row.quoted_at ?? ""), lead_status: typeof row.lead_status === "string" ? row.lead_status : null, general_status: text(row.general_status, "pending"), reference: typeof row.reference === "string" ? row.reference : typeof customer?.reference === "string" ? customer.reference : null, city: typeof row.city === "string" ? row.city : typeof customer?.city === "string" ? customer.city : null, phone: typeof row.phone === "string" ? row.phone : typeof customer?.phone === "string" ? customer.phone : null, notes: typeof row.notes === "string" ? row.notes : null, product_id: firstItem && typeof firstItem.product_id === "string" ? firstItem.product_id : null, product_name: typeof product?.name === "string" ? product.name : null, product_image_url: typeof product?.image_url === "string" ? product.image_url : null, category: typeof product?.category === "string" ? product.category : null, brand: typeof product?.brand === "string" ? product.brand : null };
 }
 
+function normalizeCustomer(row: Record<string, unknown>): Customer {
+  return {
+    id: String(row.id),
+    name: text(row.name, "Cliente sem nome"),
+    city: typeof row.city === "string" ? row.city : null,
+    phone: typeof row.phone === "string" ? row.phone : null,
+    total_spent: number(row.total_spent),
+    purchase_count: number(row.purchase_count),
+    last_purchase_at: typeof row.last_purchase_at === "string" ? row.last_purchase_at : null,
+    lead_count: number(row.lead_count),
+    pending_sales_count: number(row.pending_sales_count),
+    crm_status: text(row.crm_status, "active"),
+    next_contact_at: typeof row.next_contact_at === "string" ? row.next_contact_at : null,
+    last_contact_at: typeof row.last_contact_at === "string" ? row.last_contact_at : null,
+    last_contact_outcome: typeof row.last_contact_outcome === "string" ? row.last_contact_outcome : null,
+    contact_lost: Boolean(row.contact_lost),
+    tags: typeof row.tags === "string" ? row.tags : null,
+    next_followup_id: typeof row.next_followup_id === "string" ? row.next_followup_id : null,
+    next_followup_at: typeof row.next_followup_at === "string" ? row.next_followup_at : null,
+    next_followup_notes: typeof row.next_followup_notes === "string" ? row.next_followup_notes : null,
+    interaction_count: number(row.interaction_count),
+    pending_followup_count: number(row.pending_followup_count),
+    days_since_last_purchase: row.days_since_last_purchase == null ? null : number(row.days_since_last_purchase),
+    days_since_last_contact: row.days_since_last_contact == null ? null : number(row.days_since_last_contact),
+    care_alert: Boolean(row.care_alert),
+    radar_status: text(row.radar_status, "active"),
+    radar_rank: number(row.radar_rank),
+    next_action_label: text(row.next_action_label, "Relacionamento ativo"),
+  };
+}
+
 export async function getCustomers(): Promise<Customer[]> {
   if (!isSupabaseConfigured) return demoCustomers;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("customer_details").select("id,name,city,phone,total_spent,purchase_count,last_purchase_at,lead_count,pending_sales_count").order("last_purchase_at", { ascending: false, nullsFirst: false }).order("name", { ascending: true });
+  const { data, error } = await supabase
+    .from("customer_crm_overview")
+    .select("*")
+    .order("radar_rank", { ascending: true })
+    .order("next_followup_at", { ascending: true, nullsFirst: false })
+    .order("last_purchase_at", { ascending: false, nullsFirst: false })
+    .order("name", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null, total_spent: number(row.total_spent), purchase_count: number(row.purchase_count), last_purchase_at: typeof row.last_purchase_at === "string" ? row.last_purchase_at : null, lead_count: number(row.lead_count), pending_sales_count: number(row.pending_sales_count) }));
+  return (data ?? []).map((row) => normalizeCustomer(row as Record<string, unknown>));
+}
+
+export async function getCustomerCRMSummary(): Promise<CustomerCRMSummary> {
+  if (!isSupabaseConfigured) {
+    return {
+      total_active_customers: demoCustomers.length,
+      followups_today: demoCustomers.filter((row) => row.radar_status === "due_today").length,
+      overdue_followups: demoCustomers.filter((row) => row.radar_status === "overdue_followup").length,
+      inactive_customers: demoCustomers.filter((row) => row.radar_status === "inactive").length,
+      lead_only_customers: demoCustomers.filter((row) => row.radar_status === "lead_only").length,
+      care_customers: demoCustomers.filter((row) => row.care_alert).length,
+      customers_with_pending_orders: demoCustomers.filter((row) => row.pending_sales_count > 0).length,
+      total_customer_value: demoCustomers.reduce((sum, row) => sum + row.total_spent, 0),
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("customer_crm_summary").select("*").single();
+  if (error) throw error;
+  return {
+    total_active_customers: number(data.total_active_customers),
+    followups_today: number(data.followups_today),
+    overdue_followups: number(data.overdue_followups),
+    inactive_customers: number(data.inactive_customers),
+    lead_only_customers: number(data.lead_only_customers),
+    care_customers: number(data.care_customers),
+    customers_with_pending_orders: number(data.customers_with_pending_orders),
+    total_customer_value: number(data.total_customer_value),
+  };
 }
 export async function getCustomerOptions(): Promise<CustomerOption[]> {
   if (!isSupabaseConfigured) return demoCustomers.map(({ id, name, city, phone }) => ({ id, name, city, phone }));
@@ -506,9 +573,57 @@ export async function getSalePartners(): Promise<PartnerOption[]> {
   }));
 }
 export async function getCustomerDetails(customerId: string): Promise<CustomerDetails | null> {
-  if (!isSupabaseConfigured) { const customer = demoCustomers.find((row) => row.id === customerId); if (!customer) return null; return { ...customer, reference: null, email: null, notes: null, sensitive_to_caffeine: false, anxiety_or_insomnia: false, prohibited_products: null, approach_preferences: null, active: true }; }
-  const supabase = await createClient(); const { data, error } = await supabase.from("customer_details").select("*").eq("id", customerId).maybeSingle(); if (error) throw error; if (!data) return null;
-  return { id: String(data.id), name: text(data.name, "Cliente sem nome"), city: typeof data.city === "string" ? data.city : null, phone: typeof data.phone === "string" ? data.phone : null, reference: typeof data.reference === "string" ? data.reference : null, email: typeof data.email === "string" ? data.email : null, notes: typeof data.notes === "string" ? data.notes : null, sensitive_to_caffeine: Boolean(data.sensitive_to_caffeine), anxiety_or_insomnia: Boolean(data.anxiety_or_insomnia), prohibited_products: typeof data.prohibited_products === "string" ? data.prohibited_products : null, approach_preferences: typeof data.approach_preferences === "string" ? data.approach_preferences : null, active: Boolean(data.active), total_spent: number(data.total_spent), purchase_count: number(data.purchase_count), last_purchase_at: typeof data.last_purchase_at === "string" ? data.last_purchase_at : null, lead_count: number(data.lead_count), pending_sales_count: number(data.pending_sales_count) };
+  if (!isSupabaseConfigured) {
+    const customer = demoCustomers.find((row) => row.id === customerId);
+    if (!customer) return null;
+    return { ...customer, reference: null, email: null, notes: null, sensitive_to_caffeine: false, anxiety_or_insomnia: false, prohibited_products: null, approach_preferences: null, active: true };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("customer_crm_overview").select("*").eq("id", customerId).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const base = normalizeCustomer(data as Record<string, unknown>);
+  return {
+    ...base,
+    reference: typeof data.reference === "string" ? data.reference : null,
+    email: typeof data.email === "string" ? data.email : null,
+    notes: typeof data.notes === "string" ? data.notes : null,
+    sensitive_to_caffeine: Boolean(data.sensitive_to_caffeine),
+    anxiety_or_insomnia: Boolean(data.anxiety_or_insomnia),
+    prohibited_products: typeof data.prohibited_products === "string" ? data.prohibited_products : null,
+    approach_preferences: typeof data.approach_preferences === "string" ? data.approach_preferences : null,
+    active: Boolean(data.active),
+  };
+}
+
+export async function getCustomerInteractions(customerId: string): Promise<CustomerInteraction[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customer_interaction_history")
+    .select("*")
+    .eq("customer_id", customerId)
+    .order("status", { ascending: false })
+    .order("due_at", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    customer_id: String(row.customer_id),
+    sale_id: typeof row.sale_id === "string" ? row.sale_id : null,
+    interaction_type: text(row.interaction_type),
+    status: text(row.status),
+    channel: typeof row.channel === "string" ? row.channel : null,
+    occurred_at: typeof row.occurred_at === "string" ? row.occurred_at : null,
+    due_at: typeof row.due_at === "string" ? row.due_at : null,
+    completed_at: typeof row.completed_at === "string" ? row.completed_at : null,
+    outcome: typeof row.outcome === "string" ? row.outcome : null,
+    notes: typeof row.notes === "string" ? row.notes : null,
+    created_at: String(row.created_at ?? ""),
+    created_by_name: typeof row.created_by_name === "string" ? row.created_by_name : null,
+    sale_total: row.sale_total == null ? null : number(row.sale_total),
+    sale_product_summary: typeof row.sale_product_summary === "string" ? row.sale_product_summary : null,
+  }));
 }
 export async function getCustomerSales(customerId: string): Promise<SaleRow[]> { return (await getSalesHistory()).filter((sale) => sale.customer_id === customerId); }
 export async function getCustomerLeads(customerId: string): Promise<LeadRow[]> { return (await getLeadsHistory()).filter((lead) => lead.customer_id === customerId); }

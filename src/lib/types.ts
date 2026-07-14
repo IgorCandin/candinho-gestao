@@ -205,8 +205,69 @@ export type SaleDetails = {
 export type ReplenishmentRow = { product_id: string; product_name: string; category: string; company_quantity: number; min_stock: number; ideal_stock: number; needs_replenishment: boolean; suggested_order_quantity: number; stock_status: string; };
 export type CommercialDashboardSummary = { total_sales: number; total_revenue: number; total_profit: number; receivable_total: number; receivable_sales: number; current_month_sales: number; current_month_revenue: number; current_month_profit: number; previous_month_sales: number; previous_month_revenue: number; previous_month_profit: number; operational_units: number; all_units: number; stock_cost_value: number; stock_sale_value: number; stock_potential_profit: number; };
 export type CustomerOption = { id: string; name: string; city: string | null; phone: string | null; };
-export type Customer = CustomerOption & { total_spent: number; purchase_count: number; last_purchase_at: string | null; lead_count: number; pending_sales_count: number; };
-export type CustomerDetails = Customer & { reference: string | null; email: string | null; notes: string | null; sensitive_to_caffeine: boolean; anxiety_or_insomnia: boolean; prohibited_products: string | null; approach_preferences: string | null; active: boolean; };
+export type Customer = CustomerOption & {
+  total_spent: number;
+  purchase_count: number;
+  last_purchase_at: string | null;
+  lead_count: number;
+  pending_sales_count: number;
+  crm_status: string;
+  next_contact_at: string | null;
+  last_contact_at: string | null;
+  last_contact_outcome: string | null;
+  contact_lost: boolean;
+  tags: string | null;
+  next_followup_id: string | null;
+  next_followup_at: string | null;
+  next_followup_notes: string | null;
+  interaction_count: number;
+  pending_followup_count: number;
+  days_since_last_purchase: number | null;
+  days_since_last_contact: number | null;
+  care_alert: boolean;
+  radar_status: string;
+  radar_rank: number;
+  next_action_label: string;
+};
+export type CustomerDetails = Customer & {
+  reference: string | null;
+  email: string | null;
+  notes: string | null;
+  sensitive_to_caffeine: boolean;
+  anxiety_or_insomnia: boolean;
+  prohibited_products: string | null;
+  approach_preferences: string | null;
+  active: boolean;
+};
+
+export type CustomerInteraction = {
+  id: string;
+  customer_id: string;
+  sale_id: string | null;
+  interaction_type: string;
+  status: string;
+  channel: string | null;
+  occurred_at: string | null;
+  due_at: string | null;
+  completed_at: string | null;
+  outcome: string | null;
+  notes: string | null;
+  created_at: string;
+  created_by_name: string | null;
+  sale_total: number | null;
+  sale_product_summary: string | null;
+};
+
+export type CustomerCRMSummary = {
+  total_active_customers: number;
+  followups_today: number;
+  overdue_followups: number;
+  inactive_customers: number;
+  lead_only_customers: number;
+  care_customers: number;
+  customers_with_pending_orders: number;
+  total_customer_value: number;
+};
 export type Movement = { id: string; created_at: string; movement_type: string; quantity_delta: number; product_name: string; location_code: string; notes: string | null; };
 export type DashboardOperationalSummary = {
   today: string;

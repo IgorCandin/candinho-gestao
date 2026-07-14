@@ -16,6 +16,19 @@ const map: Record<string, { label: string; color: string }> = {
   transfer_out: { label: "Transferência — saída", color: "red" },
   transfer_in: { label: "Transferência — entrada", color: "green" },
   cancellation: { label: "Estorno", color: "blue" },
+  overdue_followup: { label: "Retorno atrasado", color: "red" },
+  due_today: { label: "Retornar hoje", color: "orange" },
+  pending_order: { label: "Pedido pendente", color: "blue" },
+  lead_only: { label: "Somente lead", color: "gold" },
+  inactive: { label: "Inativo", color: "gray" },
+  care: { label: "Atenção", color: "orange" },
+  lost: { label: "Contato perdido", color: "red" },
+  planned: { label: "Agendado", color: "blue" },
+  completed: { label: "Concluído", color: "green" },
+  contact: { label: "Contato", color: "blue" },
+  follow_up: { label: "Retorno", color: "orange" },
+  post_sale: { label: "Pós-venda", color: "green" },
+  note: { label: "Anotação", color: "gray" },
 };
 
 export function Badge({ value }: { value: string }) {

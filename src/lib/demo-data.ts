@@ -51,7 +51,16 @@ export const demoReplenishment: ReplenishmentRow[] = [
 ];
 
 export const demoCustomers: Customer[] = [
-  { id: "c1", name: "Cliente demonstração", city: "Carangola", phone: null, total_spent: 70, purchase_count: 1, last_purchase_at: "2026-07-13T12:00:00-03:00", lead_count: 0, pending_sales_count: 0 },
+  {
+    id: "c1", name: "Cliente demonstração", city: "Carangola", phone: null,
+    total_spent: 70, purchase_count: 1, last_purchase_at: "2026-07-13T12:00:00-03:00",
+    lead_count: 0, pending_sales_count: 0, crm_status: "active", next_contact_at: null,
+    last_contact_at: null, last_contact_outcome: null, contact_lost: false, tags: null,
+    next_followup_id: null, next_followup_at: null, next_followup_notes: null,
+    interaction_count: 0, pending_followup_count: 0, days_since_last_purchase: 1,
+    days_since_last_contact: null, care_alert: false, radar_status: "active", radar_rank: 8,
+    next_action_label: "Relacionamento ativo",
+  },
 ];
 
 export const demoMovements: Movement[] = [

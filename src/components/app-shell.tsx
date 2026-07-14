@@ -32,7 +32,7 @@ const supplementNav = [
   { href: "/pedidos-fornecedor", label: "Pedidos fornecedor", icon: Truck },
   { href: "/vendas", label: "Vendas", icon: ShoppingBag },
   { href: "/leads", label: "Leads", icon: UserRoundPlus },
-  { href: "/clientes", label: "Clientes", icon: ContactRound },
+  { href: "/clientes", label: "CRM", icon: ContactRound },
   { href: "/movimentacoes", label: "Movimentações", icon: History },
 ];
 
