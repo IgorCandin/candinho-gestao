@@ -29,6 +29,13 @@ const map: Record<string, { label: string; color: string }> = {
   follow_up: { label: "Retorno", color: "orange" },
   post_sale: { label: "Pós-venda", color: "green" },
   note: { label: "Anotação", color: "gray" },
+  available: { label: "Disponível", color: "green" },
+  reserved: { label: "Reservado", color: "blue" },
+  partial: { label: "Parcial", color: "orange" },
+  incoming: { label: "A caminho", color: "blue" },
+  out_of_stock: { label: "Zerado", color: "red" },
+  awaiting_stock: { label: "Aguardando estoque", color: "orange" },
+  fulfilled: { label: "Atendido", color: "green" },
 };
 
 export function Badge({ value }: { value: string }) {

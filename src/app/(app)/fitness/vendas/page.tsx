@@ -1,0 +1,8 @@
+import Link from "next/link";
+import { Plus } from "lucide-react";
+import { redirect } from "next/navigation";
+import { Badge } from "@/components/badge";
+import { PageHeader } from "@/components/page-header";
+import { getCurrentUserAccess,getFitnessSales } from "@/lib/data";
+import { formatCurrency,formatDateOnly } from "@/lib/format";
+export default async function Page(){const access=await getCurrentUserAccess();if(!access.canAccessFitness)redirect("/dashboard");const sales=await getFitnessSales();return <><PageHeader eyebrow="Candinho Fitness" title="Vendas" description="Histórico e pendências da operação Fitness." action={access.canWriteFitness?<Link className="button gold" href="/fitness/vendas/nova"><Plus size={16}/>Nova venda</Link>:undefined}/><article className="panel"><div className="table-wrap"><table><thead><tr><th>Cliente</th><th>Peças</th><th>Data</th><th>Pagamento</th><th>Entrega</th><th>Total</th></tr></thead><tbody>{sales.map((sale)=><tr key={sale.id}><td><Link className="cell-main dashboard-inline-link" href={`/fitness/vendas/${sale.id}`}>{sale.customer_name}</Link><small>{sale.city??sale.customer_phone??""}</small></td><td>{sale.product_summary}</td><td>{formatDateOnly(sale.quoted_on)}</td><td>{sale.paid_on?<span className="date-status green">{formatDateOnly(sale.paid_on)}</span>:<Badge value={sale.payment_status}/>}</td><td>{sale.delivered_on?<span className="date-status green">{formatDateOnly(sale.delivered_on)}</span>:<Badge value={sale.delivery_status}/>}</td><td className="amount">{formatCurrency(sale.total_amount)}</td></tr>)}</tbody></table></div></article></>}

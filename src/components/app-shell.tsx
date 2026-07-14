@@ -39,7 +39,13 @@ const supplementNav = [
 ];
 
 const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
-const fitnessNav = [{ href: "/fitness", label: "Início Fitness", icon: Dumbbell }];
+const fitnessNav = [
+  { href: "/fitness", label: "Visão geral", icon: Dumbbell },
+  { href: "/fitness/produtos", label: "Peças", icon: PackageSearch },
+  { href: "/fitness/estoque", label: "Estoque", icon: Warehouse },
+  { href: "/fitness/vendas", label: "Vendas", icon: ShoppingBag },
+  { href: "/fitness/pedidos", label: "Pedidos fornecedor", icon: Truck },
+];
 
 export function AppShell({
   children,
@@ -57,10 +63,11 @@ export function AppShell({
   const nav = isHub ? hubNav : isFitness ? fitnessNav : supplementNav;
   const mobile = nav.slice(0, 5);
   const showSupplementActions = access.canWriteSupplements && isSupplements;
+  const showFitnessActions = access.canWriteFitness && isFitness;
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === href;
-    if (href === "/suplementos") return pathname === href;
+    if (href === "/suplementos" || href === "/fitness") return pathname === href;
     return pathname.startsWith(href);
   }
 
@@ -119,6 +126,22 @@ export function AppShell({
                 Novo pedido de fornecedor
               </Link>
               <Link className="button gold" href="/vendas/nova">
+                <CircleDollarSign size={16} />
+                Nova venda
+              </Link>
+            </div>
+          )}
+          {showFitnessActions && (
+            <div className="topbar-actions">
+              <Link className="button ghost" href="/fitness/produtos/novo">
+                <PackageSearch size={16} />
+                Nova peça
+              </Link>
+              <Link className="button ghost" href="/fitness/pedidos/novo">
+                <ClipboardPlus size={16} />
+                Novo pedido
+              </Link>
+              <Link className="button gold" href="/fitness/vendas/nova">
                 <CircleDollarSign size={16} />
                 Nova venda
               </Link>
