@@ -1,12 +1,12 @@
 # Preparação da importação AppSheet
 
-Este diretório contém scripts manuais e revisáveis, fora de `supabase/migrations`. Os arquivos 001–003 já foram aplicados ao schema privado de staging do projeto confirmado; os arquivos 004–006 são somente preparação local e ainda não foram executados.
+Este diretório contém scripts manuais e revisáveis, fora de `supabase/migrations`. Os arquivos 001–003 já foram aplicados ao schema privado de staging. Uma versão anterior do 004 foi instalada; a versão atualizada de 004 e as novas versões de 005–006 ainda não foram executadas.
 
 ## Estado observado
 
 - Projeto conectado: `candinho-suplementos` (`ilboydbakpcfoaexpnhw`), região `sa-east-1`, PostgreSQL 17.
 - O schema público atual contém o núcleo `customers`, `sales`, `sale_items`, `products`, `locations`, `stock_balances` e `inventory_movements`.
-- Ainda não existem destinos públicos próprios para parceiros, pedidos de fornecedor, pagamentos e entregas.
+- As estruturas públicas auxiliares de parceiros, pedidos, pagamentos, entregas e histórico já foram criadas pelo 004 anterior, mas continuam vazias.
 - Leads usam `public.sales.record_type = 'lead'`.
 - Produção já contém `public.appsheet_import_runs`, `public.appsheet_import_raw_rows` e `public.appsheet_import_chunks`, além de cinco migrações remotas de importação que não estão na pasta local. Esta proposta não reutiliza nem altera esses objetos: usa o schema privado `appsheet_import` para evitar colisão e exposição pela Data API.
 - A comparação somente leitura confirmou os 75 produtos da aba `ESTOQUE` em `public.products`, por nome exato.
@@ -52,12 +52,12 @@ Os NDJSON, o manifesto e o relatório ficam em `data-import/generated/`. Toda a 
 | Leads | `MOVIMENTO_GERAL` (`Lead`) | `public.sales` (`record_type = 'lead'`) |
 | Itens vendidos | produto/custo/valor de `MOVIMENTO_GERAL` | `public.sale_items`; quantidade implícita 1 |
 | Produtos | `ESTOQUE` | `public.products` |
-| Estoque operacional | colunas `Estoque <LOCAL>` de `ESTOQUE` | somente os 75 saldos de `CS` em `public.stock_balances` |
-| Observações de estoque diferidas | zeros de `ADRIANA`, `CTS`, `INGRID`, `ES` e `TT` | permanecem no staging e nos vínculos privados; não criam saldo, local ou movimento público |
-| Movimentações históricas | `LOG_ESTOQUE` e `MOV_ESTOQUE` | `public.inventory_history`, sem reaplicar eventos antigos ao saldo atual |
+| Estoque operacional | inventário físico após o marco zero | `public.stock_balances`, alterado somente por movimentos auditáveis |
+| Observações de estoque diferidas | todas as 450 observações de `ESTOQUE` | permanecem no staging e nos vínculos privados; nenhuma define saldo atual |
+| Movimentações históricas | `LOG_ESTOQUE`, `MOV_ESTOQUE` e `MOV_PARCEIROS` | `public.inventory_history`, sem reaplicar eventos antigos ao saldo atual |
 | Pedidos de fornecedor | `PEDIDOS_FORNECEDOR` | `public.supplier_orders` proposto no 004 |
 | Parceiros/fornecedores | `PARCEIROS` e `LISTA_FORNECEDORES` | `public.partners` proposto no 004 |
-| Movimentações de parceiros | `MOV_PARCEIROS` | `public.partner_movements` proposto no 004 |
+| Movimentações de parceiros | `MOV_PARCEIROS` | histórico em `public.inventory_history`; `public.partner_movements` permanece operacionalmente vazio |
 | Pagamentos | status/valor/data de `MOVIMENTO_GERAL` | `public.payments` proposto no 004 e resumo em `public.sales` |
 | Entregas | status/data/endereço de `MOVIMENTO_GERAL` | `public.deliveries` proposto no 004 e resumo em `public.sales` |
 
@@ -74,14 +74,18 @@ Os NDJSON, o manifesto e o relatório ficam em `data-import/generated/`. Toda a 
 ## Promoção e rollback controlados
 
 - `BATISTA` é corrigido para `ADRIANA` no mesmo UUID; seus vínculos existentes são preservados.
-- `ES` e `TT` ficam exclusivamente no staging histórico. Não geram localização, saldo, movimento nem capacidade operacional pública.
-- `locations.tracks_inventory` é a capacidade explícita de estoque. Nesta promoção somente `CS` recebe `true`; parceiro/local ativo não é estoque por inferência.
+- `CS`, `CTS`, `ADRIANA`, `ITAPHARMA` e `INGRID` são os cinco locais selecionáveis com capacidade explícita de estoque. `ENRICO` permanece cadastrado sem essa capacidade.
+- `ES`, `TT` e `PARCEIROS` não são criados como localizações públicas. As colunas históricas de ES/TT são desconsideradas operacionalmente e continuam rastreáveis somente no staging.
+- `locations.tracks_inventory` é a capacidade explícita de estoque; local ou parceiro ativo não vira estoque por inferência.
 - `Estoque Empresa` é um total calculado dos locais com `tracks_inventory = true`, não uma localização física.
-- Os 450 snapshots de origem continuam rastreáveis: 75 de `CS` são materializados e 375 zeros são marcados como `deferred` no ledger privado.
-- `C.T.S. Pâmella Nunes` é promovida como parceira `Ponto de Retirada`, sem capacidade de estoque nesta migração.
+- Os 450 snapshots de origem continuam rastreáveis e são todos marcados como `deferred`; nenhum deles é materializado.
+- Os 39 saldos públicos atuais, somando 125 unidades, são zerados por 39 movimentos `adjustment` com namespace idempotente `inventory_reset_2026_07_14:<produto>:<local>`.
+- Cada um dos cinco locais começa sem saldo novo materializado; após o marco zero, quantidades serão informadas somente por inventário físico manual.
+- `C.T.S. Pâmella Nunes` é promovida como parceira `Ponto de Retirada` e o local `CTS` pode receber estoque por inventário físico posterior.
 - Clientes são inseridos por ID/linha original. Telefone não participa da identidade.
 - Vendas com assinatura semelhante continuam distintas por proveniência e `idempotency_key`.
-- Os 491 eventos de estoque são preservados em `inventory_history`. O saldo operacional é alcançado por no máximo um movimento `adjustment` por produto/local, usando o trigger oficial.
+- Os 491 eventos de estoque e os 6 eventos de parceiros são preservados em `inventory_history`. `MOV_PARCEIROS` linha 5, ID `004`, permanece histórico mesmo com parceiro vazio e quantidade zero; não cria parceiro nem movimento operacional.
+- Toda venda exige `location_id` de um dos locais ativos com estoque habilitado. A RPC existente baixa os itens exclusivamente nesse local, e o trigger oficial rejeita qualquer resultado negativo.
 - Cada linha inserida recebe um vínculo privado e um hash pós-promoção. Cada saldo recebe preimage completo.
 - A promoção exige transação `SERIALIZABLE` e recusa mudanças nas contagens públicas ou no snapshot de estoque que formam o baseline aprovado.
 - O rollback exige transação `SERIALIZABLE` e aborta se detectar edição posterior, dependência nova, hash divergente ou saldo sem preimage correspondente.
@@ -90,4 +94,4 @@ Os NDJSON, o manifesto e o relatório ficam em `data-import/generated/`. Toda a 
 
 ## Segurança
 
-O staging fica fora do schema `public`, revoga acesso de `anon` e `authenticated`, habilita e força RLS sem políticas para usuários do aplicativo, e expõe funções apenas ao papel administrativo `service_role`. As views usam `security_invoker`. Uma execução aprovada exige status, usuário e data coerentes. Os scripts 004–006 apenas preparam a estrutura e as funções para revisão: não foram instalados nem executados no projeto remoto, e todas as chamadas de promoção/rollback permanecem comentadas.
+O staging fica fora do schema `public`, revoga acesso de `anon` e `authenticated`, habilita e força RLS sem políticas para usuários do aplicativo, e expõe funções apenas ao papel administrativo `service_role`. As views usam `security_invoker`. Uma execução aprovada exige status, usuário e data coerentes. Nesta revisão nenhuma versão atualizada de 004–006 foi instalada e nenhuma chamada de promoção ou rollback foi executada; todas permanecem comentadas.

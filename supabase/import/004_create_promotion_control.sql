@@ -10,7 +10,7 @@ set local lock_timeout = '5s';
 set local statement_timeout = '60s';
 
 -- Capacidade de estoque é explícita. Um parceiro/local ativo não se torna
--- estoque por inferência; nesta migração somente CS será habilitado no 005.
+-- estoque por inferência; o 005 habilita somente os cinco códigos aprovados.
 alter table public.locations
   add column if not exists tracks_inventory boolean not null default false;
 
@@ -314,8 +314,8 @@ create table if not exists public.deliveries (
 comment on table public.deliveries is
   'Managed by appsheet_import controlled promotion v1.';
 
--- Arquivo histórico: preserva os 491 eventos sem reaplicá-los ao saldo atual.
--- O saldo oficial será alcançado por um único ajuste auditável por produto/local.
+-- Arquivo histórico: preserva 491 eventos de estoque e 6 de parceiros sem
+-- reaplicá-los ao saldo atual. O saldo oficial começa no marco zero auditável.
 create table if not exists public.inventory_history (
   id uuid primary key default gen_random_uuid(),
   product_id uuid not null references public.products(id) on delete restrict,
@@ -367,9 +367,14 @@ cross join public.locations l
 left join public.stock_balances sb on sb.product_id = p.id and sb.location_id = l.id
 where p.active and l.active and l.tracks_inventory;
 
--- Invariantes de banco: vendas exigem local ativo; saldos e movimentos
--- exigem também capacidade de estoque. Isto cobre chamadas RPC e escrita
--- direta autorizada por RLS.
+-- Invariantes de banco: toda venda/lead exige um local operacional com
+-- capacidade explícita de estoque; saldos e movimentos seguem a mesma regra.
+-- Isto cobre chamadas RPC e escrita direta autorizada por RLS.
+-- A promoção só instala este NOT NULL enquanto a tabela pública de vendas
+-- ainda está no baseline vazio revisado.
+alter table public.sales
+  alter column location_id set not null;
+
 create or replace function appsheet_import.require_active_sale_location()
 returns trigger
 language plpgsql
@@ -382,10 +387,11 @@ begin
     from public.locations l
     where l.id = new.location_id
       and l.active
+      and l.tracks_inventory
   ) then
     raise exception using
       errcode = '23514',
-      message = 'Venda/lead exige local operacional ativo';
+      message = 'Venda/lead exige local ativo com estoque habilitado';
   end if;
   return new;
 end;
