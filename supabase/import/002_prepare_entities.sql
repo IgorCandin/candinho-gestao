@@ -299,10 +299,18 @@ begin
     original_id, imported_at, natural_key, normalized_payload, validation_errors
   )
   select
-    import_run_id, entity_type, source_subkey, source_sheet, source_row,
-    original_id, imported_at, natural_key, normalized_payload, validation_errors
-  from prepared
-  on conflict (import_run_id, entity_type, source_sheet, source_row, source_subkey) do update
+    prepared_row.import_run_id,
+    prepared_row.entity_type,
+    prepared_row.source_subkey,
+    prepared_row.source_sheet,
+    prepared_row.source_row,
+    prepared_row.original_id,
+    prepared_row.imported_at,
+    prepared_row.natural_key,
+    prepared_row.normalized_payload,
+    prepared_row.validation_errors
+  from prepared prepared_row
+  on conflict on constraint prepared_entities_import_run_id_entity_type_source_sheet_so_key do update
     set original_id = excluded.original_id,
         imported_at = excluded.imported_at,
         natural_key = excluded.natural_key,
