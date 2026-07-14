@@ -325,7 +325,7 @@ begin
   ) values (
     p_import_run_id, p_source_sheet, p_source_row, nullif(btrim(p_original_id), ''),
     p_imported_at, p_payload, coalesce(p_formulas, '{}'::jsonb),
-    encode(digest(convert_to(p_payload::text, 'UTF8'), 'sha256'), 'hex')
+    encode(extensions.digest(convert_to(p_payload::text, 'UTF8'), 'sha256'), 'hex')
   )
   on conflict (import_run_id, source_sheet, source_row) do update
     set original_id = excluded.original_id,
