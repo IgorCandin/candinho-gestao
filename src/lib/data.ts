@@ -14,7 +14,10 @@ import { createClient } from "./supabase/server";
 import type {
   CommercialDashboardSummary,
   Customer,
+  CustomerDetails,
+  CustomerOption,
   DashboardData,
+  LeadDetails,
   LeadRow,
   Movement,
   PanelCSData,
@@ -22,6 +25,7 @@ import type {
   PendingOrderRow,
   ProductCatalogRow,
   ProductDetails,
+  ProductOption,
   ReplenishmentRow,
   SaleDetails,
   SaleRow,
@@ -112,6 +116,20 @@ function normalizeSale(row: Record<string, unknown>): SaleRow {
   };
 }
 
+function normalizeLead(row: Record<string, unknown>): LeadRow {
+  return {
+    id: String(row.id), customer_id: typeof row.customer_id === "string" ? row.customer_id : null, customer_name: text(row.customer_name, "Cliente não informado"),
+    location_id: String(row.location_id ?? ""), location_code: text(row.location_code), location_name: text(row.location_name),
+    lead_at: String(row.lead_at ?? ""), lead_date: String(row.lead_date ?? ""), lead_month: String(row.lead_month ?? ""),
+    lead_status: typeof row.lead_status === "string" ? row.lead_status : null, general_status: text(row.general_status, "pending"),
+    reference: typeof row.reference === "string" ? row.reference : null, city: typeof row.city === "string" ? row.city : null,
+    phone: typeof row.phone === "string" ? row.phone : null, notes: typeof row.notes === "string" ? row.notes : null,
+    product_summary: typeof row.product_summary === "string" ? row.product_summary : null, total_items: number(row.total_items),
+    primary_product_id: typeof row.primary_product_id === "string" ? row.primary_product_id : null,
+    primary_image_url: typeof row.primary_image_url === "string" ? row.primary_image_url : null,
+  };
+}
+
 export async function getProductCatalog(): Promise<ProductCatalogRow[]> {
   if (!isSupabaseConfigured) return demoProducts;
   const supabase = await createClient();
@@ -182,41 +200,46 @@ export async function getSalesHistory(limit = 500): Promise<SaleRow[]> {
 export async function getLeadsHistory(): Promise<LeadRow[]> {
   if (!isSupabaseConfigured) return demoLeads;
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("leads_history")
-    .select("*")
-    .order("lead_month", { ascending: false })
-    .order("lead_date", { ascending: false });
+  const { data, error } = await supabase.from("leads_history").select("*").order("lead_month", { ascending: false }).order("lead_date", { ascending: false });
   if (error) throw error;
+  return (data ?? []).map((row) => normalizeLead(row as Record<string, unknown>));
+}
 
-  return (data ?? []).map((row) => ({
-    id: String(row.id),
-    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
-    customer_name: text(row.customer_name, "Cliente não informado"),
-    location_id: String(row.location_id ?? ""),
-    location_code: text(row.location_code),
-    location_name: text(row.location_name),
-    lead_at: String(row.lead_at ?? ""),
-    lead_date: String(row.lead_date ?? ""),
-    lead_month: String(row.lead_month ?? ""),
-    lead_status: typeof row.lead_status === "string" ? row.lead_status : null,
-    general_status: text(row.general_status, "pending"),
-    reference: typeof row.reference === "string" ? row.reference : null,
-    city: typeof row.city === "string" ? row.city : null,
-    phone: typeof row.phone === "string" ? row.phone : null,
-    notes: typeof row.notes === "string" ? row.notes : null,
-    product_summary: typeof row.product_summary === "string" ? row.product_summary : null,
-    total_items: number(row.total_items),
-  }));
+export async function getLeadDetails(leadId: string): Promise<LeadDetails | null> {
+  if (!isSupabaseConfigured) {
+    const lead = demoLeads.find((row) => row.id === leadId);
+    if (!lead) return null;
+    return { id: lead.id, customer_id: lead.customer_id, customer_name: lead.customer_name, lead_at: lead.lead_at, lead_status: lead.lead_status, general_status: lead.general_status, reference: lead.reference, city: lead.city, phone: lead.phone, notes: lead.notes, product_id: lead.primary_product_id, product_name: lead.product_summary, product_image_url: lead.primary_image_url, category: null, brand: null };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("sales").select(`id,customer_id,lead_status,general_status,quoted_at,reference,city,phone,notes,customer:customers(id,name,city,phone,reference),items:sale_items(id,product_id,product:products(id,name,image_url,category,brand))`).eq("id", leadId).eq("record_type", "lead").maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const row = data as Record<string, unknown>; const customer = oneRelation(row.customer); const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : []; const firstItem = itemRows[0] ?? null; const product = firstItem ? oneRelation(firstItem.product) : null;
+  return { id: String(row.id), customer_id: typeof row.customer_id === "string" ? row.customer_id : null, customer_name: text(customer?.name, "Cliente não informado"), lead_at: String(row.quoted_at ?? ""), lead_status: typeof row.lead_status === "string" ? row.lead_status : null, general_status: text(row.general_status, "pending"), reference: typeof row.reference === "string" ? row.reference : typeof customer?.reference === "string" ? customer.reference : null, city: typeof row.city === "string" ? row.city : typeof customer?.city === "string" ? customer.city : null, phone: typeof row.phone === "string" ? row.phone : typeof customer?.phone === "string" ? customer.phone : null, notes: typeof row.notes === "string" ? row.notes : null, product_id: firstItem && typeof firstItem.product_id === "string" ? firstItem.product_id : null, product_name: typeof product?.name === "string" ? product.name : null, product_image_url: typeof product?.image_url === "string" ? product.image_url : null, category: typeof product?.category === "string" ? product.category : null, brand: typeof product?.brand === "string" ? product.brand : null };
 }
 
 export async function getCustomers(): Promise<Customer[]> {
   if (!isSupabaseConfigured) return demoCustomers;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("customer_summary").select("*").order("last_purchase_at", { ascending: false, nullsFirst: false });
+  const { data, error } = await supabase.from("customer_details").select("id,name,city,phone,total_spent,purchase_count,last_purchase_at,lead_count,pending_sales_count").order("last_purchase_at", { ascending: false, nullsFirst: false }).order("name", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((row) => ({ ...row, total_spent: number(row.total_spent), purchase_count: number(row.purchase_count) })) as Customer[];
+  return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null, total_spent: number(row.total_spent), purchase_count: number(row.purchase_count), last_purchase_at: typeof row.last_purchase_at === "string" ? row.last_purchase_at : null, lead_count: number(row.lead_count), pending_sales_count: number(row.pending_sales_count) }));
 }
+export async function getCustomerOptions(): Promise<CustomerOption[]> {
+  if (!isSupabaseConfigured) return demoCustomers.map(({ id, name, city, phone }) => ({ id, name, city, phone }));
+  const supabase = await createClient(); const { data, error } = await supabase.from("customers").select("id,name,city,phone").eq("active", true).order("name", { ascending: true }); if (error) throw error;
+  return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null }));
+}
+export async function getProductOptions(): Promise<ProductOption[]> { const products = await getProductCatalog(); return products.filter((product) => product.active).map(({ id, name, category, brand, image_url }) => ({ id, name, category, brand, image_url })); }
+export async function getCustomerDetails(customerId: string): Promise<CustomerDetails | null> {
+  if (!isSupabaseConfigured) { const customer = demoCustomers.find((row) => row.id === customerId); if (!customer) return null; return { ...customer, reference: null, email: null, notes: null, sensitive_to_caffeine: false, anxiety_or_insomnia: false, prohibited_products: null, approach_preferences: null, active: true }; }
+  const supabase = await createClient(); const { data, error } = await supabase.from("customer_details").select("*").eq("id", customerId).maybeSingle(); if (error) throw error; if (!data) return null;
+  return { id: String(data.id), name: text(data.name, "Cliente sem nome"), city: typeof data.city === "string" ? data.city : null, phone: typeof data.phone === "string" ? data.phone : null, reference: typeof data.reference === "string" ? data.reference : null, email: typeof data.email === "string" ? data.email : null, notes: typeof data.notes === "string" ? data.notes : null, sensitive_to_caffeine: Boolean(data.sensitive_to_caffeine), anxiety_or_insomnia: Boolean(data.anxiety_or_insomnia), prohibited_products: typeof data.prohibited_products === "string" ? data.prohibited_products : null, approach_preferences: typeof data.approach_preferences === "string" ? data.approach_preferences : null, active: Boolean(data.active), total_spent: number(data.total_spent), purchase_count: number(data.purchase_count), last_purchase_at: typeof data.last_purchase_at === "string" ? data.last_purchase_at : null, lead_count: number(data.lead_count), pending_sales_count: number(data.pending_sales_count) };
+}
+export async function getCustomerSales(customerId: string): Promise<SaleRow[]> { return (await getSalesHistory()).filter((sale) => sale.customer_id === customerId); }
+export async function getCustomerLeads(customerId: string): Promise<LeadRow[]> { return (await getLeadsHistory()).filter((lead) => lead.customer_id === customerId); }
+export async function getCustomerPendingOrders(customerId: string): Promise<PendingOrderRow[]> { return (await getPendingOrders()).filter((order) => order.customer_id === customerId); }
 
 export async function getMovements(): Promise<Movement[]> {
   if (!isSupabaseConfigured) return demoMovements;

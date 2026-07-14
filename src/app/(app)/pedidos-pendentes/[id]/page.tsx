@@ -10,7 +10,8 @@ import { getSaleDetails } from "@/lib/data";
 import { formatCurrency, formatDate } from "@/lib/format";
 
 function DetailLine({ label, value }: { label: string; value: React.ReactNode }) {
-  return <div className="sale-detail-line"><span>{label}</span><strong>{value || "—"}</strong></div>;
+  if (value == null || value === "" || value === "—") return null;
+  return <div className="sale-detail-line"><span>{label}</span><strong>{value}</strong></div>;
 }
 
 export default async function PendingOrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
@@ -76,8 +77,8 @@ export default async function PendingOrderDetailsPage({ params }: { params: Prom
             <div className="panel-head"><div><h2>Datas e pagamento</h2><p>Histórico preenchido da venda</p></div><CalendarDays size={19} /></div>
             <div className="panel-body sale-detail-list">
               <DetailLine label="Data do pedido" value={formatDate(sale.order_at)} />
-              <DetailLine label="Data do recebimento" value={formatDate(sale.paid_at)} />
-              <DetailLine label="Data da entrega" value={formatDate(sale.delivered_at)} />
+              <DetailLine label="Data do recebimento" value={sale.paid_at ? formatDate(sale.paid_at) : null} />
+              <DetailLine label="Data da entrega" value={sale.delivered_at ? formatDate(sale.delivered_at) : null} />
               <DetailLine label="Forma de pagamento" value={sale.payment_method} />
               <DetailLine label="Condição" value={sale.payment_condition} />
             </div>
@@ -86,7 +87,7 @@ export default async function PendingOrderDetailsPage({ params }: { params: Prom
           <article className="panel">
             <div className="panel-head"><div><h2>Cliente e origem</h2><p>Dados usados na operação</p></div><UserRound size={19} /></div>
             <div className="panel-body sale-detail-list">
-              <DetailLine label="Cliente" value={sale.customer_name} />
+              <DetailLine label="Cliente" value={sale.customer_id ? <Link className="table-link" href={`/clientes/${sale.customer_id}`}>{sale.customer_name}</Link> : sale.customer_name} />
               <DetailLine label="Telefone" value={sale.phone ? <span className="detail-with-icon"><Phone size={14} />{sale.phone}</span> : null} />
               <DetailLine label="Cidade" value={sale.city} />
               <DetailLine label="Referência" value={sale.reference} />

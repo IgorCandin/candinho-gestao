@@ -38,7 +38,7 @@ export const demoSales: SaleRow[] = [
 ];
 
 export const demoLeads: LeadRow[] = [
-  { id: "l1", customer_id: "c2", customer_name: "Lead de exemplo", location_id: "l1", location_code: "CS", location_name: "Estoque principal", lead_at: "2026-07-12T12:00:00-03:00", lead_date: "2026-07-12", lead_month: "2026-07-01", lead_status: "Perguntou sobre", general_status: "pending", reference: null, city: "Caparaó", phone: null, notes: null, product_summary: "Melatonina", total_items: 1 },
+  { id: "l1", customer_id: "c2", customer_name: "Lead de exemplo", location_id: "l1", location_code: "CS", location_name: "Estoque principal", lead_at: "2026-07-12T12:00:00-03:00", lead_date: "2026-07-12", lead_month: "2026-07-01", lead_status: "Perguntou sobre", general_status: "pending", reference: null, city: "Caparaó", phone: null, notes: null, product_summary: "Melatonina", total_items: 1, primary_product_id: "p2", primary_image_url: null },
 ];
 
 export const demoPendingOrders: PendingOrderRow[] = [
@@ -50,7 +50,7 @@ export const demoReplenishment: ReplenishmentRow[] = [
 ];
 
 export const demoCustomers: Customer[] = [
-  { id: "c1", name: "Cliente demonstração", city: "Carangola", phone: null, total_spent: 70, purchase_count: 1, last_purchase_at: "2026-07-13T12:00:00-03:00" },
+  { id: "c1", name: "Cliente demonstração", city: "Carangola", phone: null, total_spent: 70, purchase_count: 1, last_purchase_at: "2026-07-13T12:00:00-03:00", lead_count: 0, pending_sales_count: 0 },
 ];
 
 export const demoMovements: Movement[] = [

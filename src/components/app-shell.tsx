@@ -106,7 +106,7 @@ export function AppShell({
           <div className="topbar-title">Qualidade que entrega resultado</div>
           {showSupplementActions && (
             <div className="topbar-actions">
-              <Link className="button ghost" href="/leads?novo=lead">
+              <Link className="button ghost" href="/leads/novo">
                 <UserRoundPlus size={16} />
                 Novo lead
               </Link>

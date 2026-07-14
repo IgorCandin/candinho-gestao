@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Link from "next/link";
 import { ImageIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/badge";
@@ -54,7 +55,7 @@ export function PendingOrdersTable({ orders }: { orders: PendingOrderRow[] }) {
                     )}
                   </div>
                   <div>
-                    <div className="cell-main">{order.customer_name}</div>
+                    {order.customer_id ? <Link className="cell-main table-link" href={`/clientes/${order.customer_id}`} onClick={(event) => event.stopPropagation()}>{order.customer_name}</Link> : <div className="cell-main">{order.customer_name}</div>}
                     <div className="cell-sub">Clique para abrir os detalhes</div>
                   </div>
                 </div>
