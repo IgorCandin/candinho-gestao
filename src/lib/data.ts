@@ -48,6 +48,11 @@ import type {
   SupplierOrderDetails,
   SupplierOrderItem,
   SupplierWaitingSale,
+  PartnerOverview,
+  PartnerDetails,
+  PartnerSale,
+  PartnerSettlement,
+  UnassignedPartnershipSale,
 } from "./types";
 
 const number = (value: unknown) => Number(value ?? 0);
@@ -1200,4 +1205,153 @@ export async function getSupplierOrderDetails(orderId: string): Promise<Supplier
     };
   });
   return { ...normalizeSupplierOrderSummary(summary as Record<string, unknown>), items: normalizedItems };
+}
+
+function normalizePartnerOverview(row: Record<string, unknown>): PartnerOverview {
+  return {
+    id: String(row.id),
+    name: text(row.name, "Parceiro sem nome"),
+    partner_type: text(row.partner_type, "Parceiro"),
+    city: typeof row.city === "string" ? row.city : null,
+    reference: typeof row.reference === "string" ? row.reference : null,
+    contact_name: typeof row.contact_name === "string" ? row.contact_name : null,
+    phone: typeof row.phone === "string" ? row.phone : null,
+    status: text(row.status, "Ativo"),
+    start_date: typeof row.start_date === "string" ? row.start_date : null,
+    end_date: typeof row.end_date === "string" ? row.end_date : null,
+    partnership_model: typeof row.partnership_model === "string" ? row.partnership_model : null,
+    settlement_rule: typeof row.settlement_rule === "string" ? row.settlement_rule : null,
+    commission_pct: number(row.commission_pct),
+    active: Boolean(row.active),
+    can_hold_stock: Boolean(row.can_hold_stock),
+    can_pickup: Boolean(row.can_pickup),
+    can_sell: Boolean(row.can_sell),
+    can_deliver: Boolean(row.can_deliver),
+    notes: typeof row.notes === "string" ? row.notes : null,
+    linked_location_id: typeof row.linked_location_id === "string" ? row.linked_location_id : null,
+    linked_location_code: typeof row.linked_location_code === "string" ? row.linked_location_code : null,
+    linked_location_name: typeof row.linked_location_name === "string" ? row.linked_location_name : null,
+    reward_type: text(row.reward_type, "manual"),
+    target_sales: row.target_sales === null || row.target_sales === undefined ? null : number(row.target_sales),
+    reward_value: number(row.reward_value),
+    reward_description: typeof row.reward_description === "string" ? row.reward_description : null,
+    settlement_frequency: text(row.settlement_frequency, "manual"),
+    settlement_day: row.settlement_day === null || row.settlement_day === undefined ? null : number(row.settlement_day),
+    coupon_code: typeof row.coupon_code === "string" ? row.coupon_code : null,
+    counts_only_delivered: Boolean(row.counts_only_delivered),
+    updated_at: String(row.updated_at ?? ""),
+    all_time_sales_count: number(row.all_time_sales_count),
+    all_time_revenue: number(row.all_time_revenue),
+    all_time_profit: number(row.all_time_profit),
+    last_sale_on: typeof row.last_sale_on === "string" ? row.last_sale_on : null,
+    cycle_start: String(row.cycle_start ?? ""),
+    current_cycle_sales_count: number(row.current_cycle_sales_count),
+    current_cycle_revenue: number(row.current_cycle_revenue),
+    current_cycle_profit: number(row.current_cycle_profit),
+    reward_units_due: number(row.reward_units_due),
+    progress_sales: number(row.progress_sales),
+    progress_pct: number(row.progress_pct),
+    estimated_reward_amount: number(row.estimated_reward_amount),
+    last_settlement_on: typeof row.last_settlement_on === "string" ? row.last_settlement_on : null,
+    last_settlement_period_end: typeof row.last_settlement_period_end === "string" ? row.last_settlement_period_end : null,
+    linked_location_units: number(row.linked_location_units),
+    settlement_pending: Boolean(row.settlement_pending),
+  };
+}
+
+function normalizePartnerSale(row: Record<string, unknown>): PartnerSale {
+  return {
+    id: String(row.id),
+    partner_id: String(row.partner_id),
+    partner_name: text(row.partner_name, "Parceiro"),
+    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+    customer_name: text(row.customer_name, "Cliente não informado"),
+    sale_date: String(row.sale_date ?? ""),
+    quoted_at: String(row.quoted_at ?? ""),
+    delivered_at: typeof row.delivered_at === "string" ? row.delivered_at : null,
+    payment_status: text(row.payment_status),
+    delivery_status: text(row.delivery_status),
+    general_status: text(row.general_status),
+    total_amount: number(row.total_amount),
+    total_profit: number(row.total_profit),
+    location_code: text(row.location_code),
+    location_name: text(row.location_name),
+    product_summary: typeof row.product_summary === "string" ? row.product_summary : null,
+    total_items: number(row.total_items),
+  };
+}
+
+function normalizePartnerSettlement(row: Record<string, unknown>): PartnerSettlement {
+  return {
+    id: String(row.id),
+    partner_id: String(row.partner_id),
+    settled_on: String(row.settled_on ?? ""),
+    period_start: String(row.period_start ?? ""),
+    period_end: String(row.period_end ?? ""),
+    sale_count: number(row.sale_count),
+    gross_sales: number(row.gross_sales),
+    gross_profit: number(row.gross_profit),
+    reward_units: number(row.reward_units),
+    reward_amount: number(row.reward_amount),
+    reward_description: typeof row.reward_description === "string" ? row.reward_description : null,
+    notes: typeof row.notes === "string" ? row.notes : null,
+    created_at: String(row.created_at ?? ""),
+  };
+}
+
+function normalizeUnassignedPartnershipSale(row: Record<string, unknown>): UnassignedPartnershipSale {
+  return {
+    id: String(row.id),
+    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+    customer_name: text(row.customer_name, "Cliente não informado"),
+    sale_date: String(row.sale_date ?? ""),
+    total_amount: number(row.total_amount),
+    delivery_status: text(row.delivery_status),
+    payment_status: text(row.payment_status),
+    location_id: String(row.location_id ?? ""),
+    location_code: text(row.location_code),
+    location_name: text(row.location_name),
+    product_summary: typeof row.product_summary === "string" ? row.product_summary : null,
+    total_items: number(row.total_items),
+    suggested_partner_id: typeof row.suggested_partner_id === "string" ? row.suggested_partner_id : null,
+    suggested_partner_name: typeof row.suggested_partner_name === "string" ? row.suggested_partner_name : null,
+  };
+}
+
+export async function getPartnersOverview(): Promise<PartnerOverview[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("partner_management_overview").select("*").order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizePartnerOverview(row as Record<string, unknown>));
+}
+
+export async function getPartnerDetails(partnerId: string): Promise<PartnerDetails | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const [overviewResult, salesResult, settlementsResult, unassignedResult] = await Promise.all([
+    supabase.from("partner_management_overview").select("*").eq("id", partnerId).maybeSingle(),
+    supabase.from("partner_sales_history").select("*").eq("partner_id", partnerId).order("sale_date", { ascending: false }).limit(300),
+    supabase.from("partnership_settlements").select("*").eq("partner_id", partnerId).order("period_end", { ascending: false }),
+    supabase.from("unassigned_partnership_sales").select("*").or(`suggested_partner_id.eq.${partnerId},suggested_partner_id.is.null`).order("sale_date", { ascending: false }).limit(100),
+  ]);
+  if (overviewResult.error) throw overviewResult.error;
+  if (salesResult.error) throw salesResult.error;
+  if (settlementsResult.error) throw settlementsResult.error;
+  if (unassignedResult.error) throw unassignedResult.error;
+  if (!overviewResult.data) return null;
+  return {
+    overview: normalizePartnerOverview(overviewResult.data as Record<string, unknown>),
+    sales: (salesResult.data ?? []).map((row) => normalizePartnerSale(row as Record<string, unknown>)),
+    settlements: (settlementsResult.data ?? []).map((row) => normalizePartnerSettlement(row as Record<string, unknown>)),
+    unassignedSales: (unassignedResult.data ?? []).map((row) => normalizeUnassignedPartnershipSale(row as Record<string, unknown>)),
+  };
+}
+
+export async function getUnassignedPartnershipSales(): Promise<UnassignedPartnershipSale[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("unassigned_partnership_sales").select("*").order("sale_date", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeUnassignedPartnershipSale(row as Record<string, unknown>));
 }

@@ -12,6 +12,7 @@ import {
   ContactRound,
   Dumbbell,
   History,
+  Handshake,
   Home,
   LogOut,
   PackageSearch,
@@ -33,6 +34,7 @@ const supplementNav = [
   { href: "/vendas", label: "Vendas", icon: ShoppingBag },
   { href: "/leads", label: "Leads", icon: UserRoundPlus },
   { href: "/clientes", label: "CRM", icon: ContactRound },
+  { href: "/parceiros", label: "Parceiros", icon: Handshake },
   { href: "/movimentacoes", label: "Movimentações", icon: History },
 ];
 

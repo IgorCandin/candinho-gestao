@@ -434,3 +434,113 @@ export type SupplierOrderItem = {
 export type SupplierOrderDetails = SupplierOrderSummary & {
   items: SupplierOrderItem[];
 };
+
+export type PartnerOverview = {
+  id: string;
+  name: string;
+  partner_type: string;
+  city: string | null;
+  reference: string | null;
+  contact_name: string | null;
+  phone: string | null;
+  status: string;
+  start_date: string | null;
+  end_date: string | null;
+  partnership_model: string | null;
+  settlement_rule: string | null;
+  commission_pct: number;
+  active: boolean;
+  can_hold_stock: boolean;
+  can_pickup: boolean;
+  can_sell: boolean;
+  can_deliver: boolean;
+  notes: string | null;
+  linked_location_id: string | null;
+  linked_location_code: string | null;
+  linked_location_name: string | null;
+  reward_type: string;
+  target_sales: number | null;
+  reward_value: number;
+  reward_description: string | null;
+  settlement_frequency: string;
+  settlement_day: number | null;
+  coupon_code: string | null;
+  counts_only_delivered: boolean;
+  updated_at: string;
+  all_time_sales_count: number;
+  all_time_revenue: number;
+  all_time_profit: number;
+  last_sale_on: string | null;
+  cycle_start: string;
+  current_cycle_sales_count: number;
+  current_cycle_revenue: number;
+  current_cycle_profit: number;
+  reward_units_due: number;
+  progress_sales: number;
+  progress_pct: number;
+  estimated_reward_amount: number;
+  last_settlement_on: string | null;
+  last_settlement_period_end: string | null;
+  linked_location_units: number;
+  settlement_pending: boolean;
+};
+
+export type PartnerSale = {
+  id: string;
+  partner_id: string;
+  partner_name: string;
+  customer_id: string | null;
+  customer_name: string;
+  sale_date: string;
+  quoted_at: string;
+  delivered_at: string | null;
+  payment_status: string;
+  delivery_status: string;
+  general_status: string;
+  total_amount: number;
+  total_profit: number;
+  location_code: string;
+  location_name: string;
+  product_summary: string | null;
+  total_items: number;
+};
+
+export type PartnerSettlement = {
+  id: string;
+  partner_id: string;
+  settled_on: string;
+  period_start: string;
+  period_end: string;
+  sale_count: number;
+  gross_sales: number;
+  gross_profit: number;
+  reward_units: number;
+  reward_amount: number;
+  reward_description: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+export type UnassignedPartnershipSale = {
+  id: string;
+  customer_id: string | null;
+  customer_name: string;
+  sale_date: string;
+  total_amount: number;
+  delivery_status: string;
+  payment_status: string;
+  location_id: string;
+  location_code: string;
+  location_name: string;
+  product_summary: string | null;
+  total_items: number;
+  suggested_partner_id: string | null;
+  suggested_partner_name: string | null;
+};
+
+export type PartnerDetails = {
+  overview: PartnerOverview;
+  sales: PartnerSale[];
+  settlements: PartnerSettlement[];
+  unassignedSales: UnassignedPartnershipSale[];
+};
