@@ -108,9 +108,7 @@ create table if not exists appsheet_import.raw_rows (
   imported_at timestamptz not null default now(),
   payload jsonb not null check (jsonb_typeof(payload) = 'object'),
   formulas jsonb not null default '{}'::jsonb check (jsonb_typeof(formulas) = 'object'),
-  payload_sha256 text generated always as (
-    encode(digest(convert_to(payload::text, 'UTF8'), 'sha256'), 'hex')
-  ) stored,
+  payload_sha256 text,
   primary key (import_run_id, source_sheet, source_row)
 );
 
@@ -129,9 +127,7 @@ end $$;
 
 alter table appsheet_import.raw_rows
   add column if not exists original_id text,
-  add column if not exists payload_sha256 text generated always as (
-    encode(digest(convert_to(payload::text, 'UTF8'), 'sha256'), 'hex')
-  ) stored;
+  add column if not exists payload_sha256 text;
 
 do $$
 begin
@@ -325,15 +321,17 @@ begin
   end if;
 
   insert into appsheet_import.raw_rows(
-    import_run_id, source_sheet, source_row, original_id, imported_at, payload, formulas
+    import_run_id, source_sheet, source_row, original_id, imported_at, payload, formulas, payload_sha256
   ) values (
     p_import_run_id, p_source_sheet, p_source_row, nullif(btrim(p_original_id), ''),
-    p_imported_at, p_payload, coalesce(p_formulas, '{}'::jsonb)
+    p_imported_at, p_payload, coalesce(p_formulas, '{}'::jsonb),
+    encode(digest(convert_to(p_payload::text, 'UTF8'), 'sha256'), 'hex')
   )
   on conflict (import_run_id, source_sheet, source_row) do update
     set original_id = excluded.original_id,
         payload = excluded.payload,
-        formulas = excluded.formulas;
+        formulas = excluded.formulas,
+        payload_sha256 = excluded.payload_sha256;
 end;
 $$;
 
