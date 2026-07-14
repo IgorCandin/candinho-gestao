@@ -33,6 +33,10 @@ import type {
   SaleDetails,
   SaleRow,
   StockRow,
+  InventoryOverviewRow,
+  InventorySummary,
+  InventoryLocationRow,
+  InventoryProductDetails,
   SupplierOption,
   PurchaseProductOption,
   SupplierOrderSummary,
@@ -185,6 +189,151 @@ export async function getProductDetails(productId: string): Promise<ProductDetai
     secondary_image_url: typeof data.secondary_image_url === "string" ? data.secondary_image_url : null,
     incoming_quantity: number(data.incoming_quantity),
     awaiting_sales_quantity: number(data.awaiting_sales_quantity),
+  };
+}
+
+
+function normalizeInventoryOverview(row: Record<string, unknown>): InventoryOverviewRow {
+  return {
+    product_id: String(row.product_id),
+    product_name: text(row.product_name, "Produto sem nome"),
+    category: text(row.category, "Sem categoria"),
+    brand: typeof row.brand === "string" ? row.brand : null,
+    image_url: typeof row.image_url === "string" ? row.image_url : null,
+    min_stock: number(row.min_stock),
+    ideal_stock: number(row.ideal_stock),
+    cost_price: number(row.cost_price),
+    sale_price: number(row.sale_price),
+    physical_quantity: number(row.physical_quantity),
+    reserved_quantity: number(row.reserved_quantity),
+    available_quantity: number(row.available_quantity),
+    incoming_quantity: number(row.incoming_quantity),
+    stock_cost_value: number(row.stock_cost_value),
+    stock_sale_value: number(row.stock_sale_value),
+    stock_status: text(row.stock_status, "healthy"),
+  };
+}
+
+export async function getInventoryOverview(): Promise<InventoryOverviewRow[]> {
+  if (!isSupabaseConfigured) {
+    const grouped = new Map<string, InventoryOverviewRow>();
+    demoStock.forEach((row) => {
+      const current = grouped.get(row.product_id);
+      if (current) {
+        current.physical_quantity += row.quantity;
+        current.available_quantity += row.quantity;
+        current.stock_cost_value += row.stock_cost_value;
+        current.stock_sale_value += row.stock_sale_value;
+      } else {
+        grouped.set(row.product_id, {
+          product_id: row.product_id, product_name: row.product_name, category: row.category, brand: null, image_url: null,
+          min_stock: row.min_stock, ideal_stock: row.min_stock, cost_price: row.cost_price, sale_price: row.sale_price,
+          physical_quantity: row.quantity, reserved_quantity: 0, available_quantity: row.quantity, incoming_quantity: 0,
+          stock_cost_value: row.stock_cost_value, stock_sale_value: row.stock_sale_value,
+          stock_status: row.quantity === 0 ? "out_of_stock" : row.quantity <= row.min_stock ? "below_minimum" : "healthy",
+        });
+      }
+    });
+    return [...grouped.values()].sort((a, b) => a.product_name.localeCompare(b.product_name, "pt-BR"));
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("inventory_control_overview").select("*").order("product_name");
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeInventoryOverview(row as Record<string, unknown>));
+}
+
+export async function getInventoryLocationOverview(): Promise<InventoryLocationRow[]> {
+  if (!isSupabaseConfigured) {
+    return demoStock.map((row) => ({
+      product_id: row.product_id, product_name: row.product_name, location_id: row.location_id, location_code: row.location_code,
+      location_name: row.location_name, location_city: null, physical_quantity: row.quantity, reserved_quantity: 0,
+      available_quantity: row.quantity, incoming_quantity: 0, stock_cost_value: row.stock_cost_value, stock_sale_value: row.stock_sale_value,
+    }));
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("inventory_location_overview").select("*").order("product_name").order("location_code");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    product_id: String(row.product_id), product_name: text(row.product_name), location_id: String(row.location_id),
+    location_code: text(row.location_code), location_name: text(row.location_name), location_city: typeof row.location_city === "string" ? row.location_city : null,
+    physical_quantity: number(row.physical_quantity), reserved_quantity: number(row.reserved_quantity), available_quantity: number(row.available_quantity),
+    incoming_quantity: number(row.incoming_quantity), stock_cost_value: number(row.stock_cost_value), stock_sale_value: number(row.stock_sale_value),
+  }));
+}
+
+export async function getInventorySummary(): Promise<InventorySummary> {
+  if (!isSupabaseConfigured) {
+    const rows = await getInventoryOverview();
+    return {
+      active_products: rows.length, products_with_stock: rows.filter((row) => row.physical_quantity > 0).length,
+      physical_units: rows.reduce((sum, row) => sum + row.physical_quantity, 0), reserved_units: 0,
+      available_units: rows.reduce((sum, row) => sum + row.available_quantity, 0), incoming_units: 0,
+      stock_cost_value: rows.reduce((sum, row) => sum + row.stock_cost_value, 0),
+      stock_sale_value: rows.reduce((sum, row) => sum + row.stock_sale_value, 0),
+      attention_products: rows.filter((row) => row.stock_status !== "healthy").length,
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("inventory_control_summary").select("*").single();
+  if (error) throw error;
+  return {
+    active_products: number(data.active_products), products_with_stock: number(data.products_with_stock),
+    physical_units: number(data.physical_units), reserved_units: number(data.reserved_units),
+    available_units: number(data.available_units), incoming_units: number(data.incoming_units),
+    stock_cost_value: number(data.stock_cost_value), stock_sale_value: number(data.stock_sale_value),
+    attention_products: number(data.attention_products),
+  };
+}
+
+export async function getInventoryProductDetails(productId: string): Promise<InventoryProductDetails | null> {
+  if (!isSupabaseConfigured) {
+    const overview = (await getInventoryOverview()).find((row) => row.product_id === productId);
+    if (!overview) return null;
+    const locations: InventoryLocationRow[] = demoStock.filter((row) => row.product_id === productId).map((row) => ({
+      product_id: row.product_id, product_name: row.product_name, location_id: row.location_id, location_code: row.location_code,
+      location_name: row.location_name, location_city: null, physical_quantity: row.quantity, reserved_quantity: 0,
+      available_quantity: row.quantity, incoming_quantity: 0, stock_cost_value: row.stock_cost_value, stock_sale_value: row.stock_sale_value,
+    }));
+    return { overview, locations, reservations: [], movements: [] };
+  }
+  const supabase = await createClient();
+  const [overviewResult, locationsResult, reservationsResult, movementsResult] = await Promise.all([
+    supabase.from("inventory_control_overview").select("*").eq("product_id", productId).maybeSingle(),
+    supabase.from("inventory_location_overview").select("*").eq("product_id", productId).order("location_code"),
+    supabase.from("inventory_product_reservations").select("*").eq("product_id", productId).in("status", ["reserved", "partial", "awaiting_stock"]).order("sale_date"),
+    supabase.from("inventory_movement_history").select("*").eq("product_id", productId).order("occurred_at", { ascending: false }).limit(100),
+  ]);
+  if (overviewResult.error) throw overviewResult.error;
+  if (locationsResult.error) throw locationsResult.error;
+  if (reservationsResult.error) throw reservationsResult.error;
+  if (movementsResult.error) throw movementsResult.error;
+  if (!overviewResult.data) return null;
+  return {
+    overview: normalizeInventoryOverview(overviewResult.data as Record<string, unknown>),
+    locations: (locationsResult.data ?? []).map((row) => ({
+      product_id: String(row.product_id), product_name: text(row.product_name), location_id: String(row.location_id),
+      location_code: text(row.location_code), location_name: text(row.location_name), location_city: typeof row.location_city === "string" ? row.location_city : null,
+      physical_quantity: number(row.physical_quantity), reserved_quantity: number(row.reserved_quantity), available_quantity: number(row.available_quantity),
+      incoming_quantity: number(row.incoming_quantity), stock_cost_value: number(row.stock_cost_value), stock_sale_value: number(row.stock_sale_value),
+    })),
+    reservations: (reservationsResult.data ?? []).map((row) => ({
+      id: String(row.id), product_id: String(row.product_id), location_id: String(row.location_id), location_code: text(row.location_code),
+      location_name: text(row.location_name), sale_id: String(row.sale_id), customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+      customer_name: text(row.customer_name, "Cliente não informado"), sale_date: String(row.sale_date ?? ""),
+      quantity_requested: number(row.quantity_requested), quantity_reserved: number(row.quantity_reserved), quantity_missing: number(row.quantity_missing),
+      status: text(row.status), reserved_at: typeof row.reserved_at === "string" ? row.reserved_at : null,
+      fulfilled_at: typeof row.fulfilled_at === "string" ? row.fulfilled_at : null, notes: typeof row.notes === "string" ? row.notes : null,
+    })),
+    movements: (movementsResult.data ?? []).map((row) => ({
+      id: String(row.id), product_id: String(row.product_id), product_name: text(row.product_name), location_id: String(row.location_id),
+      location_code: text(row.location_code), location_name: text(row.location_name), movement_type: text(row.movement_type),
+      quantity_delta: number(row.quantity_delta), sale_id: typeof row.sale_id === "string" ? row.sale_id : null,
+      customer_id: typeof row.customer_id === "string" ? row.customer_id : null, customer_name: typeof row.customer_name === "string" ? row.customer_name : null,
+      transfer_group_id: typeof row.transfer_group_id === "string" ? row.transfer_group_id : null,
+      counterpart_location_code: typeof row.counterpart_location_code === "string" ? row.counterpart_location_code : null,
+      counterpart_location_name: typeof row.counterpart_location_name === "string" ? row.counterpart_location_name : null,
+      notes: typeof row.notes === "string" ? row.notes : null, occurred_at: String(row.occurred_at ?? ""),
+    })),
   };
 }
 

@@ -45,6 +45,98 @@ export type ProductDetails = ProductCatalogRow & {
   awaiting_sales_quantity: number;
 };
 
+
+export type InventoryOverviewRow = {
+  product_id: string;
+  product_name: string;
+  category: string;
+  brand: string | null;
+  image_url: string | null;
+  min_stock: number;
+  ideal_stock: number;
+  cost_price: number;
+  sale_price: number;
+  physical_quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+  incoming_quantity: number;
+  stock_cost_value: number;
+  stock_sale_value: number;
+  stock_status: string;
+};
+
+export type InventorySummary = {
+  active_products: number;
+  products_with_stock: number;
+  physical_units: number;
+  reserved_units: number;
+  available_units: number;
+  incoming_units: number;
+  stock_cost_value: number;
+  stock_sale_value: number;
+  attention_products: number;
+};
+
+export type InventoryLocationRow = {
+  product_id: string;
+  product_name: string;
+  location_id: string;
+  location_code: string;
+  location_name: string;
+  location_city: string | null;
+  physical_quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+  incoming_quantity: number;
+  stock_cost_value: number;
+  stock_sale_value: number;
+};
+
+export type InventoryReservationRow = {
+  id: string;
+  product_id: string;
+  location_id: string;
+  location_code: string;
+  location_name: string;
+  sale_id: string;
+  customer_id: string | null;
+  customer_name: string;
+  sale_date: string;
+  quantity_requested: number;
+  quantity_reserved: number;
+  quantity_missing: number;
+  status: string;
+  reserved_at: string | null;
+  fulfilled_at: string | null;
+  notes: string | null;
+};
+
+export type InventoryMovementRow = {
+  id: string;
+  product_id: string;
+  product_name: string;
+  location_id: string;
+  location_code: string;
+  location_name: string;
+  movement_type: string;
+  quantity_delta: number;
+  sale_id: string | null;
+  customer_id: string | null;
+  customer_name: string | null;
+  transfer_group_id: string | null;
+  counterpart_location_code: string | null;
+  counterpart_location_name: string | null;
+  notes: string | null;
+  occurred_at: string;
+};
+
+export type InventoryProductDetails = {
+  overview: InventoryOverviewRow;
+  locations: InventoryLocationRow[];
+  reservations: InventoryReservationRow[];
+  movements: InventoryMovementRow[];
+};
+
 export type StockRow = {
   product_id: string; product_name: string; category: string; location_id: string; location_code: string; location_name: string;
   quantity: number; min_stock: number; cost_price: number; sale_price: number; stock_cost_value: number; stock_sale_value: number;
