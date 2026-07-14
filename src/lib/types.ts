@@ -86,10 +86,13 @@ export type PendingOrderRow = {
   customer_name: string;
   location_id: string;
   location_code: string;
+  location_name: string;
   business_at: string;
   business_date: string;
   order_at: string;
+  paid_at: string | null;
   delivered_at: string | null;
+  general_status: string;
   payment_status: string;
   delivery_status: string;
   payment_method: string | null;
@@ -98,6 +101,42 @@ export type PendingOrderRow = {
   total_profit: number;
   product_summary: string | null;
   total_items: number;
+  primary_product_id: string | null;
+  primary_image_url: string | null;
+};
+
+export type SaleDetailItem = {
+  id: string;
+  product_id: string;
+  product_name: string;
+  product_image_url: string | null;
+  category: string | null;
+  brand: string | null;
+  quantity: number;
+  unit_price: number;
+};
+
+export type SaleDetails = {
+  id: string;
+  customer_id: string | null;
+  customer_name: string;
+  reference: string | null;
+  city: string | null;
+  phone: string | null;
+  location_id: string;
+  location_code: string;
+  location_name: string;
+  order_at: string;
+  paid_at: string | null;
+  delivered_at: string | null;
+  general_status: string;
+  payment_status: string;
+  delivery_status: string;
+  payment_method: string | null;
+  payment_condition: string | null;
+  total_amount: number;
+  notes: string | null;
+  items: SaleDetailItem[];
 };
 
 export type ReplenishmentRow = {

@@ -23,6 +23,7 @@ import type {
   ProductCatalogRow,
   ProductDetails,
   ReplenishmentRow,
+  SaleDetails,
   SaleRow,
   StockRow,
 } from "./types";
@@ -252,10 +253,13 @@ export async function getPendingOrders(): Promise<PendingOrderRow[]> {
     customer_name: text(row.customer_name, "Cliente não informado"),
     location_id: String(row.location_id ?? ""),
     location_code: text(row.location_code),
+    location_name: text(row.location_name),
     business_at: String(row.business_at ?? ""),
     business_date: String(row.business_date ?? ""),
     order_at: String(row.order_at ?? ""),
+    paid_at: typeof row.paid_at === "string" ? row.paid_at : null,
     delivered_at: typeof row.delivered_at === "string" ? row.delivered_at : null,
+    general_status: text(row.general_status, "active"),
     payment_status: text(row.payment_status, "not_applicable"),
     delivery_status: text(row.delivery_status, "not_applicable"),
     payment_method: typeof row.payment_method === "string" ? row.payment_method : null,
@@ -264,7 +268,108 @@ export async function getPendingOrders(): Promise<PendingOrderRow[]> {
     total_profit: number(row.total_profit),
     product_summary: typeof row.product_summary === "string" ? row.product_summary : null,
     total_items: number(row.total_items),
+    primary_product_id: typeof row.primary_product_id === "string" ? row.primary_product_id : null,
+    primary_image_url: typeof row.primary_image_url === "string" ? row.primary_image_url : null,
   }));
+}
+
+function oneRelation(value: unknown): Record<string, unknown> | null {
+  if (Array.isArray(value)) return (value[0] as Record<string, unknown> | undefined) ?? null;
+  return value && typeof value === "object" ? value as Record<string, unknown> : null;
+}
+
+export async function getSaleDetails(saleId: string): Promise<SaleDetails | null> {
+  if (!isSupabaseConfigured) {
+    const order = demoPendingOrders.find((row) => row.id === saleId);
+    if (!order) return null;
+    return {
+      id: order.id,
+      customer_id: order.customer_id,
+      customer_name: order.customer_name,
+      reference: null,
+      city: null,
+      phone: null,
+      location_id: order.location_id,
+      location_code: order.location_code,
+      location_name: order.location_name,
+      order_at: order.order_at,
+      paid_at: order.paid_at,
+      delivered_at: order.delivered_at,
+      general_status: order.general_status,
+      payment_status: order.payment_status,
+      delivery_status: order.delivery_status,
+      payment_method: order.payment_method,
+      payment_condition: order.payment_condition,
+      total_amount: order.total_amount,
+      notes: null,
+      items: [{
+        id: "demo-item",
+        product_id: order.primary_product_id ?? "p1",
+        product_name: order.product_summary ?? "Produto",
+        product_image_url: order.primary_image_url,
+        category: "Saúde",
+        brand: null,
+        quantity: order.total_items || 1,
+        unit_price: order.total_amount / Math.max(order.total_items, 1),
+      }],
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("sales")
+    .select(`
+      id,customer_id,location_id,reference,city,phone,general_status,payment_status,delivery_status,
+      payment_method,payment_condition,quoted_at,paid_at,delivered_at,total_amount,notes,
+      customer:customers(id,name,city,phone),
+      location:locations(id,code,name),
+      items:sale_items(id,product_id,quantity,unit_price,product:products(id,name,image_url,category,brand))
+    `)
+    .eq("id", saleId)
+    .eq("record_type", "sale")
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+
+  const row = data as Record<string, unknown>;
+  const customer = oneRelation(row.customer);
+  const location = oneRelation(row.location);
+  const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : [];
+
+  return {
+    id: String(row.id),
+    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+    customer_name: text(customer?.name, "Cliente não informado"),
+    reference: typeof row.reference === "string" ? row.reference : null,
+    city: typeof row.city === "string" ? row.city : typeof customer?.city === "string" ? customer.city : null,
+    phone: typeof row.phone === "string" ? row.phone : typeof customer?.phone === "string" ? customer.phone : null,
+    location_id: String(row.location_id ?? ""),
+    location_code: text(location?.code),
+    location_name: text(location?.name),
+    order_at: String(row.quoted_at ?? ""),
+    paid_at: typeof row.paid_at === "string" ? row.paid_at : null,
+    delivered_at: typeof row.delivered_at === "string" ? row.delivered_at : null,
+    general_status: text(row.general_status, "active"),
+    payment_status: text(row.payment_status, "receivable"),
+    delivery_status: text(row.delivery_status, "to_deliver"),
+    payment_method: typeof row.payment_method === "string" ? row.payment_method : null,
+    payment_condition: typeof row.payment_condition === "string" ? row.payment_condition : null,
+    total_amount: number(row.total_amount),
+    notes: typeof row.notes === "string" ? row.notes : null,
+    items: itemRows.map((item) => {
+      const product = oneRelation(item.product);
+      return {
+        id: String(item.id),
+        product_id: String(item.product_id),
+        product_name: text(product?.name, "Produto sem nome"),
+        product_image_url: typeof product?.image_url === "string" ? product.image_url : null,
+        category: typeof product?.category === "string" ? product.category : null,
+        brand: typeof product?.brand === "string" ? product.brand : null,
+        quantity: number(item.quantity),
+        unit_price: number(item.unit_price),
+      };
+    }),
+  };
 }
 
 export async function getReplenishment(): Promise<ReplenishmentRow[]> {

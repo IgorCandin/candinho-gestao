@@ -42,7 +42,7 @@ export const demoLeads: LeadRow[] = [
 ];
 
 export const demoPendingOrders: PendingOrderRow[] = [
-  { id: "v2", customer_id: "c3", customer_name: "Pedido demonstração", location_id: "l1", location_code: "CS", business_at: "2026-07-14T12:00:00-03:00", business_date: "2026-07-14", order_at: "2026-07-14T12:00:00-03:00", delivered_at: null, payment_status: "receivable", delivery_status: "to_deliver", payment_method: null, payment_condition: null, total_amount: 64.9, total_profit: 24.46, product_summary: "HMB", total_items: 1 },
+  { id: "v2", customer_id: "c3", customer_name: "Pedido demonstração", location_id: "l1", location_code: "CS", location_name: "Estoque principal", business_at: "2026-07-14T12:00:00-03:00", business_date: "2026-07-14", order_at: "2026-07-14T12:00:00-03:00", paid_at: null, delivered_at: null, general_status: "active", payment_status: "receivable", delivery_status: "to_deliver", payment_method: null, payment_condition: null, total_amount: 64.9, total_profit: 24.46, product_summary: "HMB", total_items: 1, primary_product_id: "p1", primary_image_url: null },
 ];
 
 export const demoReplenishment: ReplenishmentRow[] = [
