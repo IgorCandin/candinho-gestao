@@ -60,6 +60,8 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                 <DetailItem label="Nível" value={product.level} />
                 <DetailItem label="Categoria de vendas" value={product.sales_category} />
                 <DetailItem label="Duração" value={product.duration_days ? `${product.duration_days} dias/doses` : null} />
+                <DetailItem label="A caminho" value={`${product.incoming_quantity} un.`} />
+                <DetailItem label="Vendas aguardando" value={`${product.awaiting_sales_quantity} un.`} />
                 <DetailItem label="Status" value={product.active ? "Ativo" : "Inativo"} />
               </div>
             </div>

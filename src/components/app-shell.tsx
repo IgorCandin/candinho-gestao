@@ -17,6 +17,7 @@ import {
   PackageSearch,
   Settings,
   ShoppingBag,
+  Truck,
   UserRoundPlus,
   Warehouse,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const supplementNav = [
   { href: "/painel-cs", label: "Painel CS", icon: BarChart3 },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/estoque", label: "Estoque", icon: Warehouse },
+  { href: "/pedidos-fornecedor", label: "Pedidos fornecedor", icon: Truck },
   { href: "/vendas", label: "Vendas", icon: ShoppingBag },
   { href: "/leads", label: "Leads", icon: UserRoundPlus },
   { href: "/clientes", label: "Clientes", icon: ContactRound },
@@ -110,7 +112,7 @@ export function AppShell({
                 <UserRoundPlus size={16} />
                 Novo lead
               </Link>
-              <Link className="button ghost" href="/movimentacoes?novo=pedido-fornecedor">
+              <Link className="button ghost" href="/pedidos-fornecedor/novo">
                 <ClipboardPlus size={16} />
                 Novo pedido de fornecedor
               </Link>

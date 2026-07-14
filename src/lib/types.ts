@@ -41,6 +41,8 @@ export type ProductDetails = ProductCatalogRow & {
   level: string | null;
   sales_category: string | null;
   secondary_image_url: string | null;
+  incoming_quantity: number;
+  awaiting_sales_quantity: number;
 };
 
 export type StockRow = {
@@ -100,3 +102,81 @@ export type Movement = { id: string; created_at: string; movement_type: string; 
 export type DashboardData = { totalProducts: number; totalUnits: number; stockCostValue: number; stockSaleValue: number; receivable: number; pendingOrdersCount: number; pendingDeliveryCount: number; pendingPaymentCount: number; pendingOrdersValue: number; currentMonthRevenue: number; currentMonthSalesCount: number; recentSales: SaleRow[]; lowStock: ReplenishmentRow[]; };
 export type PanelPeriod = "current" | "previous" | "all";
 export type PanelCSData = { period: PanelPeriod; periodLabel: string; grossRevenue: number; profit: number; saleCount: number; receivable: number; pendingOrdersCount: number; averageTicket: number; sales: SaleRow[]; };
+
+export type SupplierOption = {
+  id: string;
+  name: string;
+  notes: string | null;
+};
+
+export type PurchaseProductOption = {
+  id: string;
+  name: string;
+  category: string;
+  brand: string | null;
+  image_url: string | null;
+  cost_price: number;
+  sale_price: number;
+  incoming_quantity: number;
+};
+
+export type SupplierOrderSummary = {
+  id: string;
+  supplier_id: string;
+  supplier_name: string;
+  ordered_on: string;
+  destination_location_id: string;
+  destination_code: string;
+  destination_name: string;
+  status: string;
+  notes: string | null;
+  legacy_supplier_order_id: string | null;
+  item_count: number;
+  ordered_units: number;
+  received_units: number;
+  pending_units: number;
+  order_total: number;
+  product_summary: string | null;
+  waiting_sales_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SupplierWaitingSale = {
+  purchase_order_item_id: string;
+  sale_id: string;
+  customer_id: string | null;
+  customer_name: string;
+  sale_date: string;
+  quantity_requested: number;
+  quantity_reserved: number;
+  quantity_missing: number;
+  reservation_status: string;
+};
+
+export type SupplierOrderItem = {
+  id: string;
+  purchase_order_id: string;
+  product_id: string;
+  product_name: string;
+  product_image_url: string | null;
+  category: string;
+  brand: string | null;
+  quantity_ordered: number;
+  quantity_received: number;
+  quantity_pending: number;
+  unit_cost: number;
+  total_cost: number;
+  item_status: string;
+  notes: string | null;
+  destination_location_id: string;
+  destination_code: string;
+  destination_name: string;
+  waiting_sales_units: number;
+  waiting_sales_count: number;
+  waiting_sales: SupplierWaitingSale[];
+};
+
+export type SupplierOrderDetails = SupplierOrderSummary & {
+  items: SupplierOrderItem[];
+};

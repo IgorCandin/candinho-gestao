@@ -33,6 +33,12 @@ import type {
   SaleDetails,
   SaleRow,
   StockRow,
+  SupplierOption,
+  PurchaseProductOption,
+  SupplierOrderSummary,
+  SupplierOrderDetails,
+  SupplierOrderItem,
+  SupplierWaitingSale,
 } from "./types";
 
 const number = (value: unknown) => Number(value ?? 0);
@@ -177,6 +183,8 @@ export async function getProductDetails(productId: string): Promise<ProductDetai
     level: typeof data.level === "string" ? data.level : null,
     sales_category: typeof data.sales_category === "string" ? data.sales_category : null,
     secondary_image_url: typeof data.secondary_image_url === "string" ? data.secondary_image_url : null,
+    incoming_quantity: number(data.incoming_quantity),
+    awaiting_sales_quantity: number(data.awaiting_sales_quantity),
   };
 }
 
@@ -602,4 +610,133 @@ export async function getDashboard(): Promise<DashboardData> {
     recentSales: recentSales.filter(isCommercialSale).slice(0, 8),
     lowStock: lowStock.slice(0, 8),
   };
+}
+
+
+function normalizeSupplierOrderSummary(row: Record<string, unknown>): SupplierOrderSummary {
+  return {
+    id: String(row.id),
+    supplier_id: String(row.supplier_id),
+    supplier_name: text(row.supplier_name, "Fornecedor não informado"),
+    ordered_on: String(row.ordered_on ?? ""),
+    destination_location_id: String(row.destination_location_id),
+    destination_code: text(row.destination_code),
+    destination_name: text(row.destination_name),
+    status: text(row.status, "pending"),
+    notes: typeof row.notes === "string" ? row.notes : null,
+    legacy_supplier_order_id: typeof row.legacy_supplier_order_id === "string" ? row.legacy_supplier_order_id : null,
+    item_count: number(row.item_count),
+    ordered_units: number(row.ordered_units),
+    received_units: number(row.received_units),
+    pending_units: number(row.pending_units),
+    order_total: number(row.order_total),
+    product_summary: typeof row.product_summary === "string" ? row.product_summary : null,
+    waiting_sales_count: number(row.waiting_sales_count),
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+export async function getSupplierOptions(): Promise<SupplierOption[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("suppliers").select("id,name,notes").eq("active", true).order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    name: text(row.name, "Fornecedor sem nome"),
+    notes: typeof row.notes === "string" ? row.notes : null,
+  }));
+}
+
+export async function getPurchaseProductOptions(): Promise<PurchaseProductOption[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const [{ data: products, error: productsError }, { data: incoming, error: incomingError }] = await Promise.all([
+    supabase.from("products").select("id,name,category,brand,image_url,cost_price,sale_price").eq("active", true).order("name"),
+    supabase.from("product_incoming_stock").select("product_id,incoming_quantity"),
+  ]);
+  if (productsError) throw productsError;
+  if (incomingError) throw incomingError;
+  const incomingByProduct = new Map((incoming ?? []).map((row) => [String(row.product_id), number(row.incoming_quantity)]));
+  return (products ?? []).map((row) => ({
+    id: String(row.id),
+    name: text(row.name, "Produto sem nome"),
+    category: text(row.category, "Sem categoria"),
+    brand: typeof row.brand === "string" ? row.brand : null,
+    image_url: typeof row.image_url === "string" ? row.image_url : null,
+    cost_price: number(row.cost_price),
+    sale_price: number(row.sale_price),
+    incoming_quantity: incomingByProduct.get(String(row.id)) ?? 0,
+  }));
+}
+
+export async function getSupplierOrderSummaries(): Promise<SupplierOrderSummary[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("supplier_order_summary").select("*").order("ordered_on", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeSupplierOrderSummary(row as Record<string, unknown>));
+}
+
+export async function getSupplierOrderDetails(orderId: string): Promise<SupplierOrderDetails | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const [{ data: summary, error: summaryError }, { data: items, error: itemsError }] = await Promise.all([
+    supabase.from("supplier_order_summary").select("*").eq("id", orderId).maybeSingle(),
+    supabase.from("supplier_order_items_overview").select("*").eq("purchase_order_id", orderId).order("product_name"),
+  ]);
+  if (summaryError) throw summaryError;
+  if (itemsError) throw itemsError;
+  if (!summary) return null;
+  const itemIds = (items ?? []).map((item) => String(item.id));
+  let waitingRows: Record<string, unknown>[] = [];
+  if (itemIds.length > 0) {
+    const { data, error } = await supabase.from("supplier_waiting_sales").select("*").in("purchase_order_item_id", itemIds).order("sale_date");
+    if (error) throw error;
+    waitingRows = (data ?? []) as Record<string, unknown>[];
+  }
+  const waitingByItem = new Map<string, SupplierWaitingSale[]>();
+  for (const row of waitingRows) {
+    const key = String(row.purchase_order_item_id);
+    const current = waitingByItem.get(key) ?? [];
+    current.push({
+      purchase_order_item_id: key,
+      sale_id: String(row.sale_id),
+      customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+      customer_name: text(row.customer_name, "Cliente não informado"),
+      sale_date: String(row.sale_date ?? ""),
+      quantity_requested: number(row.quantity_requested),
+      quantity_reserved: number(row.quantity_reserved),
+      quantity_missing: number(row.quantity_missing),
+      reservation_status: text(row.reservation_status),
+    });
+    waitingByItem.set(key, current);
+  }
+  const normalizedItems: SupplierOrderItem[] = (items ?? []).map((row) => {
+    const id = String(row.id);
+    return {
+      id,
+      purchase_order_id: String(row.purchase_order_id),
+      product_id: String(row.product_id),
+      product_name: text(row.product_name, "Produto sem nome"),
+      product_image_url: typeof row.product_image_url === "string" ? row.product_image_url : null,
+      category: text(row.category, "Sem categoria"),
+      brand: typeof row.brand === "string" ? row.brand : null,
+      quantity_ordered: number(row.quantity_ordered),
+      quantity_received: number(row.quantity_received),
+      quantity_pending: number(row.quantity_pending),
+      unit_cost: number(row.unit_cost),
+      total_cost: number(row.total_cost),
+      item_status: text(row.item_status, "pending"),
+      notes: typeof row.notes === "string" ? row.notes : null,
+      destination_location_id: String(row.destination_location_id),
+      destination_code: text(row.destination_code),
+      destination_name: text(row.destination_name),
+      waiting_sales_units: number(row.waiting_sales_units),
+      waiting_sales_count: number(row.waiting_sales_count),
+      waiting_sales: waitingByItem.get(id) ?? [],
+    };
+  });
+  return { ...normalizeSupplierOrderSummary(summary as Record<string, unknown>), items: normalizedItems };
 }

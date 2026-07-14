@@ -27,6 +27,8 @@ export const demoProductDetails: ProductDetails = {
   level: "Essencial",
   sales_category: "A",
   secondary_image_url: null,
+  incoming_quantity: 0,
+  awaiting_sales_quantity: 0,
 };
 
 export const demoStock: StockRow[] = [
