@@ -1,4 +1,4 @@
--- CONSULTAS SOMENTE LEITURA. NÃO EXECUTADAS.
+-- CONSULTAS SOMENTE LEITURA.
 -- Cada bloco usa a execução mais recente; em uma execução real, fixe o UUID revisado.
 
 -- 1. Contagem por aba e preservação de proveniência.
@@ -54,7 +54,8 @@ where i.import_run_id = (select id from current_run)
   and target.id is null
 order by i.source_row;
 
--- 5. Clientes duplicados: telefone; na ausência dele, nome + cidade.
+-- 5. Chaves de cliente repetidas. Telefone repetido é warning e não autoriza
+-- mesclar ou excluir registros com IDs originais distintos.
 with current_run as (
   select id from appsheet_import.import_runs order by imported_at desc limit 1
 ), customer_keys as (
@@ -69,6 +70,7 @@ with current_run as (
   where c.import_run_id = (select id from current_run)
 )
 select duplicate_key, count(*) as occurrences,
+       array_agg(normalized_payload->>'name' order by source_row) as customer_names,
        array_agg(source_row order by source_row) as source_rows,
        array_agg(original_id order by source_row) as original_ids
 from customer_keys
@@ -101,37 +103,69 @@ order by s.source_row;
 with current_run as (
   select id from appsheet_import.import_runs order by imported_at desc limit 1
 )
-select entity_type, source_sheet, source_row, original_id,
+select severity, entity_type, source_sheet, source_row, original_id,
        issue_code, field_name, raw_value, details
 from appsheet_import.validation_issues
 where import_run_id = (select id from current_run)
 order by severity desc, source_sheet, source_row, issue_code;
 
 -- 8. Possíveis vendas duplicadas por cliente, produto, data e valor.
+-- Somente relatório: IDs originais distintos são preservados integralmente.
 with current_run as (
   select id from appsheet_import.import_runs order by imported_at desc limit 1
 ), signatures as (
-  select s.source_row, s.original_id,
+  select s.import_run_id, s.source_sheet, s.source_row, s.original_id,
          concat_ws('|',
            lower(btrim(coalesce(s.normalized_payload->>'customer_name', ''))),
            lower(btrim(coalesce(i.normalized_payload->>'product_name', ''))),
            coalesce(s.normalized_payload->>'quoted_at', ''),
            coalesce(i.normalized_payload->>'unit_price', '')
-         ) as signature
+         ) as signature,
+         s.normalized_payload as sale_payload,
+         i.normalized_payload as item_payload
   from appsheet_import.prepared_sales s
   join appsheet_import.prepared_sale_items i
     on i.import_run_id = s.import_run_id
    and i.source_sheet = s.source_sheet
    and i.source_row = s.source_row
   where s.import_run_id = (select id from current_run)
+), duplicate_signatures as (
+  select signature, count(*) as occurrences
+  from signatures
+  group by signature
+  having count(*) > 1
 )
-select signature, count(*) as occurrences,
-       array_agg(source_row order by source_row) as source_rows,
-       array_agg(original_id order by source_row) as original_ids
-from signatures
-group by signature
-having count(*) > 1
-order by occurrences desc, signature;
+select
+  s.signature as duplicate_group,
+  d.occurrences,
+  s.original_id,
+  s.source_row,
+  s.sale_payload->>'quoted_at' as sale_date,
+  s.sale_payload->>'customer_name' as customer,
+  s.item_payload->>'product_name' as product,
+  s.item_payload->>'quantity' as quantity,
+  s.item_payload->>'unit_price' as amount,
+  s.item_payload->>'reported_profit' as profit,
+  p.normalized_payload->>'status' as payment_status,
+  p.normalized_payload->>'payment_method' as payment_method,
+  p.normalized_payload->>'payment_condition' as payment_condition,
+  p.normalized_payload->>'paid_at' as paid_at,
+  e.normalized_payload->>'status' as delivery_status,
+  e.normalized_payload->>'delivered_at' as delivered_at,
+  s.sale_payload->>'source_record_type' as record_type,
+  s.sale_payload->>'general_status' as general_status,
+  s.sale_payload->>'stock_deducted' as stock_deducted
+from signatures s
+join duplicate_signatures d using (signature)
+left join appsheet_import.prepared_payments p
+  on p.import_run_id = s.import_run_id
+ and p.source_sheet = s.source_sheet
+ and p.source_row = s.source_row
+left join appsheet_import.prepared_deliveries e
+  on e.import_run_id = s.import_run_id
+ and e.source_sheet = s.source_sheet
+ and e.source_row = s.source_row
+order by d.occurrences desc, s.signature, s.source_row;
 
 -- 9. Guarda final: deve retornar false/zero antes da aprovação expressa.
 with current_run as (

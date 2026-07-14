@@ -133,15 +133,28 @@ begin
       jsonb_strip_nulls(jsonb_build_object(
         'product_name', nullif(btrim(r.payload->>'Produto'), ''),
         'location_code', location.code,
-        'quantity', appsheet_import.try_numeric(r.payload->>location.column_name)
+        'quantity', normalized_stock.quantity
       )),
       (case when nullif(btrim(r.payload->>'Produto'), '') is null then '["missing_product"]'::jsonb else '[]'::jsonb end)
-      || (case when appsheet_import.try_numeric(r.payload->>location.column_name) is null then '["invalid_stock_quantity"]'::jsonb else '[]'::jsonb end)
+      || (case when normalized_stock.quantity is null then '["invalid_stock_quantity"]'::jsonb else '[]'::jsonb end)
     from appsheet_import.raw_rows r
     cross join lateral (values
       ('CS', 'Estoque CS'), ('CTS', 'Estoque CTS'), ('ES', 'Estoque ES'),
       ('TT', 'Estoque TT'), ('INGRID', 'Estoque INGRID'), ('ADRIANA', 'Estoque ADRIANA')
     ) as location(code, column_name)
+    cross join lateral (
+      select case
+        -- Correção aprovada: a única célula vazia conhecida representa saldo zero.
+        -- A planilha/raw_rows permanece intacta e a regra é restrita por proveniência.
+        when r.original_id = '025'
+         and r.source_row = 26
+         and r.payload->>'Produto' = 'Combo Zero Gordura | Creatina Growth + Picolinato'
+         and location.code = 'CS'
+         and coalesce(btrim(r.payload->>location.column_name), '') = ''
+          then 0::numeric
+        else appsheet_import.try_numeric(r.payload->>location.column_name)
+      end as quantity
+    ) normalized_stock
     where r.import_run_id = p_import_run_id and r.source_sheet = 'ESTOQUE'
 
     union all
@@ -234,7 +247,7 @@ begin
       concat('MOV_PARCEIROS:', coalesce(r.original_id, r.source_row::text)),
       jsonb_strip_nulls(jsonb_build_object(
         'created_at', appsheet_import.try_timestamptz(r.payload->>'Data'),
-        'partner_name', nullif(btrim(r.payload->>'Parceiro'), ''),
+        'partner_original_id', nullif(btrim(r.payload->>'Parceiro'), ''),
         'product_name', nullif(btrim(r.payload->>'Produto'), ''),
         'movement_type', nullif(btrim(r.payload->>'Tipo Movimento Parceiro'), ''),
         'quantity', appsheet_import.try_numeric(r.payload->>'Quantidade'),
@@ -333,6 +346,52 @@ begin
   where p.import_run_id = p_import_run_id
   on conflict (import_run_id, source_sheet, source_row, issue_code, field_name) do nothing;
 
+  -- Telefones repetidos são somente warning. Cada cliente continua sendo uma
+  -- entidade independente, identificada por seu ID/linha original do AppSheet.
+  with customer_phones as (
+    select
+      p.import_run_id,
+      p.entity_type,
+      p.source_sheet,
+      p.source_row,
+      p.original_id,
+      regexp_replace(coalesce(p.normalized_payload->>'phone', ''), '\D', '', 'g') as normalized_phone
+    from appsheet_import.prepared_entities p
+    where p.import_run_id = p_import_run_id
+      and p.entity_type = 'customer'
+  ), duplicate_phones as (
+    select
+      normalized_phone,
+      count(*) as occurrence_count,
+      jsonb_agg(original_id order by source_row) as original_ids
+    from customer_phones
+    where length(normalized_phone) >= 10
+    group by normalized_phone
+    having count(*) > 1
+  )
+  insert into appsheet_import.validation_issues(
+    import_run_id, entity_type, source_sheet, source_row, original_id,
+    issue_code, severity, field_name, raw_value, details
+  )
+  select
+    c.import_run_id,
+    c.entity_type,
+    c.source_sheet,
+    c.source_row,
+    c.original_id,
+    'duplicate_customer_phone',
+    'warning',
+    'phone',
+    c.normalized_phone,
+    jsonb_build_object(
+      'occurrences', d.occurrence_count,
+      'original_ids', d.original_ids,
+      'preserve_as_distinct', true
+    )
+  from customer_phones c
+  join duplicate_phones d using (normalized_phone)
+  on conflict (import_run_id, source_sheet, source_row, issue_code, field_name) do nothing;
+
   update appsheet_import.import_runs r
   set status = 'validated',
       sheet_counts = (
@@ -347,7 +406,8 @@ begin
       validation_summary = jsonb_build_object(
         'prepared', (select count(*) from appsheet_import.prepared_entities where import_run_id = p_import_run_id),
         'valid', (select count(*) from appsheet_import.prepared_entities where import_run_id = p_import_run_id and is_valid),
-        'errors', (select count(*) from appsheet_import.validation_issues where import_run_id = p_import_run_id and severity = 'error')
+        'errors', (select count(*) from appsheet_import.validation_issues where import_run_id = p_import_run_id and severity = 'error'),
+        'warnings', (select count(*) from appsheet_import.validation_issues where import_run_id = p_import_run_id and severity = 'warning')
       )
   where r.id = p_import_run_id;
 
