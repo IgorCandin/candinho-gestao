@@ -4,9 +4,16 @@ export type ProductCatalogRow = {
   category: string;
   brand: string | null;
   image_url: string | null;
+  thumbnail_url: string | null;
   active: boolean;
   sale_price: number;
   installment_price: number;
+  physical_quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+  incoming_quantity: number;
+  awaiting_sales_quantity: number;
+  stock_status: string;
 };
 
 export type ProductOption = Pick<ProductCatalogRow, "id" | "name" | "category" | "brand" | "image_url">;
@@ -41,8 +48,18 @@ export type ProductDetails = ProductCatalogRow & {
   level: string | null;
   sales_category: string | null;
   secondary_image_url: string | null;
-  incoming_quantity: number;
-  awaiting_sales_quantity: number;
+  secondary_thumbnail_url: string | null;
+};
+
+export type ProductManagementDetails = ProductDetails & {
+  sku: string | null;
+  cost_price: number;
+  min_stock: number;
+  ideal_stock: number;
+  restricted: boolean;
+  default_supplier_id: string | null;
+  default_supplier_name: string | null;
+  updated_at: string;
 };
 
 

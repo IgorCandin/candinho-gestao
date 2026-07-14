@@ -25,6 +25,7 @@ import type {
   PendingOrderRow,
   ProductCatalogRow,
   ProductDetails,
+  ProductManagementDetails,
   ProductOption,
   SaleStockOption,
   LocationOption,
@@ -98,9 +99,16 @@ function normalizeProduct(row: Record<string, unknown>): ProductCatalogRow {
     category: text(row.category, "Sem categoria"),
     brand: typeof row.brand === "string" ? row.brand : null,
     image_url: typeof row.image_url === "string" ? row.image_url : null,
+    thumbnail_url: typeof row.thumbnail_url === "string" ? row.thumbnail_url : null,
     active: Boolean(row.active),
     sale_price: number(row.sale_price),
     installment_price: number(row.installment_price),
+    physical_quantity: number(row.physical_quantity),
+    reserved_quantity: number(row.reserved_quantity),
+    available_quantity: number(row.available_quantity),
+    incoming_quantity: number(row.incoming_quantity),
+    awaiting_sales_quantity: number(row.awaiting_sales_quantity),
+    stock_status: text(row.stock_status, Boolean(row.active) ? "out_of_stock" : "inactive"),
   };
 }
 
@@ -187,9 +195,47 @@ export async function getProductDetails(productId: string): Promise<ProductDetai
     level: typeof data.level === "string" ? data.level : null,
     sales_category: typeof data.sales_category === "string" ? data.sales_category : null,
     secondary_image_url: typeof data.secondary_image_url === "string" ? data.secondary_image_url : null,
-    incoming_quantity: number(data.incoming_quantity),
-    awaiting_sales_quantity: number(data.awaiting_sales_quantity),
+    secondary_thumbnail_url: typeof data.secondary_thumbnail_url === "string" ? data.secondary_thumbnail_url : null,
   };
+}
+
+export async function getProductManagementDetails(productId: string): Promise<ProductManagementDetails | null> {
+  if (!isSupabaseConfigured) {
+    const details = productId === demoProductDetails.id ? demoProductDetails : null;
+    return details ? {
+      ...details,
+      sku: null,
+      cost_price: 29.9,
+      min_stock: 10,
+      ideal_stock: 30,
+      restricted: false,
+      default_supplier_id: null,
+      default_supplier_name: null,
+      updated_at: new Date().toISOString(),
+    } : null;
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("product_management_details").select("*").eq("id", productId).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const details = await getProductDetails(productId);
+  if (!details) return null;
+  return {
+    ...details,
+    sku: typeof data.sku === "string" ? data.sku : null,
+    cost_price: number(data.cost_price),
+    min_stock: number(data.min_stock),
+    ideal_stock: number(data.ideal_stock),
+    restricted: Boolean(data.restricted),
+    default_supplier_id: typeof data.default_supplier_id === "string" ? data.default_supplier_id : null,
+    default_supplier_name: typeof data.default_supplier_name === "string" ? data.default_supplier_name : null,
+    updated_at: String(data.updated_at ?? ""),
+  };
+}
+
+export async function getProductCategories(): Promise<string[]> {
+  const products = await getProductCatalog();
+  return [...new Set(products.map((product) => product.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 

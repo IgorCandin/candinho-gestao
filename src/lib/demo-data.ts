@@ -11,8 +11,8 @@ import type {
 } from "./types";
 
 export const demoProducts: ProductCatalogRow[] = [
-  { id: "p1", name: "Creatina Candinho 300g", category: "Força", brand: "Candinho", image_url: null, active: true, sale_price: 70, installment_price: 75 },
-  { id: "p2", name: "Touro Power", category: "Energia", brand: "Health Labs", image_url: null, active: true, sale_price: 64.9, installment_price: 75 },
+  { id: "p1", name: "Creatina Candinho 300g", category: "Força", brand: "Candinho", image_url: null, thumbnail_url: null, active: true, sale_price: 70, installment_price: 75, physical_quantity: 46, reserved_quantity: 0, available_quantity: 46, incoming_quantity: 0, awaiting_sales_quantity: 0, stock_status: "healthy" },
+  { id: "p2", name: "Touro Power", category: "Energia", brand: "Health Labs", image_url: null, thumbnail_url: null, active: true, sale_price: 64.9, installment_price: 75, physical_quantity: 3, reserved_quantity: 0, available_quantity: 3, incoming_quantity: 0, awaiting_sales_quantity: 0, stock_status: "healthy" },
 ];
 
 export const demoProductDetails: ProductDetails = {
@@ -27,8 +27,7 @@ export const demoProductDetails: ProductDetails = {
   level: "Essencial",
   sales_category: "A",
   secondary_image_url: null,
-  incoming_quantity: 0,
-  awaiting_sales_quantity: 0,
+  secondary_thumbnail_url: null,
 };
 
 export const demoStock: StockRow[] = [

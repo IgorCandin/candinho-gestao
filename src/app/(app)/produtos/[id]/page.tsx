@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BadgeInfo, CalendarDays, CheckCircle2, CircleDollarSign, Tags } from "lucide-react";
+import { ArrowLeft, BadgeInfo, CalendarDays, CheckCircle2, CircleDollarSign, Edit3, PackageCheck, PackagePlus, Tags, Warehouse } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
@@ -8,18 +8,28 @@ import { getProductDetails } from "@/lib/data";
 import { formatCurrency } from "@/lib/format";
 
 function DetailItem({ label, value }: { label: string; value: string | number | null | undefined }) {
-  return (
-    <div className="product-detail-item">
-      <span>{label}</span>
-      <strong>{value === null || value === undefined || value === "" ? "—" : value}</strong>
-    </div>
-  );
+  if (value === null || value === undefined || value === "") return null;
+  return <div className="product-detail-item"><span>{label}</span><strong>{value}</strong></div>;
+}
+
+function CopyItem({ label, value }: { label: string; value: string | null }) {
+  if (!value) return null;
+  return <div><span>{label}</span><p>{value}</p></div>;
+}
+
+function stockState(status: string) {
+  if (status === "healthy") return { label: "Disponível", tone: "green" };
+  if (status === "incoming" || status === "incoming_only") return { label: "A caminho", tone: "blue" };
+  if (status === "below_minimum" || status === "fully_reserved") return { label: status === "fully_reserved" ? "Todo reservado" : "Estoque baixo", tone: "orange" };
+  if (status === "inactive") return { label: "Inativo", tone: "gray" };
+  return { label: "Sem estoque", tone: "red" };
 }
 
 export default async function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const product = await getProductDetails(id);
   if (!product) notFound();
+  const state = stockState(product.stock_status);
 
   return (
     <>
@@ -27,18 +37,29 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
       <PageHeader
         eyebrow="Catálogo"
         title={product.name}
-        description="Informações comerciais essenciais do produto, sem exibir custo ou margem."
-        action={<Link className="button ghost" href="/produtos"><ArrowLeft size={16} />Voltar aos produtos</Link>}
+        description="Informações comerciais, fotos leves e situação atual do produto."
+        action={<div className="page-header-action-group"><Link className="button gold" href={`/produtos/${product.id}/editar`}><Edit3 size={16} />Editar produto</Link><Link className="button ghost" href={`/estoque/${product.id}`}><Warehouse size={16} />Ver estoque</Link><Link className="button ghost" href="/produtos"><ArrowLeft size={16} />Voltar</Link></div>}
       />
+
+      <section className="product-stock-summary">
+        <article><PackageCheck size={18} /><div><span>Físico</span><strong>{product.physical_quantity}</strong></div></article>
+        <article><Warehouse size={18} /><div><span>Reservado</span><strong>{product.reserved_quantity}</strong></div></article>
+        <article><CheckCircle2 size={18} /><div><span>Disponível</span><strong>{product.available_quantity}</strong></div></article>
+        <article><PackagePlus size={18} /><div><span>A caminho</span><strong>{product.incoming_quantity}</strong></div></article>
+        <article><CalendarDays size={18} /><div><span>Vendas aguardando</span><strong>{product.awaiting_sales_quantity}</strong></div></article>
+        <article><span className={`badge ${state.tone}`}><span className="dot" />{state.label}</span></article>
+      </section>
 
       <section className="product-details-layout">
         <article className="panel product-images-panel">
-          <div className="panel-head"><div><h2>Fotos do produto</h2><p>Adicione ou troque as imagens usadas no catálogo.</p></div></div>
+          <div className="panel-head"><div><h2>Fotos do produto</h2><p>As listas usam miniaturas leves. A imagem maior só abre nesta página.</p></div></div>
           <div className="panel-body">
             <ProductImageUploader
               productId={product.id}
               initialImageUrl={product.image_url}
+              initialThumbnailUrl={product.thumbnail_url}
               initialSecondaryImageUrl={product.secondary_image_url}
+              initialSecondaryThumbnailUrl={product.secondary_thumbnail_url}
             />
           </div>
         </article>
@@ -60,34 +81,25 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
                 <DetailItem label="Nível" value={product.level} />
                 <DetailItem label="Categoria de vendas" value={product.sales_category} />
                 <DetailItem label="Duração" value={product.duration_days ? `${product.duration_days} dias/doses` : null} />
-                <DetailItem label="A caminho" value={`${product.incoming_quantity} un.`} />
-                <DetailItem label="Vendas aguardando" value={`${product.awaiting_sales_quantity} un.`} />
-                <DetailItem label="Status" value={product.active ? "Ativo" : "Inativo"} />
               </div>
             </div>
           </article>
 
-          <article className="panel">
+          {(product.description || product.objective || product.ideal_profile || product.information || product.quick_message) && <article className="panel">
             <div className="panel-head"><div><h2>Características</h2><p>Argumentos e orientações para apresentar o produto.</p></div><BadgeInfo size={19} /></div>
             <div className="panel-body product-copy-list">
-              <div><span>Descrição</span><p>{product.description ?? "—"}</p></div>
-              <div><span>Objetivo</span><p>{product.objective ?? "—"}</p></div>
-              <div><span>Perfil ideal</span><p>{product.ideal_profile ?? "—"}</p></div>
-              <div><span>Informativo</span><p>{product.information ?? "—"}</p></div>
-              <div><span>Mensagem rápida</span><p>{product.quick_message ?? "—"}</p></div>
+              <CopyItem label="Descrição" value={product.description} />
+              <CopyItem label="Objetivo" value={product.objective} />
+              <CopyItem label="Perfil ideal" value={product.ideal_profile} />
+              <CopyItem label="Informativo" value={product.information} />
+              <CopyItem label="Mensagem rápida" value={product.quick_message} />
             </div>
-          </article>
+          </article>}
 
-          <article className="panel">
+          {product.keywords && <article className="panel">
             <div className="panel-head"><div><h2>Palavras-chave</h2><p>Facilitam a consulta e o atendimento.</p></div><Tags size={19} /></div>
-            <div className="panel-body">
-              {product.keywords ? (
-                <div className="keyword-list">{product.keywords.split(",").map((keyword) => <span key={keyword.trim()}><CheckCircle2 size={14} />{keyword.trim()}</span>)}</div>
-              ) : (
-                <div className="empty compact"><strong>Sem palavras-chave</strong>Este produto ainda não possui palavras-chave cadastradas.</div>
-              )}
-            </div>
-          </article>
+            <div className="panel-body"><div className="keyword-list">{product.keywords.split(",").map((keyword) => <span key={keyword.trim()}><CheckCircle2 size={14} />{keyword.trim()}</span>)}</div></div>
+          </article>}
         </div>
       </section>
     </>
