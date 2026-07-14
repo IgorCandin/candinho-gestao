@@ -52,7 +52,8 @@ Os NDJSON, o manifesto e o relatório ficam em `data-import/generated/`. Toda a 
 | Leads | `MOVIMENTO_GERAL` (`Lead`) | `public.sales` (`record_type = 'lead'`) |
 | Itens vendidos | produto/custo/valor de `MOVIMENTO_GERAL` | `public.sale_items`; quantidade implícita 1 |
 | Produtos | `ESTOQUE` | `public.products` |
-| Estoque | colunas `Estoque <LOCAL>` de `ESTOQUE` | `public.stock_balances` |
+| Estoque operacional | colunas `Estoque <LOCAL>` de `ESTOQUE` | somente os 75 saldos de `CS` em `public.stock_balances` |
+| Observações de estoque diferidas | zeros de `ADRIANA`, `CTS`, `INGRID`, `ES` e `TT` | permanecem no staging e nos vínculos privados; não criam saldo, local ou movimento público |
 | Movimentações históricas | `LOG_ESTOQUE` e `MOV_ESTOQUE` | `public.inventory_history`, sem reaplicar eventos antigos ao saldo atual |
 | Pedidos de fornecedor | `PEDIDOS_FORNECEDOR` | `public.supplier_orders` proposto no 004 |
 | Parceiros/fornecedores | `PARCEIROS` e `LISTA_FORNECEDORES` | `public.partners` proposto no 004 |
@@ -72,7 +73,12 @@ Os NDJSON, o manifesto e o relatório ficam em `data-import/generated/`. Toda a 
 
 ## Promoção e rollback controlados
 
-- Produtos e locais existentes são somente associados; não são sobrescritos.
+- `BATISTA` é corrigido para `ADRIANA` no mesmo UUID; seus vínculos existentes são preservados.
+- `ES` e `TT` ficam exclusivamente no staging histórico. Não geram localização, saldo, movimento nem capacidade operacional pública.
+- `locations.tracks_inventory` é a capacidade explícita de estoque. Nesta promoção somente `CS` recebe `true`; parceiro/local ativo não é estoque por inferência.
+- `Estoque Empresa` é um total calculado dos locais com `tracks_inventory = true`, não uma localização física.
+- Os 450 snapshots de origem continuam rastreáveis: 75 de `CS` são materializados e 375 zeros são marcados como `deferred` no ledger privado.
+- `C.T.S. Pâmella Nunes` é promovida como parceira `Ponto de Retirada`, sem capacidade de estoque nesta migração.
 - Clientes são inseridos por ID/linha original. Telefone não participa da identidade.
 - Vendas com assinatura semelhante continuam distintas por proveniência e `idempotency_key`.
 - Os 491 eventos de estoque são preservados em `inventory_history`. O saldo operacional é alcançado por no máximo um movimento `adjustment` por produto/local, usando o trigger oficial.

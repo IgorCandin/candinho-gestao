@@ -66,7 +66,7 @@ begin
       l.target_schema <> 'public'
       or l.target_table not in (
         'products', 'customers', 'sales', 'sale_items',
-        'inventory_movements', 'stock_balances', 'partners',
+        'inventory_movements', 'stock_balances', 'locations', 'partners',
         'supplier_orders', 'partner_movements', 'payments',
         'deliveries', 'inventory_history'
       )
@@ -82,7 +82,7 @@ begin
       i.target_schema <> 'public'
       or i.target_table not in (
         'customers', 'sales', 'sale_items', 'inventory_movements',
-        'stock_balances', 'partners', 'supplier_orders',
+        'stock_balances', 'locations', 'partners', 'supplier_orders',
         'partner_movements', 'payments', 'deliveries', 'inventory_history'
       )
     );
@@ -122,7 +122,8 @@ begin
     raise exception 'Rollback recusado: % snapshots armazenados falharam na integridade', v_conflicts;
   end if;
 
-  -- Cada um dos 450 saldos deve ter exatamente um snapshot composto. --------
+  -- Somente 75 saldos de CS são materializados; 375 zeros permanecem diferidos
+  -- no staging por decisão operacional registrada nos vínculos.
   select count(*) into v_conflicts
   from appsheet_import.entity_links l
   where l.promotion_run_id = p_promotion_run_id
@@ -130,17 +131,8 @@ begin
     and l.entity_type = 'stock_balance'
     and l.target_table = 'stock_balances'
     and l.target_subkey = 'balance';
-  if v_conflicts <> 450 then
-    raise exception 'Rollback recusado: esperados 450 vínculos de saldo, encontrados %', v_conflicts;
-  end if;
-
-  select count(*) into v_conflicts
-  from appsheet_import.promotion_preimages i
-  where i.promotion_run_id = p_promotion_run_id
-    and i.target_schema = 'public'
-    and i.target_table = 'stock_balances';
-  if v_conflicts <> 450 then
-    raise exception 'Rollback recusado: esperados 450 preimages de saldo, encontrados %', v_conflicts;
+  if v_conflicts <> 75 then
+    raise exception 'Rollback recusado: esperados 75 vínculos materiais de saldo, encontrados %', v_conflicts;
   end if;
 
   select count(*) into v_conflicts
@@ -150,6 +142,29 @@ begin
     and l.entity_type = 'stock_balance'
     and l.target_table = 'stock_balances'
     and l.target_subkey = 'balance'
+    and l.action = 'deferred'
+    and l.target_id is null;
+  if v_conflicts <> 375 then
+    raise exception 'Rollback recusado: esperados 375 saldos diferidos, encontrados %', v_conflicts;
+  end if;
+
+  select count(*) into v_conflicts
+  from appsheet_import.promotion_preimages i
+  where i.promotion_run_id = p_promotion_run_id
+    and i.target_schema = 'public'
+    and i.target_table = 'stock_balances';
+  if v_conflicts <> 75 then
+    raise exception 'Rollback recusado: esperados 75 preimages de saldo, encontrados %', v_conflicts;
+  end if;
+
+  select count(*) into v_conflicts
+  from appsheet_import.entity_links l
+  where l.promotion_run_id = p_promotion_run_id
+    and l.target_schema = 'public'
+    and l.entity_type = 'stock_balance'
+    and l.target_table = 'stock_balances'
+    and l.target_subkey = 'balance'
+    and l.action <> 'deferred'
     and not exists (
       select 1
       from appsheet_import.promotion_preimages i
@@ -175,6 +190,12 @@ begin
       select to_jsonb(sb) into v_current
       from public.stock_balances sb
       where sb.product_id = v_product_id and sb.location_id = v_location_id
+      for update;
+    elsif v_image.target_table = 'locations' then
+      v_target_id := (v_image.target_key->>'id')::uuid;
+      select to_jsonb(l) - 'updated_at' into v_current
+      from public.locations l
+      where l.id = v_target_id
       for update;
     else
       v_target_id := (v_image.target_key->>'id')::uuid;
@@ -213,7 +234,6 @@ begin
         and i.target_schema = l.target_schema
         and i.target_table = l.target_table
         and i.target_key = jsonb_build_object('id', l.target_id)
-        and not i.existed_before
     );
   if v_conflicts <> 0 then
     raise exception 'Rollback recusado: % vínculos inseridos sem preimage', v_conflicts;
@@ -345,6 +365,36 @@ begin
   );
   if v_conflicts <> 0 then
     raise exception 'Rollback recusado: % movimentos posteriores usam parceiros importados', v_conflicts;
+  end if;
+
+  -- A correção BATISTA→ADRIANA e a habilitação de CS não podem ser desfeitas
+  -- depois que o local tiver recebido operação nova fora desta promoção.
+  select count(*) into v_conflicts
+  from public.sales s
+  where s.created_at > v_promotion.completed_at
+    and s.location_id in (
+      select target_id
+      from appsheet_import.entity_links
+      where promotion_run_id = p_promotion_run_id
+        and target_schema = 'public'
+        and target_table = 'locations'
+    );
+  if v_conflicts <> 0 then
+    raise exception 'Rollback recusado: % vendas/leads posteriores usam locais corrigidos', v_conflicts;
+  end if;
+
+  select count(*) into v_conflicts
+  from public.inventory_movements m
+  where m.created_at > v_promotion.completed_at
+    and m.location_id in (
+      select target_id
+      from appsheet_import.entity_links
+      where promotion_run_id = p_promotion_run_id
+        and target_schema = 'public'
+        and target_table = 'locations'
+    );
+  if v_conflicts <> 0 then
+    raise exception 'Rollback recusado: % movimentos posteriores usam locais corrigidos', v_conflicts;
   end if;
 
   -- Exclusões em ordem reversa de dependências. ------------------------------
@@ -495,6 +545,38 @@ begin
     end if;
   end loop;
 
+  -- Restaura as três correções de local por projeção canônica. updated_at é
+  -- propositalmente excluído: o trigger oficial o recalcula na atualização.
+  for v_image in
+    select * from appsheet_import.promotion_preimages
+    where promotion_run_id = p_promotion_run_id
+      and target_schema = 'public'
+      and target_table = 'locations'
+    order by id
+  loop
+    v_target_id := (v_image.target_key->>'id')::uuid;
+    update public.locations
+    set code = v_image.before_data->>'code',
+        name = v_image.before_data->>'name',
+        city = v_image.before_data->>'city',
+        location_type = v_image.before_data->>'location_type',
+        active = (v_image.before_data->>'active')::boolean,
+        tracks_inventory = (v_image.before_data->>'tracks_inventory')::boolean
+    where id = v_target_id;
+
+    select to_jsonb(l) - 'updated_at' into v_current
+    from public.locations l where l.id = v_target_id;
+    if v_current is null then
+      raise exception 'Rollback recusado: local anterior não foi restaurado (%)', v_image.target_key;
+    end if;
+    v_current_sha256 := encode(
+      extensions.digest(convert_to(v_current::text, 'UTF8'), 'sha256'), 'hex'
+    );
+    if v_current_sha256 is distinct from v_image.before_sha256 then
+      raise exception 'Rollback recusado: local restaurado diverge do preimage (%)', v_image.target_key;
+    end if;
+  end loop;
+
   delete from public.customers c using appsheet_import.entity_links l
   where l.promotion_run_id = p_promotion_run_id
     and l.target_schema = 'public'
@@ -527,7 +609,7 @@ begin
     from appsheet_import.promotion_preimages
     where promotion_run_id = p_promotion_run_id
       and target_schema = 'public'
-      and target_table <> 'stock_balances'
+      and target_table not in ('stock_balances', 'locations')
     order by target_table, id
   loop
     v_target_id := (v_image.target_key->>'id')::uuid;

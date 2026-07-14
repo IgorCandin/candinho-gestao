@@ -41,6 +41,7 @@ declare
   v_unapproved bigint;
   v_bad_matches bigint;
   v_stock_sha256 text;
+  v_batista_id uuid;
 begin
   if p_import_run_id is null or p_approved_by is null then
     raise exception 'import_run_id e approved_by são obrigatórios';
@@ -166,6 +167,36 @@ begin
      or (select count(*) from public.deliveries) <> 0
      or (select count(*) from public.inventory_history) <> 0 then
     raise exception 'Contagens públicas mudaram desde a aprovação do baseline';
+  end if;
+
+  -- Estado público anterior à promoção: seis locais operacionais, sem ES/TT
+  -- e sem capacidade de estoque habilitada até a correção controlada abaixo.
+  perform 1
+  from public.locations
+  order by code
+  for update;
+
+  select count(*) into v_bad_matches
+  from public.locations l
+  where upper(btrim(l.code)) not in ('CS', 'CTS', 'BATISTA', 'INGRID', 'ENRICO', 'ITAPHARMA')
+     or l.tracks_inventory
+     or not l.active;
+  if v_bad_matches <> 0
+     or (select count(*) from public.locations) <> 6
+     or exists (
+       select 1 from public.locations
+       where upper(btrim(code)) in ('ADRIANA', 'ES', 'TT')
+     ) then
+    raise exception 'Locais públicos divergem do baseline operacional revisado';
+  end if;
+
+  if exists (
+    select 1
+    from public.stock_balances sb
+    join public.locations l on l.id = sb.location_id
+    where upper(btrim(l.code)) <> 'CS'
+  ) then
+    raise exception 'Existem saldos públicos fora de CS antes da promoção';
   end if;
 
   select encode(extensions.digest(convert_to(coalesce(
@@ -322,11 +353,24 @@ begin
     and s.entity_type in ('sale', 'lead')
     and (
       select count(*) from public.locations l
-      where upper(btrim(l.code)) = upper(btrim(s.normalized_payload->>'location_code'))
+      where upper(btrim(l.code)) = case upper(btrim(s.normalized_payload->>'location_code'))
+        when 'ADRIANA' then 'BATISTA'
+        else upper(btrim(s.normalized_payload->>'location_code'))
+      end
         and l.active
     ) <> 1;
   if v_bad_matches <> 0 then
     raise exception '% vendas/leads não possuem local público', v_bad_matches;
+  end if;
+
+  if exists (
+    select 1
+    from appsheet_import.prepared_entities s
+    where s.import_run_id = p_import_run_id
+      and s.entity_type in ('sale', 'lead')
+      and upper(btrim(s.normalized_payload->>'location_code')) not in ('CS', 'CTS', 'ADRIANA')
+  ) then
+    raise exception 'Venda/lead fora dos locais operacionais revisados';
   end if;
 
   -- Restrições que serão exigidas pelas tabelas públicas.
@@ -398,6 +442,17 @@ begin
     raise exception '% saldos não são inteiros não negativos', v_bad_matches;
   end if;
 
+  select count(*) into v_bad_matches
+  from appsheet_import.prepared_stock s
+  where s.import_run_id = p_import_run_id
+    and upper(btrim(s.normalized_payload->>'location_code')) <> 'CS'
+    and (s.normalized_payload->>'quantity')::integer <> 0;
+  if v_bad_matches <> 0
+     or (select count(*) from appsheet_import.prepared_stock where import_run_id = p_import_run_id and upper(btrim(normalized_payload->>'location_code')) = 'CS') <> 75
+     or (select count(*) from appsheet_import.prepared_stock where import_run_id = p_import_run_id and upper(btrim(normalized_payload->>'location_code')) <> 'CS') <> 375 then
+    raise exception 'Snapshot de estoque não atende ao recorte CS=75 e 375 observações zeradas diferidas';
+  end if;
+
   insert into appsheet_import.promotion_runs(
     import_run_id, status, approved_by, pre_counts
   ) values (
@@ -420,6 +475,119 @@ begin
       'inventory_history', (select count(*) from public.inventory_history)
     )
   ) returning id into v_promotion_run_id;
+
+  -- Correções operacionais aprovadas. BATISTA é corrigido para ADRIANA no
+  -- mesmo UUID; somente CS passa a rastrear estoque; CTS é ponto de retirada.
+  select l.id, to_jsonb(l) - 'updated_at'
+    into strict v_batista_id, v_before
+  from public.locations l
+  where upper(btrim(l.code)) = 'BATISTA'
+  for update;
+
+  insert into appsheet_import.promotion_preimages(
+    promotion_run_id, target_table, target_key, existed_before,
+    before_data, before_sha256
+  ) values (
+    v_promotion_run_id, 'locations', jsonb_build_object('id', v_batista_id),
+    true, v_before,
+    encode(extensions.digest(convert_to(v_before::text, 'UTF8'), 'sha256'), 'hex')
+  );
+
+  update public.locations
+  set code = 'ADRIANA'
+  where id = v_batista_id;
+
+  select to_jsonb(l) - 'updated_at' into strict v_after
+  from public.locations l where l.id = v_batista_id;
+  update appsheet_import.promotion_preimages
+  set after_data = v_after,
+      after_sha256 = encode(extensions.digest(convert_to(v_after::text, 'UTF8'), 'sha256'), 'hex')
+  where promotion_run_id = v_promotion_run_id
+    and target_table = 'locations'
+    and target_key = jsonb_build_object('id', v_batista_id);
+  insert into appsheet_import.entity_links(
+    promotion_run_id, import_run_id, entity_type, source_sheet, source_row,
+    original_id, imported_at, target_table, target_id, target_key, action
+  ) values (
+    v_promotion_run_id, p_import_run_id, 'location_adjustment', '_CONTROL', 1,
+    'BATISTA', now(), 'locations', v_batista_id,
+    jsonb_build_object('id', v_batista_id), 'adjusted'
+  );
+
+  select l.id, to_jsonb(l) - 'updated_at'
+    into strict v_target_id, v_before
+  from public.locations l
+  where upper(btrim(l.code)) = 'CS'
+  for update;
+  insert into appsheet_import.promotion_preimages(
+    promotion_run_id, target_table, target_key, existed_before,
+    before_data, before_sha256
+  ) values (
+    v_promotion_run_id, 'locations', jsonb_build_object('id', v_target_id),
+    true, v_before,
+    encode(extensions.digest(convert_to(v_before::text, 'UTF8'), 'sha256'), 'hex')
+  );
+  update public.locations set tracks_inventory = true where id = v_target_id;
+  select to_jsonb(l) - 'updated_at' into strict v_after
+  from public.locations l where l.id = v_target_id;
+  update appsheet_import.promotion_preimages
+  set after_data = v_after,
+      after_sha256 = encode(extensions.digest(convert_to(v_after::text, 'UTF8'), 'sha256'), 'hex')
+  where promotion_run_id = v_promotion_run_id
+    and target_table = 'locations'
+    and target_key = jsonb_build_object('id', v_target_id);
+  insert into appsheet_import.entity_links(
+    promotion_run_id, import_run_id, entity_type, source_sheet, source_row,
+    original_id, imported_at, target_table, target_id, target_key, action
+  ) values (
+    v_promotion_run_id, p_import_run_id, 'location_adjustment', '_CONTROL', 2,
+    'CS', now(), 'locations', v_target_id,
+    jsonb_build_object('id', v_target_id), 'adjusted'
+  );
+
+  select l.id, to_jsonb(l) - 'updated_at'
+    into strict v_target_id, v_before
+  from public.locations l
+  where upper(btrim(l.code)) = 'CTS'
+  for update;
+  insert into appsheet_import.promotion_preimages(
+    promotion_run_id, target_table, target_key, existed_before,
+    before_data, before_sha256
+  ) values (
+    v_promotion_run_id, 'locations', jsonb_build_object('id', v_target_id),
+    true, v_before,
+    encode(extensions.digest(convert_to(v_before::text, 'UTF8'), 'sha256'), 'hex')
+  );
+  update public.locations set location_type = 'Ponto de Retirada' where id = v_target_id;
+  select to_jsonb(l) - 'updated_at' into strict v_after
+  from public.locations l where l.id = v_target_id;
+  update appsheet_import.promotion_preimages
+  set after_data = v_after,
+      after_sha256 = encode(extensions.digest(convert_to(v_after::text, 'UTF8'), 'sha256'), 'hex')
+  where promotion_run_id = v_promotion_run_id
+    and target_table = 'locations'
+    and target_key = jsonb_build_object('id', v_target_id);
+  insert into appsheet_import.entity_links(
+    promotion_run_id, import_run_id, entity_type, source_sheet, source_row,
+    original_id, imported_at, target_table, target_id, target_key, action
+  ) values (
+    v_promotion_run_id, p_import_run_id, 'location_adjustment', '_CONTROL', 3,
+    'CTS', now(), 'locations', v_target_id,
+    jsonb_build_object('id', v_target_id), 'adjusted'
+  );
+
+  select count(*) into v_bad_matches
+  from public.locations l
+  where upper(btrim(l.code)) not in ('CS', 'CTS', 'ADRIANA', 'INGRID', 'ENRICO', 'ITAPHARMA')
+     or (upper(btrim(l.code)) = 'CS' and not l.tracks_inventory)
+     or (upper(btrim(l.code)) <> 'CS' and l.tracks_inventory)
+     or not l.active;
+  if v_bad_matches <> 0
+     or (select count(*) from public.locations) <> 6
+     or (select id from public.locations where upper(btrim(code)) = 'ADRIANA') is distinct from v_batista_id
+     or exists (select 1 from public.locations where upper(btrim(code)) in ('BATISTA', 'ES', 'TT')) then
+    raise exception 'Correção de locais falhou: conjunto, UUID ou capacidade de estoque divergente';
+  end if;
 
   -- Produtos: apenas vínculo com o registro já existente. -------------------
   for v_entity in
@@ -479,11 +647,18 @@ begin
     insert into public.partners(
       id, name, partner_type, city, reference, contact_name, phone, status,
       start_date, end_date, partnership_model, settlement_rule, commission_pct,
-      active, notes, import_run_id, source_sheet, source_row, original_id, imported_at
+      active, can_hold_stock, can_pickup, can_sell, can_deliver,
+      can_receive_operations, notes, import_run_id, source_sheet, source_row,
+      original_id, imported_at
     ) values (
       v_target_id,
       v_entity.normalized_payload->>'name',
-      v_entity.normalized_payload->>'partner_type',
+      case
+        when v_entity.source_sheet = 'PARCEIROS'
+         and lower(btrim(v_entity.normalized_payload->>'name')) = lower('C.T.S. Pâmella Nunes')
+          then 'Ponto de Retirada'
+        else v_entity.normalized_payload->>'partner_type'
+      end,
       v_entity.normalized_payload->>'city',
       v_entity.normalized_payload->>'reference',
       v_entity.normalized_payload->>'contact_name',
@@ -495,7 +670,21 @@ begin
       v_entity.normalized_payload->>'settlement_rule',
       (v_entity.normalized_payload->>'commission_pct')::numeric,
       (v_entity.normalized_payload->>'active')::boolean,
-      v_entity.normalized_payload->>'notes',
+      false,
+      v_entity.source_sheet = 'PARCEIROS'
+        and lower(btrim(v_entity.normalized_payload->>'name')) in (
+          lower('C.T.S. Pâmella Nunes'), lower('Mini Mercearia do Batista')
+        ),
+      v_entity.source_sheet = 'PARCEIROS'
+        and coalesce(v_entity.normalized_payload->>'partner_type', '') = 'Consignado',
+      v_entity.source_sheet = 'PARCEIROS'
+        and coalesce(v_entity.normalized_payload->>'partner_type', '') = 'Parceiro Interno',
+      false,
+      concat_ws(E'\n', v_entity.normalized_payload->>'notes', case
+        when v_entity.source_sheet = 'PARCEIROS'
+         and lower(btrim(v_entity.normalized_payload->>'name')) = lower('C.T.S. Pâmella Nunes')
+          then 'Categoria corrigida por decisão aprovada: Ponto de Retirada.'
+      end),
       p_import_run_id, v_entity.source_sheet, v_entity.source_row,
       v_entity.original_id, v_entity.imported_at
     );
@@ -850,11 +1039,37 @@ begin
     );
   end loop;
 
-  -- Snapshot de estoque: um ajuste operacional por produto/local, nunca a
+  -- Os 375 zeros de parceiros e dos códigos históricos ES/TT permanecem no
+  -- staging por auditoria. Não criam localização, saldo nem movimento público.
+  for v_entity in
+    select * from appsheet_import.prepared_stock
+    where import_run_id = p_import_run_id
+      and upper(btrim(normalized_payload->>'location_code')) <> 'CS'
+    order by source_row, source_subkey
+  loop
+    insert into appsheet_import.entity_links(
+      promotion_run_id, import_run_id, entity_type, source_sheet, source_row,
+      source_subkey, target_subkey, original_id, imported_at, target_table,
+      target_key, action
+    ) values (
+      v_promotion_run_id, p_import_run_id, 'stock_balance', v_entity.source_sheet,
+      v_entity.source_row, v_entity.source_subkey, 'balance', v_entity.original_id,
+      v_entity.imported_at, 'stock_balances',
+      jsonb_build_object(
+        'source_location_code', upper(btrim(v_entity.normalized_payload->>'location_code')),
+        'decision', 'deferred_no_inventory_capacity'
+      ),
+      'deferred'
+    );
+  end loop;
+
+  -- Snapshot operacional: somente CS. Um ajuste por produto/local, nunca a
   -- repetição dos 491 eventos históricos. O trigger oficial produz o saldo. --
   for v_entity in
     select * from appsheet_import.prepared_stock
-    where import_run_id = p_import_run_id order by source_row, source_subkey
+    where import_run_id = p_import_run_id
+      and upper(btrim(normalized_payload->>'location_code')) = 'CS'
+    order by source_row, source_subkey
   loop
     select id into strict v_product_id
     from public.products
@@ -862,7 +1077,8 @@ begin
     select id into strict v_location_id
     from public.locations
     where upper(btrim(code)) = upper(btrim(v_entity.normalized_payload->>'location_code'))
-      and active;
+      and active
+      and tracks_inventory;
 
     v_existed := false;
     v_before := null;
@@ -964,9 +1180,41 @@ begin
   left join public.stock_balances sb
     on sb.product_id = p.id and sb.location_id = l.id
   where s.import_run_id = p_import_run_id
+    and upper(btrim(s.normalized_payload->>'location_code')) = 'CS'
+    and l.active and l.tracks_inventory
     and coalesce(sb.quantity, 0) <> (s.normalized_payload->>'quantity')::integer;
   if v_bad_matches <> 0 then
     raise exception 'Reconciliação final de estoque falhou em % saldos', v_bad_matches;
+  end if;
+
+  if (select count(*) from appsheet_import.entity_links
+      where promotion_run_id = v_promotion_run_id and entity_type = 'stock_balance'
+        and target_table = 'stock_balances' and target_subkey = 'balance'
+        and action <> 'deferred') <> 75
+     or (select count(*) from appsheet_import.entity_links
+      where promotion_run_id = v_promotion_run_id and entity_type = 'stock_balance'
+        and target_table = 'stock_balances' and target_subkey = 'balance'
+        and action = 'deferred') <> 375
+     or (select count(*) from appsheet_import.promotion_preimages
+      where promotion_run_id = v_promotion_run_id and target_table = 'stock_balances') <> 75
+     or (select count(*) from public.stock_balances) <> 75
+     or exists (
+       select 1
+       from public.stock_balances sb
+       join public.locations l on l.id = sb.location_id
+       where upper(btrim(l.code)) <> 'CS'
+     )
+     or exists (
+       select 1 from public.locations where upper(btrim(code)) in ('ES', 'TT')
+     )
+     or exists (
+       select 1
+       from public.inventory_movements m
+       join public.locations l on l.id = m.location_id
+       where upper(btrim(l.code)) <> 'CS'
+     )
+     or (select count(*) from public.inventory_movements) <> 39 then
+    raise exception 'Materialização de estoque diverge: esperados CS=75, diferidos=375 e zero estoque de parceiros';
   end if;
 
   -- Snapshot pós-promoção de todo registro inserido. O rollback recusará
@@ -978,6 +1226,7 @@ begin
       and target_schema = 'public'
       and target_id is not null
       and action in ('inserted', 'adjusted')
+      and target_table <> 'locations'
   loop
     execute format(
       'select to_jsonb(t) from %I.%I t where id = $1',
@@ -1025,7 +1274,11 @@ begin
 
   update appsheet_import.prepared_entities p
   set target_id = l.target_id,
-      match_status = case when l.action = 'matched' then 'matched' else 'new' end
+      match_status = case
+        when l.action = 'matched' then 'matched'
+        when l.action = 'deferred' then 'deferred'
+        else 'new'
+      end
   from appsheet_import.entity_links l
   where l.promotion_run_id = v_promotion_run_id
     and l.import_run_id = p.import_run_id
@@ -1038,7 +1291,11 @@ begin
 
   update appsheet_import.prepared_entities p
   set target_id = null,
-      match_status = case when l.action = 'matched' then 'matched' else 'new' end
+      match_status = case
+        when l.action = 'matched' then 'matched'
+        when l.action = 'deferred' then 'deferred'
+        else 'new'
+      end
   from appsheet_import.entity_links l
   where l.promotion_run_id = v_promotion_run_id
     and l.import_run_id = p.import_run_id
@@ -1078,6 +1335,10 @@ begin
         'invalid_entities', v_invalid,
         'validation_errors', v_errors,
         'stock_differences', 0,
+        'source_stock_observations', 450,
+        'materialized_stock_balances', 75,
+        'deferred_stock_observations', 375,
+        'company_stock_is_calculated_total', true,
         'duplicate_sales_preserved', true,
         'duplicate_phone_customers_preserved', true
       )

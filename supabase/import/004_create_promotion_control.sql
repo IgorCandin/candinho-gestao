@@ -9,6 +9,34 @@ begin;
 set local lock_timeout = '5s';
 set local statement_timeout = '60s';
 
+-- Capacidade de estoque é explícita. Um parceiro/local ativo não se torna
+-- estoque por inferência; nesta migração somente CS será habilitado no 005.
+alter table public.locations
+  add column if not exists tracks_inventory boolean not null default false;
+
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_constraint
+    where conname = 'locations_inventory_requires_active'
+      and conrelid = 'public.locations'::regclass
+  ) then
+    alter table public.locations
+      add constraint locations_inventory_requires_active
+      check (not tracks_inventory or active);
+  end if;
+end;
+$$;
+
+-- A promoção registra observações de estoque que, por decisão operacional,
+-- ficam apenas no staging. O estado deixa de ser confundido com "novo".
+alter table appsheet_import.prepared_entities
+  drop constraint if exists prepared_entities_match_status_check;
+alter table appsheet_import.prepared_entities
+  add constraint prepared_entities_match_status_check
+  check (match_status in ('pending', 'matched', 'not_found', 'ambiguous', 'new', 'deferred'));
+
 -- A execução continua aprovada depois de promovida; o estado operacional fica
 -- também registrado em promotion_runs.
 alter table appsheet_import.import_runs
@@ -167,6 +195,11 @@ create table if not exists public.partners (
   settlement_rule text,
   commission_pct numeric(7,4),
   active boolean,
+  can_hold_stock boolean not null default false,
+  can_pickup boolean not null default false,
+  can_sell boolean not null default false,
+  can_deliver boolean not null default false,
+  can_receive_operations boolean not null default false,
   notes text,
   import_run_id uuid not null,
   source_sheet text not null,
@@ -178,6 +211,13 @@ create table if not exists public.partners (
 );
 comment on table public.partners is
   'Managed by appsheet_import controlled promotion v1.';
+
+alter table public.partners
+  add column if not exists can_hold_stock boolean not null default false,
+  add column if not exists can_pickup boolean not null default false,
+  add column if not exists can_sell boolean not null default false,
+  add column if not exists can_deliver boolean not null default false,
+  add column if not exists can_receive_operations boolean not null default false;
 
 create index if not exists partners_name_idx on public.partners(lower(name));
 
@@ -302,6 +342,96 @@ comment on table public.inventory_history is
 
 create index if not exists inventory_history_product_idx on public.inventory_history(product_id);
 create index if not exists inventory_history_occurred_idx on public.inventory_history(occurred_at);
+
+-- A tela de estoque usa esta view: somente locais ativos com capacidade
+-- explícita aparecem como estoque. Parceiros podem continuar ativos para
+-- retirada, venda ou entrega sem receber saldo operacional.
+create or replace view public.inventory_overview
+with (security_invoker = true)
+as
+select
+  p.id as product_id,
+  p.name as product_name,
+  p.category,
+  l.id as location_id,
+  l.code as location_code,
+  l.name as location_name,
+  coalesce(sb.quantity, 0) as quantity,
+  p.min_stock,
+  p.cost_price,
+  p.sale_price,
+  coalesce(sb.quantity, 0) * p.cost_price as stock_cost_value,
+  coalesce(sb.quantity, 0) * p.sale_price as stock_sale_value
+from public.products p
+cross join public.locations l
+left join public.stock_balances sb on sb.product_id = p.id and sb.location_id = l.id
+where p.active and l.active and l.tracks_inventory;
+
+-- Invariantes de banco: vendas exigem local ativo; saldos e movimentos
+-- exigem também capacidade de estoque. Isto cobre chamadas RPC e escrita
+-- direta autorizada por RLS.
+create or replace function appsheet_import.require_active_sale_location()
+returns trigger
+language plpgsql
+security invoker
+set search_path = pg_catalog
+as $$
+begin
+  if not exists (
+    select 1
+    from public.locations l
+    where l.id = new.location_id
+      and l.active
+  ) then
+    raise exception using
+      errcode = '23514',
+      message = 'Venda/lead exige local operacional ativo';
+  end if;
+  return new;
+end;
+$$;
+
+create or replace function appsheet_import.require_inventory_location()
+returns trigger
+language plpgsql
+security invoker
+set search_path = pg_catalog
+as $$
+begin
+  if not exists (
+    select 1
+    from public.locations l
+    where l.id = new.location_id
+      and l.active
+      and l.tracks_inventory
+  ) then
+    raise exception using
+      errcode = '23514',
+      message = 'Saldo ou movimentação exige local ativo com estoque habilitado';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists sales_require_active_location on public.sales;
+create trigger sales_require_active_location
+before insert or update of location_id on public.sales
+for each row execute function appsheet_import.require_active_sale_location();
+
+drop trigger if exists inventory_movements_require_inventory_location on public.inventory_movements;
+create trigger inventory_movements_require_inventory_location
+before insert or update of location_id on public.inventory_movements
+for each row execute function appsheet_import.require_inventory_location();
+
+drop trigger if exists stock_balances_require_inventory_location on public.stock_balances;
+create trigger stock_balances_require_inventory_location
+before insert or update of location_id, quantity on public.stock_balances
+for each row execute function appsheet_import.require_inventory_location();
+
+revoke all on function appsheet_import.require_active_sale_location() from public, anon, authenticated;
+revoke all on function appsheet_import.require_inventory_location() from public, anon, authenticated;
+grant execute on function appsheet_import.require_active_sale_location() to service_role;
+grant execute on function appsheet_import.require_inventory_location() to service_role;
 
 alter table public.partners enable row level security;
 alter table public.partners force row level security;
