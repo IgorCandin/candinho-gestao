@@ -208,9 +208,93 @@ export type CustomerOption = { id: string; name: string; city: string | null; ph
 export type Customer = CustomerOption & { total_spent: number; purchase_count: number; last_purchase_at: string | null; lead_count: number; pending_sales_count: number; };
 export type CustomerDetails = Customer & { reference: string | null; email: string | null; notes: string | null; sensitive_to_caffeine: boolean; anxiety_or_insomnia: boolean; prohibited_products: string | null; approach_preferences: string | null; active: boolean; };
 export type Movement = { id: string; created_at: string; movement_type: string; quantity_delta: number; product_name: string; location_code: string; notes: string | null; };
-export type DashboardData = { totalProducts: number; totalUnits: number; stockCostValue: number; stockSaleValue: number; receivable: number; pendingOrdersCount: number; pendingDeliveryCount: number; pendingPaymentCount: number; pendingOrdersValue: number; currentMonthRevenue: number; currentMonthSalesCount: number; recentSales: SaleRow[]; lowStock: ReplenishmentRow[]; };
+export type DashboardOperationalSummary = {
+  today: string;
+  pending_orders_count: number;
+  pending_delivery_count: number;
+  pending_payment_count: number;
+  overdue_payment_count: number;
+  overdue_payment_total: number;
+  payment_due_today_count: number;
+  payment_due_today_total: number;
+  open_leads_count: number;
+  stale_leads_count: number;
+  supplier_orders_open_count: number;
+  incoming_units: number;
+  stock_attention_products: number;
+  out_of_stock_products: number;
+  physical_units: number;
+  reserved_units: number;
+  available_units: number;
+  current_month_sales: number;
+  current_month_revenue: number;
+  current_month_profit: number;
+  previous_month_sales: number;
+  previous_month_revenue: number;
+  previous_month_profit: number;
+  receivable_total: number;
+  stock_cost_value: number;
+  stock_sale_value: number;
+  stock_potential_profit: number;
+};
+
+export type DashboardPriorityItem = {
+  item_type: "delivery" | "payment" | "lead" | "supplier" | "stock";
+  priority_rank: number;
+  entity_id: string;
+  customer_id: string | null;
+  product_id: string | null;
+  title: string;
+  subtitle: string;
+  reference_date: string;
+  amount: number | null;
+  quantity: number;
+  href: string;
+};
+
+export type DashboardData = {
+  totalProducts: number;
+  totalUnits: number;
+  stockCostValue: number;
+  stockSaleValue: number;
+  receivable: number;
+  pendingOrdersCount: number;
+  pendingDeliveryCount: number;
+  pendingPaymentCount: number;
+  pendingOrdersValue: number;
+  currentMonthRevenue: number;
+  currentMonthProfit: number;
+  currentMonthSalesCount: number;
+  previousMonthRevenue: number;
+  previousMonthProfit: number;
+  previousMonthSalesCount: number;
+  revenueChange: number | null;
+  profitChange: number | null;
+  salesChange: number | null;
+  operational: DashboardOperationalSummary;
+  priorities: DashboardPriorityItem[];
+  recentSales: SaleRow[];
+  lowStock: ReplenishmentRow[];
+};
 export type PanelPeriod = "current" | "previous" | "all";
-export type PanelCSData = { period: PanelPeriod; periodLabel: string; grossRevenue: number; profit: number; saleCount: number; receivable: number; pendingOrdersCount: number; averageTicket: number; sales: SaleRow[]; };
+export type PanelCSData = {
+  period: PanelPeriod;
+  periodLabel: string;
+  grossRevenue: number;
+  profit: number;
+  saleCount: number;
+  receivable: number;
+  pendingOrdersCount: number;
+  averageTicket: number;
+  marginPercent: number;
+  comparisonRevenue: number;
+  comparisonProfit: number;
+  comparisonSales: number;
+  revenueChange: number | null;
+  profitChange: number | null;
+  salesChange: number | null;
+  sales: SaleRow[];
+};
 
 export type SupplierOption = {
   id: string;

@@ -17,6 +17,8 @@ import type {
   CustomerDetails,
   CustomerOption,
   DashboardData,
+  DashboardOperationalSummary,
+  DashboardPriorityItem,
   LeadDetails,
   LeadRow,
   Movement,
@@ -48,6 +50,11 @@ import type {
 
 const number = (value: unknown) => Number(value ?? 0);
 const text = (value: unknown, fallback = "—") => (typeof value === "string" && value.trim() ? value : fallback);
+
+function percentChange(current: number, previous: number) {
+  if (previous === 0) return current === 0 ? 0 : null;
+  return ((current - previous) / Math.abs(previous)) * 100;
+}
 
 function getBrazilYearMonth() {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -744,6 +751,129 @@ export async function getCommercialDashboardSummary(): Promise<CommercialDashboa
   return Object.fromEntries(Object.entries(data).map(([key, value]) => [key, number(value)])) as CommercialDashboardSummary;
 }
 
+export async function getDashboardOperationalSummary(): Promise<DashboardOperationalSummary> {
+  if (!isSupabaseConfigured) {
+    const summary = await getCommercialDashboardSummary();
+    return {
+      today: new Date().toISOString().slice(0, 10),
+      pending_orders_count: demoPendingOrders.length,
+      pending_delivery_count: demoPendingOrders.filter((sale) => sale.delivery_status === "to_deliver").length,
+      pending_payment_count: demoPendingOrders.filter((sale) => sale.payment_status === "receivable").length,
+      overdue_payment_count: 0,
+      overdue_payment_total: 0,
+      payment_due_today_count: 0,
+      payment_due_today_total: 0,
+      open_leads_count: demoLeads.length,
+      stale_leads_count: demoLeads.length,
+      supplier_orders_open_count: 0,
+      incoming_units: 0,
+      stock_attention_products: demoReplenishment.length,
+      out_of_stock_products: demoReplenishment.filter((row) => row.company_quantity === 0).length,
+      physical_units: summary.operational_units,
+      reserved_units: 0,
+      available_units: summary.operational_units,
+      current_month_sales: summary.current_month_sales,
+      current_month_revenue: summary.current_month_revenue,
+      current_month_profit: summary.current_month_profit,
+      previous_month_sales: summary.previous_month_sales,
+      previous_month_revenue: summary.previous_month_revenue,
+      previous_month_profit: summary.previous_month_profit,
+      receivable_total: summary.receivable_total,
+      stock_cost_value: summary.stock_cost_value,
+      stock_sale_value: summary.stock_sale_value,
+      stock_potential_profit: summary.stock_potential_profit,
+    };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("dashboard_operational_summary").select("*").single();
+  if (error) throw error;
+
+  return {
+    today: String(data.today ?? ""),
+    pending_orders_count: number(data.pending_orders_count),
+    pending_delivery_count: number(data.pending_delivery_count),
+    pending_payment_count: number(data.pending_payment_count),
+    overdue_payment_count: number(data.overdue_payment_count),
+    overdue_payment_total: number(data.overdue_payment_total),
+    payment_due_today_count: number(data.payment_due_today_count),
+    payment_due_today_total: number(data.payment_due_today_total),
+    open_leads_count: number(data.open_leads_count),
+    stale_leads_count: number(data.stale_leads_count),
+    supplier_orders_open_count: number(data.supplier_orders_open_count),
+    incoming_units: number(data.incoming_units),
+    stock_attention_products: number(data.stock_attention_products),
+    out_of_stock_products: number(data.out_of_stock_products),
+    physical_units: number(data.physical_units),
+    reserved_units: number(data.reserved_units),
+    available_units: number(data.available_units),
+    current_month_sales: number(data.current_month_sales),
+    current_month_revenue: number(data.current_month_revenue),
+    current_month_profit: number(data.current_month_profit),
+    previous_month_sales: number(data.previous_month_sales),
+    previous_month_revenue: number(data.previous_month_revenue),
+    previous_month_profit: number(data.previous_month_profit),
+    receivable_total: number(data.receivable_total),
+    stock_cost_value: number(data.stock_cost_value),
+    stock_sale_value: number(data.stock_sale_value),
+    stock_potential_profit: number(data.stock_potential_profit),
+  };
+}
+
+export async function getDashboardPriorityItems(limit = 14): Promise<DashboardPriorityItem[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("dashboard_priority_items")
+    .select("*")
+    .order("priority_rank", { ascending: true })
+    .order("reference_date", { ascending: true })
+    .limit(120);
+  if (error) throw error;
+
+  const rows = (data ?? []).map((row) => ({
+    item_type: row.item_type as DashboardPriorityItem["item_type"],
+    priority_rank: number(row.priority_rank),
+    entity_id: String(row.entity_id),
+    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+    product_id: typeof row.product_id === "string" ? row.product_id : null,
+    title: text(row.title, "Item sem título"),
+    subtitle: text(row.subtitle, "Sem detalhes"),
+    reference_date: String(row.reference_date ?? ""),
+    amount: row.amount == null ? null : number(row.amount),
+    quantity: number(row.quantity),
+    href: text(row.href, "/suplementos"),
+  }));
+
+  const typeOrder: DashboardPriorityItem["item_type"][] = ["delivery", "payment", "lead", "supplier", "stock"];
+  const selected: DashboardPriorityItem[] = [];
+  const used = new Set<string>();
+  const perType = Math.max(2, Math.floor(limit / typeOrder.length));
+
+  for (const type of typeOrder) {
+    for (const item of rows.filter((row) => row.item_type === type).slice(0, perType)) {
+      selected.push(item);
+      used.add(`${item.item_type}:${item.entity_id}`);
+    }
+  }
+
+  const remainder = rows
+    .filter((item) => !used.has(`${item.item_type}:${item.entity_id}`))
+    .sort((a, b) => {
+      const typeDifference = typeOrder.indexOf(a.item_type) - typeOrder.indexOf(b.item_type);
+      if (typeDifference !== 0) return typeDifference;
+      if (a.priority_rank !== b.priority_rank) return a.priority_rank - b.priority_rank;
+      return a.reference_date.localeCompare(b.reference_date);
+    });
+
+  for (const item of remainder) {
+    if (selected.length >= limit) break;
+    selected.push(item);
+  }
+
+  return selected.slice(0, limit);
+}
+
 export async function getPanelCS(period: PanelPeriod = "current"): Promise<PanelCSData> {
   const [summary, pendingOrders, allSales] = await Promise.all([
     getCommercialDashboardSummary(),
@@ -767,6 +897,9 @@ export async function getPanelCS(period: PanelPeriod = "current"): Promise<Panel
     : period === "previous"
       ? summary.previous_month_sales
       : summary.total_sales;
+  const comparisonRevenue = period === "current" ? summary.previous_month_revenue : 0;
+  const comparisonProfit = period === "current" ? summary.previous_month_profit : 0;
+  const comparisonSales = period === "current" ? summary.previous_month_sales : 0;
 
   return {
     period,
@@ -777,14 +910,23 @@ export async function getPanelCS(period: PanelPeriod = "current"): Promise<Panel
     receivable: summary.receivable_total,
     pendingOrdersCount: pendingOrders.length,
     averageTicket: saleCount > 0 ? grossRevenue / saleCount : 0,
+    marginPercent: grossRevenue > 0 ? (profit / grossRevenue) * 100 : 0,
+    comparisonRevenue,
+    comparisonProfit,
+    comparisonSales,
+    revenueChange: period === "current" ? percentChange(grossRevenue, comparisonRevenue) : null,
+    profitChange: period === "current" ? percentChange(profit, comparisonProfit) : null,
+    salesChange: period === "current" ? percentChange(saleCount, comparisonSales) : null,
     sales,
   };
 }
 
 export async function getDashboard(): Promise<DashboardData> {
-  const [products, summary, pendingOrders, recentSales, lowStock] = await Promise.all([
+  const [products, summary, operational, priorities, pendingOrders, recentSales, lowStock] = await Promise.all([
     getProductCatalog(),
     getCommercialDashboardSummary(),
+    getDashboardOperationalSummary(),
+    getDashboardPriorityItems(),
     getPendingOrders(),
     getSalesHistory(30),
     getReplenishment(),
@@ -792,7 +934,7 @@ export async function getDashboard(): Promise<DashboardData> {
 
   return {
     totalProducts: products.filter((product) => product.active).length,
-    totalUnits: summary.operational_units,
+    totalUnits: operational.available_units,
     stockCostValue: summary.stock_cost_value,
     stockSaleValue: summary.stock_sale_value,
     receivable: summary.receivable_total,
@@ -801,7 +943,16 @@ export async function getDashboard(): Promise<DashboardData> {
     pendingPaymentCount: pendingOrders.filter((sale) => sale.payment_status === "receivable").length,
     pendingOrdersValue: pendingOrders.reduce((sum, sale) => sum + sale.total_amount, 0),
     currentMonthRevenue: summary.current_month_revenue,
+    currentMonthProfit: summary.current_month_profit,
     currentMonthSalesCount: summary.current_month_sales,
+    previousMonthRevenue: summary.previous_month_revenue,
+    previousMonthProfit: summary.previous_month_profit,
+    previousMonthSalesCount: summary.previous_month_sales,
+    revenueChange: percentChange(summary.current_month_revenue, summary.previous_month_revenue),
+    profitChange: percentChange(summary.current_month_profit, summary.previous_month_profit),
+    salesChange: percentChange(summary.current_month_sales, summary.previous_month_sales),
+    operational,
+    priorities,
     recentSales: recentSales.filter(isCommercialSale).slice(0, 8),
     lowStock: lowStock.slice(0, 8),
   };
