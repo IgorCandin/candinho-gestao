@@ -1,5 +1,5 @@
--- PROPOSTA PARA REVISÃO. NÃO EXECUTADA.
--- Cria staging privado e isolado; não promove dados para public.*.
+-- Cria/evolui staging privado e isolado; não promove dados para public.*.
+-- Compatível com a estrutura privada vazia criada por versões anteriores.
 
 begin;
 
@@ -30,6 +30,73 @@ create table if not exists appsheet_import.import_runs (
   )
 );
 
+alter table appsheet_import.import_runs
+  alter column id set default gen_random_uuid(),
+  alter column imported_at set default now(),
+  alter column status set default 'staged',
+  alter column sheet_counts set default '{}'::jsonb;
+
+alter table appsheet_import.import_runs
+  add column if not exists validation_summary jsonb not null default '{}'::jsonb,
+  add column if not exists final_import_approved boolean not null default false,
+  add column if not exists approved_at timestamptz,
+  add column if not exists approved_by uuid references public.profiles(id) on delete set null,
+  add column if not exists notes text;
+
+create unique index if not exists import_runs_source_sha256_key
+  on appsheet_import.import_runs(source_sha256);
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'import_runs_source_sha256_format'
+      and conrelid = 'appsheet_import.import_runs'::regclass
+  ) then
+    alter table appsheet_import.import_runs
+      add constraint import_runs_source_sha256_format
+      check (source_sha256 ~ '^[0-9a-f]{64}$');
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'import_runs_status_allowed'
+      and conrelid = 'appsheet_import.import_runs'::regclass
+  ) then
+    alter table appsheet_import.import_runs
+      add constraint import_runs_status_allowed
+      check (status in ('staged', 'validated', 'approved', 'promoted', 'rejected'));
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'import_runs_sheet_counts_object'
+      and conrelid = 'appsheet_import.import_runs'::regclass
+  ) then
+    alter table appsheet_import.import_runs
+      add constraint import_runs_sheet_counts_object
+      check (jsonb_typeof(sheet_counts) = 'object');
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'import_runs_validation_summary_object'
+      and conrelid = 'appsheet_import.import_runs'::regclass
+  ) then
+    alter table appsheet_import.import_runs
+      add constraint import_runs_validation_summary_object
+      check (jsonb_typeof(validation_summary) = 'object');
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'import_approval_consistency'
+      and conrelid = 'appsheet_import.import_runs'::regclass
+  ) then
+    alter table appsheet_import.import_runs
+      add constraint import_approval_consistency check (
+        (not final_import_approved and approved_at is null and approved_by is null)
+        or (final_import_approved and status = 'approved' and approved_at is not null and approved_by is not null)
+      );
+  end if;
+end $$;
+
 comment on table appsheet_import.import_runs is
   'Execuções idempotentes identificadas pelo SHA-256 do XLSX; não autorizam promoção automaticamente.';
 
@@ -46,6 +113,53 @@ create table if not exists appsheet_import.raw_rows (
   ) stored,
   primary key (import_run_id, source_sheet, source_row)
 );
+
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'appsheet_import' and table_name = 'raw_rows' and column_name = 'sheet_name'
+  ) and not exists (
+    select 1 from information_schema.columns
+    where table_schema = 'appsheet_import' and table_name = 'raw_rows' and column_name = 'source_sheet'
+  ) then
+    alter table appsheet_import.raw_rows rename column sheet_name to source_sheet;
+  end if;
+end $$;
+
+alter table appsheet_import.raw_rows
+  add column if not exists original_id text,
+  add column if not exists payload_sha256 text generated always as (
+    encode(digest(convert_to(payload::text, 'UTF8'), 'sha256'), 'hex')
+  ) stored;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'raw_rows_source_row_positive'
+      and conrelid = 'appsheet_import.raw_rows'::regclass
+  ) then
+    alter table appsheet_import.raw_rows
+      add constraint raw_rows_source_row_positive check (source_row > 0);
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'raw_rows_payload_object'
+      and conrelid = 'appsheet_import.raw_rows'::regclass
+  ) then
+    alter table appsheet_import.raw_rows
+      add constraint raw_rows_payload_object check (jsonb_typeof(payload) = 'object');
+  end if;
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'raw_rows_formulas_object'
+      and conrelid = 'appsheet_import.raw_rows'::regclass
+  ) then
+    alter table appsheet_import.raw_rows
+      add constraint raw_rows_formulas_object check (jsonb_typeof(formulas) = 'object');
+  end if;
+end $$;
 
 create index if not exists raw_rows_original_id_idx
   on appsheet_import.raw_rows(import_run_id, source_sheet, original_id)
