@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "data:analyze": "node scripts/analyze-appsheet-staging.mjs",
+    "data:stage": "node scripts/export-appsheet-staging.mjs",
     "start": "next start",
     "lint": "eslint"
   },
@@ -23,9 +25,11 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "exceljs": "^4.4.0",
     "typescript": "^5"
   },
   "overrides": {
-    "postcss": "8.5.10"
+    "postcss": "8.5.10",
+    "uuid": "11.1.1"
   }
 }

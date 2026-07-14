@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# AppSheet exports and generated import artifacts (customer data / PII)
+/data-import/
+
 # vercel
 .vercel
 
