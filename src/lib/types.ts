@@ -1,14 +1,25 @@
-export type Product = {
+export type ProductCatalogRow = {
   id: string;
   name: string;
-  sku: string | null;
   category: string;
   brand: string | null;
-  cost_price: number;
-  sale_price: number;
-  min_stock: number;
-  active: boolean;
   image_url: string | null;
+  active: boolean;
+  sale_price: number;
+  installment_price: number;
+};
+
+export type ProductDetails = ProductCatalogRow & {
+  description: string | null;
+  objective: string | null;
+  ideal_profile: string | null;
+  duration_days: number | null;
+  information: string | null;
+  quick_message: string | null;
+  keywords: string | null;
+  level: string | null;
+  sales_category: string | null;
+  secondary_image_url: string | null;
 };
 
 export type StockRow = {
@@ -28,15 +39,96 @@ export type StockRow = {
 
 export type SaleRow = {
   id: string;
-  created_at: string;
-  record_type: "sale" | "lead";
+  customer_id: string | null;
+  customer_name: string;
+  location_id: string;
+  location_code: string;
+  location_name: string;
+  business_at: string;
+  business_date: string;
+  quoted_at: string;
+  delivered_at: string | null;
   general_status: string;
   payment_status: string;
   delivery_status: string;
+  payment_method: string | null;
+  payment_condition: string | null;
   total_amount: number;
   total_profit: number;
+  notes: string | null;
+  product_summary: string | null;
+  total_items: number;
+};
+
+export type LeadRow = {
+  id: string;
+  customer_id: string | null;
   customer_name: string;
+  location_id: string;
   location_code: string;
+  location_name: string;
+  lead_at: string;
+  lead_date: string;
+  lead_month: string;
+  lead_status: string | null;
+  general_status: string;
+  reference: string | null;
+  city: string | null;
+  phone: string | null;
+  notes: string | null;
+  product_summary: string | null;
+  total_items: number;
+};
+
+export type PendingOrderRow = {
+  id: string;
+  customer_id: string | null;
+  customer_name: string;
+  location_id: string;
+  location_code: string;
+  business_at: string;
+  business_date: string;
+  order_at: string;
+  delivered_at: string | null;
+  payment_status: string;
+  delivery_status: string;
+  payment_method: string | null;
+  payment_condition: string | null;
+  total_amount: number;
+  total_profit: number;
+  product_summary: string | null;
+  total_items: number;
+};
+
+export type ReplenishmentRow = {
+  product_id: string;
+  product_name: string;
+  category: string;
+  company_quantity: number;
+  min_stock: number;
+  ideal_stock: number;
+  needs_replenishment: boolean;
+  suggested_order_quantity: number;
+  stock_status: string;
+};
+
+export type CommercialDashboardSummary = {
+  total_sales: number;
+  total_revenue: number;
+  total_profit: number;
+  receivable_total: number;
+  receivable_sales: number;
+  current_month_sales: number;
+  current_month_revenue: number;
+  current_month_profit: number;
+  previous_month_sales: number;
+  previous_month_revenue: number;
+  previous_month_profit: number;
+  operational_units: number;
+  all_units: number;
+  stock_cost_value: number;
+  stock_sale_value: number;
+  stock_potential_profit: number;
 };
 
 export type Customer = {
@@ -65,7 +157,6 @@ export type DashboardData = {
   stockCostValue: number;
   stockSaleValue: number;
   receivable: number;
-  lowStockCount: number;
   pendingOrdersCount: number;
   pendingDeliveryCount: number;
   pendingPaymentCount: number;
@@ -73,7 +164,7 @@ export type DashboardData = {
   currentMonthRevenue: number;
   currentMonthSalesCount: number;
   recentSales: SaleRow[];
-  lowStock: StockRow[];
+  lowStock: ReplenishmentRow[];
 };
 
 export type PanelPeriod = "current" | "previous" | "all";

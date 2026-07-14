@@ -28,7 +28,8 @@ const supplementNav = [
   { href: "/painel-cs", label: "Painel CS", icon: BarChart3 },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/estoque", label: "Estoque", icon: Warehouse },
-  { href: "/vendas", label: "Vendas e leads", icon: ShoppingBag },
+  { href: "/vendas", label: "Vendas", icon: ShoppingBag },
+  { href: "/leads", label: "Leads", icon: UserRoundPlus },
   { href: "/clientes", label: "Clientes", icon: ContactRound },
   { href: "/movimentacoes", label: "Movimentações", icon: History },
 ];
@@ -105,7 +106,7 @@ export function AppShell({
           <div className="topbar-title">Qualidade que entrega resultado</div>
           {showSupplementActions && (
             <div className="topbar-actions">
-              <Link className="button ghost" href="/vendas?novo=lead">
+              <Link className="button ghost" href="/leads?novo=lead">
                 <UserRoundPlus size={16} />
                 Novo lead
               </Link>

@@ -1,14 +1,69 @@
-import { Plus, Search } from "lucide-react";
+/* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
+import { ArrowRight, Plus, Search } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
-import { getProducts } from "@/lib/data";
+import { getProductCatalog } from "@/lib/data";
 import { formatCurrency } from "@/lib/format";
 
-export default async function ProductsPage() {
-  const products = await getProducts();
-  return <><DemoBanner /><PageHeader eyebrow="Catálogo" title="Produtos" description="Cadastro único de produto, preço, custo, categoria e estoque mínimo." action={<button className="button gold"><Plus size={16} />Novo produto</button>} />
-    <div className="filters"><div style={{ position: "relative" }}><Search size={16} style={{ position: "absolute", left: 13, top: 13, color: "var(--muted)" }} /><input className="input" style={{ paddingLeft: 38 }} placeholder="Buscar produto" /></div><select className="select"><option>Todas as categorias</option></select></div>
-    <article className="panel"><div className="table-wrap"><table><thead><tr><th>Produto</th><th>Categoria</th><th>Custo</th><th>Venda</th><th>Margem</th><th>Mínimo</th><th>Status</th></tr></thead><tbody>
-      {products.map((p) => <tr key={p.id}><td><div className="product-cell"><span className="product-avatar">{p.name.slice(0,2).toUpperCase()}</span><div><div className="cell-main">{p.name}</div><div className="cell-sub">{p.sku ?? "Sem SKU"} · {p.brand ?? "Sem marca"}</div></div></div></td><td>{p.category}</td><td>{formatCurrency(p.cost_price)}</td><td className="amount">{formatCurrency(p.sale_price)}</td><td>{formatCurrency(p.sale_price - p.cost_price)}</td><td>{p.min_stock}</td><td><span className={`badge ${p.active ? "green" : "gray"}`}><span className="dot" />{p.active ? "Ativo" : "Inativo"}</span></td></tr>)}
-    </tbody></table></div></article></>;
+export default async function ProductsPage({ searchParams }: { searchParams: Promise<{ busca?: string }> }) {
+  const params = await searchParams;
+  const query = params.busca?.trim().toLocaleLowerCase("pt-BR") ?? "";
+  const products = await getProductCatalog();
+  const filtered = query
+    ? products.filter((product) => `${product.name} ${product.category} ${product.brand ?? ""}`.toLocaleLowerCase("pt-BR").includes(query))
+    : products;
+
+  return (
+    <>
+      <DemoBanner />
+      <PageHeader
+        eyebrow="Catálogo"
+        title="Produtos"
+        description="Catálogo seguro para consulta: somente preço de venda, preço a prazo e status."
+        action={<button className="button gold"><Plus size={16} />Novo produto</button>}
+      />
+
+      <form className="filters" method="get">
+        <div className="search-field">
+          <Search size={16} />
+          <input className="input" name="busca" defaultValue={params.busca ?? ""} placeholder="Buscar produto" />
+        </div>
+        <button className="button ghost" type="submit">Buscar</button>
+        {query && <Link className="button ghost" href="/produtos">Limpar</Link>}
+      </form>
+
+      <article className="panel">
+        {filtered.length === 0 ? (
+          <div className="empty"><strong>Nenhum produto encontrado</strong>Tente buscar por outro nome, marca ou categoria.</div>
+        ) : (
+          <div className="table-wrap">
+            <table className="products-table">
+              <thead><tr><th>Produto</th><th>Preço à vista</th><th>Preço a prazo</th><th>Status</th><th aria-label="Abrir produto" /></tr></thead>
+              <tbody>
+                {filtered.map((product) => (
+                  <tr key={product.id}>
+                    <td>
+                      <Link className="product-cell product-link" href={`/produtos/${product.id}`}>
+                        {product.image_url ? (
+                          <img className="product-thumb" src={product.image_url} alt="" />
+                        ) : (
+                          <span className="product-avatar">{product.name.slice(0, 2).toUpperCase()}</span>
+                        )}
+                        <div><div className="cell-main">{product.name}</div><div className="cell-sub">{product.category} · {product.brand ?? "Sem marca"}</div></div>
+                      </Link>
+                    </td>
+                    <td className="amount">{formatCurrency(product.sale_price)}</td>
+                    <td className="amount">{formatCurrency(product.installment_price)}</td>
+                    <td><span className={`badge ${product.active ? "green" : "gray"}`}><span className="dot" />{product.active ? "Ativo" : "Inativo"}</span></td>
+                    <td><Link className="icon-link" href={`/produtos/${product.id}`} aria-label={`Abrir ${product.name}`}><ArrowRight size={18} /></Link></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </article>
+    </>
+  );
 }
