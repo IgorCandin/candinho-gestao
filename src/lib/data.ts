@@ -26,6 +26,9 @@ import type {
   ProductCatalogRow,
   ProductDetails,
   ProductOption,
+  SaleStockOption,
+  LocationOption,
+  PartnerOption,
   ReplenishmentRow,
   SaleDetails,
   SaleRow,
@@ -113,6 +116,14 @@ function normalizeSale(row: Record<string, unknown>): SaleRow {
     notes: typeof row.notes === "string" ? row.notes : null,
     product_summary: typeof row.product_summary === "string" ? row.product_summary : null,
     total_items: number(row.total_items),
+    paid_at: typeof row.paid_at === "string" ? row.paid_at : null,
+    payment_due_at: typeof row.payment_due_at === "string" ? row.payment_due_at : null,
+    price_condition: typeof row.price_condition === "string" ? row.price_condition : null,
+    partner_id: typeof row.partner_id === "string" ? row.partner_id : null,
+    partner_name: typeof row.partner_name === "string" ? row.partner_name : null,
+    primary_product_id: typeof row.primary_product_id === "string" ? row.primary_product_id : null,
+    primary_image_url: typeof row.primary_image_url === "string" ? row.primary_image_url : null,
+    reservation_status: typeof row.reservation_status === "string" ? row.reservation_status : null,
   };
 }
 
@@ -232,6 +243,58 @@ export async function getCustomerOptions(): Promise<CustomerOption[]> {
   return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null }));
 }
 export async function getProductOptions(): Promise<ProductOption[]> { const products = await getProductCatalog(); return products.filter((product) => product.active).map(({ id, name, category, brand, image_url }) => ({ id, name, category, brand, image_url })); }
+export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("sale_stock_availability")
+    .select("*")
+    .order("product_name", { ascending: true })
+    .order("location_code", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    product_id: String(row.product_id),
+    product_name: text(row.product_name, "Produto sem nome"),
+    category: text(row.category, "Sem categoria"),
+    brand: typeof row.brand === "string" ? row.brand : null,
+    image_url: typeof row.image_url === "string" ? row.image_url : null,
+    cost_price: number(row.cost_price),
+    sale_price: number(row.sale_price),
+    location_id: String(row.location_id),
+    location_code: text(row.location_code),
+    location_name: text(row.location_name),
+    physical_quantity: number(row.physical_quantity),
+    reserved_quantity: number(row.reserved_quantity),
+    available_quantity: number(row.available_quantity),
+  }));
+}
+
+export async function getSaleLocations(): Promise<LocationOption[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("locations")
+    .select("id,code,name,city")
+    .eq("active", true)
+    .eq("tracks_inventory", true)
+    .order("code");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ id: String(row.id), code: text(row.code), name: text(row.name), city: typeof row.city === "string" ? row.city : null }));
+}
+
+export async function getSalePartners(): Promise<PartnerOption[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("sale_partner_options").select("*").order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id), name: text(row.name), partner_type: text(row.partner_type),
+    city: typeof row.city === "string" ? row.city : null,
+    partnership_model: typeof row.partnership_model === "string" ? row.partnership_model : null,
+    settlement_rule: typeof row.settlement_rule === "string" ? row.settlement_rule : null,
+    commission_pct: number(row.commission_pct),
+  }));
+}
 export async function getCustomerDetails(customerId: string): Promise<CustomerDetails | null> {
   if (!isSupabaseConfigured) { const customer = demoCustomers.find((row) => row.id === customerId); if (!customer) return null; return { ...customer, reference: null, email: null, notes: null, sensitive_to_caffeine: false, anxiety_or_insomnia: false, prohibited_products: null, approach_preferences: null, active: true }; }
   const supabase = await createClient(); const { data, error } = await supabase.from("customer_details").select("*").eq("id", customerId).maybeSingle(); if (error) throw error; if (!data) return null;
@@ -293,6 +356,11 @@ export async function getPendingOrders(): Promise<PendingOrderRow[]> {
     total_items: number(row.total_items),
     primary_product_id: typeof row.primary_product_id === "string" ? row.primary_product_id : null,
     primary_image_url: typeof row.primary_image_url === "string" ? row.primary_image_url : null,
+    payment_due_at: typeof row.payment_due_at === "string" ? row.payment_due_at : null,
+    price_condition: typeof row.price_condition === "string" ? row.price_condition : null,
+    partner_id: typeof row.partner_id === "string" ? row.partner_id : null,
+    partner_name: typeof row.partner_name === "string" ? row.partner_name : null,
+    reservation_status: typeof row.reservation_status === "string" ? row.reservation_status : null,
   }));
 }
 
@@ -323,7 +391,13 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
       delivery_status: order.delivery_status,
       payment_method: order.payment_method,
       payment_condition: order.payment_condition,
+      payment_due_at: order.payment_due_at,
+      price_condition: order.price_condition,
+      partner_id: order.partner_id,
+      partner_name: order.partner_name,
       total_amount: order.total_amount,
+      total_cost: 0,
+      total_profit: order.total_profit,
       notes: null,
       items: [{
         id: "demo-item",
@@ -333,7 +407,12 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
         category: "Saúde",
         brand: null,
         quantity: order.total_items || 1,
+        unit_cost: 0,
         unit_price: order.total_amount / Math.max(order.total_items, 1),
+        price_condition: order.price_condition,
+        quantity_requested: order.total_items || 1,
+        quantity_reserved: null,
+        reservation_status: order.reservation_status,
       }],
     };
   }
@@ -343,10 +422,11 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
     .from("sales")
     .select(`
       id,customer_id,location_id,reference,city,phone,general_status,payment_status,delivery_status,
-      payment_method,payment_condition,quoted_at,paid_at,delivered_at,total_amount,notes,
+      payment_method,payment_condition,payment_due_at,price_condition,partner_id,quoted_at,paid_at,delivered_at,total_amount,total_cost,total_profit,notes,
       customer:customers(id,name,city,phone),
       location:locations(id,code,name),
-      items:sale_items(id,product_id,quantity,unit_price,product:products(id,name,image_url,category,brand))
+      partner:partners(id,name),
+      items:sale_items(id,product_id,quantity,unit_cost,unit_price,price_condition,product:products(id,name,image_url,category,brand),reservations:stock_reservations(quantity_requested,quantity_reserved,status))
     `)
     .eq("id", saleId)
     .eq("record_type", "sale")
@@ -357,6 +437,7 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
   const row = data as Record<string, unknown>;
   const customer = oneRelation(row.customer);
   const location = oneRelation(row.location);
+  const partner = oneRelation(row.partner);
   const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : [];
 
   return {
@@ -377,10 +458,17 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
     delivery_status: text(row.delivery_status, "to_deliver"),
     payment_method: typeof row.payment_method === "string" ? row.payment_method : null,
     payment_condition: typeof row.payment_condition === "string" ? row.payment_condition : null,
+    payment_due_at: typeof row.payment_due_at === "string" ? row.payment_due_at : null,
+    price_condition: typeof row.price_condition === "string" ? row.price_condition : null,
+    partner_id: typeof row.partner_id === "string" ? row.partner_id : null,
+    partner_name: typeof partner?.name === "string" ? partner.name : null,
     total_amount: number(row.total_amount),
+    total_cost: number(row.total_cost),
+    total_profit: number(row.total_profit),
     notes: typeof row.notes === "string" ? row.notes : null,
     items: itemRows.map((item) => {
       const product = oneRelation(item.product);
+      const reservation = oneRelation(item.reservations);
       return {
         id: String(item.id),
         product_id: String(item.product_id),
@@ -389,7 +477,12 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
         category: typeof product?.category === "string" ? product.category : null,
         brand: typeof product?.brand === "string" ? product.brand : null,
         quantity: number(item.quantity),
+        unit_cost: number(item.unit_cost),
         unit_price: number(item.unit_price),
+        price_condition: typeof item.price_condition === "string" ? item.price_condition : null,
+        quantity_requested: reservation?.quantity_requested == null ? null : number(reservation.quantity_requested),
+        quantity_reserved: reservation?.quantity_reserved == null ? null : number(reservation.quantity_reserved),
+        reservation_status: typeof reservation?.status === "string" ? reservation.status : null,
       };
     }),
   };

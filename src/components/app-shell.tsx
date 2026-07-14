@@ -114,7 +114,7 @@ export function AppShell({
                 <ClipboardPlus size={16} />
                 Novo pedido de fornecedor
               </Link>
-              <Link className="button gold" href="/vendas?novo=venda">
+              <Link className="button gold" href="/vendas/nova">
                 <CircleDollarSign size={16} />
                 Nova venda
               </Link>

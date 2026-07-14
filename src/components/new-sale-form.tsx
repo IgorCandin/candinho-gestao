@@ -1,0 +1,175 @@
+"use client";
+
+import Link from "next/link";
+import { CircleDollarSign, LoaderCircle, PackagePlus, Plus, Save, Trash2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { formatCurrency } from "@/lib/format";
+import type { CustomerOption, LocationOption, PartnerOption, SaleStockOption } from "@/lib/types";
+
+const PAYMENT_METHODS = ["Pix", "Dinheiro", "Cartão", "Link de Pagamento", "Pagamento fracionado"] as const;
+type PaymentMode = "receivable" | "paid" | "combined";
+type DraftItem = { key: string; productId: string; quantity: string; unitPrice: string };
+
+function todayInSaoPaulo() {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  return `${parts.find((part) => part.type === "year")?.value}-${parts.find((part) => part.type === "month")?.value}-${parts.find((part) => part.type === "day")?.value}`;
+}
+
+function itemKey() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
+function priceCondition(price: number, cost: number, standard: number) {
+  if (price === cost) return "Custo";
+  if (price === standard) return "Preço normal";
+  if (price < standard) return "Desconto";
+  return "Preço combinado";
+}
+
+export function NewSaleForm({ customers, locations, partners, stock }: { customers: CustomerOption[]; locations: LocationOption[]; partners: PartnerOption[]; stock: SaleStockOption[] }) {
+  const router = useRouter();
+  const defaultLocation = locations.find((location) => location.code === "CS")?.id ?? locations[0]?.id ?? "";
+  const [customerId, setCustomerId] = useState("");
+  const [locationId, setLocationId] = useState(defaultLocation);
+  const [quotedOn, setQuotedOn] = useState(todayInSaoPaulo);
+  const [items, setItems] = useState<DraftItem[]>([{ key: itemKey(), productId: "", quantity: "1", unitPrice: "" }]);
+  const [paymentMode, setPaymentMode] = useState<PaymentMode>("receivable");
+  const [paidOn, setPaidOn] = useState(todayInSaoPaulo);
+  const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHODS)[number]>("Pix");
+  const [paymentDueOn, setPaymentDueOn] = useState(todayInSaoPaulo);
+  const [delivered, setDelivered] = useState(false);
+  const [deliveredOn, setDeliveredOn] = useState(todayInSaoPaulo);
+  const [partnership, setPartnership] = useState(false);
+  const [partnerId, setPartnerId] = useState("");
+  const [notes, setNotes] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  const productOptions = useMemo(() => {
+    const map = new Map<string, SaleStockOption>();
+    stock.forEach((row) => { if (!map.has(row.product_id)) map.set(row.product_id, row); });
+    return [...map.values()].sort((a, b) => a.product_name.localeCompare(b.product_name, "pt-BR"));
+  }, [stock]);
+
+  function rowFor(productId: string) { return stock.find((row) => row.product_id === productId && row.location_id === locationId) ?? null; }
+  function updateItem(key: string, changes: Partial<DraftItem>) { setItems((current) => current.map((item) => item.key === key ? { ...item, ...changes } : item)); }
+  function selectProduct(key: string, productId: string) {
+    const row = rowFor(productId) ?? stock.find((entry) => entry.product_id === productId);
+    updateItem(key, { productId, unitPrice: row ? String(row.sale_price) : "" });
+  }
+  function addItem() { setItems((current) => [...current, { key: itemKey(), productId: "", quantity: "1", unitPrice: "" }]); }
+  function removeItem(key: string) { setItems((current) => current.length === 1 ? current : current.filter((item) => item.key !== key)); }
+
+  const total = items.reduce((sum, item) => sum + Math.max(Number(item.quantity) || 0, 0) * Math.max(Number(item.unitPrice) || 0, 0), 0);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setLoading(true); setMessage(null);
+    try {
+      if (!customerId || !locationId) throw new Error("Selecione o cliente e o estoque de origem.");
+      if (items.some((item) => !item.productId || Number(item.quantity) <= 0 || Number(item.unitPrice) < 0)) throw new Error("Revise os produtos, quantidades e preços.");
+      if (new Set(items.map((item) => item.productId)).size !== items.length) throw new Error("O mesmo produto não pode aparecer duas vezes.");
+      if (partnership && !partnerId) throw new Error("Selecione o parceiro desta venda.");
+
+      const supabase = createClient();
+      const { data, error } = await supabase.rpc("create_sale", {
+        p_customer_id: customerId,
+        p_location_id: locationId,
+        p_quoted_on: quotedOn,
+        p_items: items.map((item) => ({ product_id: item.productId, quantity: Number(item.quantity), unit_price: Number(item.unitPrice) })),
+        p_payment_mode: paymentMode,
+        p_paid_on: paymentMode === "paid" ? paidOn : null,
+        p_payment_method: paymentMode === "paid" ? paymentMethod : null,
+        p_payment_due_on: paymentMode === "combined" ? paymentDueOn : null,
+        p_delivered: delivered,
+        p_delivered_on: delivered ? deliveredOn : null,
+        p_notes: notes.trim() || null,
+        p_partner_id: partnership ? partnerId : null,
+      });
+      if (error) throw error;
+      router.push(`/vendas/${String(data)}`); router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível registrar a venda.");
+    } finally { setLoading(false); }
+  }
+
+  return <form className="new-sale-layout" onSubmit={submit}>
+    <div className="new-sale-main">
+      <article className="panel">
+        <div className="panel-head"><div><h2>Cliente e orçamento</h2><p>Dados principais usados para registrar a venda.</p></div><CircleDollarSign size={20}/></div>
+        <div className="panel-body form-grid-two">
+          <label className="field"><span>Cliente</span><select className="select" required value={customerId} onChange={(event)=>setCustomerId(event.target.value)}><option value="">Selecione o cliente</option>{customers.map((customer)=><option key={customer.id} value={customer.id}>{customer.name}{customer.city?` · ${customer.city}`:""}</option>)}</select><small>Cliente novo? <Link className="inline-link" href="/clientes/novo">Cadastrar cliente</Link></small></label>
+          <label className="field"><span>Data do orçamento</span><input className="input" type="date" required value={quotedOn} onChange={(event)=>setQuotedOn(event.target.value)}/></label>
+          <label className="field field-span-two"><span>Estoque / depósito de origem</span><select className="select" required value={locationId} onChange={(event)=>setLocationId(event.target.value)}>{locations.map((location)=><option key={location.id} value={location.id}>{location.code} · {location.name}</option>)}</select><small>A venda não entregue reserva o saldo disponível. A baixa física acontece somente na entrega.</small></label>
+        </div>
+      </article>
+
+      <article className="panel">
+        <div className="panel-head"><div><h2>Produtos</h2><p>O custo é interno e fica congelado no histórico desta venda.</p></div><button className="button ghost compact-button" type="button" onClick={addItem}><Plus size={16}/>Adicionar produto</button></div>
+        <div className="panel-body sale-form-items">
+          {items.map((item, index) => {
+            const row = rowFor(item.productId);
+            const quantity = Number(item.quantity) || 0;
+            const unitPrice = Number(item.unitPrice) || 0;
+            const condition = row ? priceCondition(unitPrice, row.cost_price, row.sale_price) : null;
+            return <div className="sale-form-item" key={item.key}>
+              <div className="sale-form-item-head"><strong>Item {index + 1}</strong>{items.length > 1 && <button className="icon-button" type="button" aria-label="Remover produto" onClick={()=>removeItem(item.key)}><Trash2 size={16}/></button>}</div>
+              <div className="sale-form-item-grid">
+                <label className="field sale-product-field"><span>Produto</span><select className="select" required value={item.productId} onChange={(event)=>selectProduct(item.key,event.target.value)}><option value="">Selecione o produto</option>{productOptions.map((product)=><option key={product.product_id} value={product.product_id}>{product.product_name}</option>)}</select></label>
+                <label className="field"><span>Quantidade</span><input className="input" type="number" min="1" step="1" required value={item.quantity} onChange={(event)=>updateItem(item.key,{quantity:event.target.value})}/></label>
+                <label className="field"><span>Preço de venda</span><input className="input" type="number" min="0" step="0.01" required value={item.unitPrice} onChange={(event)=>updateItem(item.key,{unitPrice:event.target.value})}/></label>
+              </div>
+              {row && <div className="sale-stock-strip">
+                <span>Custo <strong>{formatCurrency(row.cost_price)}</strong></span>
+                <span>Preço padrão <strong>{formatCurrency(row.sale_price)}</strong></span>
+                <span>Físico <strong>{row.physical_quantity}</strong></span>
+                <span>Reservado <strong>{row.reserved_quantity}</strong></span>
+                <span>Disponível <strong className={row.available_quantity >= quantity ? "positive" : "warning-text"}>{row.available_quantity}</strong></span>
+                <span>Condição <strong>{condition}</strong></span>
+                <span>Subtotal <strong>{formatCurrency(quantity * unitPrice)}</strong></span>
+              </div>}
+            </div>;
+          })}
+        </div>
+      </article>
+
+      <article className="panel">
+        <div className="panel-head"><div><h2>Observações</h2><p>Informações úteis para entrega, pagamento ou pós-venda.</p></div></div>
+        <div className="panel-body"><label className="field"><span>Observações da venda</span><textarea className="textarea" rows={5} value={notes} onChange={(event)=>setNotes(event.target.value)} placeholder="Ex.: encomenda, desconto combinado, preferência do cliente..."/></label></div>
+      </article>
+    </div>
+
+    <aside className="new-sale-side">
+      <article className="panel">
+        <div className="panel-head"><div><h2>Pagamento</h2><p>Escolha a situação inicial.</p></div></div>
+        <div className="panel-body option-stack">
+          <label className={`choice-card ${paymentMode==="receivable"?"active":""}`}><input type="radio" name="paymentMode" checked={paymentMode==="receivable"} onChange={()=>setPaymentMode("receivable")}/><span><strong>A receber</strong><small>Sem data combinada.</small></span></label>
+          <label className={`choice-card ${paymentMode==="paid"?"active":""}`}><input type="radio" name="paymentMode" checked={paymentMode==="paid"} onChange={()=>setPaymentMode("paid")}/><span><strong>Pago</strong><small>Registra data e forma agora.</small></span></label>
+          <label className={`choice-card ${paymentMode==="combined"?"active":""}`}><input type="radio" name="paymentMode" checked={paymentMode==="combined"} onChange={()=>setPaymentMode("combined")}/><span><strong>Pagamento combinado</strong><small>Continua a receber até a confirmação.</small></span></label>
+          {paymentMode === "paid" && <div className="conditional-fields"><label className="field"><span>Data do pagamento</span><input className="input" type="date" required value={paidOn} onChange={(event)=>setPaidOn(event.target.value)}/></label><label className="field"><span>Forma de pagamento</span><select className="select" required value={paymentMethod} onChange={(event)=>setPaymentMethod(event.target.value as (typeof PAYMENT_METHODS)[number])}>{PAYMENT_METHODS.map((method)=><option key={method}>{method}</option>)}</select></label></div>}
+          {paymentMode === "combined" && <div className="conditional-fields"><label className="field"><span>Data combinada</span><input className="input" type="date" required value={paymentDueOn} onChange={(event)=>setPaymentDueOn(event.target.value)}/></label></div>}
+        </div>
+      </article>
+
+      <article className="panel">
+        <div className="panel-head"><div><h2>Entrega</h2><p>Baixa o estoque somente se já foi entregue.</p></div></div>
+        <div className="panel-body option-stack">
+          <label className={`choice-card ${delivered?"active":""}`}><input type="checkbox" checked={delivered} onChange={(event)=>setDelivered(event.target.checked)}/><span><strong>Já foi entregue</strong><small>Ao confirmar, o estoque será baixado.</small></span></label>
+          {delivered && <div className="conditional-fields"><label className="field"><span>Data da entrega</span><input className="input" type="date" required value={deliveredOn} onChange={(event)=>setDeliveredOn(event.target.value)}/></label></div>}
+        </div>
+      </article>
+
+      <article className="panel">
+        <div className="panel-head"><div><h2>Parceria</h2><p>Independente do depósito de origem.</p></div></div>
+        <div className="panel-body option-stack">
+          <label className={`choice-card ${partnership?"active":""}`}><input type="checkbox" checked={partnership} onChange={(event)=>setPartnership(event.target.checked)}/><span><strong>Elegível à parceria</strong><small>Contabiliza esta venda para o parceiro.</small></span></label>
+          {partnership && <div className="conditional-fields"><label className="field"><span>Parceiro</span><select className="select" required value={partnerId} onChange={(event)=>setPartnerId(event.target.value)}><option value="">Selecione o parceiro</option>{partners.map((partner)=><option key={partner.id} value={partner.id}>{partner.name} · {partner.partner_type}</option>)}</select></label></div>}
+        </div>
+      </article>
+
+      <article className="panel sale-form-summary">
+        <PackagePlus size={22}/><div><span>Total da venda</span><strong>{formatCurrency(total)}</strong><small>{items.length} {items.length===1?"produto":"produtos"}</small></div>
+      </article>
+      <div className="sale-form-actions"><Link className="button ghost" href="/vendas">Cancelar</Link><button className="button gold" type="submit" disabled={loading}>{loading?<LoaderCircle className="spin" size={17}/>:<Save size={17}/>} {loading?"Salvando":"Registrar venda"}</button></div>
+      {message && <p className="form-message standalone-message">{message}</p>}
+    </aside>
+  </form>;
+}

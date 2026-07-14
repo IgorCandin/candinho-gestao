@@ -11,6 +11,25 @@ export type ProductCatalogRow = {
 
 export type ProductOption = Pick<ProductCatalogRow, "id" | "name" | "category" | "brand" | "image_url">;
 
+export type SaleStockOption = {
+  product_id: string;
+  product_name: string;
+  category: string;
+  brand: string | null;
+  image_url: string | null;
+  cost_price: number;
+  sale_price: number;
+  location_id: string;
+  location_code: string;
+  location_name: string;
+  physical_quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+};
+
+export type LocationOption = { id: string; code: string; name: string; city: string | null; };
+export type PartnerOption = { id: string; name: string; partner_type: string; city: string | null; partnership_model: string | null; settlement_rule: string | null; commission_pct: number; };
+
 export type ProductDetails = ProductCatalogRow & {
   description: string | null;
   objective: string | null;
@@ -34,6 +53,8 @@ export type SaleRow = {
   business_at: string; business_date: string; quoted_at: string; delivered_at: string | null; general_status: string;
   payment_status: string; delivery_status: string; payment_method: string | null; payment_condition: string | null;
   total_amount: number; total_profit: number; notes: string | null; product_summary: string | null; total_items: number;
+  paid_at: string | null; payment_due_at: string | null; price_condition: string | null; partner_id: string | null;
+  partner_name: string | null; primary_product_id: string | null; primary_image_url: string | null; reservation_status: string | null;
 };
 
 export type LeadRow = {
@@ -54,14 +75,20 @@ export type PendingOrderRow = {
   business_at: string; business_date: string; order_at: string; paid_at: string | null; delivered_at: string | null; general_status: string;
   payment_status: string; delivery_status: string; payment_method: string | null; payment_condition: string | null; total_amount: number;
   total_profit: number; product_summary: string | null; total_items: number; primary_product_id: string | null; primary_image_url: string | null;
+  payment_due_at: string | null; price_condition: string | null; partner_id: string | null; partner_name: string | null; reservation_status: string | null;
 };
 
-export type SaleDetailItem = { id: string; product_id: string; product_name: string; product_image_url: string | null; category: string | null; brand: string | null; quantity: number; unit_price: number; };
+export type SaleDetailItem = {
+  id: string; product_id: string; product_name: string; product_image_url: string | null; category: string | null; brand: string | null;
+  quantity: number; unit_cost: number; unit_price: number; price_condition: string | null;
+  quantity_requested: number | null; quantity_reserved: number | null; reservation_status: string | null;
+};
 export type SaleDetails = {
   id: string; customer_id: string | null; customer_name: string; reference: string | null; city: string | null; phone: string | null;
   location_id: string; location_code: string; location_name: string; order_at: string; paid_at: string | null; delivered_at: string | null;
   general_status: string; payment_status: string; delivery_status: string; payment_method: string | null; payment_condition: string | null;
-  total_amount: number; notes: string | null; items: SaleDetailItem[];
+  payment_due_at: string | null; price_condition: string | null; partner_id: string | null; partner_name: string | null;
+  total_amount: number; total_cost: number; total_profit: number; notes: string | null; items: SaleDetailItem[];
 };
 
 export type ReplenishmentRow = { product_id: string; product_name: string; category: string; company_quantity: number; min_stock: number; ideal_stock: number; needs_replenishment: boolean; suggested_order_quantity: number; stock_status: string; };
