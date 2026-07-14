@@ -22,7 +22,7 @@ import {
   UserRoundPlus,
   Warehouse,
 } from "lucide-react";
-import { getUserAccess } from "@/lib/access";
+import type { UserAccess } from "@/lib/access";
 
 const supplementNav = [
   { href: "/suplementos", label: "Visão geral", icon: ChartNoAxesCombined },
@@ -43,13 +43,12 @@ const fitnessNav = [{ href: "/fitness", label: "Início Fitness", icon: Dumbbell
 
 export function AppShell({
   children,
-  userEmail,
+  access,
 }: {
   children: React.ReactNode;
-  userEmail?: string | null;
+  access: UserAccess;
 }) {
   const pathname = usePathname();
-  const access = getUserAccess(userEmail);
   const isHub = pathname === "/dashboard";
   const isFitness = pathname.startsWith("/fitness");
   const isSettings = pathname.startsWith("/configuracoes");
@@ -57,7 +56,7 @@ export function AppShell({
 
   const nav = isHub ? hubNav : isFitness ? fitnessNav : supplementNav;
   const mobile = nav.slice(0, 5);
-  const showSupplementActions = access.role === "manager" && isSupplements;
+  const showSupplementActions = access.canWriteSupplements && isSupplements;
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === href;
@@ -89,8 +88,9 @@ export function AppShell({
         </nav>
 
         <div className="sidebar-footer">
+          <div className="sidebar-user"><span>{access.name}</span><small>{access.email ?? "Acesso local"}</small></div>
           <p className="sidebar-slogan">Qualidade que entrega resultado.</p>
-          {access.role === "manager" && (
+          {access.canManageUsers && (
             <Link className="nav-link" href="/configuracoes">
               <Settings size={18} />
               Configurações

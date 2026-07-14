@@ -1,4 +1,5 @@
 import { isSupabaseConfigured } from "./config";
+import { getFallbackUserAccess, normalizeUserAccess, type UserAccess, type UserPermissionRow } from "./access";
 import {
   demoCustomers,
   demoLeads,
@@ -1354,4 +1355,41 @@ export async function getUnassignedPartnershipSales(): Promise<UnassignedPartner
   const { data, error } = await supabase.from("unassigned_partnership_sales").select("*").order("sale_date", { ascending: false });
   if (error) throw error;
   return (data ?? []).map((row) => normalizeUnassignedPartnershipSale(row as Record<string, unknown>));
+}
+
+
+export async function getCurrentUserAccess(): Promise<UserAccess> {
+  if (!isSupabaseConfigured) return getFallbackUserAccess("igorcandinho2002@hotmail.com");
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  const email = userData.user?.email ?? null;
+  const { data, error } = await supabase.rpc("get_my_access");
+  if (error) return getFallbackUserAccess(email);
+  const row = Array.isArray(data) ? data[0] : data;
+  return normalizeUserAccess((row ?? null) as Record<string, unknown> | null, email);
+}
+
+export async function getUserPermissions(): Promise<UserPermissionRow[]> {
+  if (!isSupabaseConfigured) {
+    return [
+      { id: "demo-admin", email: "igorcandinho2002@hotmail.com", full_name: "Igor Candinho", role: "admin", active: true, can_access_supplements: true, can_access_fitness: true, can_manage_users: true, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "demo-fitness", email: "giuliafaria1@gmail.com", full_name: "Giulia", role: "operator", active: true, can_access_supplements: false, can_access_fitness: true, can_manage_users: false, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    ];
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("list_user_permissions");
+  if (error) throw error;
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    id: String(row.id),
+    email: String(row.email ?? ""),
+    full_name: String(row.full_name ?? "Usuário"),
+    role: (["admin", "operator", "partner"].includes(String(row.role)) ? String(row.role) : "partner") as UserPermissionRow["role"],
+    active: Boolean(row.active),
+    can_access_supplements: Boolean(row.can_access_supplements),
+    can_access_fitness: Boolean(row.can_access_fitness),
+    can_manage_users: Boolean(row.can_manage_users),
+    last_sign_in_at: typeof row.last_sign_in_at === "string" ? row.last_sign_in_at : null,
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  }));
 }

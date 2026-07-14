@@ -27,15 +27,8 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
-    "/dashboard",
-    "/suplementos",
-    "/fitness",
-    "/produtos",
-    "/estoque",
-    "/vendas",
-    "/clientes",
-    "/movimentacoes",
-    "/configuracoes",
+    "/dashboard", "/suplementos", "/fitness", "/produtos", "/estoque", "/vendas", "/leads",
+    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs",
   ];
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -55,18 +48,54 @@ export async function updateSession(request: NextRequest) {
 
   if (user) {
     const email = user.email?.trim().toLowerCase() ?? "";
-    const isSupplementRoute = ["/suplementos", "/produtos", "/estoque", "/vendas", "/clientes", "/movimentacoes"].some((prefix) => pathname.startsWith(prefix));
+    let access = {
+      active: true,
+      can_access_supplements: email === MANAGER_EMAIL,
+      can_access_fitness: email === MANAGER_EMAIL || email === FITNESS_SALES_EMAIL,
+      can_manage_users: email === MANAGER_EMAIL,
+    };
+
+    const { data } = await supabase.rpc("get_my_access");
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row) {
+      access = {
+        active: Boolean(row.active),
+        can_access_supplements: Boolean(row.can_access_supplements),
+        can_access_fitness: Boolean(row.can_access_fitness),
+        can_manage_users: Boolean(row.can_manage_users),
+      };
+    }
+
+    const supplementPrefixes = [
+      "/suplementos", "/produtos", "/estoque", "/vendas", "/leads", "/clientes", "/movimentacoes",
+      "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs",
+    ];
+    const isSupplementRoute = supplementPrefixes.some((prefix) => pathname.startsWith(prefix));
     const isFitnessRoute = pathname.startsWith("/fitness");
     const isManagerRoute = pathname.startsWith("/configuracoes");
 
-    if (email === FITNESS_SALES_EMAIL && (isSupplementRoute || isManagerRoute)) {
+    if (!access.active && pathname !== "/dashboard") {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = "/fitness";
+      redirectUrl.pathname = "/dashboard";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
 
-    if (email !== MANAGER_EMAIL && email !== FITNESS_SALES_EMAIL && (isSupplementRoute || isFitnessRoute || isManagerRoute)) {
+    if (isSupplementRoute && !access.can_access_supplements) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = access.can_access_fitness ? "/fitness" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isFitnessRoute && !access.can_access_fitness) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isManagerRoute && !access.can_manage_users) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = "/dashboard";
       redirectUrl.search = "";
