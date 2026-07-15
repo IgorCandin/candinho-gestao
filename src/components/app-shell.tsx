@@ -12,6 +12,8 @@ import {
   History,
   Home,
   LogOut,
+  Menu,
+  Building2,
   PackageSearch,
   Settings,
   ShoppingBag,
@@ -70,7 +72,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   }
 
   return (
-    <div className={`app-shell operation-${isHub ? "hub" : isFitness ? "fitness" : "supplements"}`}>
+    <div className={`app-shell theme-${isHub ? "hub" : isFitness ? "fitness" : "supplements"}`}>
       <aside className="sidebar">
         <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}>
           <Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority />
@@ -102,6 +104,45 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
           </form>
         </div>
       </aside>
+
+      <header className="mobile-header">
+        <Link href="/dashboard" className="mobile-brand-link" aria-label={`${brand.alt} — voltar às operações`}>
+          <Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority />
+        </Link>
+
+        <details className="mobile-menu">
+          <summary aria-label="Abrir menu">
+            <Menu size={20} />
+            <span>Menu</span>
+          </summary>
+          <div className="mobile-menu-panel">
+            {!isHub && (
+              <Link className="mobile-menu-link operation-switch" href="/dashboard">
+                <Building2 size={18} />
+                <span>Trocar operação</span>
+              </Link>
+            )}
+            {nav.map(({ href, label, icon: Icon }) => (
+              <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={`mobile-menu-${href}`}>
+                <Icon size={18} />
+                <span>{label}</span>
+              </Link>
+            ))}
+            {access.canManageUsers && (
+              <Link className="mobile-menu-link" href="/configuracoes">
+                <Settings size={18} />
+                <span>Configurações</span>
+              </Link>
+            )}
+            <form action="/auth/signout" method="post">
+              <button className="mobile-menu-link mobile-signout" type="submit">
+                <LogOut size={18} />
+                <span>Sair</span>
+              </button>
+            </form>
+          </div>
+        </details>
+      </header>
 
       <main className="main">
         {(showSupplementActions || showFitnessActions) && (
