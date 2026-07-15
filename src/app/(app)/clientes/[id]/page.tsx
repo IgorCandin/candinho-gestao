@@ -104,7 +104,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
 
       <article className="panel customer-history-panel">
         <div className="panel-head"><div><h2>HistÃ³rico de vendas</h2><p>Mais recentes primeiro</p></div><strong>{sales.length}</strong></div>
-        {sales.length === 0 ? <div className="empty compact"><strong>Nenhuma venda</strong>As compras aparecerÃ£o aqui.</div> : <div className="table-wrap"><table><thead><tr><th>Produto</th><th>Data</th><th>Pagamento</th><th>Entrega</th><th>Total</th><th /></tr></thead><tbody>{sales.map((sale) => <tr key={sale.id}><td>{sale.product_summary ?? "â€”"}</td><td>{formatDateOnly(sale.business_date)}</td><td><Badge value={sale.payment_status} /></td><td><Badge value={sale.delivery_status} /></td><td className="amount">{formatCurrency(sale.total_amount)}</td><td><Link className="button ghost compact-button" href={`/vendas/${sale.id}`}>Abrir</Link></td></tr>)}</tbody></table></div>}
+        {sales.length === 0 ? <div className="empty compact"><strong>Nenhuma venda</strong>As compras aparecerÃ£o aqui.</div> : <div className="table-wrap"><table><thead><tr><th>Produto</th><th>Data</th><th>Pagamento</th><th>Entrega</th><th>Total</th><th /></tr></thead><tbody>{sales.map((sale: (typeof sales)[number]) => <tr key={sale.id}><td>{sale.product_summary ?? "â€”"}</td><td>{formatDateOnly(sale.business_date)}</td><td><Badge value={sale.payment_status} /></td><td><Badge value={sale.delivery_status} /></td><td className="amount">{formatCurrency(sale.total_amount)}</td><td><Link className="button ghost compact-button" href={`/vendas/${sale.id}`}>Abrir</Link></td></tr>)}</tbody></table></div>}
       </article>
 
       <article className="panel customer-history-panel">
@@ -114,4 +114,5 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
     </>
   );
 }
+
 
