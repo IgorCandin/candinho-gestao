@@ -54,7 +54,20 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const isSupplements = !isHub && !isFitness && !isSettings;
 
   const nav = isHub ? hubNav : isFitness ? fitnessNav : supplementNav;
-  const mobile = nav.slice(0, 5);
+  const mobileShortcuts = isFitness
+    ? [
+        { href: "/fitness/pedidos/novo", label: "Novo pedido", icon: Truck, primary: false },
+        { href: "/fitness/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
+        { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch, primary: false },
+      ]
+    : [
+        { href: "/leads/novo", label: "Novo lead", icon: UserRoundPlus, primary: false },
+        { href: "/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
+        { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
+      ];
+  const mobileMenuNav = nav.filter(({ href }) =>
+    isFitness ? href !== "/fitness/produtos" : href !== "/produtos"
+  );
   const showSupplementActions = access.canWriteSupplements && isSupplements;
   const showFitnessActions = access.canWriteFitness && isFitness;
   const brand = isFitness
@@ -132,7 +145,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
                 <span>Trocar operação</span>
               </Link>
             )}
-            {nav.map(({ href, label, icon: Icon }) => (
+            {mobileMenuNav.map(({ href, label, icon: Icon }) => (
               <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={`mobile-menu-${href}`}>
                 <Icon size={18} />
                 <span>{label}</span>
@@ -172,11 +185,16 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
         <div className={`content ${isHub ? "content-hub" : ""}`}>{children}</div>
       </main>
 
-      {!isHub && mobile.length > 0 && (
-        <nav className="mobile-nav" style={{ gridTemplateColumns: `repeat(${mobile.length}, minmax(0, 1fr))` }}>
-          {mobile.map(({ href, label, icon: Icon }) => (
-            <Link className={`mobile-link ${isActive(href) ? "primary" : ""}`} href={href} key={href}>
-              <Icon size={19} /><span>{label}</span>
+      {!isHub && mobileShortcuts.length > 0 && (
+        <nav className="mobile-nav mobile-action-nav" style={{ gridTemplateColumns: `repeat(${mobileShortcuts.length}, minmax(0, 1fr))` }}>
+          {mobileShortcuts.map(({ href, label, icon: Icon, primary }) => (
+            <Link
+              className={`mobile-link mobile-action-link ${primary ? "mobile-action-primary" : ""} ${isActive(href) ? "primary" : ""}`}
+              href={href}
+              key={href}
+            >
+              <Icon size={20} />
+              <span>{label}</span>
             </Link>
           ))}
         </nav>
