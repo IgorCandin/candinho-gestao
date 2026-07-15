@@ -27,21 +27,15 @@ export default function LoginPage() {
 
           <div className="login-operations login-operations-three" aria-label="Operações da Candinho Company">
             <div className="login-operation-logo">
-              <Image src="/candinho-suplementos-logo.webp" alt="Candinho Suplementos" width={900} height={326} />
+              <Image src="/candinho-suplementos-logo.webp" alt="Candinho Suplementos" width={1000} height={343} />
             </div>
             <span className="login-operation-divider" aria-hidden="true" />
             <div className="login-operation-logo">
-              <Image src="/candinho-fitness-logo.webp" alt="Candinho Fitness" width={900} height={333} />
+              <Image src="/candinho-fitness-logo.webp" alt="Candinho Fitness" width={1000} height={343} />
             </div>
             <span className="login-operation-divider" aria-hidden="true" />
             <div className="login-operation-logo login-bank-logo">
-              <Image
-                src="/candinho-bank-logo.png"
-                alt="Candinho Bank"
-                width={720}
-                height={720}
-                style={{ width: "44px", height: "44px", objectFit: "contain" }}
-              />
+              <Image src="/candinho-bank-logo.png" alt="Candinho Bank" width={1000} height={343} />
             </div>
           </div>
 
