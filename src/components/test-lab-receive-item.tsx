@@ -1,6 +1,0 @@
-"use client";
-import { LoaderCircle, PackageCheck } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-export function TestLabReceiveItem({itemId,pending}:{itemId:string;pending:number}){const router=useRouter();const[qty,setQty]=useState(pending);const[loading,setLoading]=useState(false);const[message,setMessage]=useState<string|null>(null);async function run(){setLoading(true);setMessage(null);try{const{error}=await createClient().rpc("test_lab_receive_purchase_item",{p_item_id:itemId,p_quantity:qty});if(error)throw error;router.refresh();}catch(e){setMessage(e instanceof Error?e.message:"Falha no recebimento de teste.");}finally{setLoading(false);}}if(pending<=0)return <span className="badge success">Recebido</span>;return <div className="test-lab-receive-inline"><input className="input" type="number" min={1} max={pending} value={qty} onChange={(e)=>setQty(Math.min(pending,Math.max(1,Number(e.target.value)||1)))}/><button className="button gold" disabled={loading} onClick={run}>{loading?<LoaderCircle className="spin" size={15}/>:<PackageCheck size={15}/>}Receber</button>{message&&<small>{message}</small>}</div>}
