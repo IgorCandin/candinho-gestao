@@ -41,7 +41,7 @@ export default async function InventoryProductPage({ params }: { params: Promise
 
         <article className="panel">
           <div className="panel-head"><div><h2>HistÃ³rico de movimentaÃ§Ãµes</h2><p>Ãšltimas 100 entradas, saÃ­das, transferÃªncias e ajustes.</p></div><ArrowRightLeft size={19}/></div>
-          {details.movements.length === 0 ? <div className="empty"><strong>Sem movimentaÃ§Ãµes</strong>O histÃ³rico aparecerÃ¡ apÃ³s a primeira operaÃ§Ã£o.</div> : <div className="inventory-movement-list">{details.movements.map((movement) => <div className="inventory-movement-row" key={movement.id}><span className={`movement-quantity ${movement.quantity_delta > 0 ? "positive" : "negative"}`}>{movement.quantity_delta > 0 ? "+" : ""}{movement.quantity_delta}</span><div><strong>{MOVEMENT_LABELS[movement.movement_type] ?? movement.movement_type}</strong><small>{movement.location_code}{movement.counterpart_location_code ? ` â†” ${movement.counterpart_location_code}` : ""}{movement.customer_name ? ` Â· ${movement.customer_name}` : ""}</small>{movement.notes && <p>{movement.notes}</p>}</div><time>{formatDate(movement.occurred_at)}</time>{movement.sale_id && <Link className="button ghost compact-button" href={`/vendas/${movement.sale_id}`}>Venda</Link>}</div>)}</div>}
+          {details.movements.length === 0 ? <div className="empty"><strong>Sem movimentaÃ§Ãµes</strong>O histÃ³rico aparecerÃ¡ apÃ³s a primeira operaÃ§Ã£o.</div> : <div className="inventory-movement-list">{details.movements.map((movement: (typeof details.movements)[number]) => <div className="inventory-movement-row" key={movement.id}><span className={`movement-quantity ${movement.quantity_delta > 0 ? "positive" : "negative"}`}>{movement.quantity_delta > 0 ? "+" : ""}{movement.quantity_delta}</span><div><strong>{MOVEMENT_LABELS[movement.movement_type] ?? movement.movement_type}</strong><small>{movement.location_code}{movement.counterpart_location_code ? ` â†” ${movement.counterpart_location_code}` : ""}{movement.customer_name ? ` Â· ${movement.customer_name}` : ""}</small>{movement.notes && <p>{movement.notes}</p>}</div><time>{formatDate(movement.occurred_at)}</time>{movement.sale_id && <Link className="button ghost compact-button" href={`/vendas/${movement.sale_id}`}>Venda</Link>}</div>)}</div>}
         </article>
       </div>
 
@@ -59,4 +59,5 @@ export default async function InventoryProductPage({ params }: { params: Promise
     </section>
   </>;
 }
+
 
