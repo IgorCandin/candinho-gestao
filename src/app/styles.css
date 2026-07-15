@@ -210,6 +210,32 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
 .app-shell.theme-fitness .input:focus,
 .app-shell.theme-fitness .select:focus { border-color: rgba(239,75,154,.72); box-shadow: 0 0 0 3px var(--gold-soft); }
 
+
+/* Seletor de operações da Candinho Company: tela limpa, sem shell de navegação. */
+.hub-standalone {
+  min-height: 100dvh;
+  --gold: #9aa3b2;
+  --gold-soft: rgba(154, 163, 178, 0.14);
+  --accent-button-from: #b6bdc8;
+  --accent-button-to: #737c8b;
+  --accent-contrast: #090b10;
+  --accent-nav-text: #d4d9e1;
+  background: radial-gradient(circle at 50% 0%, rgba(154,163,178,.055), transparent 32rem), var(--bg);
+}
+
+.hub-standalone .content-hub {
+  min-height: 100dvh;
+  max-width: none;
+  padding: 24px 28px;
+}
+
+@media (max-width: 820px) {
+  .hub-standalone .content-hub {
+    min-height: 100dvh;
+    padding: 16px 14px 22px;
+  }
+}
+
 @media (max-width: 1080px) {
   .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .dashboard-grid { grid-template-columns: 1fr; }

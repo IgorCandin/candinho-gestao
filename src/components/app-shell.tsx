@@ -71,6 +71,16 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
     return pathname.startsWith(href);
   }
 
+  // A tela de escolha da operação é intencionalmente limpa: sem sidebar,
+  // cabeçalho móvel ou navegação duplicada.
+  if (isHub) {
+    return (
+      <main className="hub-standalone">
+        <div className="content content-hub">{children}</div>
+      </main>
+    );
+  }
+
   return (
     <div className={`app-shell theme-${isHub ? "hub" : isFitness ? "fitness" : "supplements"}`}>
       <aside className="sidebar">
