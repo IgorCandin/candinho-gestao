@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { OperationSwitcher } from "@/components/operation-switcher";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export default async function DashboardPage() {
@@ -13,18 +13,10 @@ export default async function DashboardPage() {
         <h1>Seja bem-vindo de volta, {access.name}.</h1>
         <p>Escolha a operação que deseja acessar.</p>
       </div>
-      <div className={`operation-buttons ${access.canAccessSupplements && access.canAccessFitness ? "two" : "one"}`}>
-        {access.canAccessSupplements && (
-          <Link className="operation-button supplements" href="/suplementos" aria-label="Acessar Candinho Suplementos">
-            <Image src="/operation-suplementos.png" alt="Suplementos" width={709} height={236} />
-          </Link>
-        )}
-        {access.canAccessFitness && (
-          <Link className="operation-button fitness" href="/fitness" aria-label="Acessar Candinho Fitness">
-            <Image src="/operation-fitness.png" alt="Fitness" width={709} height={236} />
-          </Link>
-        )}
-      </div>
+      <OperationSwitcher
+        canAccessSupplements={access.canAccessSupplements}
+        canAccessFitness={access.canAccessFitness}
+      />
       {(!access.active || (!access.canAccessSupplements && !access.canAccessFitness)) && (
         <p className="operation-access-warning">Seu usuário ainda não possui uma operação liberada.</p>
       )}

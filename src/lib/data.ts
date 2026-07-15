@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { isSupabaseConfigured } from "./config";
 import { getFallbackUserAccess, normalizeUserAccess, type UserAccess, type UserPermissionRow } from "./access";
 import {
@@ -1062,12 +1063,24 @@ export async function getAgendaSummary(): Promise<AgendaSummary> {
 }
 
 export async function getAgendaTodayEvents(limit = 6): Promise<AgendaEvent[]> {
-  const events = await getAgendaEvents();
-  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-  return events
-    .filter((event) => event.status === "planned" && event.due_date <= today)
-    .sort((a, b) => a.due_date.localeCompare(b.due_date) || a.due_at.localeCompare(b.due_at))
-    .slice(0, limit);
+  if (!isSupabaseConfigured) return [];
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("operational_calendar_events")
+    .select("*")
+    .eq("status", "planned")
+    .lte("due_date", today)
+    .order("due_date", { ascending: true })
+    .order("due_at", { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeAgendaEvent(row as Record<string, unknown>));
 }
 
 export async function getAgendaUsers(): Promise<AgendaUserOption[]> {
@@ -1149,39 +1162,82 @@ export async function getPanelCS(period: PanelPeriod = "current"): Promise<Panel
   };
 }
 
+async function getDashboardLightweightTotals(): Promise<{
+  total_revenue: number;
+  active_products_count: number;
+  pending_orders_value: number;
+}> {
+  if (!isSupabaseConfigured) {
+    return {
+      total_revenue: demoSales.reduce((sum, sale) => sum + sale.total_amount, 0),
+      active_products_count: demoProducts.filter((product) => product.active).length,
+      pending_orders_value: demoPendingOrders.reduce((sum, sale) => sum + sale.total_amount, 0),
+    };
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("dashboard_lightweight_totals").select("*").single();
+  if (error) throw error;
+  return {
+    total_revenue: number(data.total_revenue),
+    active_products_count: number(data.active_products_count),
+    pending_orders_value: number(data.pending_orders_value),
+  };
+}
+
+async function getDashboardReplenishment(limit = 32): Promise<ReplenishmentRow[]> {
+  if (!isSupabaseConfigured) return demoReplenishment.slice(0, limit);
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("replenishment_overview")
+    .select("*")
+    .eq("needs_replenishment", true)
+    .order("company_quantity", { ascending: true })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    product_id: String(row.product_id),
+    product_name: text(row.product_name, "Produto sem nome"),
+    category: text(row.category, "Sem categoria"),
+    company_quantity: number(row.company_quantity),
+    min_stock: number(row.min_stock),
+    ideal_stock: number(row.ideal_stock),
+    needs_replenishment: Boolean(row.needs_replenishment),
+    suggested_order_quantity: number(row.suggested_order_quantity),
+    stock_status: text(row.stock_status, "below_minimum"),
+  }));
+}
+
 export async function getDashboard(): Promise<DashboardData> {
-  const [products, summary, operational, priorities, pendingOrders, recentSales, lowStock, agendaToday, agendaSummary] = await Promise.all([
-    getProductCatalog(),
-    getCommercialDashboardSummary(),
+  const [totals, operational, priorities, recentSales, lowStock, agendaToday, agendaSummary] = await Promise.all([
+    getDashboardLightweightTotals(),
     getDashboardOperationalSummary(),
     getDashboardPriorityItems(),
-    getPendingOrders(),
     getSalesHistory(30),
-    getReplenishment(),
+    getDashboardReplenishment(),
     getAgendaTodayEvents(),
     getAgendaSummary(),
   ]);
 
   return {
-    totalProducts: products.filter((product) => product.active).length,
+    totalProducts: totals.active_products_count,
     totalUnits: operational.available_units,
-    stockCostValue: summary.stock_cost_value,
-    stockSaleValue: summary.stock_sale_value,
-    totalRevenue: summary.total_revenue,
-    receivable: summary.receivable_total,
-    pendingOrdersCount: pendingOrders.length,
-    pendingDeliveryCount: pendingOrders.filter((sale) => sale.delivery_status === "to_deliver").length,
-    pendingPaymentCount: pendingOrders.filter((sale) => sale.payment_status === "receivable").length,
-    pendingOrdersValue: pendingOrders.reduce((sum, sale) => sum + sale.total_amount, 0),
-    currentMonthRevenue: summary.current_month_revenue,
-    currentMonthProfit: summary.current_month_profit,
-    currentMonthSalesCount: summary.current_month_sales,
-    previousMonthRevenue: summary.previous_month_revenue,
-    previousMonthProfit: summary.previous_month_profit,
-    previousMonthSalesCount: summary.previous_month_sales,
-    revenueChange: percentChange(summary.current_month_revenue, summary.previous_month_revenue),
-    profitChange: percentChange(summary.current_month_profit, summary.previous_month_profit),
-    salesChange: percentChange(summary.current_month_sales, summary.previous_month_sales),
+    stockCostValue: operational.stock_cost_value,
+    stockSaleValue: operational.stock_sale_value,
+    totalRevenue: totals.total_revenue,
+    receivable: operational.receivable_total,
+    pendingOrdersCount: operational.pending_orders_count,
+    pendingDeliveryCount: operational.pending_delivery_count,
+    pendingPaymentCount: operational.pending_payment_count,
+    pendingOrdersValue: totals.pending_orders_value,
+    currentMonthRevenue: operational.current_month_revenue,
+    currentMonthProfit: operational.current_month_profit,
+    currentMonthSalesCount: operational.current_month_sales,
+    previousMonthRevenue: operational.previous_month_revenue,
+    previousMonthProfit: operational.previous_month_profit,
+    previousMonthSalesCount: operational.previous_month_sales,
+    revenueChange: percentChange(operational.current_month_revenue, operational.previous_month_revenue),
+    profitChange: percentChange(operational.current_month_profit, operational.previous_month_profit),
+    salesChange: percentChange(operational.current_month_sales, operational.previous_month_sales),
     operational,
     priorities,
     recentSales: recentSales.filter(isCommercialSale).slice(0, 8),
@@ -1478,7 +1534,7 @@ export async function getUnassignedPartnershipSales(): Promise<UnassignedPartner
 }
 
 
-export async function getCurrentUserAccess(): Promise<UserAccess> {
+export const getCurrentUserAccess = cache(async (): Promise<UserAccess> => {
   if (!isSupabaseConfigured) return getFallbackUserAccess("igorcandinho2002@hotmail.com");
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
@@ -1487,7 +1543,7 @@ export async function getCurrentUserAccess(): Promise<UserAccess> {
   if (error) return getFallbackUserAccess(email);
   const row = Array.isArray(data) ? data[0] : data;
   return normalizeUserAccess((row ?? null) as Record<string, unknown> | null, email);
-}
+});
 
 export async function getUserPermissions(): Promise<UserPermissionRow[]> {
   if (!isSupabaseConfigured) {
@@ -1696,6 +1752,21 @@ export async function getFitnessSales(): Promise<FitnessSaleRow[]> {
   if (error) throw error;
   return (data ?? []).map((row) => normalizeFitnessSale(row as Record<string, unknown>));
 }
+export async function getFitnessDashboardPendingSales(limit = 8): Promise<FitnessSaleRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("fitness_sales_operational")
+    .select("*")
+    .neq("general_status", "cancelled")
+    .or("payment_status.neq.received,delivery_status.neq.delivered")
+    .order("quoted_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeFitnessSale(row as Record<string, unknown>));
+}
+
 
 export async function getFitnessSaleDetails(saleId: string): Promise<FitnessSaleDetails | null> {
   if (!isSupabaseConfigured) return null;
@@ -1724,6 +1795,19 @@ export async function getFitnessPurchaseOrders(): Promise<FitnessPurchaseOrderSu
   if (error) throw error;
   return (data ?? []).map((row) => normalizeFitnessPurchaseOrder(row as Record<string, unknown>));
 }
+export async function getFitnessDashboardRecentOrders(limit = 5): Promise<FitnessPurchaseOrderSummary[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("fitness_purchase_order_operational")
+    .select("*")
+    .order("ordered_on", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeFitnessPurchaseOrder(row as Record<string, unknown>));
+}
+
 
 export async function getFitnessPurchaseOrderDetails(orderId: string): Promise<FitnessPurchaseOrderDetails | null> {
   if (!isSupabaseConfigured) return null;
