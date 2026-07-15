@@ -1,15 +1,20 @@
-import Link from "next/link";
-import { ArrowRight, Boxes, CircleDollarSign, ClipboardClock, PackageOpen, ShoppingBag, WalletCards } from "lucide-react";
-import { redirect } from "next/navigation";
-import { Badge } from "@/components/badge";
-import { PageHeader } from "@/components/page-header";
-import { getCurrentUserAccess, getFitnessDashboard, getFitnessDashboardPendingSales, getFitnessDashboardRecentOrders } from "@/lib/data";
-import { formatCurrency, formatDateOnly } from "@/lib/format";
-
-export default async function FitnessPage(){const access=await getCurrentUserAccess();if(!access.canAccessFitness)redirect("/dashboard");const [summary,pending,orders]=await Promise.all([getFitnessDashboard(),getFitnessDashboardPendingSales(8),getFitnessDashboardRecentOrders(5)]);return <>
-<PageHeader eyebrow="Candinho Fitness" title="Visão geral" description="Vendas, peças, estoque e pedidos da operação Fitness em um só lugar."/>
-<section className="dashboard-month-grid"><article className="dashboard-metric-card"><div className="dashboard-metric-head"><span>Faturamento do mês</span><CircleDollarSign size={18}/></div><strong>{formatCurrency(summary.month_revenue)}</strong><small>{summary.month_sales} venda(s) entregue(s)</small></article><article className="dashboard-metric-card"><div className="dashboard-metric-head"><span>Lucro do mês</span><ShoppingBag size={18}/></div><strong>{formatCurrency(summary.month_profit)}</strong><small>Baseado no custo registrado</small></article><article className="dashboard-metric-card"><div className="dashboard-metric-head"><span>A receber</span><WalletCards size={18}/></div><strong>{formatCurrency(summary.receivable_total)}</strong><small>{summary.pending_payment} venda(s) em aberto</small></article><article className="dashboard-metric-card"><div className="dashboard-metric-head"><span>Estoque disponível</span><Boxes size={18}/></div><strong>{summary.available_units}</strong><small>{summary.reserved_units} reservadas · {summary.incoming_units} a caminho</small></article></section>
-<section className="dashboard-action-grid"><Link className="dashboard-action-card" href="/fitness/vendas"><span className="dashboard-action-icon orange"><ClipboardClock size={20}/></span><div><span>Vendas pendentes</span><strong>{Math.max(summary.pending_delivery,summary.pending_payment)}</strong><small>{summary.pending_delivery} entregar · {summary.pending_payment} receber</small></div><ArrowRight size={17}/></Link><Link className="dashboard-action-card" href="/fitness/estoque"><span className="dashboard-action-icon blue"><Boxes size={20}/></span><div><span>Estoque</span><strong>{summary.physical_units}</strong><small>{summary.variants_with_stock} variações com saldo</small></div><ArrowRight size={17}/></Link><Link className="dashboard-action-card" href="/fitness/pedidos"><span className="dashboard-action-icon blue"><PackageOpen size={20}/></span><div><span>Pedidos abertos</span><strong>{summary.open_orders}</strong><small>{summary.incoming_units} peças a caminho</small></div><ArrowRight size={17}/></Link><Link className="dashboard-action-card" href="/fitness/produtos"><span className="dashboard-action-icon red"><ShoppingBag size={20}/></span><div><span>Variações em atenção</span><strong>{summary.attention_variants}</strong><small>Sem saldo ou totalmente reservadas</small></div><ArrowRight size={17}/></Link></section>
-<article className="panel dashboard-recent-sales"><div className="panel-head"><div><h2>Vendas que precisam de ação</h2><p>Pagamento ou entrega ainda pendente.</p></div><Link className="button ghost" href="/fitness/vendas">Ver todas</Link></div>{pending.length===0?<div className="empty"><strong>Nenhuma pendência</strong>As vendas da Fitness estão em dia.</div>:<div className="table-wrap"><table><thead><tr><th>Cliente</th><th>Peças</th><th>Data</th><th>Pagamento</th><th>Entrega</th><th>Total</th></tr></thead><tbody>{pending.map((sale)=><tr key={sale.id}><td><Link className="cell-main dashboard-inline-link" href={`/fitness/vendas/${sale.id}`}>{sale.customer_name}</Link></td><td>{sale.product_summary}</td><td>{formatDateOnly(sale.quoted_on)}</td><td>{sale.paid_on?<span className="date-status green">{formatDateOnly(sale.paid_on)}</span>:<Badge value={sale.payment_status}/>}</td><td>{sale.delivered_on?<span className="date-status green">{formatDateOnly(sale.delivered_on)}</span>:<Badge value={sale.delivery_status}/>}</td><td className="amount">{formatCurrency(sale.total_amount)}</td></tr>)}</tbody></table></div>}</article>
-<article className="panel"><div className="panel-head"><div><h2>Últimos pedidos de fornecedor</h2><p>Recebimento parcial ou completo por item.</p></div><Link className="button ghost" href="/fitness/pedidos">Abrir pedidos</Link></div>{orders.length===0?<div className="empty"><strong>Nenhum pedido registrado</strong>Crie o primeiro pedido de peças pelo cabeçalho.</div>:<div className="dashboard-replenishment-list">{orders.slice(0,5).map((order)=><Link href={`/fitness/pedidos/${order.id}`} key={order.id}><div><strong>{order.supplier_name}</strong><span>{order.product_summary}</span></div><Badge value={order.status}/></Link>)}</div>}</article>
-</>}
+﻿export default function FitnessPausedPage() {
+  return (
+    <main
+      style={{
+        maxWidth: 760,
+        margin: "0 auto",
+        padding: "56px 24px",
+      }}
+    >
+      <p style={{ margin: 0, opacity: 0.65 }}>Candinho Company</p>
+      <h1 style={{ marginBottom: 12 }}>Candinho Fitness</h1>
+      <p style={{ fontSize: 18, lineHeight: 1.6 }}>
+        OperaÃ§Ã£o pausada temporariamente enquanto finalizamos a Candinho Suplementos.
+      </p>
+      <p style={{ opacity: 0.7 }}>
+        A estrutura da Fitness serÃ¡ retomada depois com base no fluxo final e validado da Suplementos.
+      </p>
+    </main>
+  );
+}
