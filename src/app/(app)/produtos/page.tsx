@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { Boxes, Image, PackageCheck, PackagePlus, Plus } from "lucide-react";
+import { Boxes, Image, PackageCheck, PackagePlus } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { ProductCatalogTable } from "@/components/product-catalog-table";
+import { ProductCatalogActions } from "@/components/product-catalog-actions";
 import { StatCard } from "@/components/stat-card";
 import { getProductCatalog, getProductCategories } from "@/lib/data";
 
@@ -20,7 +20,7 @@ export default async function ProductsPage() {
         eyebrow="Catálogo"
         title="Produtos"
         description="Catálogo comercial seguro, estoque disponível e gestão completa de cada produto."
-        action={<Link className="button gold" href="/produtos/novo"><Plus size={16} />Novo produto</Link>}
+        action={<ProductCatalogActions />}
       />
 
       <section className="stats-grid product-stats-grid">

@@ -5,6 +5,7 @@ import { Badge } from "@/components/badge";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { SaleStatusActions } from "@/components/sale-status-actions";
+import { ChangeSaleCustomer } from "@/components/change-sale-customer";
 import { formatCurrency, formatDate, formatDateOnly } from "@/lib/format";
 import type { SaleDetails } from "@/lib/types";
 
@@ -39,7 +40,7 @@ export function SaleDetailsView({ sale, backHref, backLabel, eyebrow = "Venda" }
           </div>
         </article>
 
-        <article className="panel"><div className="panel-head"><div><h2>Atualizar venda</h2><p>As ações aparecem somente enquanto pagamento ou entrega estiverem pendentes.</p></div></div><div className="panel-body"><SaleStatusActions saleId={sale.id} paymentStatus={sale.payment_status} deliveryStatus={sale.delivery_status}/></div></article>
+        <article className="panel"><div className="panel-head"><div><h2>Atualizar venda</h2><p>Corrija o cliente sem cancelar a venda ou atualize pagamento e entrega.</p></div></div><div className="panel-body sale-update-stack"><ChangeSaleCustomer saleId={sale.id} currentCustomerId={sale.customer_id} currentCustomerName={sale.customer_name}/><SaleStatusActions saleId={sale.id} paymentStatus={sale.payment_status} deliveryStatus={sale.delivery_status}/></div></article>
       </div>
 
       <aside className="sale-details-side">

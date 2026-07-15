@@ -196,9 +196,12 @@ export async function getProductCatalog(): Promise<ProductCatalogRow[]> {
   if (!isSupabaseConfigured) return demoProducts;
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from("product_catalog")
+    .from("product_catalog_commercial_sort")
     .select("*")
-    .order("active", { ascending: false })
+    .order("flagship_rank", { ascending: true })
+    .order("availability_rank", { ascending: true })
+    .order("category_rank", { ascending: true })
+    .order("total_sold", { ascending: false })
     .order("name", { ascending: true });
   if (error) throw error;
   return (data ?? []).map((row) => normalizeProduct(row as Record<string, unknown>));

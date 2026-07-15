@@ -1,0 +1,238 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { NextRequest } from "next/server";
+import { PDFDocument, StandardFonts, rgb, type PDFImage, type PDFPage, type PDFFont } from "pdf-lib";
+import sharp from "sharp";
+import { getCurrentUserAccess } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+type CatalogProduct = {
+  id: string;
+  name: string;
+  category: string;
+  brand: string | null;
+  image_url: string | null;
+  sale_price: number | string;
+  installment_price: number | string;
+  available_quantity: number | string;
+  incoming_quantity: number | string;
+};
+
+const PAGE_W = 595.28;
+const PAGE_H = 841.89;
+const BG = rgb(0.028, 0.036, 0.052);
+const PANEL = rgb(0.06, 0.075, 0.106);
+const LINE = rgb(0.145, 0.17, 0.216);
+const TEXT = rgb(0.96, 0.97, 0.985);
+const MUTED = rgb(0.62, 0.66, 0.72);
+const GOLD = rgb(0.85, 0.64, 0.25);
+const GREEN = rgb(0.27, 0.76, 0.48);
+
+function num(value: number | string | null | undefined) {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function money(value: number | string) {
+  return `R$ ${num(value).toFixed(2).replace(".", ",")}`;
+}
+
+function datePtBr() {
+  return new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo" }).format(new Date());
+}
+
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number, maxLines = 2) {
+  const words = text.trim().split(/\s+/);
+  const lines: string[] = [];
+  let line = "";
+  for (const word of words) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (font.widthOfTextAtSize(candidate, size) <= maxWidth) {
+      line = candidate;
+      continue;
+    }
+    if (line) lines.push(line);
+    line = word;
+    if (lines.length >= maxLines - 1) break;
+  }
+  if (line && lines.length < maxLines) lines.push(line);
+  if (lines.length === maxLines && words.join(" ") !== lines.join(" ")) {
+    let last = lines[maxLines - 1];
+    while (last.length > 3 && font.widthOfTextAtSize(`${last}...`, size) > maxWidth) last = last.slice(0, -1);
+    lines[maxLines - 1] = `${last}...`;
+  }
+  return lines;
+}
+
+async function imageToPngBuffer(source: string | Buffer) {
+  const input = typeof source === "string"
+    ? Buffer.from(await (await fetch(source, { signal: AbortSignal.timeout(6500) })).arrayBuffer())
+    : source;
+  return sharp(input)
+    .resize({ width: 360, height: 360, fit: "contain", background: { r: 15, g: 19, b: 27, alpha: 0 } })
+    .png()
+    .toBuffer();
+}
+
+async function embedProductImage(pdf: PDFDocument, url: string | null): Promise<PDFImage | null> {
+  if (!url) return null;
+  try {
+    return await pdf.embedPng(await imageToPngBuffer(url));
+  } catch {
+    return null;
+  }
+}
+
+function drawHeader(page: PDFPage, logo: PDFImage, bold: PDFFont, regular: PDFFont, includeIncoming: boolean) {
+  page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: BG });
+  const logoScale = Math.min(210 / logo.width, 64 / logo.height);
+  page.drawImage(logo, { x: 34, y: PAGE_H - 83, width: logo.width * logoScale, height: logo.height * logoScale });
+  page.drawText("CATÁLOGO DE PRODUTOS", { x: 330, y: PAGE_H - 49, size: 14, font: bold, color: TEXT });
+  page.drawText(`Atualizado em ${datePtBr()}`, { x: 330, y: PAGE_H - 67, size: 8.5, font: regular, color: MUTED });
+  if (includeIncoming) page.drawText("Inclui produtos a caminho", { x: 330, y: PAGE_H - 80, size: 8, font: regular, color: GOLD });
+  page.drawLine({ start: { x: 34, y: PAGE_H - 98 }, end: { x: PAGE_W - 34, y: PAGE_H - 98 }, thickness: 1, color: LINE });
+}
+
+function drawFooter(page: PDFPage, regular: PDFFont, pageNumber: number) {
+  page.drawLine({ start: { x: 34, y: 35 }, end: { x: PAGE_W - 34, y: 35 }, thickness: .7, color: LINE });
+  page.drawText("Candinho Suplementos - Qualidade que entrega resultado.", { x: 34, y: 19, size: 7.5, font: regular, color: MUTED });
+  page.drawText(String(pageNumber), { x: PAGE_W - 42, y: 19, size: 7.5, font: regular, color: MUTED });
+}
+
+function drawProductCard(
+  page: PDFPage,
+  product: CatalogProduct,
+  image: PDFImage | null,
+  x: number,
+  y: number,
+  regular: PDFFont,
+  bold: PDFFont,
+) {
+  const width = 254;
+  const height = 205;
+  page.drawRectangle({ x, y, width, height, color: PANEL, borderColor: LINE, borderWidth: .8 });
+
+  const imageX = x + 14;
+  const imageY = y + 72;
+  const imageSize = 104;
+  page.drawRectangle({ x: imageX, y: imageY, width: imageSize, height: imageSize, color: rgb(.075, .09, .12), borderColor: LINE, borderWidth: .6 });
+  if (image) {
+    const scale = Math.min((imageSize - 12) / image.width, (imageSize - 12) / image.height);
+    page.drawImage(image, {
+      x: imageX + (imageSize - image.width * scale) / 2,
+      y: imageY + (imageSize - image.height * scale) / 2,
+      width: image.width * scale,
+      height: image.height * scale,
+    });
+  } else {
+    page.drawText("SEM FOTO", { x: imageX + 28, y: imageY + 48, size: 8, font: bold, color: MUTED });
+  }
+
+  const textX = x + 132;
+  const textWidth = width - 146;
+  const nameLines = wrapText(product.name, bold, 10.5, textWidth, 3);
+  nameLines.forEach((line, index) => page.drawText(line, { x: textX, y: y + 163 - index * 14, size: 10.5, font: bold, color: TEXT }));
+  const meta = [product.category, product.brand].filter(Boolean).join(" - ");
+  wrapText(meta || "Produto", regular, 7.5, textWidth, 2).forEach((line, index) => page.drawText(line, { x: textX, y: y + 116 - index * 10, size: 7.5, font: regular, color: MUTED }));
+
+  page.drawText("À vista", { x: textX, y: y + 79, size: 7.5, font: regular, color: MUTED });
+  page.drawText(money(product.sale_price), { x: textX, y: y + 62, size: 13.5, font: bold, color: GOLD });
+  if (num(product.installment_price) > 0 && num(product.installment_price) !== num(product.sale_price)) {
+    page.drawText(`Prazo: ${money(product.installment_price)}`, { x: textX, y: y + 46, size: 7.5, font: regular, color: TEXT });
+  }
+
+  const available = num(product.available_quantity);
+  const incoming = num(product.incoming_quantity);
+  let stockLabel = `Disponível: ${available}`;
+  let stockColor = GREEN;
+  if (available === 1) {
+    stockLabel = "ÚLTIMA UNIDADE";
+    stockColor = GOLD;
+  } else if (available <= 0 && incoming > 0) {
+    stockLabel = `A caminho: ${incoming}`;
+    stockColor = GOLD;
+  }
+  page.drawText(stockLabel, { x: x + 14, y: y + 26, size: 8.5, font: bold, color: stockColor });
+}
+
+export async function GET(request: NextRequest) {
+  const access = await getCurrentUserAccess();
+  if (!access.active || !access.canAccessSupplements) {
+    return new Response("Acesso não autorizado", { status: 403 });
+  }
+
+  const includeIncoming = request.nextUrl.searchParams.get("includeIncoming") === "1";
+  const supabase = await createClient();
+  let query = supabase
+    .from("product_catalog_commercial_sort")
+    .select("id,name,category,brand,image_url,sale_price,installment_price,available_quantity,incoming_quantity")
+    .eq("active", true)
+    .order("flagship_rank", { ascending: true })
+    .order("availability_rank", { ascending: true })
+    .order("category_rank", { ascending: true })
+    .order("total_sold", { ascending: false })
+    .order("name", { ascending: true });
+
+  if (includeIncoming) query = query.or("available_quantity.gt.0,incoming_quantity.gt.0");
+  else query = query.gt("available_quantity", 0);
+
+  const { data, error } = await query;
+  if (error) return new Response(`Não foi possível gerar o catálogo: ${error.message}`, { status: 500 });
+  const products = (data ?? []) as CatalogProduct[];
+
+  const pdf = await PDFDocument.create();
+  const regular = await pdf.embedFont(StandardFonts.Helvetica);
+  const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
+
+  let logo: PDFImage;
+  try {
+    const localLogo = await readFile(path.join(process.cwd(), "public", "candinho-suplementos-logo.webp"));
+    logo = await pdf.embedPng(await imageToPngBuffer(localLogo));
+  } catch {
+    const fallback = await sharp({ create: { width: 640, height: 180, channels: 4, background: { r: 7, g: 9, b: 13, alpha: 0 } } }).png().toBuffer();
+    logo = await pdf.embedPng(fallback);
+  }
+
+  const cardsPerPage = 6;
+  const positions = [
+    [34, 524], [307, 524],
+    [34, 306], [307, 306],
+    [34, 88], [307, 88],
+  ] as const;
+
+  const imageCache = new Map<string, PDFImage | null>();
+  for (let offset = 0; offset < products.length || offset === 0; offset += cardsPerPage) {
+    const page = pdf.addPage([PAGE_W, PAGE_H]);
+    drawHeader(page, logo, bold, regular, includeIncoming);
+    const chunk = products.slice(offset, offset + cardsPerPage);
+    if (chunk.length === 0) {
+      page.drawText("Nenhum produto disponível no momento.", { x: 160, y: 410, size: 14, font: bold, color: TEXT });
+    } else {
+      const images = await Promise.all(chunk.map(async (product) => {
+        if (!product.image_url) return null;
+        if (imageCache.has(product.image_url)) return imageCache.get(product.image_url) ?? null;
+        const embedded = await embedProductImage(pdf, product.image_url);
+        imageCache.set(product.image_url, embedded);
+        return embedded;
+      }));
+      chunk.forEach((product, index) => {
+        const [x, y] = positions[index];
+        drawProductCard(page, product, images[index], x, y, regular, bold);
+      });
+    }
+    drawFooter(page, regular, Math.floor(offset / cardsPerPage) + 1);
+  }
+
+  const bytes = await pdf.save();
+  const filenameDate = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+  return new Response(Buffer.from(bytes), {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="catalogo-candinho-${filenameDate}.pdf"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}

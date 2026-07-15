@@ -20,27 +20,21 @@ export function OperationSwitcher({
   }, [canAccessFitness, canAccessSupplements, router]);
 
   return (
-    <div className={`operation-buttons ${canAccessSupplements && canAccessFitness ? "two" : "one"}`}>
+    <div className="operation-buttons three">
       {canAccessSupplements && (
-        <Link
-          className="operation-button supplements"
-          href="/suplementos"
-          prefetch
-          aria-label="Acessar Candinho Suplementos"
-        >
+        <Link className="operation-button supplements" href="/suplementos" prefetch aria-label="Acessar Candinho Suplementos">
           <Image src="/operation-suplementos.png" alt="Suplementos" width={709} height={236} />
         </Link>
       )}
       {canAccessFitness && (
-        <Link
-          className="operation-button fitness"
-          href="/fitness"
-          prefetch
-          aria-label="Acessar Candinho Fitness"
-        >
+        <Link className="operation-button fitness" href="/fitness" prefetch aria-label="Acessar Candinho Fitness">
           <Image src="/operation-fitness.png" alt="Fitness" width={709} height={236} />
         </Link>
       )}
+      <div className="operation-button bank coming-soon" aria-label="Candinho Bank — em breve">
+        <Image src="/operation-bank.png" alt="Bank" width={709} height={236} />
+        <span className="operation-coming-soon">Em breve</span>
+      </div>
     </div>
   );
 }

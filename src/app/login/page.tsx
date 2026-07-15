@@ -3,7 +3,7 @@ import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
   return (
-    <main className="login-page">
+    <main className="login-page login-company-theme">
       <section className="login-shell">
         <div className="login-visual">
           <Image
@@ -28,25 +28,17 @@ export default function LoginPage() {
           <h2>Entrar</h2>
           <LoginForm />
 
-          <div className="login-operations" aria-label="Operações da Candinho Company">
+          <div className="login-operations login-operations-three" aria-label="Operações da Candinho Company">
             <div className="login-operation-logo">
-              <Image
-                src="/candinho-suplementos-logo.webp"
-                alt="Candinho Suplementos"
-                width={900}
-                height={326}
-              />
+              <Image src="/candinho-suplementos-logo.webp" alt="Candinho Suplementos" width={900} height={326} />
             </div>
-
             <span className="login-operation-divider" aria-hidden="true" />
-
             <div className="login-operation-logo">
-              <Image
-                src="/candinho-fitness-logo.webp"
-                alt="Candinho Fitness"
-                width={900}
-                height={333}
-              />
+              <Image src="/candinho-fitness-logo.webp" alt="Candinho Fitness" width={900} height={333} />
+            </div>
+            <span className="login-operation-divider" aria-hidden="true" />
+            <div className="login-operation-logo login-bank-logo">
+              <Image src="/candinho-bank-logo.png" alt="Candinho Bank" width={720} height={720} />
             </div>
           </div>
 
