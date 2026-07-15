@@ -337,7 +337,44 @@ export type DashboardData = {
   priorities: DashboardPriorityItem[];
   recentSales: SaleRow[];
   lowStock: ReplenishmentRow[];
+  agendaToday: AgendaEvent[];
+  agendaSummary: AgendaSummary;
 };
+export type AgendaEvent = {
+  event_key: string;
+  source_type: "task" | "interaction" | "sale_payment" | "sale_delivery" | "sale_post_sale" | "purchase_order";
+  source_id: string;
+  category: "task" | "delivery" | "payment" | "follow_up" | "post_sale" | "supplier" | "other";
+  title: string;
+  subtitle: string;
+  due_at: string;
+  due_date: string;
+  status: "planned" | "completed" | "cancelled";
+  priority: "normal" | "attention" | "urgent";
+  customer_id: string | null;
+  customer_name: string | null;
+  customer_phone: string | null;
+  sale_id: string | null;
+  purchase_order_id: string | null;
+  assigned_to: string | null;
+  assigned_name: string | null;
+  href: string;
+  notes: string | null;
+  amount: number | null;
+  created_at: string;
+};
+
+export type AgendaSummary = {
+  today_count: number;
+  overdue_count: number;
+  next_seven_days_count: number;
+  completed_month_count: number;
+};
+
+export type AgendaUserOption = { id: string; name: string; email: string | null };
+export type AgendaSaleOption = { id: string; customer_id: string | null; label: string };
+export type AgendaPurchaseOrderOption = { id: string; label: string };
+
 export type PanelPeriod = "current" | "previous" | "all";
 export type PanelCSData = {
   period: PanelPeriod;

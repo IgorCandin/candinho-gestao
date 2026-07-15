@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CalendarDays,
   ChartNoAxesCombined,
   CircleDollarSign,
   ContactRound,
@@ -21,6 +22,7 @@ import type { UserAccess } from "@/lib/access";
 
 const supplementNav = [
   { href: "/suplementos", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/vendas", label: "Comercial", icon: ShoppingBag },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/clientes", label: "CRM", icon: ContactRound },

@@ -63,6 +63,11 @@ import type {
   FitnessPurchaseOrderSummary,
   FitnessPurchaseOrderDetails,
   FitnessPurchaseOrderItem,
+  AgendaEvent,
+  AgendaSummary,
+  AgendaUserOption,
+  AgendaSaleOption,
+  AgendaPurchaseOrderOption,
 } from "./types";
 
 const number = (value: unknown) => Number(value ?? 0);
@@ -1003,6 +1008,97 @@ export async function getDashboardPriorityItems(limit = 15): Promise<DashboardPr
   return selected.slice(0, limit);
 }
 
+function normalizeAgendaEvent(row: Record<string, unknown>): AgendaEvent {
+  return {
+    event_key: String(row.event_key ?? ""),
+    source_type: row.source_type as AgendaEvent["source_type"],
+    source_id: String(row.source_id ?? ""),
+    category: row.category as AgendaEvent["category"],
+    title: text(row.title, "Compromisso"),
+    subtitle: text(row.subtitle, "Sem detalhes"),
+    due_at: String(row.due_at ?? ""),
+    due_date: String(row.due_date ?? ""),
+    status: row.status as AgendaEvent["status"],
+    priority: row.priority as AgendaEvent["priority"],
+    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+    customer_name: typeof row.customer_name === "string" ? row.customer_name : null,
+    customer_phone: typeof row.customer_phone === "string" ? row.customer_phone : null,
+    sale_id: typeof row.sale_id === "string" ? row.sale_id : null,
+    purchase_order_id: typeof row.purchase_order_id === "string" ? row.purchase_order_id : null,
+    assigned_to: typeof row.assigned_to === "string" ? row.assigned_to : null,
+    assigned_name: typeof row.assigned_name === "string" ? row.assigned_name : null,
+    href: text(row.href, "/agenda"),
+    notes: typeof row.notes === "string" ? row.notes : null,
+    amount: row.amount == null ? null : number(row.amount),
+    created_at: String(row.created_at ?? ""),
+  };
+}
+
+export async function getAgendaEvents(): Promise<AgendaEvent[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("operational_calendar_events")
+    .select("*")
+    .order("due_at", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeAgendaEvent(row as Record<string, unknown>));
+}
+
+export async function getAgendaSummary(): Promise<AgendaSummary> {
+  if (!isSupabaseConfigured) return { today_count: 0, overdue_count: 0, next_seven_days_count: 0, completed_month_count: 0 };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("operational_agenda_summary").select("*").single();
+  if (error) throw error;
+  return {
+    today_count: number(data.today_count),
+    overdue_count: number(data.overdue_count),
+    next_seven_days_count: number(data.next_seven_days_count),
+    completed_month_count: number(data.completed_month_count),
+  };
+}
+
+export async function getAgendaTodayEvents(limit = 6): Promise<AgendaEvent[]> {
+  const events = await getAgendaEvents();
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  return events
+    .filter((event) => event.status === "planned" && event.due_date <= today)
+    .sort((a, b) => a.due_date.localeCompare(b.due_date) || a.due_at.localeCompare(b.due_at))
+    .slice(0, limit);
+}
+
+export async function getAgendaUsers(): Promise<AgendaUserOption[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id,full_name,email")
+    .eq("active", true)
+    .eq("can_access_supplements", true)
+    .order("full_name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.full_name, text(row.email, "Usuário")), email: typeof row.email === "string" ? row.email : null }));
+}
+
+export async function getAgendaSaleOptions(): Promise<AgendaSaleOption[]> {
+  const sales = await getSalesHistory();
+  return sales
+    .filter((sale) => sale.general_status !== "cancelled" && (sale.delivery_status !== "delivered" || sale.payment_status !== "received"))
+    .slice(0, 120)
+    .map((sale) => ({
+      id: sale.id,
+      customer_id: sale.customer_id,
+      label: `${sale.customer_name} · ${sale.product_summary ?? "Venda"} · ${sale.business_date}`,
+    }));
+}
+
+export async function getAgendaPurchaseOrderOptions(): Promise<AgendaPurchaseOrderOption[]> {
+  const orders = await getSupplierOrderSummaries();
+  return orders
+    .filter((order) => order.status === "pending" || order.status === "partial")
+    .map((order) => ({ id: order.id, label: `${order.supplier_name} · ${order.product_summary ?? `${order.pending_units} unidade(s)`}` }));
+}
+
 export async function getPanelCS(period: PanelPeriod = "current"): Promise<PanelCSData> {
   const [summary, pendingOrders, allSales] = await Promise.all([
     getCommercialDashboardSummary(),
@@ -1051,7 +1147,7 @@ export async function getPanelCS(period: PanelPeriod = "current"): Promise<Panel
 }
 
 export async function getDashboard(): Promise<DashboardData> {
-  const [products, summary, operational, priorities, pendingOrders, recentSales, lowStock] = await Promise.all([
+  const [products, summary, operational, priorities, pendingOrders, recentSales, lowStock, agendaToday, agendaSummary] = await Promise.all([
     getProductCatalog(),
     getCommercialDashboardSummary(),
     getDashboardOperationalSummary(),
@@ -1059,6 +1155,8 @@ export async function getDashboard(): Promise<DashboardData> {
     getPendingOrders(),
     getSalesHistory(30),
     getReplenishment(),
+    getAgendaTodayEvents(),
+    getAgendaSummary(),
   ]);
 
   return {
@@ -1084,6 +1182,8 @@ export async function getDashboard(): Promise<DashboardData> {
     operational,
     priorities,
     recentSales: recentSales.filter(isCommercialSale).slice(0, 8),
+    agendaToday,
+    agendaSummary,
     lowStock: lowStock
       .filter((row) => {
         const value = `${row.product_name} ${row.category}`

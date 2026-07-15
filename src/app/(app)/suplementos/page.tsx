@@ -3,6 +3,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BarChart3,
+  CalendarDays,
   Boxes,
   CircleDollarSign,
   ClipboardClock,
@@ -172,6 +173,28 @@ export default async function SupplementsDashboardPage() {
         </article>
 
         <div className="dashboard-side-stack">
+          <article className="panel dashboard-agenda-card">
+            <div className="panel-head"><div><h2>Agenda de hoje</h2><p>Atrasados e compromissos do dia.</p></div><CalendarDays size={19} /></div>
+            <div className="dashboard-agenda-summary">
+              <div><span>Hoje</span><strong>{data.agendaSummary.today_count}</strong></div>
+              <div className={data.agendaSummary.overdue_count > 0 ? "danger" : ""}><span>Atrasados</span><strong>{data.agendaSummary.overdue_count}</strong></div>
+              <div><span>Próximos 7 dias</span><strong>{data.agendaSummary.next_seven_days_count}</strong></div>
+            </div>
+            {data.agendaToday.length === 0 ? (
+              <div className="empty compact"><CalendarDays size={22} /><strong>Agenda em dia</strong>Nenhum compromisso atrasado ou para hoje.</div>
+            ) : (
+              <div className="dashboard-agenda-list">
+                {data.agendaToday.slice(0, 4).map((event) => (
+                  <Link href="/agenda" key={event.event_key}>
+                    <div><strong>{event.title}</strong><span>{event.subtitle}</span></div>
+                    <time>{formatDateOnly(event.due_date)}</time>
+                  </Link>
+                ))}
+              </div>
+            )}
+            <Link className="button ghost dashboard-full-button" href="/agenda">Abrir agenda <ArrowRight size={15} /></Link>
+          </article>
+
           <article className="panel dashboard-stock-card">
             <div className="panel-head"><div><h2>Estoque operacional</h2><p>Saldo realmente livre para novas vendas.</p></div><Boxes size={19} /></div>
             <div className="dashboard-stock-numbers">

@@ -17,6 +17,12 @@ function todayInSaoPaulo() {
   return `${parts.find((part) => part.type === "year")?.value}-${parts.find((part) => part.type === "month")?.value}-${parts.find((part) => part.type === "day")?.value}`;
 }
 
+function addDays(date: string, amount: number) {
+  const value = new Date(`${date}T12:00:00`);
+  value.setDate(value.getDate() + amount);
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
+
 function itemKey() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
 function priceCondition(price: number, cost: number, standard: number) {
   if (price === cost) return "Custo";
@@ -38,6 +44,9 @@ export function NewSaleForm({ customers, locations, partners, stock }: { custome
   const [paymentDueOn, setPaymentDueOn] = useState(todayInSaoPaulo);
   const [delivered, setDelivered] = useState(false);
   const [deliveredOn, setDeliveredOn] = useState(todayInSaoPaulo);
+  const [deliveryDueOn, setDeliveryDueOn] = useState(todayInSaoPaulo);
+  const [schedulePostSale, setSchedulePostSale] = useState(true);
+  const [postSaleDueOn, setPostSaleDueOn] = useState(addDays(todayInSaoPaulo(), 7));
   const [partnership, setPartnership] = useState(false);
   const [partnerId, setPartnerId] = useState("");
   const [notes, setNotes] = useState("");
@@ -85,7 +94,24 @@ export function NewSaleForm({ customers, locations, partners, stock }: { custome
         p_partner_id: partnership ? partnerId : null,
       });
       if (error) throw error;
-      router.push(`/vendas/${String(data)}`); router.refresh();
+      const saleId = String(data);
+      if (!delivered && deliveryDueOn) {
+        const { error: deliveryScheduleError } = await supabase.rpc("reschedule_operational_event", {
+          p_source_type: "sale_delivery",
+          p_source_id: saleId,
+          p_due_at: new Date(`${deliveryDueOn}T12:00:00-03:00`).toISOString(),
+        });
+        if (deliveryScheduleError) throw deliveryScheduleError;
+      }
+      if (schedulePostSale && postSaleDueOn) {
+        const { error: postSaleScheduleError } = await supabase.rpc("reschedule_operational_event", {
+          p_source_type: "sale_post_sale",
+          p_source_id: saleId,
+          p_due_at: new Date(`${postSaleDueOn}T12:00:00-03:00`).toISOString(),
+        });
+        if (postSaleScheduleError) throw postSaleScheduleError;
+      }
+      router.push(`/vendas/${saleId}`); router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível registrar a venda.");
     } finally { setLoading(false); }
@@ -153,7 +179,15 @@ export function NewSaleForm({ customers, locations, partners, stock }: { custome
         <div className="panel-head"><div><h2>Entrega</h2><p>Baixa o estoque somente se já foi entregue.</p></div></div>
         <div className="panel-body option-stack">
           <label className={`choice-card ${delivered?"active":""}`}><input type="checkbox" checked={delivered} onChange={(event)=>setDelivered(event.target.checked)}/><span><strong>Já foi entregue</strong><small>Ao confirmar, o estoque será baixado.</small></span></label>
-          {delivered && <div className="conditional-fields"><label className="field"><span>Data da entrega</span><input className="input" type="date" required value={deliveredOn} onChange={(event)=>setDeliveredOn(event.target.value)}/></label></div>}
+          {delivered ? <div className="conditional-fields"><label className="field"><span>Data da entrega</span><input className="input" type="date" required value={deliveredOn} onChange={(event)=>setDeliveredOn(event.target.value)}/></label></div> : <div className="conditional-fields"><label className="field"><span>Entrega prevista</span><input className="input" type="date" value={deliveryDueOn} onChange={(event)=>setDeliveryDueOn(event.target.value)}/><small>A venda aparecerá automaticamente na Agenda.</small></label></div>}
+        </div>
+      </article>
+
+      <article className="panel">
+        <div className="panel-head"><div><h2>Pós-venda</h2><p>Crie automaticamente o retorno na Agenda.</p></div></div>
+        <div className="panel-body option-stack">
+          <label className={`choice-card ${schedulePostSale?"active":""}`}><input type="checkbox" checked={schedulePostSale} onChange={(event)=>setSchedulePostSale(event.target.checked)}/><span><strong>Agendar pós-venda</strong><small>Lembrete vinculado ao cliente e à venda.</small></span></label>
+          {schedulePostSale && <div className="conditional-fields"><label className="field"><span>Data do pós-venda</span><input className="input" type="date" required value={postSaleDueOn} onChange={(event)=>setPostSaleDueOn(event.target.value)}/></label></div>}
         </div>
       </article>
 

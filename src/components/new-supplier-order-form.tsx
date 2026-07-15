@@ -54,6 +54,7 @@ export function NewSupplierOrderForm({
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [supplierId, setSupplierId] = useState("");
   const [orderedOn, setOrderedOn] = useState(todayBrazil());
+  const [expectedOn, setExpectedOn] = useState("");
   const [locationId, setLocationId] = useState(locations.find((location) => location.code === "CS")?.id ?? locations[0]?.id ?? "");
   const [notes, setNotes] = useState("");
   const [items, setItems] = useState<OrderItemDraft[]>([emptyItem()]);
@@ -152,7 +153,16 @@ export function NewSupplierOrderForm({
         p_notes: notes.trim() || null,
       });
       if (error) throw error;
-      router.push(`/pedidos-fornecedor/${String(data)}`);
+      const orderId = String(data);
+      if (expectedOn) {
+        const { error: scheduleError } = await supabase.rpc("reschedule_operational_event", {
+          p_source_type: "purchase_order",
+          p_source_id: orderId,
+          p_due_at: new Date(`${expectedOn}T12:00:00-03:00`).toISOString(),
+        });
+        if (scheduleError) throw scheduleError;
+      }
+      router.push(`/pedidos-fornecedor/${orderId}`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível criar o pedido.");
@@ -194,6 +204,7 @@ export function NewSupplierOrderForm({
               <button className="inline-action" type="button" onClick={() => setShowNewSupplier((value) => !value)}><Plus size={14} />Adicionar novo fornecedor</button>
             </label>
             <label className="field"><span>Data do pedido</span><input className="input" type="date" required value={orderedOn} onChange={(event) => setOrderedOn(event.target.value)} /></label>
+            <label className="field"><span>Previsão de chegada</span><input className="input" type="date" value={expectedOn} onChange={(event) => setExpectedOn(event.target.value)} /><small>Quando preenchida, aparece automaticamente na Agenda.</small></label>
             <label className="field field-span-two"><span>Estoque de destino</span><select className="select" required value={locationId} onChange={(event) => setLocationId(event.target.value)}>{locations.map((location) => <option key={location.id} value={location.id}>{location.code} · {location.name}</option>)}</select><small>Quando cada item chegar, a entrada será feita neste estoque.</small></label>
           </div>
           {showNewSupplier && (
