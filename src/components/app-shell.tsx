@@ -2,24 +2,27 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   CalendarDays,
   ChartNoAxesCombined,
   CircleDollarSign,
   ContactRound,
+  FlaskConical,
   Handshake,
   History,
   Home,
   LogOut,
   Menu,
   Building2,
+  PackageOpen,
   PackageSearch,
   Settings,
   ShoppingBag,
   Truck,
   UserRoundPlus,
   UsersRound,
+  Warehouse,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 
@@ -44,32 +47,86 @@ const fitnessNav = [
   { href: "/fitness/movimentacoes", label: "Movimentações", icon: History },
 ];
 
+const testSupplementNav = [
+  { href: "/teste/supplements", label: "Visão geral", icon: FlaskConical },
+  { href: "/teste/supplements/vendas", label: "Vendas teste", icon: ShoppingBag },
+  { href: "/teste/supplements/estoque", label: "Estoque teste", icon: Warehouse },
+  { href: "/teste/supplements/pedidos", label: "Pedidos teste", icon: PackageOpen },
+];
+
+const testFitnessNav = [
+  { href: "/teste/fitness", label: "Visão geral", icon: FlaskConical },
+  { href: "/teste/fitness/vendas", label: "Vendas teste", icon: ShoppingBag },
+  { href: "/teste/fitness/estoque", label: "Estoque teste", icon: Warehouse },
+  { href: "/teste/fitness/pedidos", label: "Pedidos teste", icon: PackageOpen },
+];
+
 const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
+
+type Operation = "hub" | "supplements" | "fitness";
 
 export function AppShell({ children, access }: { children: React.ReactNode; access: UserAccess }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const isHub = pathname === "/dashboard";
-  const isFitness = pathname.startsWith("/fitness");
   const isSettings = pathname.startsWith("/configuracoes");
-  const isSupplements = !isHub && !isFitness && !isSettings;
+  const isTestSupplements = pathname.startsWith("/teste/supplements");
+  const isTestFitness = pathname.startsWith("/teste/fitness");
+  const isTest = isTestSupplements || isTestFitness;
+  const settingsOperation = searchParams.get("operacao");
 
-  const nav = isHub ? hubNav : isFitness ? fitnessNav : supplementNav;
-  const mobileShortcuts = isFitness
-    ? [
-        { href: "/fitness/pedidos/novo", label: "Novo pedido", icon: Truck, primary: false },
-        { href: "/fitness/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
-        { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch, primary: false },
-      ]
-    : [
-        { href: "/leads/novo", label: "Novo lead", icon: UserRoundPlus, primary: false },
-        { href: "/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
-        { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
-      ];
-  const mobileMenuNav = nav.filter(({ href }) =>
-    isFitness ? href !== "/fitness/produtos" : href !== "/produtos"
-  );
-  const showSupplementActions = access.canWriteSupplements && isSupplements;
-  const showFitnessActions = access.canWriteFitness && isFitness;
+  let operation: Operation = "hub";
+  if (isTestFitness || pathname.startsWith("/fitness") || (isSettings && settingsOperation === "fitness")) {
+    operation = "fitness";
+  } else if (
+    isTestSupplements ||
+    (isSettings && settingsOperation === "suplementos") ||
+    (!isHub && !isSettings && !pathname.startsWith("/fitness") && !pathname.startsWith("/teste/"))
+  ) {
+    operation = "supplements";
+  }
+
+  const isFitness = operation === "fitness";
+  const isSupplements = operation === "supplements";
+  const isRealFitness = isFitness && !isTest && !isSettings;
+  const isRealSupplements = isSupplements && !isTest && !isSettings;
+
+  const nav = isHub
+    ? hubNav
+    : isTestSupplements
+      ? testSupplementNav
+      : isTestFitness
+        ? testFitnessNav
+        : isFitness
+          ? fitnessNav
+          : supplementNav;
+
+  const mobileShortcuts = isSettings
+    ? []
+    : isTest
+      ? [
+          { href: `/teste/${operation}`, label: "Teste", icon: FlaskConical, primary: false },
+          { href: `/teste/${operation}/vendas/nova`, label: "Nova venda", icon: CircleDollarSign, primary: true },
+          { href: `/teste/${operation}/estoque`, label: "Estoque", icon: Warehouse, primary: false },
+        ]
+      : isFitness
+        ? [
+            { href: "/fitness/pedidos/novo", label: "Novo pedido", icon: Truck, primary: false },
+            { href: "/fitness/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
+            { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch, primary: false },
+          ]
+        : [
+            { href: "/leads/novo", label: "Novo lead", icon: UserRoundPlus, primary: false },
+            { href: "/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
+            { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
+          ];
+
+  const mobileMenuNav = isTest
+    ? nav
+    : nav.filter(({ href }) => (isFitness ? href !== "/fitness/produtos" : href !== "/produtos"));
+  const showSupplementActions = access.canWriteSupplements && isRealSupplements;
+  const showFitnessActions = access.canWriteFitness && isRealFitness;
+  const settingsHref = operation === "fitness" ? "/configuracoes?operacao=fitness" : operation === "supplements" ? "/configuracoes?operacao=suplementos" : "/configuracoes";
   const brand = isFitness
     ? { src: "/candinho-fitness-logo.webp", alt: "Candinho Fitness" }
     : isSupplements
@@ -80,12 +137,11 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
     if (href === "/dashboard") return pathname === href;
     if (href === "/suplementos") return pathname === href;
     if (href === "/fitness") return pathname === href;
+    if (href === "/teste/supplements" || href === "/teste/fitness") return pathname === href;
     if (href === "/vendas") return pathname.startsWith("/vendas") || pathname.startsWith("/leads");
     return pathname.startsWith(href);
   }
 
-  // A tela de escolha da operação é intencionalmente limpa: sem sidebar,
-  // cabeçalho móvel ou navegação duplicada.
   if (isHub) {
     return (
       <main className="hub-standalone">
@@ -95,11 +151,13 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   }
 
   return (
-    <div className={`app-shell theme-${isHub ? "hub" : isFitness ? "fitness" : "supplements"}`}>
+    <div className={`app-shell theme-${operation === "hub" ? "hub" : operation}${isTest ? " test-lab-shell" : ""}`}>
       <aside className="sidebar">
         <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}>
           <Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority />
         </Link>
+
+        {isTest && <div className="test-lab-sidebar-badge"><FlaskConical size={14}/><span>ÁREA DE TESTE</span></div>}
 
         <nav className="nav">
           {nav.map(({ href, label, icon: Icon }) => (
@@ -112,9 +170,9 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
         <div className="sidebar-footer">
           <div className="sidebar-user"><span>{access.name}</span><small>{access.email ?? "Acesso local"}</small></div>
-          <p className="sidebar-slogan">Qualidade que entrega resultado.</p>
+          <p className="sidebar-slogan">{isTest ? "Dados isolados · pode testar sem medo." : "Qualidade que entrega resultado."}</p>
           {access.canManageUsers && (
-            <Link className="nav-link" href="/configuracoes" title="Configurações">
+            <Link className={`nav-link ${isSettings ? "primary" : ""}`} href={settingsHref} title="Configurações">
               <Settings size={18} />
               <span className="nav-label">Configurações</span>
             </Link>
@@ -139,12 +197,10 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
             <span>Menu</span>
           </summary>
           <div className="mobile-menu-panel">
-            {!isHub && (
-              <Link className="mobile-menu-link operation-switch" href="/dashboard">
-                <Building2 size={18} />
-                <span>Trocar operação</span>
-              </Link>
-            )}
+            <Link className="mobile-menu-link operation-switch" href="/dashboard">
+              <Building2 size={18} />
+              <span>Trocar operação</span>
+            </Link>
             {mobileMenuNav.map(({ href, label, icon: Icon }) => (
               <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={`mobile-menu-${href}`}>
                 <Icon size={18} />
@@ -152,7 +208,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
               </Link>
             ))}
             {access.canManageUsers && (
-              <Link className="mobile-menu-link" href="/configuracoes">
+              <Link className={`mobile-menu-link ${isSettings ? "primary" : ""}`} href={settingsHref}>
                 <Settings size={18} />
                 <span>Configurações</span>
               </Link>
@@ -182,17 +238,13 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
             </div>
           </header>
         )}
-        <div className={`content ${isHub ? "content-hub" : ""}`}>{children}</div>
+        <div className="content">{children}</div>
       </main>
 
-      {!isHub && mobileShortcuts.length > 0 && (
+      {mobileShortcuts.length > 0 && (
         <nav className="mobile-nav mobile-action-nav" style={{ gridTemplateColumns: `repeat(${mobileShortcuts.length}, minmax(0, 1fr))` }}>
           {mobileShortcuts.map(({ href, label, icon: Icon, primary }) => (
-            <Link
-              className={`mobile-link mobile-action-link ${primary ? "mobile-action-primary" : ""} ${isActive(href) ? "primary" : ""}`}
-              href={href}
-              key={href}
-            >
+            <Link className={`mobile-link mobile-action-link ${primary ? "mobile-action-primary" : ""} ${isActive(href) ? "primary" : ""}`} href={href} key={href}>
               <Icon size={20} />
               <span>{label}</span>
             </Link>

@@ -1,0 +1,13 @@
+"use client";
+
+import { LoaderCircle, Truck } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import type { TestLabOperation, TestLabStockRow, TestLabSupplier } from "@/lib/types";
+
+export function TestLabPurchaseForm({operation,suppliers,products}:{operation:TestLabOperation;suppliers:TestLabSupplier[];products:TestLabStockRow[]}){
+ const router=useRouter();const[supplierId,setSupplierId]=useState(suppliers[0]?.id??"");const[productId,setProductId]=useState(products[0]?.product_id??"");const[quantity,setQuantity]=useState(5);const[cost,setCost]=useState(products[0]?.cost_price??0);const[loading,setLoading]=useState(false);const[message,setMessage]=useState<string|null>(null);
+ async function submit(e:React.FormEvent<HTMLFormElement>){e.preventDefault();setLoading(true);setMessage(null);try{const{data,error}=await createClient().rpc("test_lab_create_purchase_order",{p_operation:operation,p_supplier_id:supplierId,p_product_id:productId,p_quantity:quantity,p_unit_cost:cost});if(error)throw error;router.push(`/teste/${operation}/pedidos/${data}`);router.refresh();}catch(error){setMessage(error instanceof Error?error.message:"Não foi possível criar o pedido de teste.");}finally{setLoading(false);}}
+ return <form className="panel-body test-lab-form" onSubmit={submit}><div className="form-grid-two"><label className="field"><span>Fornecedor fictício</span><select className="select" value={supplierId} onChange={(e)=>setSupplierId(e.target.value)}>{suppliers.map((s)=><option key={s.id} value={s.id}>{s.name}</option>)}</select></label><label className="field"><span>Produto fictício</span><select className="select" value={productId} onChange={(e)=>{setProductId(e.target.value);const p=products.find((x)=>x.product_id===e.target.value);if(p)setCost(p.cost_price);}}>{products.map((p)=><option key={p.product_id} value={p.product_id}>{p.name}{p.variant_label?` · ${p.variant_label}`:""}</option>)}</select></label><label className="field"><span>Quantidade</span><input className="input" type="number" min={1} value={quantity} onChange={(e)=>setQuantity(Math.max(1,Number(e.target.value)||1))}/></label><label className="field"><span>Custo unitário</span><input className="input" type="number" min={0} step="0.01" value={cost} onChange={(e)=>setCost(Math.max(0,Number(e.target.value)||0))}/></label></div><button className="button gold" disabled={loading}>{loading?<LoaderCircle className="spin" size={16}/>:<Truck size={16}/>}Criar pedido teste</button>{message&&<p className="form-error visible">{message}</p>}</form>;
+}

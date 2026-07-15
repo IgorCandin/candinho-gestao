@@ -72,6 +72,17 @@ import type {
   AgendaUserOption,
   AgendaSaleOption,
   AgendaPurchaseOrderOption,
+  TestLabOperation,
+  TestLabDashboardSummary,
+  TestLabStockRow,
+  TestLabCustomer,
+  TestLabSupplier,
+  TestLabSaleRow,
+  TestLabSaleDetails,
+  TestLabSaleItem,
+  TestLabPurchaseOrderRow,
+  TestLabPurchaseOrderDetails,
+  TestLabPurchaseOrderItem,
 } from "./types";
 
 const number = (value: unknown) => Number(value ?? 0);
@@ -1837,4 +1848,121 @@ export async function getFitnessMovements(): Promise<FitnessInventoryMovementRow
     transfer_group_id:typeof row.transfer_group_id==="string"?row.transfer_group_id:null,notes:typeof row.notes==="string"?row.notes:null,created_at:String(row.created_at??""),
     product_id:String(row.product_id),product_name:text(row.product_name),image_url:typeof row.image_url==="string"?row.image_url:null,size:text(row.size),color:text(row.color),sku:typeof row.sku==="string"?row.sku:null,
   }));
+}
+
+export async function getTestLabDashboard(operation: TestLabOperation): Promise<TestLabDashboardSummary> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("test_lab_dashboard_summary").select("*").eq("operation", operation).single();
+  if (error) throw error;
+  return {
+    operation,
+    product_count: number(data.product_count),
+    physical_units: number(data.physical_units),
+    reserved_units: number(data.reserved_units),
+    available_units: number(data.available_units),
+    incoming_units: number(data.incoming_units),
+    sales_count: number(data.sales_count),
+    pending_payment_count: number(data.pending_payment_count),
+    pending_delivery_count: number(data.pending_delivery_count),
+    revenue: number(data.revenue),
+    profit: number(data.profit),
+    open_orders: number(data.open_orders),
+  };
+}
+
+export async function getTestLabStock(operation: TestLabOperation): Promise<TestLabStockRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("test_lab_stock_overview").select("*").eq("operation", operation).order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    product_id: String(row.product_id), operation, name: text(row.name), category: typeof row.category === "string" ? row.category : null,
+    variant_label: typeof row.variant_label === "string" ? row.variant_label : null, cost_price: number(row.cost_price), sale_price: number(row.sale_price),
+    active: Boolean(row.active), physical_quantity: number(row.physical_quantity), reserved_quantity: number(row.reserved_quantity),
+    available_quantity: number(row.available_quantity), incoming_quantity: number(row.incoming_quantity),
+  }));
+}
+
+export async function getTestLabCustomers(operation: TestLabOperation): Promise<TestLabCustomer[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("test_lab_customers").select("id,operation,name,phone").eq("operation", operation).order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ id: String(row.id), operation, name: text(row.name), phone: typeof row.phone === "string" ? row.phone : null }));
+}
+
+export async function getTestLabSuppliers(operation: TestLabOperation): Promise<TestLabSupplier[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("test_lab_suppliers").select("id,operation,name").eq("operation", operation).order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ id: String(row.id), operation, name: text(row.name) }));
+}
+
+function normalizeTestLabSale(row: Record<string, unknown>): TestLabSaleRow {
+  return {
+    id: String(row.id), operation: String(row.operation) as TestLabOperation, customer_id: String(row.customer_id), customer_name: text(row.customer_name),
+    quoted_on: String(row.quoted_on ?? ""), general_status: text(row.general_status), payment_status: text(row.payment_status), delivery_status: text(row.delivery_status),
+    total_cost: number(row.total_cost), total_amount: number(row.total_amount), total_profit: number(row.total_profit), notes: typeof row.notes === "string" ? row.notes : null,
+    created_at: String(row.created_at ?? ""), updated_at: String(row.updated_at ?? ""), product_summary: text(row.product_summary, ""), total_items: number(row.total_items),
+    reservation_status: typeof row.reservation_status === "string" ? row.reservation_status : null,
+  };
+}
+
+export async function getTestLabSales(operation: TestLabOperation): Promise<TestLabSaleRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("test_lab_sales_overview").select("*").eq("operation", operation).order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeTestLabSale(row as Record<string, unknown>));
+}
+
+export async function getTestLabSaleDetails(saleId: string): Promise<TestLabSaleDetails | null> {
+  const supabase = await createClient();
+  const [saleResult, itemsResult] = await Promise.all([
+    supabase.from("test_lab_sales_overview").select("*").eq("id", saleId).maybeSingle(),
+    supabase.from("test_lab_sale_items").select("id,product_id,quantity,unit_cost,unit_price,test_lab_products!inner(name,variant_label),test_lab_reservations(status,quantity_reserved)").eq("sale_id", saleId),
+  ]);
+  if (saleResult.error) throw saleResult.error;
+  if (itemsResult.error) throw itemsResult.error;
+  if (!saleResult.data) return null;
+  const items: TestLabSaleItem[] = (itemsResult.data ?? []).map((row: Record<string, unknown>) => {
+    const product = row.test_lab_products as Record<string, unknown>;
+    const reservations = Array.isArray(row.test_lab_reservations) ? row.test_lab_reservations as Record<string, unknown>[] : [];
+    const reservation = reservations[0];
+    return {
+      id: String(row.id), product_id: String(row.product_id), product_name: text(product.name), variant_label: typeof product.variant_label === "string" ? product.variant_label : null,
+      quantity: number(row.quantity), unit_cost: number(row.unit_cost), unit_price: number(row.unit_price), reservation_status: reservation ? text(reservation.status) : null,
+      quantity_reserved: reservation ? number(reservation.quantity_reserved) : 0,
+    };
+  });
+  return { ...normalizeTestLabSale(saleResult.data as Record<string, unknown>), items };
+}
+
+function normalizeTestLabPurchaseOrder(row: Record<string, unknown>): TestLabPurchaseOrderRow {
+  return {
+    id: String(row.id), operation: String(row.operation) as TestLabOperation, supplier_id: String(row.supplier_id), supplier_name: text(row.supplier_name),
+    ordered_on: String(row.ordered_on ?? ""), status: text(row.status), item_count: number(row.item_count), ordered_units: number(row.ordered_units),
+    received_units: number(row.received_units), pending_units: number(row.pending_units), order_total: number(row.order_total), product_summary: text(row.product_summary, ""),
+  };
+}
+
+export async function getTestLabPurchaseOrders(operation: TestLabOperation): Promise<TestLabPurchaseOrderRow[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("test_lab_purchase_orders_overview").select("*").eq("operation", operation).order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeTestLabPurchaseOrder(row as Record<string, unknown>));
+}
+
+export async function getTestLabPurchaseOrderDetails(orderId: string): Promise<TestLabPurchaseOrderDetails | null> {
+  const supabase = await createClient();
+  const [orderResult, itemsResult] = await Promise.all([
+    supabase.from("test_lab_purchase_orders_overview").select("*").eq("id", orderId).maybeSingle(),
+    supabase.from("test_lab_purchase_order_items").select("id,purchase_order_id,product_id,quantity_ordered,quantity_received,unit_cost,test_lab_products!inner(name)").eq("purchase_order_id", orderId),
+  ]);
+  if (orderResult.error) throw orderResult.error;
+  if (itemsResult.error) throw itemsResult.error;
+  if (!orderResult.data) return null;
+  const items: TestLabPurchaseOrderItem[] = (itemsResult.data ?? []).map((row: Record<string, unknown>) => ({
+    id: String(row.id), purchase_order_id: String(row.purchase_order_id), product_id: String(row.product_id),
+    product_name: text((row.test_lab_products as Record<string, unknown>).name), quantity_ordered: number(row.quantity_ordered),
+    quantity_received: number(row.quantity_received), quantity_pending: number(row.quantity_ordered) - number(row.quantity_received), unit_cost: number(row.unit_cost),
+  }));
+  return { ...normalizeTestLabPurchaseOrder(orderResult.data as Record<string, unknown>), items };
 }
