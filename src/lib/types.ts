@@ -545,3 +545,139 @@ export type PartnerDetails = {
   settlements: PartnerSettlement[];
   unassignedSales: UnassignedPartnershipSale[];
 };
+
+export type FitnessDashboardSummary = {
+  month_sales: number;
+  month_revenue: number;
+  month_profit: number;
+  pending_delivery: number;
+  pending_payment: number;
+  receivable_total: number;
+  variants_with_stock: number;
+  physical_units: number;
+  reserved_units: number;
+  available_units: number;
+  incoming_units: number;
+  stock_cost_value: number;
+  stock_sale_value: number;
+  attention_variants: number;
+  open_orders: number;
+};
+
+export type FitnessStockRow = {
+  variant_id: string;
+  product_id: string;
+  product_name: string;
+  category: string;
+  image_url: string | null;
+  product_active: boolean;
+  size: string;
+  color: string;
+  sku: string | null;
+  cost_price: number;
+  sale_price: number;
+  variant_active: boolean;
+  physical_quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+  incoming_quantity: number;
+  stock_cost_value: number;
+  stock_sale_value: number;
+  stock_status: string;
+};
+
+export type FitnessProductRow = {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  image_url: string | null;
+  active: boolean;
+  variant_count: number;
+  physical_quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+  incoming_quantity: number;
+  min_sale_price: number;
+  max_sale_price: number;
+  updated_at: string;
+};
+
+export type FitnessSaleRow = {
+  id: string;
+  customer_name: string;
+  customer_phone: string | null;
+  city: string | null;
+  quoted_on: string;
+  general_status: string;
+  payment_status: string;
+  delivery_status: string;
+  payment_method: string | null;
+  payment_due_on: string | null;
+  paid_on: string | null;
+  delivered_on: string | null;
+  total_cost: number;
+  total_amount: number;
+  total_profit: number;
+  notes: string | null;
+  created_at: string;
+  product_summary: string;
+  total_items: number;
+  reservation_status: string;
+};
+
+export type FitnessSaleItem = {
+  id: string;
+  variant_id: string;
+  product_id: string;
+  product_name: string;
+  image_url: string | null;
+  size: string;
+  color: string;
+  sku: string | null;
+  quantity: number;
+  unit_cost: number;
+  unit_price: number;
+  reservation_status: string | null;
+  quantity_reserved: number;
+};
+
+export type FitnessSaleDetails = FitnessSaleRow & { items: FitnessSaleItem[] };
+
+export type FitnessPurchaseOrderSummary = {
+  id: string;
+  supplier_id: string;
+  supplier_name: string;
+  ordered_on: string;
+  status: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  item_count: number;
+  ordered_units: number;
+  received_units: number;
+  pending_units: number;
+  order_total: number;
+  product_summary: string;
+};
+
+export type FitnessPurchaseOrderItem = {
+  id: string;
+  purchase_order_id: string;
+  variant_id: string;
+  product_id: string;
+  product_name: string;
+  image_url: string | null;
+  size: string;
+  color: string;
+  sku: string | null;
+  quantity_ordered: number;
+  quantity_received: number;
+  quantity_pending: number;
+  unit_cost: number;
+  total_cost: number;
+  notes: string | null;
+  item_status: string;
+};
+
+export type FitnessPurchaseOrderDetails = FitnessPurchaseOrderSummary & { items: FitnessPurchaseOrderItem[] };
