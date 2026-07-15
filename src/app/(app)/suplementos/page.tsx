@@ -4,14 +4,13 @@ import {
   ArrowRight,
   BarChart3,
   Boxes,
-  CalendarClock,
   CircleDollarSign,
   ClipboardClock,
   HandCoins,
+  ImageIcon,
   PackageCheck,
   PackageOpen,
   ShoppingBag,
-  Truck,
   UserRoundSearch,
   WalletCards,
 } from "lucide-react";
@@ -21,6 +20,7 @@ import { PageHeader } from "@/components/page-header";
 import { getDashboard } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import type { DashboardPriorityItem } from "@/lib/types";
+import { ignoreDashboardPriority, removeDashboardPriority } from "./actions";
 
 function changeText(value: number | null) {
   if (value == null) return "Sem base no mês anterior";
@@ -33,18 +33,21 @@ function changeClass(value: number | null) {
   return value > 0 ? "positive" : "negative";
 }
 
-function priorityMeta(type: DashboardPriorityItem["item_type"]) {
-  if (type === "delivery") return { label: "Entrega", icon: Truck, tone: "orange" };
-  if (type === "payment") return { label: "Cobrança", icon: HandCoins, tone: "gold" };
-  if (type === "lead") return { label: "Lead", icon: UserRoundSearch, tone: "blue" };
-  if (type === "supplier") return { label: "Fornecedor", icon: PackageOpen, tone: "blue" };
-  return { label: "Estoque", icon: AlertTriangle, tone: "red" };
-}
+const priorityGroups: Array<{
+  type: DashboardPriorityItem["item_type"];
+  label: string;
+  description: string;
+  icon: typeof HandCoins;
+  tone: string;
+}> = [
+  { type: "payment", label: "Cobrança", description: "Pagamentos que precisam de acompanhamento.", icon: HandCoins, tone: "gold" },
+  { type: "stock", label: "Estoque", description: "Produtos zerados ou abaixo do nível mínimo.", icon: AlertTriangle, tone: "red" },
+  { type: "lead", label: "Lead", description: "Contatos comerciais que precisam ser retomados.", icon: UserRoundSearch, tone: "blue" },
+];
 
 export default async function SupplementsDashboardPage() {
   const data = await getDashboard();
   const profitPotential = data.stockSaleValue - data.stockCostValue;
-  const todayLabel = formatDateOnly(data.operational.today);
 
   return (
     <>
@@ -54,15 +57,6 @@ export default async function SupplementsDashboardPage() {
         title="Visão geral"
         description="Uma central diária para vender, cobrar, entregar e repor sem precisar abrir várias telas."
       />
-
-      <section className="dashboard-today-strip">
-        <div>
-          <CalendarClock size={18} />
-          <span>Resumo operacional de hoje</span>
-          <strong>{todayLabel}</strong>
-        </div>
-        <Link href="/painel-cs">Abrir análise comercial <ArrowRight size={15} /></Link>
-      </section>
 
       <section className="dashboard-month-grid">
         <article className="dashboard-metric-card">
@@ -91,10 +85,15 @@ export default async function SupplementsDashboardPage() {
         </article>
       </section>
 
-      <section className="dashboard-action-grid">
+      <section className="dashboard-action-grid dashboard-action-grid-five">
         <Link className="dashboard-action-card" href="/pedidos-pendentes">
           <span className="dashboard-action-icon orange"><ClipboardClock size={20} /></span>
           <div><span>Pedidos pendentes</span><strong>{data.pendingOrdersCount}</strong><small>{data.pendingDeliveryCount} entregar · {data.pendingPaymentCount} receber</small></div>
+          <ArrowRight size={17} />
+        </Link>
+        <Link className="dashboard-action-card dashboard-panel-cs-card" href="/painel-cs">
+          <span className="dashboard-action-icon gold"><BarChart3 size={20} /></span>
+          <div><span>Painel CS · total bruto</span><strong>{formatCurrency(data.totalRevenue)}</strong><small>Abrir análise comercial completa</small></div>
           <ArrowRight size={17} />
         </Link>
         <Link className="dashboard-action-card" href="/leads">
@@ -117,30 +116,55 @@ export default async function SupplementsDashboardPage() {
       <section className="dashboard-operational-grid">
         <article className="panel dashboard-priorities-panel">
           <div className="panel-head">
-            <div><h2>Prioridades</h2><p>Itens mais urgentes organizados automaticamente.</p></div>
+            <div><h2>Prioridades</h2><p>Cobranças, estoque e leads organizados por categoria.</p></div>
             <span className="dashboard-priority-count">{data.priorities.length}</span>
           </div>
           {data.priorities.length === 0 ? (
             <div className="empty compact"><PackageCheck size={25} /><strong>Nenhuma prioridade crítica</strong>As principais pendências operacionais estão em dia.</div>
           ) : (
-            <div className="dashboard-priority-list">
-              {data.priorities.map((item) => {
-                const meta = priorityMeta(item.item_type);
-                const Icon = meta.icon;
+            <div className="dashboard-priority-groups">
+              {priorityGroups.map((group) => {
+                const items = data.priorities.filter((item) => item.item_type === group.type);
+                if (items.length === 0) return null;
+                const Icon = group.icon;
                 return (
-                  <Link className="dashboard-priority-row" href={item.href} key={`${item.item_type}-${item.entity_id}`}>
-                    <span className={`dashboard-priority-icon ${meta.tone}`}><Icon size={17} /></span>
-                    <div className="dashboard-priority-copy">
-                      <div><span>{meta.label}</span><time>{formatDateOnly(item.reference_date)}</time></div>
-                      <strong>{item.title}</strong>
-                      <small>{item.subtitle}</small>
+                  <section className="dashboard-priority-group" key={group.type}>
+                    <div className="dashboard-priority-group-head">
+                      <span className={`dashboard-priority-icon ${group.tone}`}><Icon size={16} /></span>
+                      <div><strong>{group.label}</strong><small>{group.description}</small></div>
+                      <b>{items.length}</b>
                     </div>
-                    <div className="dashboard-priority-side">
-                      {item.amount != null && item.amount > 0 ? <strong>{formatCurrency(item.amount)}</strong> : null}
-                      {item.quantity > 0 ? <small>{item.quantity} un.</small> : null}
-                      <ArrowRight size={15} />
+                    <div className="dashboard-priority-list">
+                      {items.map((item) => (
+                        <div className="dashboard-priority-row" key={`${item.item_type}-${item.entity_id}`}>
+                          <Link className="dashboard-priority-main" href={item.href}>
+                            <div className="dashboard-priority-copy">
+                              <div><time>{formatDateOnly(item.reference_date)}</time></div>
+                              <strong>{item.title}</strong>
+                              <small>{item.subtitle}</small>
+                            </div>
+                            <div className="dashboard-priority-side">
+                              {item.amount != null && item.amount > 0 ? <strong>{formatCurrency(item.amount)}</strong> : null}
+                              {item.quantity > 0 ? <small>{item.quantity} un.</small> : null}
+                              <ArrowRight size={15} />
+                            </div>
+                          </Link>
+                          <div className="dashboard-priority-actions">
+                            <form action={ignoreDashboardPriority}>
+                              <input type="hidden" name="itemType" value={item.item_type} />
+                              <input type="hidden" name="entityId" value={item.entity_id} />
+                              <button className="priority-action-button ignore" type="submit" title="Ocultar por 5 dias">Ignorar</button>
+                            </form>
+                            <form action={removeDashboardPriority}>
+                              <input type="hidden" name="itemType" value={item.item_type} />
+                              <input type="hidden" name="entityId" value={item.entity_id} />
+                              <button className="priority-action-button remove" type="submit" title="Remover definitivamente das prioridades">Remover</button>
+                            </form>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </Link>
+                  </section>
                 );
               })}
             </div>
@@ -190,24 +214,31 @@ export default async function SupplementsDashboardPage() {
         {data.recentSales.length === 0 ? (
           <div className="empty"><strong>Nenhuma venda registrada</strong>As vendas aparecerão aqui em ordem cronológica.</div>
         ) : (
-          <div className="table-wrap">
-            <table className="dashboard-sales-table">
-              <thead><tr><th>Cliente</th><th>Produto</th><th>Data do orçamento</th><th>Pagamento</th><th>Entrega</th><th>Total</th></tr></thead>
-              <tbody>
-                {data.recentSales.map((sale) => (
-                  <tr key={sale.id}>
-                    <td>
-                      {sale.customer_id ? <Link className="cell-main dashboard-inline-link" href={`/clientes/${sale.customer_id}`}>{sale.customer_name}</Link> : <div className="cell-main">{sale.customer_name}</div>}
-                    </td>
-                    <td>{sale.product_summary ?? "—"}</td>
-                    <td>{formatDateOnly(sale.quoted_at)}</td>
-                    <td>{sale.paid_at ? <span className="date-status green">{formatDateOnly(sale.paid_at)}</span> : <Badge value={sale.payment_status} />}</td>
-                    <td>{sale.delivered_at ? <span className="date-status green">{formatDateOnly(sale.delivered_at)}</span> : <Badge value={sale.delivery_status} />}</td>
-                    <td className="amount"><Link className="dashboard-inline-link" href={`/vendas/${sale.id}`}>{formatCurrency(sale.total_amount)}</Link></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="dashboard-recent-sales-list">
+            {data.recentSales.map((sale) => (
+              <article className="dashboard-sale-row" key={sale.id}>
+                <div className="dashboard-sale-product-image">
+                  {sale.primary_image_url ? <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={sale.primary_image_url} alt={sale.product_summary ?? "Produto"} />
+                  </> : <ImageIcon size={19} />}
+                </div>
+                <div className="dashboard-sale-customer">
+                  {sale.customer_id ? (
+                    <Link className="cell-main dashboard-inline-link" href={`/clientes/${sale.customer_id}`}>
+                      {sale.customer_name}{sale.general_status === "finalized" ? <span className="sale-finalized-check" title="Venda finalizada">✔️</span> : null}
+                    </Link>
+                  ) : (
+                    <div className="cell-main">{sale.customer_name}{sale.general_status === "finalized" ? <span className="sale-finalized-check" title="Venda finalizada">✔️</span> : null}</div>
+                  )}
+                  <small>{formatDateOnly(sale.quoted_at)}</small>
+                </div>
+                <div className="dashboard-sale-product"><strong>{sale.product_summary ?? "Produto não informado"}</strong><small>{sale.total_items} item(ns)</small></div>
+                <div className="dashboard-sale-status"><span>Pagamento</span>{sale.paid_at ? <span className="date-status green">{formatDateOnly(sale.paid_at)}</span> : <Badge value={sale.payment_status} />}</div>
+                <div className="dashboard-sale-status"><span>Entrega</span>{sale.delivered_at ? <span className="date-status green">{formatDateOnly(sale.delivered_at)}</span> : <Badge value={sale.delivery_status} />}</div>
+                <Link className="dashboard-sale-total" href={`/vendas/${sale.id}`}>{formatCurrency(sale.total_amount)}<ArrowRight size={15} /></Link>
+              </article>
+            ))}
           </div>
         )}
       </article>

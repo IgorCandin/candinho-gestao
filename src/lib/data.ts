@@ -54,15 +54,6 @@ import type {
   PartnerSale,
   PartnerSettlement,
   UnassignedPartnershipSale,
-  FitnessDashboardSummary,
-  FitnessStockRow,
-  FitnessProductRow,
-  FitnessSaleRow,
-  FitnessSaleDetails,
-  FitnessSaleItem,
-  FitnessPurchaseOrderSummary,
-  FitnessPurchaseOrderDetails,
-  FitnessPurchaseOrderItem,
 } from "./types";
 
 const number = (value: unknown) => Number(value ?? 0);
@@ -950,56 +941,55 @@ export async function getDashboardOperationalSummary(): Promise<DashboardOperati
   };
 }
 
-export async function getDashboardPriorityItems(limit = 14): Promise<DashboardPriorityItem[]> {
+export async function getDashboardPriorityItems(limit = 15): Promise<DashboardPriorityItem[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("dashboard_priority_items")
-    .select("*")
-    .order("priority_rank", { ascending: true })
-    .order("reference_date", { ascending: true })
-    .limit(120);
+  const [{ data, error }, { data: preferences, error: preferencesError }] = await Promise.all([
+    supabase
+      .from("dashboard_priority_items")
+      .select("*")
+      .in("item_type", ["payment", "stock", "lead"])
+      .order("priority_rank", { ascending: true })
+      .order("reference_date", { ascending: true })
+      .limit(120),
+    supabase
+      .from("dashboard_priority_preferences")
+      .select("item_type,entity_id,hidden_until,permanently_hidden"),
+  ]);
   if (error) throw error;
+  if (preferencesError) throw preferencesError;
 
-  const rows = (data ?? []).map((row) => ({
-    item_type: row.item_type as DashboardPriorityItem["item_type"],
-    priority_rank: number(row.priority_rank),
-    entity_id: String(row.entity_id),
-    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
-    product_id: typeof row.product_id === "string" ? row.product_id : null,
-    title: text(row.title, "Item sem título"),
-    subtitle: text(row.subtitle, "Sem detalhes"),
-    reference_date: String(row.reference_date ?? ""),
-    amount: row.amount == null ? null : number(row.amount),
-    quantity: number(row.quantity),
-    href: text(row.href, "/suplementos"),
-  }));
+  const now = Date.now();
+  const hidden = new Set(
+    (preferences ?? [])
+      .filter((row) => Boolean(row.permanently_hidden) || (typeof row.hidden_until === "string" && new Date(row.hidden_until).getTime() > now))
+      .map((row) => `${String(row.item_type)}:${String(row.entity_id)}`),
+  );
 
-  const typeOrder: DashboardPriorityItem["item_type"][] = ["delivery", "payment", "lead", "supplier", "stock"];
-  const selected: DashboardPriorityItem[] = [];
-  const used = new Set<string>();
-  const perType = Math.max(2, Math.floor(limit / typeOrder.length));
+  const rows = (data ?? [])
+    .map((row) => ({
+      item_type: row.item_type as DashboardPriorityItem["item_type"],
+      priority_rank: number(row.priority_rank),
+      entity_id: String(row.entity_id),
+      customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+      product_id: typeof row.product_id === "string" ? row.product_id : null,
+      title: text(row.title, "Item sem título"),
+      subtitle: text(row.subtitle, "Sem detalhes"),
+      reference_date: String(row.reference_date ?? ""),
+      amount: row.amount == null ? null : number(row.amount),
+      quantity: number(row.quantity),
+      href: text(row.href, "/suplementos"),
+    }))
+    .filter((item) => !hidden.has(`${item.item_type}:${item.entity_id}`));
 
-  for (const type of typeOrder) {
-    for (const item of rows.filter((row) => row.item_type === type).slice(0, perType)) {
-      selected.push(item);
-      used.add(`${item.item_type}:${item.entity_id}`);
-    }
-  }
-
-  const remainder = rows
-    .filter((item) => !used.has(`${item.item_type}:${item.entity_id}`))
-    .sort((a, b) => {
-      const typeDifference = typeOrder.indexOf(a.item_type) - typeOrder.indexOf(b.item_type);
-      if (typeDifference !== 0) return typeDifference;
-      if (a.priority_rank !== b.priority_rank) return a.priority_rank - b.priority_rank;
-      return a.reference_date.localeCompare(b.reference_date);
-    });
-
-  for (const item of remainder) {
-    if (selected.length >= limit) break;
-    selected.push(item);
-  }
+  const typeOrder: DashboardPriorityItem["item_type"][] = ["payment", "stock", "lead"];
+  const perType = Math.max(1, Math.ceil(limit / typeOrder.length));
+  const selected = typeOrder.flatMap((type) =>
+    rows
+      .filter((row) => row.item_type === type)
+      .sort((a, b) => a.priority_rank - b.priority_rank || a.reference_date.localeCompare(b.reference_date))
+      .slice(0, perType),
+  );
 
   return selected.slice(0, limit);
 }
@@ -1067,6 +1057,7 @@ export async function getDashboard(): Promise<DashboardData> {
     totalUnits: operational.available_units,
     stockCostValue: summary.stock_cost_value,
     stockSaleValue: summary.stock_sale_value,
+    totalRevenue: summary.total_revenue,
     receivable: summary.receivable_total,
     pendingOrdersCount: pendingOrders.length,
     pendingDeliveryCount: pendingOrders.filter((sale) => sale.delivery_status === "to_deliver").length,
@@ -1084,7 +1075,15 @@ export async function getDashboard(): Promise<DashboardData> {
     operational,
     priorities,
     recentSales: recentSales.filter(isCommercialSale).slice(0, 8),
-    lowStock: lowStock.slice(0, 8),
+    lowStock: lowStock
+      .filter((row) => {
+        const value = `${row.product_name} ${row.category}`
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLocaleLowerCase("pt-BR");
+        return !value.includes("combo");
+      })
+      .slice(0, 8),
   };
 }
 
@@ -1401,174 +1400,4 @@ export async function getUserPermissions(): Promise<UserPermissionRow[]> {
     created_at: String(row.created_at ?? ""),
     updated_at: String(row.updated_at ?? ""),
   }));
-}
-
-function normalizeFitnessStock(row: Record<string, unknown>): FitnessStockRow {
-  return {
-    variant_id: String(row.variant_id),
-    product_id: String(row.product_id),
-    product_name: text(row.product_name, "Produto sem nome"),
-    category: text(row.category, "Vestuário"),
-    image_url: typeof row.image_url === "string" ? row.image_url : null,
-    product_active: Boolean(row.product_active),
-    size: text(row.size, "Único"),
-    color: text(row.color, "Sem cor"),
-    sku: typeof row.sku === "string" ? row.sku : null,
-    cost_price: number(row.cost_price),
-    sale_price: number(row.sale_price),
-    variant_active: Boolean(row.variant_active),
-    physical_quantity: number(row.physical_quantity),
-    reserved_quantity: number(row.reserved_quantity),
-    available_quantity: number(row.available_quantity),
-    incoming_quantity: number(row.incoming_quantity),
-    stock_cost_value: number(row.stock_cost_value),
-    stock_sale_value: number(row.stock_sale_value),
-    stock_status: text(row.stock_status, "out_of_stock"),
-  };
-}
-
-function normalizeFitnessProduct(row: Record<string, unknown>): FitnessProductRow {
-  return {
-    id: String(row.id),
-    name: text(row.name, "Produto sem nome"),
-    category: text(row.category, "Vestuário"),
-    description: typeof row.description === "string" ? row.description : null,
-    image_url: typeof row.image_url === "string" ? row.image_url : null,
-    active: Boolean(row.active),
-    variant_count: number(row.variant_count),
-    physical_quantity: number(row.physical_quantity),
-    reserved_quantity: number(row.reserved_quantity),
-    available_quantity: number(row.available_quantity),
-    incoming_quantity: number(row.incoming_quantity),
-    min_sale_price: number(row.min_sale_price),
-    max_sale_price: number(row.max_sale_price),
-    updated_at: String(row.updated_at ?? ""),
-  };
-}
-
-function normalizeFitnessSale(row: Record<string, unknown>): FitnessSaleRow {
-  return {
-    id: String(row.id),
-    customer_name: text(row.customer_name, "Cliente não informado"),
-    customer_phone: typeof row.customer_phone === "string" ? row.customer_phone : null,
-    city: typeof row.city === "string" ? row.city : null,
-    quoted_on: String(row.quoted_on ?? ""),
-    general_status: text(row.general_status, "active"),
-    payment_status: text(row.payment_status, "receivable"),
-    delivery_status: text(row.delivery_status, "to_deliver"),
-    payment_method: typeof row.payment_method === "string" ? row.payment_method : null,
-    payment_due_on: typeof row.payment_due_on === "string" ? row.payment_due_on : null,
-    paid_on: typeof row.paid_on === "string" ? row.paid_on : null,
-    delivered_on: typeof row.delivered_on === "string" ? row.delivered_on : null,
-    total_cost: number(row.total_cost),
-    total_amount: number(row.total_amount),
-    total_profit: number(row.total_profit),
-    notes: typeof row.notes === "string" ? row.notes : null,
-    created_at: String(row.created_at ?? ""),
-    product_summary: text(row.product_summary),
-    total_items: number(row.total_items),
-    reservation_status: text(row.reservation_status, "none"),
-  };
-}
-
-function normalizeFitnessPurchaseOrder(row: Record<string, unknown>): FitnessPurchaseOrderSummary {
-  return {
-    id: String(row.id),
-    supplier_id: String(row.supplier_id),
-    supplier_name: text(row.supplier_name, "Fornecedor"),
-    ordered_on: String(row.ordered_on ?? ""),
-    status: text(row.status, "pending"),
-    notes: typeof row.notes === "string" ? row.notes : null,
-    created_at: String(row.created_at ?? ""),
-    updated_at: String(row.updated_at ?? ""),
-    item_count: number(row.item_count),
-    ordered_units: number(row.ordered_units),
-    received_units: number(row.received_units),
-    pending_units: number(row.pending_units),
-    order_total: number(row.order_total),
-    product_summary: text(row.product_summary),
-  };
-}
-
-export async function getFitnessDashboard(): Promise<FitnessDashboardSummary> {
-  if (!isSupabaseConfigured) return { month_sales:0,month_revenue:0,month_profit:0,pending_delivery:0,pending_payment:0,receivable_total:0,variants_with_stock:0,physical_units:0,reserved_units:0,available_units:0,incoming_units:0,stock_cost_value:0,stock_sale_value:0,attention_variants:0,open_orders:0 };
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_dashboard_summary").select("*").single();
-  if (error) throw error;
-  return {
-    month_sales:number(data.month_sales),month_revenue:number(data.month_revenue),month_profit:number(data.month_profit),pending_delivery:number(data.pending_delivery),pending_payment:number(data.pending_payment),receivable_total:number(data.receivable_total),variants_with_stock:number(data.variants_with_stock),physical_units:number(data.physical_units),reserved_units:number(data.reserved_units),available_units:number(data.available_units),incoming_units:number(data.incoming_units),stock_cost_value:number(data.stock_cost_value),stock_sale_value:number(data.stock_sale_value),attention_variants:number(data.attention_variants),open_orders:number(data.open_orders),
-  };
-}
-
-export async function getFitnessStock(): Promise<FitnessStockRow[]> {
-  if (!isSupabaseConfigured) return [];
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_stock_overview").select("*").order("product_name").order("size").order("color");
-  if (error) throw error;
-  return (data ?? []).map((row) => normalizeFitnessStock(row as Record<string, unknown>));
-}
-
-export async function getFitnessProducts(): Promise<FitnessProductRow[]> {
-  if (!isSupabaseConfigured) return [];
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_product_catalog").select("*").order("active", { ascending:false }).order("name");
-  if (error) throw error;
-  return (data ?? []).map((row) => normalizeFitnessProduct(row as Record<string, unknown>));
-}
-
-export async function getFitnessProduct(productId: string): Promise<{ product: FitnessProductRow; variants: FitnessStockRow[] } | null> {
-  const [products, stock] = await Promise.all([getFitnessProducts(), getFitnessStock()]);
-  const product = products.find((row) => row.id === productId);
-  if (!product) return null;
-  return { product, variants: stock.filter((row) => row.product_id === productId) };
-}
-
-export async function getFitnessSales(): Promise<FitnessSaleRow[]> {
-  if (!isSupabaseConfigured) return [];
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_sales_overview").select("*").order("quoted_on", { ascending:false }).order("created_at", { ascending:false });
-  if (error) throw error;
-  return (data ?? []).map((row) => normalizeFitnessSale(row as Record<string, unknown>));
-}
-
-export async function getFitnessSaleDetails(saleId: string): Promise<FitnessSaleDetails | null> {
-  if (!isSupabaseConfigured) return null;
-  const supabase = await createClient();
-  const [saleResult, itemsResult] = await Promise.all([
-    supabase.from("fitness_sales_overview").select("*").eq("id",saleId).maybeSingle(),
-    supabase.from("fitness_sale_items").select("id,variant_id,quantity,unit_cost,unit_price,fitness_variants!inner(id,product_id,size,color,sku,fitness_products!inner(id,name,image_url)),fitness_stock_reservations(status,quantity_reserved)").eq("sale_id",saleId),
-  ]);
-  if (saleResult.error) throw saleResult.error;
-  if (itemsResult.error) throw itemsResult.error;
-  if (!saleResult.data) return null;
-  const items: FitnessSaleItem[] = (itemsResult.data ?? []).map((row: Record<string, unknown>) => {
-    const variant = row.fitness_variants as Record<string, unknown>;
-    const product = variant.fitness_products as Record<string, unknown>;
-    const reservations = Array.isArray(row.fitness_stock_reservations) ? row.fitness_stock_reservations as Record<string, unknown>[] : [];
-    const reservation = reservations[0];
-    return { id:String(row.id),variant_id:String(row.variant_id),product_id:String(variant.product_id),product_name:text(product.name),image_url:typeof product.image_url==="string"?product.image_url:null,size:text(variant.size),color:text(variant.color),sku:typeof variant.sku==="string"?variant.sku:null,quantity:number(row.quantity),unit_cost:number(row.unit_cost),unit_price:number(row.unit_price),reservation_status:reservation?text(reservation.status):null,quantity_reserved:reservation?number(reservation.quantity_reserved):0 };
-  });
-  return { ...normalizeFitnessSale(saleResult.data as Record<string, unknown>), items };
-}
-
-export async function getFitnessPurchaseOrders(): Promise<FitnessPurchaseOrderSummary[]> {
-  if (!isSupabaseConfigured) return [];
-  const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_purchase_order_summary").select("*").order("ordered_on", { ascending:false });
-  if (error) throw error;
-  return (data ?? []).map((row) => normalizeFitnessPurchaseOrder(row as Record<string, unknown>));
-}
-
-export async function getFitnessPurchaseOrderDetails(orderId: string): Promise<FitnessPurchaseOrderDetails | null> {
-  if (!isSupabaseConfigured) return null;
-  const supabase = await createClient();
-  const [summaryResult, itemsResult] = await Promise.all([
-    supabase.from("fitness_purchase_order_summary").select("*").eq("id",orderId).maybeSingle(),
-    supabase.from("fitness_purchase_order_items_overview").select("*").eq("purchase_order_id",orderId).order("product_name"),
-  ]);
-  if (summaryResult.error) throw summaryResult.error;
-  if (itemsResult.error) throw itemsResult.error;
-  if (!summaryResult.data) return null;
-  const items: FitnessPurchaseOrderItem[] = (itemsResult.data ?? []).map((row) => ({ id:String(row.id),purchase_order_id:String(row.purchase_order_id),variant_id:String(row.variant_id),product_id:String(row.product_id),product_name:text(row.product_name),image_url:typeof row.image_url==="string"?row.image_url:null,size:text(row.size),color:text(row.color),sku:typeof row.sku==="string"?row.sku:null,quantity_ordered:number(row.quantity_ordered),quantity_received:number(row.quantity_received),quantity_pending:number(row.quantity_pending),unit_cost:number(row.unit_cost),total_cost:number(row.total_cost),notes:typeof row.notes==="string"?row.notes:null,item_status:text(row.item_status) }));
-  return { ...normalizeFitnessPurchaseOrder(summaryResult.data as Record<string, unknown>), items };
 }

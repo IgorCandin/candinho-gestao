@@ -897,3 +897,97 @@ tbody tr:hover { background: rgba(255,255,255,.018); }
 @media(max-width:1050px){.user-permission-list{grid-template-columns:1fr}}
 @media(max-width:620px){.settings-stats-grid{grid-template-columns:1fr 1fr}.user-operation-grid{grid-template-columns:1fr}.user-permission-meta{align-items:flex-start;flex-direction:column}.user-permission-footer{align-items:stretch;flex-direction:column}.user-permission-footer .button{width:100%}.user-permission-message{margin-right:0}.user-permission-head{align-items:flex-start}.user-access-status{flex:0 0 auto}}
 @media(max-width:430px){.settings-stats-grid{grid-template-columns:1fr}}
+
+/* Pente-fino Candinho Suplementos — dashboard e navegação compacta */
+.app-shell{grid-template-columns:214px minmax(0,1fr)}
+.sidebar{padding:18px 14px}
+.brand-logo-link{padding-bottom:20px}
+.nav{gap:4px}
+.nav-link{min-height:40px;padding:0 11px;font-size:13px}
+.sidebar-footer{padding-top:14px}
+.topbar{min-height:58px;padding:8px 24px;justify-content:flex-end}
+.content{max-width:1560px;padding:24px 24px 90px}
+.page-header{margin-bottom:20px}
+h1{font-size:clamp(27px,3vw,36px)}
+.page-header p{margin-top:7px;font-size:13px}
+.dashboard-month-grid{gap:12px;margin-bottom:12px}
+.dashboard-metric-card{min-height:116px;padding:15px 16px}
+.dashboard-metric-card>strong{margin-top:13px;font-size:23px}
+.dashboard-action-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px;margin-bottom:14px}
+.dashboard-action-card{min-height:86px;padding:12px}
+.dashboard-action-icon.gold{color:#f1c464;background:var(--gold-soft)}
+.dashboard-panel-cs-card{border-color:rgba(217,164,65,.32);background:linear-gradient(145deg,rgba(217,164,65,.09),rgba(255,255,255,.018))}
+.dashboard-panel-cs-card>div>strong{font-size:18px}
+.dashboard-operational-grid{gap:14px}
+.dashboard-side-stack{gap:14px}
+.dashboard-priority-groups{display:grid;gap:0}
+.dashboard-priority-group{border-top:1px solid var(--line)}
+.dashboard-priority-group:first-child{border-top:0}
+.dashboard-priority-group-head{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px 14px;background:rgba(255,255,255,.012)}
+.dashboard-priority-group-head>div strong{display:block;font-size:12px}
+.dashboard-priority-group-head>div small{display:block;margin-top:2px;color:var(--muted);font-size:9px}
+.dashboard-priority-group-head>b{min-width:25px;height:25px;display:grid;place-items:center;border-radius:8px;background:rgba(255,255,255,.04);font-size:10px}
+.dashboard-priority-group .dashboard-priority-list{border-top:1px solid var(--line)}
+.dashboard-priority-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:10px 13px}
+.dashboard-priority-main{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;min-width:0}
+.dashboard-priority-main:hover .dashboard-priority-copy>strong{color:var(--gold)}
+.dashboard-priority-copy>div{display:block}
+.dashboard-priority-actions{display:flex;align-items:center;gap:6px}
+.dashboard-priority-actions form{margin:0}
+.priority-action-button{min-height:30px;padding:0 9px;border-radius:9px;font-size:9px;font-weight:850;border:1px solid transparent;background:transparent;color:var(--text)}
+.priority-action-button.ignore{color:#ffc177;border-color:rgba(240,168,79,.35);background:rgba(240,168,79,.08)}
+.priority-action-button.ignore:hover{background:rgba(240,168,79,.16)}
+.priority-action-button.remove{color:#ff9898;border-color:rgba(239,100,100,.35);background:rgba(239,100,100,.08)}
+.priority-action-button.remove:hover{background:rgba(239,100,100,.16)}
+.dashboard-recent-sales-list{display:grid}
+.dashboard-sale-row{display:grid;grid-template-columns:auto minmax(150px,.8fr) minmax(190px,1.2fr) minmax(105px,.55fr) minmax(105px,.55fr) auto;align-items:center;gap:12px;padding:11px 15px;border-top:1px solid var(--line)}
+.dashboard-sale-row:first-child{border-top:0}
+.dashboard-sale-row:hover{background:rgba(255,255,255,.018)}
+.dashboard-sale-product-image{width:42px;height:42px;display:grid;place-items:center;overflow:hidden;flex:0 0 auto;border-radius:11px;background:#f1f1f1;color:#727b89}
+.dashboard-sale-product-image img{width:100%;height:100%;object-fit:contain}
+.dashboard-sale-customer,.dashboard-sale-product,.dashboard-sale-status{min-width:0}
+.dashboard-sale-customer small,.dashboard-sale-product small,.dashboard-sale-status>span:first-child{display:block;margin-top:3px;color:var(--muted);font-size:9px}
+.dashboard-sale-customer .cell-main,.dashboard-sale-product strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.sale-finalized-check{margin-left:6px;font-size:11px}
+.dashboard-sale-status>span:first-child{margin:0 0 5px}
+.dashboard-sale-total{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:11px;font-weight:850}
+.dashboard-sale-total:hover{color:var(--gold)}
+
+@media(max-width:1250px) and (min-width:821px){
+  .app-shell{grid-template-columns:76px minmax(0,1fr)}
+  .sidebar{padding:16px 9px}
+  .brand-logo-link{padding:4px 3px 17px}
+  .sidebar-company-logo{width:58px}
+  .nav-link{justify-content:center;padding:0;gap:0}
+  .nav-label,.sidebar-user,.sidebar-slogan{display:none}
+  .sidebar-footer{padding:12px 0 0}
+  .content{padding:20px 18px 84px}
+  .topbar{padding:7px 18px}
+  .dashboard-operational-grid{grid-template-columns:1fr}
+}
+
+@media(max-width:1050px){
+  .dashboard-month-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dashboard-sale-row{grid-template-columns:auto minmax(150px,1fr) minmax(170px,1.2fr) auto}
+  .dashboard-sale-status{display:none}
+}
+
+@media(max-width:820px){
+  .content{padding:20px 14px 104px}
+  .topbar{padding:8px 14px}
+  .dashboard-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .dashboard-priority-row{grid-template-columns:1fr}
+  .dashboard-priority-actions{justify-content:flex-end}
+}
+
+@media(max-width:620px){
+  .dashboard-month-grid,.dashboard-action-grid{grid-template-columns:1fr}
+  .dashboard-sale-row{grid-template-columns:auto minmax(0,1fr) auto;gap:10px}
+  .dashboard-sale-product{grid-column:2}
+  .dashboard-sale-total{grid-column:3;grid-row:1/3}
+  .dashboard-priority-main{grid-template-columns:1fr}
+  .dashboard-priority-side{display:flex;justify-items:start;align-items:center;gap:8px}
+  .dashboard-priority-actions{justify-content:stretch}
+  .dashboard-priority-actions form{flex:1}
+  .priority-action-button{width:100%}
+}
