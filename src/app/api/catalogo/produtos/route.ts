@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+﻿import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest } from "next/server";
 import { PDFDocument, StandardFonts, rgb, type PDFImage, type PDFPage, type PDFFont } from "pdf-lib";
@@ -13,7 +13,7 @@ type CatalogProduct = {
   id: string;
   name: string;
   category: string;
-  brand: string | null;
+  quick_message: string | null;
   image_url: string | null;
   sale_price: number | string;
   installment_price: number | string;
@@ -90,7 +90,7 @@ function drawHeader(page: PDFPage, logo: PDFImage, bold: PDFFont, regular: PDFFo
   page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: BG });
   const logoScale = Math.min(210 / logo.width, 64 / logo.height);
   page.drawImage(logo, { x: 34, y: PAGE_H - 83, width: logo.width * logoScale, height: logo.height * logoScale });
-  page.drawText("CATÁLOGO DE PRODUTOS", { x: 330, y: PAGE_H - 49, size: 14, font: bold, color: TEXT });
+  page.drawText("CATÃLOGO DE PRODUTOS", { x: 330, y: PAGE_H - 49, size: 14, font: bold, color: TEXT });
   page.drawText(`Atualizado em ${datePtBr()}`, { x: 330, y: PAGE_H - 67, size: 8.5, font: regular, color: MUTED });
   if (includeIncoming) page.drawText("Inclui produtos a caminho", { x: 330, y: PAGE_H - 80, size: 8, font: regular, color: GOLD });
   page.drawLine({ start: { x: 34, y: PAGE_H - 98 }, end: { x: PAGE_W - 34, y: PAGE_H - 98 }, thickness: 1, color: LINE });
@@ -135,10 +135,10 @@ function drawProductCard(
   const textWidth = width - 146;
   const nameLines = wrapText(product.name, bold, 10.5, textWidth, 3);
   nameLines.forEach((line, index) => page.drawText(line, { x: textX, y: y + 163 - index * 14, size: 10.5, font: bold, color: TEXT }));
-  const meta = [product.category, product.brand].filter(Boolean).join(" - ");
+  const meta = [product.category, product.quick_message].filter(Boolean).join(" - ");
   wrapText(meta || "Produto", regular, 7.5, textWidth, 2).forEach((line, index) => page.drawText(line, { x: textX, y: y + 116 - index * 10, size: 7.5, font: regular, color: MUTED }));
 
-  page.drawText("À vista", { x: textX, y: y + 79, size: 7.5, font: regular, color: MUTED });
+  page.drawText("Ã€ vista", { x: textX, y: y + 79, size: 7.5, font: regular, color: MUTED });
   page.drawText(money(product.sale_price), { x: textX, y: y + 62, size: 13.5, font: bold, color: GOLD });
   if (num(product.installment_price) > 0 && num(product.installment_price) !== num(product.sale_price)) {
     page.drawText(`Prazo: ${money(product.installment_price)}`, { x: textX, y: y + 46, size: 7.5, font: regular, color: TEXT });
@@ -146,10 +146,10 @@ function drawProductCard(
 
   const available = num(product.available_quantity);
   const incoming = num(product.incoming_quantity);
-  let stockLabel = `Disponível: ${available}`;
+  let stockLabel = `DisponÃ­vel: ${available}`;
   let stockColor = GREEN;
   if (available === 1) {
-    stockLabel = "ÚLTIMA UNIDADE";
+    stockLabel = "ÃšLTIMA UNIDADE";
     stockColor = GOLD;
   } else if (available <= 0 && incoming > 0) {
     stockLabel = `A caminho: ${incoming}`;
@@ -161,14 +161,14 @@ function drawProductCard(
 export async function GET(request: NextRequest) {
   const access = await getCurrentUserAccess();
   if (!access.active || !access.canAccessSupplements) {
-    return new Response("Acesso não autorizado", { status: 403 });
+    return new Response("Acesso nÃ£o autorizado", { status: 403 });
   }
 
   const includeIncoming = request.nextUrl.searchParams.get("includeIncoming") === "1";
   const supabase = await createClient();
   let query = supabase
     .from("product_catalog_commercial_sort")
-    .select("id,name,category,brand,image_url,sale_price,installment_price,available_quantity,incoming_quantity")
+    .select("id,name,category,image_url,sale_price,installment_price,available_quantity,incoming_quantity")
     .eq("active", true)
     .order("flagship_rank", { ascending: true })
     .order("availability_rank", { ascending: true })
@@ -180,8 +180,29 @@ export async function GET(request: NextRequest) {
   else query = query.gt("available_quantity", 0);
 
   const { data, error } = await query;
-  if (error) return new Response(`Não foi possível gerar o catálogo: ${error.message}`, { status: 500 });
-  const products = (data ?? []) as CatalogProduct[];
+  if (error) return new Response(`NÃ£o foi possÃ­vel gerar o catÃ¡logo: ${error.message}`, { status: 500 });
+  const baseProducts = (data ?? []) as Array<Omit<CatalogProduct, "quick_message">>;
+  const productIds = baseProducts.map((product) => product.id);
+  let quickMessages = new Map<string, string | null>();
+
+  if (productIds.length > 0) {
+    const { data: detailRows } = await supabase
+      .from("product_details")
+      .select("id,quick_message")
+      .in("id", productIds);
+
+    quickMessages = new Map(
+      (detailRows ?? []).map((row: { id: string; quick_message: string | null }) => [
+        String(row.id),
+        row.quick_message,
+      ]),
+    );
+  }
+
+  const products: CatalogProduct[] = baseProducts.map((product) => ({
+    ...product,
+    quick_message: quickMessages.get(product.id) ?? null,
+  }));
 
   const pdf = await PDFDocument.create();
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
@@ -209,7 +230,7 @@ export async function GET(request: NextRequest) {
     drawHeader(page, logo, bold, regular, includeIncoming);
     const chunk = products.slice(offset, offset + cardsPerPage);
     if (chunk.length === 0) {
-      page.drawText("Nenhum produto disponível no momento.", { x: 160, y: 410, size: 14, font: bold, color: TEXT });
+      page.drawText("Nenhum produto disponÃ­vel no momento.", { x: 160, y: 410, size: 14, font: bold, color: TEXT });
     } else {
       const images = await Promise.all(chunk.map(async (product) => {
         if (!product.image_url) return null;
@@ -236,3 +257,7 @@ export async function GET(request: NextRequest) {
     },
   });
 }
+
+
+
+

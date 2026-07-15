@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -16,7 +16,7 @@ export function OperationSwitcher({
 
   useEffect(() => {
     if (canAccessSupplements) router.prefetch("/suplementos");
-    if (canAccessFitness) router.prefetch("/fitness");
+    // Fitness estÃ¡ pausada temporariamente; nÃ£o fazemos prefetch da operaÃ§Ã£o.
   }, [canAccessFitness, canAccessSupplements, router]);
 
   return (
@@ -27,14 +27,17 @@ export function OperationSwitcher({
         </Link>
       )}
       {canAccessFitness && (
-        <Link className="operation-button fitness" href="/fitness" prefetch aria-label="Acessar Candinho Fitness">
+        <div className="operation-button fitness coming-soon" aria-label="Candinho Fitness â€” em breve">
           <Image src="/operation-fitness.png" alt="Fitness" width={709} height={236} />
-        </Link>
+          <span className="operation-coming-soon">Em breve</span>
+        </div>
       )}
-      <div className="operation-button bank coming-soon" aria-label="Candinho Bank — em breve">
+      <div className="operation-button bank coming-soon" aria-label="Candinho Bank â€” em breve">
         <Image src="/operation-bank.png" alt="Bank" width={709} height={236} />
         <span className="operation-coming-soon">Em breve</span>
       </div>
     </div>
   );
 }
+
+

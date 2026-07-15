@@ -801,6 +801,7 @@ export type FitnessInventoryMovementRow = {
 // Mantidas permissivas para liberar a compilaÃ§Ã£o enquanto o laboratÃ³rio isolado
 // Ã© estabilizado. Depois podem ser substituÃ­das por interfaces especÃ­ficas.
 // -----------------------------------------------------------------------------
+/* eslint-disable @typescript-eslint/no-explicit-any -- Tipagens temporÃ¡rias do Test Lab atÃ© definirmos interfaces finais. */
 export type TestLabOperation = any;
 export type TestLabDashboardSummary = any;
 export type TestLabStockRow = any;
@@ -812,3 +813,5 @@ export type TestLabSaleItem = any;
 export type TestLabPurchaseOrderRow = any;
 export type TestLabPurchaseOrderDetails = any;
 export type TestLabPurchaseOrderItem = any;
+/* eslint-enable @typescript-eslint/no-explicit-any */
+

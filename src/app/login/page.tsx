@@ -1,4 +1,4 @@
-import Image from "next/image";
+﻿import Image from "next/image";
 import { LoginForm } from "./login-form";
 
 export default function LoginPage() {
@@ -16,9 +16,9 @@ export default function LoginPage() {
           />
 
           <div className="login-intro">
-            <h1>A operação da Candinho em um só lugar.</h1>
+            <h1>A operaÃ§Ã£o da Candinho em um sÃ³ lugar.</h1>
             <p>
-              Estoque, vendas, clientes, catálogo e histórico com regras seguras e
+              Estoque, vendas, clientes, catÃ¡logo e histÃ³rico com regras seguras e
               uma interface otimizada.
             </p>
           </div>
@@ -28,7 +28,7 @@ export default function LoginPage() {
           <h2>Entrar</h2>
           <LoginForm />
 
-          <div className="login-operations login-operations-three" aria-label="Operações da Candinho Company">
+          <div className="login-operations login-operations-three" aria-label="OperaÃ§Ãµes da Candinho Company">
             <div className="login-operation-logo">
               <Image src="/candinho-suplementos-logo.webp" alt="Candinho Suplementos" width={900} height={326} />
             </div>
@@ -38,7 +38,7 @@ export default function LoginPage() {
             </div>
             <span className="login-operation-divider" aria-hidden="true" />
             <div className="login-operation-logo login-bank-logo">
-              <Image src="/candinho-bank-logo.png" alt="Candinho Bank" width={720} height={720} />
+              <Image src="/operation-bank.png" alt="Candinho Bank" width={709} height={236} />
             </div>
           </div>
 
@@ -48,3 +48,4 @@ export default function LoginPage() {
     </main>
   );
 }
+
