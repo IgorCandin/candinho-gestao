@@ -599,6 +599,9 @@ export type FitnessDashboardSummary = {
   stock_sale_value: number;
   attention_variants: number;
   open_orders: number;
+  active_customers: number;
+  low_stock_variants: number;
+  out_of_stock_variants: number;
 };
 
 export type FitnessStockRow = {
@@ -621,6 +624,13 @@ export type FitnessStockRow = {
   stock_cost_value: number;
   stock_sale_value: number;
   stock_status: string;
+  minimum_stock: number;
+  reorder_target: number;
+  default_supplier_id: string | null;
+  default_supplier_name: string | null;
+  quantity_below_minimum: number;
+  suggested_reorder_quantity: number;
+  operational_status: string;
 };
 
 export type FitnessProductRow = {
@@ -637,11 +647,49 @@ export type FitnessProductRow = {
   incoming_quantity: number;
   min_sale_price: number;
   max_sale_price: number;
+  attention_variants: number;
   updated_at: string;
+};
+
+export type FitnessCustomerRow = {
+  id: string;
+  name: string;
+  phone: string | null;
+  instagram: string | null;
+  city: string | null;
+  source: string | null;
+  notes: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  total_purchases: number;
+  total_spent: number;
+  last_purchase_on: string | null;
+  days_without_purchase: number | null;
+  classification: string;
+};
+
+export type FitnessSupplierRow = {
+  id: string;
+  name: string;
+  contact_name: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  image_url: string | null;
+  notes: string | null;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+  order_count: number;
+  open_orders: number;
+  last_order_on: string | null;
+  incoming_units: number;
 };
 
 export type FitnessSaleRow = {
   id: string;
+  customer_id: string | null;
   customer_name: string;
   customer_phone: string | null;
   city: string | null;
@@ -657,6 +705,8 @@ export type FitnessSaleRow = {
   total_amount: number;
   total_profit: number;
   notes: string | null;
+  responsible: string | null;
+  status_label: string;
   created_at: string;
   product_summary: string;
   total_items: number;
@@ -695,6 +745,14 @@ export type FitnessPurchaseOrderSummary = {
   received_units: number;
   pending_units: number;
   order_total: number;
+  freight: number;
+  grand_total: number;
+  expected_on: string | null;
+  received_on: string | null;
+  responsible: string | null;
+  supplier_contact: string | null;
+  supplier_phone: string | null;
+  supplier_email: string | null;
   product_summary: string;
 };
 
@@ -718,3 +776,22 @@ export type FitnessPurchaseOrderItem = {
 };
 
 export type FitnessPurchaseOrderDetails = FitnessPurchaseOrderSummary & { items: FitnessPurchaseOrderItem[] };
+
+export type FitnessInventoryMovementRow = {
+  id: string;
+  variant_id: string;
+  movement_type: string;
+  movement_label: string;
+  quantity_delta: number;
+  sale_id: string | null;
+  purchase_order_item_id: string | null;
+  transfer_group_id: string | null;
+  notes: string | null;
+  created_at: string;
+  product_id: string;
+  product_name: string;
+  image_url: string | null;
+  size: string;
+  color: string;
+  sku: string | null;
+};

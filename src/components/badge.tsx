@@ -33,6 +33,7 @@ const map: Record<string, { label: string; color: string }> = {
   reserved: { label: "Reservado", color: "blue" },
   partial: { label: "Parcial", color: "orange" },
   incoming: { label: "A caminho", color: "blue" },
+  low_stock: { label: "Estoque baixo", color: "orange" },
   out_of_stock: { label: "Zerado", color: "red" },
   awaiting_stock: { label: "Aguardando estoque", color: "orange" },
   fulfilled: { label: "Atendido", color: "green" },

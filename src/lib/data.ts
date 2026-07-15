@@ -63,6 +63,9 @@ import type {
   FitnessPurchaseOrderSummary,
   FitnessPurchaseOrderDetails,
   FitnessPurchaseOrderItem,
+  FitnessCustomerRow,
+  FitnessSupplierRow,
+  FitnessInventoryMovementRow,
   AgendaEvent,
   AgendaSummary,
   AgendaUserOption,
@@ -1532,6 +1535,13 @@ function normalizeFitnessStock(row: Record<string, unknown>): FitnessStockRow {
     stock_cost_value: number(row.stock_cost_value),
     stock_sale_value: number(row.stock_sale_value),
     stock_status: text(row.stock_status, "out_of_stock"),
+    minimum_stock: number(row.minimum_stock),
+    reorder_target: number(row.reorder_target),
+    default_supplier_id: typeof row.default_supplier_id === "string" ? row.default_supplier_id : null,
+    default_supplier_name: typeof row.default_supplier_name === "string" ? row.default_supplier_name : null,
+    quantity_below_minimum: number(row.quantity_below_minimum),
+    suggested_reorder_quantity: number(row.suggested_reorder_quantity),
+    operational_status: text(row.operational_status, "out_of_stock"),
   };
 }
 
@@ -1550,6 +1560,7 @@ function normalizeFitnessProduct(row: Record<string, unknown>): FitnessProductRo
     incoming_quantity: number(row.incoming_quantity),
     min_sale_price: number(row.min_sale_price),
     max_sale_price: number(row.max_sale_price),
+    attention_variants: number(row.attention_variants),
     updated_at: String(row.updated_at ?? ""),
   };
 }
@@ -1557,6 +1568,7 @@ function normalizeFitnessProduct(row: Record<string, unknown>): FitnessProductRo
 function normalizeFitnessSale(row: Record<string, unknown>): FitnessSaleRow {
   return {
     id: String(row.id),
+    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
     customer_name: text(row.customer_name, "Cliente não informado"),
     customer_phone: typeof row.customer_phone === "string" ? row.customer_phone : null,
     city: typeof row.city === "string" ? row.city : null,
@@ -1572,6 +1584,8 @@ function normalizeFitnessSale(row: Record<string, unknown>): FitnessSaleRow {
     total_amount: number(row.total_amount),
     total_profit: number(row.total_profit),
     notes: typeof row.notes === "string" ? row.notes : null,
+    responsible: typeof row.responsible === "string" ? row.responsible : null,
+    status_label: text(row.status_label, "Pedido Feito"),
     created_at: String(row.created_at ?? ""),
     product_summary: text(row.product_summary),
     total_items: number(row.total_items),
@@ -1594,24 +1608,33 @@ function normalizeFitnessPurchaseOrder(row: Record<string, unknown>): FitnessPur
     received_units: number(row.received_units),
     pending_units: number(row.pending_units),
     order_total: number(row.order_total),
+    freight: number(row.freight),
+    grand_total: number(row.grand_total ?? row.order_total),
+    expected_on: typeof row.expected_on === "string" ? row.expected_on : null,
+    received_on: typeof row.received_on === "string" ? row.received_on : null,
+    responsible: typeof row.responsible === "string" ? row.responsible : null,
+    supplier_contact: typeof row.supplier_contact === "string" ? row.supplier_contact : null,
+    supplier_phone: typeof row.supplier_phone === "string" ? row.supplier_phone : null,
+    supplier_email: typeof row.supplier_email === "string" ? row.supplier_email : null,
     product_summary: text(row.product_summary),
   };
 }
 
 export async function getFitnessDashboard(): Promise<FitnessDashboardSummary> {
-  if (!isSupabaseConfigured) return { month_sales:0,month_revenue:0,month_profit:0,pending_delivery:0,pending_payment:0,receivable_total:0,variants_with_stock:0,physical_units:0,reserved_units:0,available_units:0,incoming_units:0,stock_cost_value:0,stock_sale_value:0,attention_variants:0,open_orders:0 };
+  const empty = { month_sales:0,month_revenue:0,month_profit:0,pending_delivery:0,pending_payment:0,receivable_total:0,variants_with_stock:0,physical_units:0,reserved_units:0,available_units:0,incoming_units:0,stock_cost_value:0,stock_sale_value:0,attention_variants:0,open_orders:0,active_customers:0,low_stock_variants:0,out_of_stock_variants:0 };
+  if (!isSupabaseConfigured) return empty;
   const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_dashboard_summary").select("*").single();
+  const { data, error } = await supabase.from("fitness_dashboard_summary_v2").select("*").single();
   if (error) throw error;
   return {
-    month_sales:number(data.month_sales),month_revenue:number(data.month_revenue),month_profit:number(data.month_profit),pending_delivery:number(data.pending_delivery),pending_payment:number(data.pending_payment),receivable_total:number(data.receivable_total),variants_with_stock:number(data.variants_with_stock),physical_units:number(data.physical_units),reserved_units:number(data.reserved_units),available_units:number(data.available_units),incoming_units:number(data.incoming_units),stock_cost_value:number(data.stock_cost_value),stock_sale_value:number(data.stock_sale_value),attention_variants:number(data.attention_variants),open_orders:number(data.open_orders),
+    month_sales:number(data.month_sales),month_revenue:number(data.month_revenue),month_profit:number(data.month_profit),pending_delivery:number(data.pending_delivery),pending_payment:number(data.pending_payment),receivable_total:number(data.receivable_total),variants_with_stock:number(data.variants_with_stock),physical_units:number(data.physical_units),reserved_units:number(data.reserved_units),available_units:number(data.available_units),incoming_units:number(data.incoming_units),stock_cost_value:number(data.stock_cost_value),stock_sale_value:number(data.stock_sale_value),attention_variants:number(data.attention_variants),open_orders:number(data.open_orders),active_customers:number(data.active_customers),low_stock_variants:number(data.low_stock_variants),out_of_stock_variants:number(data.out_of_stock_variants),
   };
 }
 
 export async function getFitnessStock(): Promise<FitnessStockRow[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_stock_overview").select("*").order("product_name").order("size").order("color");
+  const { data, error } = await supabase.from("fitness_stock_operational").select("*").order("product_name").order("size").order("color");
   if (error) throw error;
   return (data ?? []).map((row) => normalizeFitnessStock(row as Record<string, unknown>));
 }
@@ -1619,7 +1642,7 @@ export async function getFitnessStock(): Promise<FitnessStockRow[]> {
 export async function getFitnessProducts(): Promise<FitnessProductRow[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_product_catalog").select("*").order("active", { ascending:false }).order("name");
+  const { data, error } = await supabase.from("fitness_product_catalog_v2").select("*").order("active", { ascending:false }).order("name");
   if (error) throw error;
   return (data ?? []).map((row) => normalizeFitnessProduct(row as Record<string, unknown>));
 }
@@ -1631,10 +1654,45 @@ export async function getFitnessProduct(productId: string): Promise<{ product: F
   return { product, variants: stock.filter((row) => row.product_id === productId) };
 }
 
+export async function getFitnessCustomers(): Promise<FitnessCustomerRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("fitness_customer_overview").select("*").order("active", { ascending:false }).order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id:String(row.id),name:text(row.name,"Cliente"),phone:typeof row.phone==="string"?row.phone:null,instagram:typeof row.instagram==="string"?row.instagram:null,
+    city:typeof row.city==="string"?row.city:null,source:typeof row.source==="string"?row.source:null,notes:typeof row.notes==="string"?row.notes:null,
+    active:Boolean(row.active),created_at:String(row.created_at??""),updated_at:String(row.updated_at??""),total_purchases:number(row.total_purchases),
+    total_spent:number(row.total_spent),last_purchase_on:typeof row.last_purchase_on==="string"?row.last_purchase_on:null,
+    days_without_purchase:row.days_without_purchase===null||row.days_without_purchase===undefined?null:number(row.days_without_purchase),classification:text(row.classification,"Bronze"),
+  }));
+}
+
+export async function getFitnessCustomer(customerId: string): Promise<FitnessCustomerRow | null> {
+  return (await getFitnessCustomers()).find((row)=>row.id===customerId) ?? null;
+}
+
+export async function getFitnessSuppliers(): Promise<FitnessSupplierRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("fitness_supplier_overview").select("*").order("active",{ascending:false}).order("name");
+  if (error) throw error;
+  return (data ?? []).map((row)=>({
+    id:String(row.id),name:text(row.name,"Fornecedor"),contact_name:typeof row.contact_name==="string"?row.contact_name:null,phone:typeof row.phone==="string"?row.phone:null,
+    email:typeof row.email==="string"?row.email:null,website:typeof row.website==="string"?row.website:null,image_url:typeof row.image_url==="string"?row.image_url:null,
+    notes:typeof row.notes==="string"?row.notes:null,active:Boolean(row.active),created_at:String(row.created_at??""),updated_at:String(row.updated_at??""),
+    order_count:number(row.order_count),open_orders:number(row.open_orders),last_order_on:typeof row.last_order_on==="string"?row.last_order_on:null,incoming_units:number(row.incoming_units),
+  }));
+}
+
+export async function getFitnessSupplier(supplierId: string): Promise<FitnessSupplierRow | null> {
+  return (await getFitnessSuppliers()).find((row)=>row.id===supplierId) ?? null;
+}
+
 export async function getFitnessSales(): Promise<FitnessSaleRow[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_sales_overview").select("*").order("quoted_on", { ascending:false }).order("created_at", { ascending:false });
+  const { data, error } = await supabase.from("fitness_sales_operational").select("*").order("quoted_on", { ascending:false }).order("created_at", { ascending:false });
   if (error) throw error;
   return (data ?? []).map((row) => normalizeFitnessSale(row as Record<string, unknown>));
 }
@@ -1643,7 +1701,7 @@ export async function getFitnessSaleDetails(saleId: string): Promise<FitnessSale
   if (!isSupabaseConfigured) return null;
   const supabase = await createClient();
   const [saleResult, itemsResult] = await Promise.all([
-    supabase.from("fitness_sales_overview").select("*").eq("id",saleId).maybeSingle(),
+    supabase.from("fitness_sales_operational").select("*").eq("id",saleId).maybeSingle(),
     supabase.from("fitness_sale_items").select("id,variant_id,quantity,unit_cost,unit_price,fitness_variants!inner(id,product_id,size,color,sku,fitness_products!inner(id,name,image_url)),fitness_stock_reservations(status,quantity_reserved)").eq("sale_id",saleId),
   ]);
   if (saleResult.error) throw saleResult.error;
@@ -1662,7 +1720,7 @@ export async function getFitnessSaleDetails(saleId: string): Promise<FitnessSale
 export async function getFitnessPurchaseOrders(): Promise<FitnessPurchaseOrderSummary[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase.from("fitness_purchase_order_summary").select("*").order("ordered_on", { ascending:false });
+  const { data, error } = await supabase.from("fitness_purchase_order_operational").select("*").order("ordered_on", { ascending:false });
   if (error) throw error;
   return (data ?? []).map((row) => normalizeFitnessPurchaseOrder(row as Record<string, unknown>));
 }
@@ -1671,7 +1729,7 @@ export async function getFitnessPurchaseOrderDetails(orderId: string): Promise<F
   if (!isSupabaseConfigured) return null;
   const supabase = await createClient();
   const [summaryResult, itemsResult] = await Promise.all([
-    supabase.from("fitness_purchase_order_summary").select("*").eq("id",orderId).maybeSingle(),
+    supabase.from("fitness_purchase_order_operational").select("*").eq("id",orderId).maybeSingle(),
     supabase.from("fitness_purchase_order_items_overview").select("*").eq("purchase_order_id",orderId).order("product_name"),
   ]);
   if (summaryResult.error) throw summaryResult.error;
@@ -1679,4 +1737,17 @@ export async function getFitnessPurchaseOrderDetails(orderId: string): Promise<F
   if (!summaryResult.data) return null;
   const items: FitnessPurchaseOrderItem[] = (itemsResult.data ?? []).map((row) => ({ id:String(row.id),purchase_order_id:String(row.purchase_order_id),variant_id:String(row.variant_id),product_id:String(row.product_id),product_name:text(row.product_name),image_url:typeof row.image_url==="string"?row.image_url:null,size:text(row.size),color:text(row.color),sku:typeof row.sku==="string"?row.sku:null,quantity_ordered:number(row.quantity_ordered),quantity_received:number(row.quantity_received),quantity_pending:number(row.quantity_pending),unit_cost:number(row.unit_cost),total_cost:number(row.total_cost),notes:typeof row.notes==="string"?row.notes:null,item_status:text(row.item_status) }));
   return { ...normalizeFitnessPurchaseOrder(summaryResult.data as Record<string, unknown>), items };
+}
+
+export async function getFitnessMovements(): Promise<FitnessInventoryMovementRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data,error }=await supabase.from("fitness_inventory_movement_overview").select("*").order("created_at",{ascending:false}).limit(500);
+  if(error)throw error;
+  return (data??[]).map((row)=>({
+    id:String(row.id),variant_id:String(row.variant_id),movement_type:text(row.movement_type),movement_label:text(row.movement_label),
+    quantity_delta:number(row.quantity_delta),sale_id:typeof row.sale_id==="string"?row.sale_id:null,purchase_order_item_id:typeof row.purchase_order_item_id==="string"?row.purchase_order_item_id:null,
+    transfer_group_id:typeof row.transfer_group_id==="string"?row.transfer_group_id:null,notes:typeof row.notes==="string"?row.notes:null,created_at:String(row.created_at??""),
+    product_id:String(row.product_id),product_name:text(row.product_name),image_url:typeof row.image_url==="string"?row.image_url:null,size:text(row.size),color:text(row.color),sku:typeof row.sku==="string"?row.sku:null,
+  }));
 }
