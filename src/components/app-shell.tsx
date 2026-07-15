@@ -70,7 +70,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell operation-${isHub ? "hub" : isFitness ? "fitness" : "supplements"}`}>
       <aside className="sidebar">
         <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}>
           <Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority />
