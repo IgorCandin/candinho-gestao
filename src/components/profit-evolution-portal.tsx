@@ -720,8 +720,11 @@ export function ProfitEvolutionPortal() {
     const existing = document.getElementById("profit-evolution-panel-anchor");
 
     if (existing) {
-      setTarget(existing);
-      return;
+      const frame = window.requestAnimationFrame(() => {
+        setTarget(existing);
+      });
+
+      return () => window.cancelAnimationFrame(frame);
     }
 
     const headings = Array.from(document.querySelectorAll("h2"));
@@ -747,9 +750,12 @@ export function ProfitEvolutionPortal() {
       fallback.appendChild(anchor);
     }
 
-    setTarget(anchor);
+    const frame = window.requestAnimationFrame(() => {
+      setTarget(anchor);
+    });
 
     return () => {
+      window.cancelAnimationFrame(frame);
       anchor.remove();
     };
   }, []);

@@ -179,6 +179,19 @@ export type LeadDetails = {
   id: string; customer_id: string | null; customer_name: string; lead_at: string; lead_status: string | null; general_status: string;
   reference: string | null; city: string | null; phone: string | null; notes: string | null; product_id: string | null;
   product_name: string | null; product_image_url: string | null; category: string | null; brand: string | null;
+  quote_id: string | null; quote_number: number | null; quote_status: string | null; quote_total_amount: number | null; quote_sale_id: string | null;
+};
+
+export type QuoteDraftItem = {
+  product_id: string; product_name: string; quantity: number; unit_price: number;
+};
+
+export type QuoteDraft = {
+  id: string; quote_number: number; customer_id: string; location_id: string; quoted_on: string; valid_until: string;
+  discount_amount: number; gift_product_id: string | null; gift_quantity: number; payment_mode: "receivable" | "paid" | "combined";
+  payment_method: string | null; paid_on: string | null; payment_due_on: string | null; delivered: boolean; delivered_on: string | null;
+  delivery_due_on: string | null; schedule_post_sale: boolean; post_sale_due_on: string | null; partner_id: string | null; notes: string | null;
+  items: QuoteDraftItem[];
 };
 
 export type PendingOrderRow = {
@@ -199,7 +212,9 @@ export type SaleDetails = {
   location_id: string; location_code: string; location_name: string; order_at: string; paid_at: string | null; delivered_at: string | null;
   general_status: string; payment_status: string; delivery_status: string; payment_method: string | null; payment_condition: string | null;
   payment_due_at: string | null; price_condition: string | null; partner_id: string | null; partner_name: string | null;
-  total_amount: number; total_cost: number; total_profit: number; notes: string | null; items: SaleDetailItem[];
+  total_amount: number; total_cost: number; total_profit: number; gross_amount: number; discount_amount: number;
+  gift_product_id: string | null; gift_product_name: string | null; gift_quantity: number; quote_id: string | null; quote_number: number | null;
+  notes: string | null; items: SaleDetailItem[];
 };
 
 export type ReplenishmentRow = { product_id: string; product_name: string; category: string; company_quantity: number; min_stock: number; ideal_stock: number; needs_replenishment: boolean; suggested_order_quantity: number; stock_status: string; };

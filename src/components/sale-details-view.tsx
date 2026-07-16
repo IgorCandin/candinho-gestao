@@ -1,6 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { ArrowLeft, CalendarDays, CircleDollarSign, Handshake, ImageIcon, MapPin, PackageCheck, Phone, ShoppingBag, UserRound, Warehouse } from "lucide-react";
+import { ArrowLeft, CalendarDays, CircleDollarSign, FileText, Gift, Handshake, ImageIcon, MapPin, PackageCheck, Phone, ShoppingBag, UserRound, Warehouse } from "lucide-react";
 import { Badge } from "@/components/badge";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
@@ -25,7 +25,7 @@ function reservationLabel(status: string | null, reserved: number | null, reques
 export function SaleDetailsView({ sale, backHref, backLabel, eyebrow = "Venda" }: { sale: SaleDetails; backHref: string; backLabel: string; eyebrow?: string }) {
   return <>
     <DemoBanner/>
-    <PageHeader eyebrow={eyebrow} title={sale.customer_name} description="Confira produtos, estoque, pagamento, entrega e informações internas da venda." action={<Link className="button ghost" href={backHref}><ArrowLeft size={16}/>{backLabel}</Link>}/>
+    <PageHeader eyebrow={eyebrow} title={sale.customer_name} description="Confira produtos, estoque, pagamento, entrega e informações internas da venda." action={<div className="page-header-actions">{sale.quote_id&&<a className="button gold" href={`/api/orcamentos/${sale.quote_id}/pdf`} target="_blank" rel="noreferrer"><FileText size={16}/>Abrir PDF</a>}<Link className="button ghost" href={backHref}><ArrowLeft size={16}/>{backLabel}</Link></div>}/>
 
     <section className="sale-details-layout">
       <div className="sale-details-main">
@@ -39,6 +39,8 @@ export function SaleDetailsView({ sale, backHref, backLabel, eyebrow = "Venda" }
             </div>)}
           </div>
         </article>
+
+        {sale.gift_product_name&&sale.gift_quantity>0&&<article className="panel"><div className="panel-head"><div><h2>Brinde</h2><p>Produto incluído sem valor de venda e já considerado no custo/lucro.</p></div><Gift size={19}/></div><div className="panel-body sale-detail-list"><DetailLine label="Produto" value={sale.gift_product_name}/><DetailLine label="Quantidade" value={`${sale.gift_quantity} un.`}/></div></article>}
 
         <article className="panel"><div className="panel-head"><div><h2>Atualizar venda</h2><p>Corrija o cliente sem cancelar a venda ou atualize pagamento e entrega.</p></div></div><div className="panel-body sale-update-stack"><ChangeSaleCustomer saleId={sale.id} currentCustomerId={sale.customer_id} currentCustomerName={sale.customer_name}/><SaleStatusActions saleId={sale.id} generalStatus={sale.general_status} paymentStatus={sale.payment_status} deliveryStatus={sale.delivery_status}/></div></article>
       </div>
@@ -67,7 +69,8 @@ export function SaleDetailsView({ sale, backHref, backLabel, eyebrow = "Venda" }
         {sale.notes&&<article className="panel"><div className="panel-head"><div><h2>Observações</h2><p>Informações adicionais da venda</p></div><PackageCheck size={19}/></div><div className="panel-body"><p className="sale-notes">{sale.notes}</p></div></article>}
 
         <article className="panel sale-finance-panel"><div><Warehouse size={19}/><span>Custo interno</span><strong>{formatCurrency(sale.total_cost)}</strong></div><div><CircleDollarSign size={19}/><span>Lucro</span><strong className="positive">{formatCurrency(sale.total_profit)}</strong></div></article>
-        <article className="panel sale-total-panel"><CircleDollarSign size={22}/><div><span>Total da venda</span><strong>{formatCurrency(sale.total_amount)}</strong></div></article>
+        {sale.discount_amount>0&&<article className="panel"><div className="panel-body sale-detail-list"><DetailLine label="Subtotal" value={formatCurrency(sale.gross_amount)}/><DetailLine label="Desconto" value={`- ${formatCurrency(sale.discount_amount)}`}/></div></article>}
+        <article className="panel sale-total-panel"><CircleDollarSign size={22}/><div><span>Total da venda{sale.quote_number?` · Orçamento #${sale.quote_number}`:""}</span><strong>{formatCurrency(sale.total_amount)}</strong></div></article>
       </aside>
     </section>
   </>;

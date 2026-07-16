@@ -139,7 +139,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
             ]
           : [
               { href: "/leads/novo", label: "Novo lead", icon: UserRoundPlus, primary: false },
-              { href: "/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
+              { href: "/vendas/nova", label: "Novo Orçamento", icon: CircleDollarSign, primary: true },
               { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
             ];
 
@@ -266,7 +266,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
             <div className="topbar-actions">
               {showSupplementActions && <>
                 <Link className="button ghost" href="/leads/novo"><UserRoundPlus size={16} />Novo lead</Link>
-                <Link className="button gold" href="/vendas/nova"><CircleDollarSign size={16} />Nova venda</Link>
+                <Link className="button gold" href="/vendas/nova"><CircleDollarSign size={16} />Novo Orçamento</Link>
               </>}
               {showFitnessActions && <>
                 <Link className="button ghost" href="/fitness/pedidos/novo"><Truck size={16} />Novo pedido</Link>

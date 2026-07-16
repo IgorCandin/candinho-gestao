@@ -15,7 +15,7 @@ export default async function SalesPage() {
         eyebrow="Comercial"
         title="Vendas"
         description="Histórico de vendas em ordem cronológica, da mais recente para a mais antiga."
-        action={<Link className="button gold" href="/vendas/nova"><Plus size={16} />Nova venda</Link>}
+        action={<Link className="button gold" href="/vendas/nova"><Plus size={16} />Novo Orçamento</Link>}
       />
 
       <nav className="period-tabs" aria-label="Área comercial">

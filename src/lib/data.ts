@@ -33,6 +33,7 @@ import type {
   ProductDetails,
   ProductManagementDetails,
   ProductOption,
+  QuoteDraft,
   SaleStockOption,
   LocationOption,
   PartnerOption,
@@ -470,14 +471,108 @@ export async function getLeadDetails(leadId: string): Promise<LeadDetails | null
   if (!isSupabaseConfigured) {
     const lead = demoLeads.find((row) => row.id === leadId);
     if (!lead) return null;
-    return { id: lead.id, customer_id: lead.customer_id, customer_name: lead.customer_name, lead_at: lead.lead_at, lead_status: lead.lead_status, general_status: lead.general_status, reference: lead.reference, city: lead.city, phone: lead.phone, notes: lead.notes, product_id: lead.primary_product_id, product_name: lead.product_summary, product_image_url: lead.primary_image_url, category: null, brand: null };
+    return {
+      id: lead.id,
+      customer_id: lead.customer_id,
+      customer_name: lead.customer_name,
+      lead_at: lead.lead_at,
+      lead_status: lead.lead_status,
+      general_status: lead.general_status,
+      reference: lead.reference,
+      city: lead.city,
+      phone: lead.phone,
+      notes: lead.notes,
+      product_id: lead.primary_product_id,
+      product_name: lead.product_summary,
+      product_image_url: lead.primary_image_url,
+      category: null,
+      brand: null,
+      quote_id: null,
+      quote_number: null,
+      quote_status: null,
+      quote_total_amount: null,
+      quote_sale_id: null,
+    };
   }
   const supabase = await createClient();
-  const { data, error } = await supabase.from("sales").select(`id,customer_id,lead_status,general_status,quoted_at,reference,city,phone,notes,customer:customers(id,name,city,phone,reference),items:sale_items(id,product_id,product:products(id,name,image_url,category,brand))`).eq("id", leadId).eq("record_type", "lead").maybeSingle();
+  const [{ data, error }, { data: quoteData, error: quoteError }] = await Promise.all([
+    supabase.from("sales").select(`id,customer_id,lead_status,general_status,quoted_at,reference,city,phone,notes,customer:customers(id,name,city,phone,reference),items:sale_items(id,product_id,product:products(id,name,image_url,category,brand))`).eq("id", leadId).eq("record_type", "lead").maybeSingle(),
+    supabase.from("sales_quotes").select("id,quote_number,status,total_amount,sale_id").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  if (error) throw error;
+  if (quoteError) throw quoteError;
+  if (!data) return null;
+  const row = data as Record<string, unknown>;
+  const quote = quoteData as Record<string, unknown> | null;
+  const customer = oneRelation(row.customer);
+  const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : [];
+  const firstItem = itemRows[0] ?? null;
+  const product = firstItem ? oneRelation(firstItem.product) : null;
+  return {
+    id: String(row.id),
+    customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+    customer_name: text(customer?.name, "Cliente não informado"),
+    lead_at: String(row.quoted_at ?? ""),
+    lead_status: typeof row.lead_status === "string" ? row.lead_status : null,
+    general_status: text(row.general_status, "pending"),
+    reference: typeof row.reference === "string" ? row.reference : typeof customer?.reference === "string" ? customer.reference : null,
+    city: typeof row.city === "string" ? row.city : typeof customer?.city === "string" ? customer.city : null,
+    phone: typeof row.phone === "string" ? row.phone : typeof customer?.phone === "string" ? customer.phone : null,
+    notes: typeof row.notes === "string" ? row.notes : null,
+    product_id: firstItem && typeof firstItem.product_id === "string" ? firstItem.product_id : null,
+    product_name: typeof product?.name === "string" ? product.name : null,
+    product_image_url: typeof product?.image_url === "string" ? product.image_url : null,
+    category: typeof product?.category === "string" ? product.category : null,
+    brand: typeof product?.brand === "string" ? product.brand : null,
+    quote_id: quote && typeof quote.id === "string" ? quote.id : null,
+    quote_number: quote?.quote_number == null ? null : number(quote.quote_number),
+    quote_status: quote && typeof quote.status === "string" ? quote.status : null,
+    quote_total_amount: quote?.total_amount == null ? null : number(quote.total_amount),
+    quote_sale_id: quote && typeof quote.sale_id === "string" ? quote.sale_id : null,
+  };
+}
+
+export async function getQuoteDraft(quoteId: string): Promise<QuoteDraft | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("sales_quotes")
+    .select(`id,quote_number,customer_id,location_id,status,quoted_on,valid_until,discount_amount,gift_product_id,gift_quantity,payment_mode,payment_method,paid_on,payment_due_on,delivered,delivered_on,delivery_due_on,schedule_post_sale,post_sale_due_on,partner_id,notes,items:sales_quote_items(product_id,quantity,unit_price,product:products(name))`)
+    .eq("id", quoteId)
+    .eq("status", "quoted")
+    .maybeSingle();
   if (error) throw error;
   if (!data) return null;
-  const row = data as Record<string, unknown>; const customer = oneRelation(row.customer); const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : []; const firstItem = itemRows[0] ?? null; const product = firstItem ? oneRelation(firstItem.product) : null;
-  return { id: String(row.id), customer_id: typeof row.customer_id === "string" ? row.customer_id : null, customer_name: text(customer?.name, "Cliente não informado"), lead_at: String(row.quoted_at ?? ""), lead_status: typeof row.lead_status === "string" ? row.lead_status : null, general_status: text(row.general_status, "pending"), reference: typeof row.reference === "string" ? row.reference : typeof customer?.reference === "string" ? customer.reference : null, city: typeof row.city === "string" ? row.city : typeof customer?.city === "string" ? customer.city : null, phone: typeof row.phone === "string" ? row.phone : typeof customer?.phone === "string" ? customer.phone : null, notes: typeof row.notes === "string" ? row.notes : null, product_id: firstItem && typeof firstItem.product_id === "string" ? firstItem.product_id : null, product_name: typeof product?.name === "string" ? product.name : null, product_image_url: typeof product?.image_url === "string" ? product.image_url : null, category: typeof product?.category === "string" ? product.category : null, brand: typeof product?.brand === "string" ? product.brand : null };
+  const row = data as Record<string, unknown>;
+  const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : [];
+  return {
+    id: String(row.id),
+    quote_number: number(row.quote_number),
+    customer_id: String(row.customer_id),
+    location_id: String(row.location_id),
+    quoted_on: String(row.quoted_on),
+    valid_until: String(row.valid_until),
+    discount_amount: number(row.discount_amount),
+    gift_product_id: typeof row.gift_product_id === "string" ? row.gift_product_id : null,
+    gift_quantity: number(row.gift_quantity),
+    payment_mode: ["paid", "combined"].includes(String(row.payment_mode)) ? String(row.payment_mode) as "paid" | "combined" : "receivable",
+    payment_method: typeof row.payment_method === "string" ? row.payment_method : null,
+    paid_on: typeof row.paid_on === "string" ? row.paid_on : null,
+    payment_due_on: typeof row.payment_due_on === "string" ? row.payment_due_on : null,
+    delivered: Boolean(row.delivered),
+    delivered_on: typeof row.delivered_on === "string" ? row.delivered_on : null,
+    delivery_due_on: typeof row.delivery_due_on === "string" ? row.delivery_due_on : null,
+    schedule_post_sale: Boolean(row.schedule_post_sale),
+    post_sale_due_on: typeof row.post_sale_due_on === "string" ? row.post_sale_due_on : null,
+    partner_id: typeof row.partner_id === "string" ? row.partner_id : null,
+    notes: typeof row.notes === "string" ? row.notes : null,
+    items: itemRows.map((item) => ({
+      product_id: String(item.product_id),
+      product_name: text(oneRelation(item.product)?.name, "Produto"),
+      quantity: number(item.quantity),
+      unit_price: number(item.unit_price),
+    })),
+  };
 }
 
 function normalizeCustomer(row: Record<string, unknown>): Customer {
@@ -761,6 +856,13 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
       total_amount: order.total_amount,
       total_cost: 0,
       total_profit: order.total_profit,
+      gross_amount: order.total_amount,
+      discount_amount: 0,
+      gift_product_id: null,
+      gift_product_name: null,
+      gift_quantity: 0,
+      quote_id: null,
+      quote_number: null,
       notes: null,
       items: [{
         id: "demo-item",
@@ -781,27 +883,54 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("sales")
-    .select(`
-      id,customer_id,location_id,reference,city,phone,general_status,payment_status,delivery_status,
-      payment_method,payment_condition,payment_due_at,price_condition,partner_id,quoted_at,paid_at,delivered_at,total_amount,total_cost,total_profit,notes,
-      customer:customers(id,name,city,phone),
-      location:locations(id,code,name),
-      partner:partners(id,name),
-      items:sale_items(id,product_id,quantity,unit_cost,unit_price,price_condition,product:products(id,name,image_url,category,brand),reservations:stock_reservations(quantity_requested,quantity_reserved,status))
-    `)
-    .eq("id", saleId)
-    .eq("record_type", "sale")
-    .maybeSingle();
+  const [{ data, error }, { data: quoteData, error: quoteError }] = await Promise.all([
+    supabase
+      .from("sales")
+      .select(`
+        id,customer_id,location_id,reference,city,phone,general_status,payment_status,delivery_status,
+        payment_method,payment_condition,payment_due_at,price_condition,partner_id,quoted_at,paid_at,delivered_at,
+        total_amount,total_cost,total_profit,discount_amount,gift_product_id,gift_quantity,notes,
+        customer:customers(id,name,city,phone),
+        location:locations(id,code,name),
+        partner:partners(id,name),
+        items:sale_items(id,product_id,quantity,unit_cost,unit_price,price_condition,product:products(id,name,image_url,category,brand),reservations:stock_reservations(quantity_requested,quantity_reserved,status))
+      `)
+      .eq("id", saleId)
+      .eq("record_type", "sale")
+      .maybeSingle(),
+    supabase.from("sales_quotes").select("id,quote_number,gift_product_id,gift_quantity,gift:products!sales_quotes_gift_product_id_fkey(id,name)").eq("sale_id", saleId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+  ]);
   if (error) throw error;
+  if (quoteError) throw quoteError;
   if (!data) return null;
 
   const row = data as Record<string, unknown>;
+  const quote = quoteData as Record<string, unknown> | null;
   const customer = oneRelation(row.customer);
   const location = oneRelation(row.location);
   const partner = oneRelation(row.partner);
+  const gift = quote ? oneRelation(quote.gift) : null;
   const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : [];
+  const items = itemRows.map((item) => {
+    const product = oneRelation(item.product);
+    const reservation = oneRelation(item.reservations);
+    return {
+      id: String(item.id),
+      product_id: String(item.product_id),
+      product_name: text(product?.name, "Produto sem nome"),
+      product_image_url: typeof product?.image_url === "string" ? product.image_url : null,
+      category: typeof product?.category === "string" ? product.category : null,
+      brand: typeof product?.brand === "string" ? product.brand : null,
+      quantity: number(item.quantity),
+      unit_cost: number(item.unit_cost),
+      unit_price: number(item.unit_price),
+      price_condition: typeof item.price_condition === "string" ? item.price_condition : null,
+      quantity_requested: reservation?.quantity_requested == null ? null : number(reservation.quantity_requested),
+      quantity_reserved: reservation?.quantity_reserved == null ? null : number(reservation.quantity_reserved),
+      reservation_status: typeof reservation?.status === "string" ? reservation.status : null,
+    };
+  });
+  const grossAmount = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
 
   return {
     id: String(row.id),
@@ -828,26 +957,15 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
     total_amount: number(row.total_amount),
     total_cost: number(row.total_cost),
     total_profit: number(row.total_profit),
+    gross_amount: grossAmount,
+    discount_amount: number(row.discount_amount),
+    gift_product_id: typeof row.gift_product_id === "string" ? row.gift_product_id : quote && typeof quote.gift_product_id === "string" ? quote.gift_product_id : null,
+    gift_product_name: typeof gift?.name === "string" ? gift.name : null,
+    gift_quantity: number(row.gift_quantity ?? quote?.gift_quantity),
+    quote_id: quote && typeof quote.id === "string" ? quote.id : null,
+    quote_number: quote?.quote_number == null ? null : number(quote.quote_number),
     notes: typeof row.notes === "string" ? row.notes : null,
-    items: itemRows.map((item) => {
-      const product = oneRelation(item.product);
-      const reservation = oneRelation(item.reservations);
-      return {
-        id: String(item.id),
-        product_id: String(item.product_id),
-        product_name: text(product?.name, "Produto sem nome"),
-        product_image_url: typeof product?.image_url === "string" ? product.image_url : null,
-        category: typeof product?.category === "string" ? product.category : null,
-        brand: typeof product?.brand === "string" ? product.brand : null,
-        quantity: number(item.quantity),
-        unit_cost: number(item.unit_cost),
-        unit_price: number(item.unit_price),
-        price_condition: typeof item.price_condition === "string" ? item.price_condition : null,
-        quantity_requested: reservation?.quantity_requested == null ? null : number(reservation.quantity_requested),
-        quantity_reserved: reservation?.quantity_reserved == null ? null : number(reservation.quantity_reserved),
-        reservation_status: typeof reservation?.status === "string" ? reservation.status : null,
-      };
-    }),
+    items,
   };
 }
 
