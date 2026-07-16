@@ -862,11 +862,11 @@ export type ProductComboDetails = ProductComboRow & { items: ProductComboItem[] 
 export type ProductComboSaleOption = ProductComboRow & { items: Array<{ product_id: string; quantity: number }> };
 
 // -----------------------------------------------------------------------------
-// Tipagens temporÃ¡rias do Test Lab
-// Mantidas permissivas para liberar a compilaÃ§Ã£o enquanto o laboratÃ³rio isolado
-// Ã© estabilizado. Depois podem ser substituÃ­das por interfaces especÃ­ficas.
+// Tipagens temporárias do Test Lab
+// Mantidas permissivas para liberar a compilação enquanto o laboratório isolado
+// é estabilizado. Depois podem ser substituídas por interfaces específicas.
 // -----------------------------------------------------------------------------
-/* eslint-disable @typescript-eslint/no-explicit-any -- Tipagens temporÃ¡rias do Test Lab atÃ© definirmos interfaces finais. */
+/* eslint-disable @typescript-eslint/no-explicit-any -- Tipagens temporárias do Test Lab até definirmos interfaces finais. */
 export type TestLabOperation = any;
 export type TestLabDashboardSummary = any;
 export type TestLabStockRow = any;

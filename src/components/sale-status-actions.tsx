@@ -15,6 +15,14 @@ const PAYMENT_METHODS = [
 
 type ActionMode = "received" | "delivered" | "cancel" | null;
 
+function getErrorMessage(error: unknown, fallback: string) {
+  if (error instanceof Error && error.message) return error.message;
+  if (error && typeof error === "object" && "message" in error && typeof (error as { message?: unknown }).message === "string") {
+    return (error as { message: string }).message;
+  }
+  return fallback;
+}
+
 function todayInSaoPaulo() {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -70,7 +78,7 @@ export function SaleStatusActions({
       setMode(null);
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível atualizar o pagamento.");
+      setMessage(getErrorMessage(error, "Não foi possível atualizar o pagamento."));
     } finally {
       setIsSubmitting(false);
     }
@@ -92,7 +100,7 @@ export function SaleStatusActions({
       setMode(null);
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível atualizar a entrega.");
+      setMessage(getErrorMessage(error, "Não foi possível atualizar a entrega."));
     } finally {
       setIsSubmitting(false);
     }
@@ -114,7 +122,7 @@ export function SaleStatusActions({
       setMode(null);
       router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível cancelar a venda.");
+      setMessage(getErrorMessage(error, "Não foi possível cancelar a venda."));
     } finally {
       setIsSubmitting(false);
     }

@@ -2,8 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
+  ArrowLeft,
+  Building2,
   CalendarDays,
   ChartNoAxesCombined,
   CircleDollarSign,
@@ -14,7 +17,6 @@ import {
   Home,
   LogOut,
   Menu,
-  Building2,
   PackageOpen,
   PackageSearch,
   Settings,
@@ -78,7 +80,9 @@ type Operation = "hub" | "supplements" | "fitness" | "bank";
 
 export function AppShell({ children, access }: { children: React.ReactNode; access: UserAccess }) {
   const pathname = usePathname();
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const isHub = pathname === "/dashboard";
   const isSettings = pathname.startsWith("/configuracoes");
   const isTestSupplements = pathname.startsWith("/teste/supplements");
@@ -163,6 +167,23 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
         ? { src: "/candinho-suplementos-logo.webp", alt: "Candinho Suplementos" }
         : { src: "/candinho-company-logo.webp", alt: "Candinho Company" };
 
+
+  useEffect(() => {
+    mobileMenuRef.current?.removeAttribute("open");
+  }, [pathname]);
+
+  function closeMobileMenu() {
+    mobileMenuRef.current?.removeAttribute("open");
+  }
+
+  function goBack() {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push(operation === "fitness" ? "/fitness" : operation === "bank" ? "/bank" : "/suplementos");
+  }
+
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === href;
     if (href === "/suplementos") return pathname === href;
@@ -224,28 +245,27 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
       </aside>
 
       <header className="mobile-header">
+        <button className="mobile-back-button" type="button" aria-label="Voltar à tela anterior" onClick={goBack}>
+          <ArrowLeft size={22} />
+        </button>
         <Link href="/dashboard" className="mobile-brand-link" aria-label={`${brand.alt} — voltar às operações`}>
           <Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority />
         </Link>
 
-        <details className="mobile-menu">
+        <details className="mobile-menu" ref={mobileMenuRef}>
           <summary aria-label="Abrir menu">
             <Menu size={20} />
             <span>Menu</span>
           </summary>
           <div className="mobile-menu-panel">
-            <Link className="mobile-menu-link operation-switch" href="/dashboard">
-              <Building2 size={18} />
-              <span>Trocar operação</span>
-            </Link>
             {mobileMenuNav.map(({ href, label, icon: Icon }) => (
-              <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={`mobile-menu-${href}`}>
+              <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={`mobile-menu-${href}`} onClick={closeMobileMenu}>
                 <Icon size={18} />
                 <span>{label}</span>
               </Link>
             ))}
             {access.canManageUsers && (
-              <Link className={`mobile-menu-link ${isSettings ? "primary" : ""}`} href={settingsHref}>
+              <Link className={`mobile-menu-link ${isSettings ? "primary" : ""}`} href={settingsHref} onClick={closeMobileMenu}>
                 <Settings size={18} />
                 <span>Configurações</span>
               </Link>

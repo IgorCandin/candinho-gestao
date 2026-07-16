@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleDollarSign, FileText, Gift, Layers3, LoaderCircle, PackageCheck, PackagePlus, Percent, Plus, Save, Trash2, X } from "lucide-react";
+import { CheckCircle2, CircleDollarSign, FileText, Gift, Layers3, LoaderCircle, PackageCheck, PackagePlus, Percent, Plus, Save, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -14,6 +14,7 @@ type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 type PaymentMode = "receivable" | "paid" | "combined";
 type SaveMode = "confirmed" | "quote";
 type DraftItem = { key: string; productId: string; quantity: string; unitPrice: string };
+type SavedBudgetPrompt = { quoteId: string; target: string; mode: SaveMode };
 
 function todayInSaoPaulo() {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
@@ -69,6 +70,7 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
   const [comboId, setComboId] = useState("");
   const [choiceOpen, setChoiceOpen] = useState(false);
   const [loadingMode, setLoadingMode] = useState<SaveMode | null>(null);
+  const [savedBudgetPrompt, setSavedBudgetPrompt] = useState<SavedBudgetPrompt | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const productOptions = useMemo(() => {
@@ -192,16 +194,27 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
         }
       }
 
-      window.open(`/api/orcamentos/${quoteId}/pdf`, "_blank", "noopener,noreferrer");
       setChoiceOpen(false);
-      router.push(mode === "confirmed" && saleId ? `/vendas/${saleId}` : leadId ? `/leads/${leadId}` : "/leads");
-      router.refresh();
+      setSavedBudgetPrompt({
+        quoteId,
+        target: mode === "confirmed" && saleId ? `/vendas/${saleId}` : leadId ? `/leads/${leadId}` : "/leads",
+        mode,
+      });
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível salvar o orçamento.");
       setChoiceOpen(false);
     } finally {
       setLoadingMode(null);
     }
+  }
+
+  function finishSavedBudget(openPdf: boolean) {
+    if (!savedBudgetPrompt) return;
+    const { quoteId, target } = savedBudgetPrompt;
+    if (openPdf) window.open(`/api/orcamentos/${quoteId}/pdf`, "_blank", "noopener,noreferrer");
+    setSavedBudgetPrompt(null);
+    router.push(target);
+    router.refresh();
   }
 
   return <form className="new-sale-layout" onSubmit={requestSave}>
@@ -311,10 +324,20 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
     {choiceOpen && <div className="budget-choice-backdrop" role="presentation" onMouseDown={(event)=>{if(event.target===event.currentTarget&&!loadingMode)setChoiceOpen(false)}}>
       <section className="budget-choice-modal" role="dialog" aria-modal="true" aria-labelledby="budget-choice-title">
         <button className="budget-choice-close" type="button" aria-label="Fechar" disabled={Boolean(loadingMode)} onClick={()=>setChoiceOpen(false)}><X size={18}/></button>
-        <div className="budget-choice-heading"><FileText size={25}/><div><span>Salvar orçamento</span><h2 id="budget-choice-title">O cliente já confirmou?</h2><p>Escolha o destino. O PDF é gerado nos dois casos.</p></div></div>
+        <div className="budget-choice-heading"><FileText size={25}/><div><span>Salvar orçamento</span><h2 id="budget-choice-title">O cliente já confirmou?</h2><p>Escolha o destino. O PDF fica disponível nos dois casos.</p></div></div>
         <div className="budget-choice-grid">
           <button className="budget-choice-card confirmed" type="button" disabled={Boolean(loadingMode)} onClick={()=>persist("confirmed")}><PackageCheck size={25}/><span><strong>Orçamento confirmado</strong><small>Cria a venda normal, aplica desconto, registra o brinde e movimenta o estoque conforme a entrega.</small></span>{loadingMode==="confirmed"&&<LoaderCircle className="spin" size={18}/>}</button>
-          <button className="budget-choice-card quote" type="button" disabled={Boolean(loadingMode)} onClick={()=>persist("quote")}><FileText size={25}/><span><strong>Apenas orçando</strong><small>Não mexe no estoque. Gera o PDF e salva cliente + todos os produtos na aba Leads.</small></span>{loadingMode==="quote"&&<LoaderCircle className="spin" size={18}/>}</button>
+          <button className="budget-choice-card quote" type="button" disabled={Boolean(loadingMode)} onClick={()=>persist("quote")}><FileText size={25}/><span><strong>Apenas orçando</strong><small>Não mexe no estoque. Salva cliente + todos os produtos na aba Leads e mantém o PDF disponível.</small></span>{loadingMode==="quote"&&<LoaderCircle className="spin" size={18}/>}</button>
+        </div>
+      </section>
+    </div>}
+
+    {savedBudgetPrompt && <div className="budget-choice-backdrop" role="presentation">
+      <section className="budget-choice-modal budget-pdf-prompt" role="dialog" aria-modal="true" aria-labelledby="budget-pdf-title">
+        <div className="budget-choice-heading"><CheckCircle2 size={26}/><div><span>Orçamento salvo</span><h2 id="budget-pdf-title">Abrir o PDF agora?</h2><p>O orçamento foi salvo com sucesso. Você pode abrir o PDF agora ou continuar sem abrir.</p></div></div>
+        <div className="budget-pdf-actions">
+          <button className="button ghost" type="button" onClick={()=>finishSavedBudget(false)}>Agora não</button>
+          <button className="button gold" type="button" onClick={()=>finishSavedBudget(true)}><FileText size={17}/>Abrir PDF</button>
         </div>
       </section>
     </div>}
