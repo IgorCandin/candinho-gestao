@@ -1747,3 +1747,96 @@ h1{font-size:clamp(27px,3vw,36px)}
   .bank-debt-card-actions { flex-direction: column; }
   .bank-debt-card-actions .button { width: 100%; justify-content: center; }
 }
+
+/* Candinho Bank — pacote 17 a 20: entradas, receber e projeção acumulada */
+@media (min-width: 1180px) {
+  .bank-quick-actions { grid-template-columns: repeat(5, minmax(0,1fr)); }
+}
+.bank-dashboard-accounts-panel { grid-column: 1 / -1; }
+.bank-income-stats { margin-bottom: 18px; }
+.bank-income-form-panel {
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-color: rgba(25,201,120,.24);
+}
+.bank-income-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+  padding: 18px 20px;
+}
+.bank-income-form-wide { grid-column: 1 / -1; }
+.bank-income-form-grid .field small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+.bank-check-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 58px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255,255,255,.018);
+}
+.bank-check-option input { margin-top: 2px; accent-color: #19c978; }
+.bank-check-option span { display: grid; gap: 4px; }
+.bank-check-option strong { font-size: 10px; }
+.bank-check-option small { color: var(--muted); font-size: 8px; line-height: 1.4; }
+.bank-income-sections { align-items: start; }
+.bank-income-list { display: grid; gap: 9px; }
+.bank-income-list-item {
+  display: grid;
+  grid-template-columns: minmax(0,1.2fr) minmax(120px,.65fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,.018);
+}
+.bank-income-list-item > div { min-width: 0; display: grid; gap: 4px; }
+.bank-income-list-item > div:first-child strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+.bank-income-list-item > div span { color: var(--muted); font-size: 8px; }
+.bank-income-list-item > div:nth-child(2) { text-align: right; }
+.bank-income-list-item > div:nth-child(2) strong { font-size: 10px; }
+.bank-income-action { min-height: 30px; padding: 0 10px; font-size: 8px; white-space: nowrap; }
+.bank-income-note-panel,
+.bank-annual-disclaimer { margin-top: 18px; }
+.bank-income-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.bank-income-note > svg { flex: 0 0 auto; color: #78e6a3; }
+.bank-income-note > div { display: grid; gap: 4px; }
+.bank-income-note strong { font-size: 10px; }
+.bank-income-note span { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.bank-annual-summary-grid { margin-bottom: 18px; }
+.bank-annual-running {
+  margin-top: 5px;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.bank-annual-running.positive strong { color: #78e6a3; }
+.bank-annual-running.negative strong { color: #ff9898; }
+
+@media(max-width:900px){
+  .bank-income-list-item { grid-template-columns: minmax(0,1fr) auto; }
+  .bank-income-list-item > div:nth-child(2) { text-align: left; }
+  .bank-income-list-item .badge,
+  .bank-income-list-item form,
+  .bank-income-list-item > .button,
+  .bank-income-list-item > .bank-charge-action-done { justify-self: start; }
+}
+@media(max-width:760px){
+  .bank-income-form-grid { grid-template-columns: 1fr; }
+  .bank-income-form-wide { grid-column: auto; }
+  .bank-income-list-item { grid-template-columns: 1fr; }
+  .bank-income-list-item > div:nth-child(2) { text-align: left; }
+  .bank-income-action { width: 100%; justify-content: center; }
+  .bank-dashboard-accounts-panel { grid-column: auto; }
+}

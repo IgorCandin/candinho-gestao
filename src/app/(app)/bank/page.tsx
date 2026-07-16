@@ -100,6 +100,11 @@ export default async function BankDashboardPage() {
           <div><strong>Nova cobrança</strong><span>Registre uma conta com vencimento e origem.</span></div>
           <ArrowRight size={17} />
         </Link>
+        <Link href="/bank/entradas?acao=nova-receber" className="bank-quick-card">
+          <TrendingUp size={20} />
+          <div><strong>Nova entrada</strong><span>Registre um valor previsto ou uma conta a receber.</span></div>
+          <ArrowRight size={17} />
+        </Link>
         <Link href="/bank/visao-anual" className="bank-quick-card">
           <CalendarRange size={20} />
           <div><strong>Ver visão anual</strong><span>Acompanhe compromissos e resultado mês a mês.</span></div>
@@ -143,6 +148,40 @@ export default async function BankDashboardPage() {
         </article>
 
         <article className="panel">
+          <div className="panel-head">
+            <div>
+              <h2>Próximos recebimentos</h2>
+              <p>Valores que ainda precisam cair, organizados pela data prevista.</p>
+            </div>
+            <Link className="bank-panel-link" href="/bank/entradas">Ver entradas <ArrowRight size={14} /></Link>
+          </div>
+          <div className="panel-body">
+            {data.upcomingReceivables.length === 0 ? (
+              <div className="bank-empty-state">Nenhuma conta a receber pendente.</div>
+            ) : (
+              <div className="bank-charge-list">
+                {data.upcomingReceivables.map((item) => (
+                  <div className="bank-charge-item" key={item.id}>
+                    <div className="bank-charge-date">
+                      <strong>{formatDateOnly(item.dueDate).slice(0, 5)}</strong>
+                      <span>{item.origin ?? "Entrada"}</span>
+                    </div>
+                    <div className="bank-charge-main">
+                      <strong>{item.title}</strong>
+                      <span>{item.payerName ?? "Sem pagador informado"}</span>
+                    </div>
+                    <div className="bank-charge-value">
+                      <strong>{formatCurrency(item.remainingAmount)}</strong>
+                      <span className={`badge ${statusClass(item.effectiveStatus)}`}>{statusLabel(item.effectiveStatus)}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </article>
+
+        <article className="panel bank-dashboard-accounts-panel">
           <div className="panel-head">
             <div>
               <h2>Onde está seu dinheiro</h2>

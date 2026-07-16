@@ -29,6 +29,16 @@ export type BankChargePreview = {
   origin: string | null;
 };
 
+export type BankReceivablePreview = {
+  id: string;
+  title: string;
+  dueDate: string;
+  remainingAmount: number;
+  effectiveStatus: string;
+  payerName: string | null;
+  origin: string | null;
+};
+
 export type BankAccountBalance = {
   id: string;
   name: string;
@@ -55,6 +65,7 @@ export type BankAnnualProjection = {
 export type BankDashboardData = {
   summary: BankDashboardSummary;
   upcomingCharges: BankChargePreview[];
+  upcomingReceivables: BankReceivablePreview[];
   accounts: BankAccountBalance[];
   annualProjection: BankAnnualProjection[];
 };
@@ -79,18 +90,25 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     return {
       summary: emptySummary,
       upcomingCharges: [],
+      upcomingReceivables: [],
       accounts: [],
       annualProjection: [],
     };
   }
 
   const supabase = await createClient();
-  const [summaryResult, chargesResult, accountsResult, projectionResult] = await Promise.all([
+  const [summaryResult, chargesResult, receivablesResult, accountsResult, projectionResult] = await Promise.all([
     supabase.from("bank_dashboard_summary").select("*").single(),
     supabase
       .from("bank_charges_overview")
       .select("id,title,due_date,remaining_amount,effective_status,category,origin")
       .not("effective_status", "in", "(paid,cancelled)")
+      .order("due_date", { ascending: true })
+      .limit(6),
+    supabase
+      .from("bank_receivables_overview")
+      .select("id,title,due_date,remaining_amount,effective_status,payer_name,origin")
+      .not("effective_status", "in", "(received,cancelled)")
       .order("due_date", { ascending: true })
       .limit(6),
     supabase
@@ -104,6 +122,7 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
 
   if (summaryResult.error) throw summaryResult.error;
   if (chargesResult.error) throw chargesResult.error;
+  if (receivablesResult.error) throw receivablesResult.error;
   if (accountsResult.error) throw accountsResult.error;
   if (projectionResult.error) throw projectionResult.error;
 
@@ -133,6 +152,16 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     origin: nullableText(row.origin),
   }));
 
+  const upcomingReceivables: BankReceivablePreview[] = (receivablesResult.data ?? []).map((row: Record<string, unknown>) => ({
+    id: String(row.id),
+    title: String(row.title ?? "Recebimento"),
+    dueDate: String(row.due_date ?? ""),
+    remainingAmount: number(row.remaining_amount),
+    effectiveStatus: String(row.effective_status ?? "pending"),
+    payerName: nullableText(row.payer_name),
+    origin: nullableText(row.origin),
+  }));
+
   const accounts: BankAccountBalance[] = (accountsResult.data ?? []).map((row: Record<string, unknown>) => ({
     id: String(row.id),
     name: String(row.name ?? "Conta"),
@@ -156,7 +185,7 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     projectedResult: number(row.projected_result),
   }));
 
-  return { summary, upcomingCharges, accounts, annualProjection };
+  return { summary, upcomingCharges, upcomingReceivables, accounts, annualProjection };
 }
 
 export async function getBankCharges(): Promise<Record<string, unknown>[]> {
@@ -202,6 +231,30 @@ export async function getBankAccounts(): Promise<Record<string, unknown>[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
   const { data, error } = await supabase.from("bank_account_current_balances").select("*").eq("is_active", true).order("display_order", { ascending: true }).order("name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+
+export async function getBankIncomeSources(): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bank_income_sources")
+    .select("*")
+    .order("is_active", { ascending: false })
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getBankReceivables(): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bank_receivables_overview")
+    .select("*")
+    .order("due_date", { ascending: true });
   if (error) throw error;
   return data ?? [];
 }
