@@ -15,7 +15,7 @@ export default async function SettingsPage({searchParams}:{searchParams:Promise<
   const users = await getUserPermissions();
   const active = users.filter((user) => user.active).length;
   const admins = users.filter((user) => user.active && user.role === "admin").length;
-  const operations = users.reduce((total, user) => total + Number(user.can_access_supplements) + Number(user.can_access_fitness), 0);
+  const operations = users.reduce((total, user) => total + Number(user.can_access_supplements) + Number(user.can_access_fitness) + Number(user.can_access_bank), 0);
 
   return (
     <>
@@ -40,7 +40,7 @@ export default async function SettingsPage({searchParams}:{searchParams:Promise<
         <StatCard icon={UsersRound} label="Usuários" value={String(users.length)} note="Contas cadastradas" />
         <StatCard icon={UserCheck} label="Ativos" value={String(active)} note="Com acesso liberado" />
         <StatCard icon={ShieldCheck} label="Administradores" value={String(admins)} note="Controle total" />
-        <StatCard icon={UserCog} label="Acessos a operações" value={String(operations)} note="Suplementos + Fitness" />
+        <StatCard icon={UserCog} label="Acessos a operações" value={String(operations)} note="Suplementos + Fitness + Bank" />
       </section>
       <UserPermissionsManager users={users} currentUserId={access.id} />
     </>

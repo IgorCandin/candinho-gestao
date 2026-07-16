@@ -34,6 +34,8 @@ import type {
   ProductManagementDetails,
   ProductOption,
   QuoteDraft,
+  QuoteRow,
+  QuoteDetails,
   SaleStockOption,
   LocationOption,
   PartnerOption,
@@ -565,6 +567,100 @@ export async function getQuoteDraft(quoteId: string): Promise<QuoteDraft | null>
     schedule_post_sale: Boolean(row.schedule_post_sale),
     post_sale_due_on: typeof row.post_sale_due_on === "string" ? row.post_sale_due_on : null,
     partner_id: typeof row.partner_id === "string" ? row.partner_id : null,
+    notes: typeof row.notes === "string" ? row.notes : null,
+    items: itemRows.map((item) => ({
+      product_id: String(item.product_id),
+      product_name: text(oneRelation(item.product)?.name, "Produto"),
+      quantity: number(item.quantity),
+      unit_price: number(item.unit_price),
+    })),
+  };
+}
+
+
+function quoteEffectiveStatus(status: string, validUntil: string) {
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  return status === "quoted" && validUntil < today ? "expired" : status;
+}
+
+function normalizeQuoteRow(row: Record<string, unknown>): QuoteRow {
+  const customer = oneRelation(row.customer);
+  const location = oneRelation(row.location);
+  const gift = oneRelation(row.gift);
+  const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : [];
+  const productNames = itemRows.map((item) => {
+    const product = oneRelation(item.product);
+    const name = text(product?.name, "Produto");
+    const quantity = number(item.quantity);
+    return `${name} ×${quantity}`;
+  });
+  const status = text(row.status, "quoted");
+  const validUntil = String(row.valid_until ?? "");
+  return {
+    id: String(row.id),
+    quote_number: number(row.quote_number),
+    customer_id: String(row.customer_id),
+    customer_name: text(customer?.name, "Cliente não informado"),
+    location_id: String(row.location_id),
+    location_code: text(location?.code, "—"),
+    lead_id: typeof row.lead_id === "string" ? row.lead_id : null,
+    sale_id: typeof row.sale_id === "string" ? row.sale_id : null,
+    status,
+    effective_status: quoteEffectiveStatus(status, validUntil),
+    quoted_on: String(row.quoted_on ?? ""),
+    valid_until: validUntil,
+    gross_amount: number(row.gross_amount),
+    discount_amount: number(row.discount_amount),
+    total_amount: number(row.total_amount),
+    gift_product_id: typeof row.gift_product_id === "string" ? row.gift_product_id : null,
+    gift_product_name: typeof gift?.name === "string" ? gift.name : null,
+    gift_quantity: number(row.gift_quantity),
+    product_summary: productNames.join(", "),
+    total_items: itemRows.reduce((sum, item) => sum + number(item.quantity), 0),
+    created_at: String(row.created_at ?? ""),
+    updated_at: String(row.updated_at ?? ""),
+  };
+}
+
+const quoteSelect = `
+  id,quote_number,customer_id,location_id,lead_id,sale_id,status,quoted_on,valid_until,gross_amount,discount_amount,total_amount,
+  gift_product_id,gift_quantity,payment_mode,payment_method,paid_on,payment_due_on,delivered,delivered_on,delivery_due_on,
+  schedule_post_sale,post_sale_due_on,partner_id,notes,created_at,updated_at,
+  customer:customers(id,name),location:locations(id,code,name),gift:products!sales_quotes_gift_product_id_fkey(id,name),
+  partner:partners(id,name),items:sales_quote_items(product_id,quantity,unit_price,product:products(id,name))
+`;
+
+export async function getQuotesHistory(): Promise<QuoteRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("sales_quotes").select(quoteSelect).order("quoted_on", { ascending: false }).order("quote_number", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeQuoteRow(row as unknown as Record<string, unknown>));
+}
+
+export async function getQuoteDetails(quoteId: string): Promise<QuoteDetails | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("sales_quotes").select(quoteSelect).eq("id", quoteId).maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const row = data as unknown as Record<string, unknown>;
+  const base = normalizeQuoteRow(row);
+  const partner = oneRelation(row.partner);
+  const itemRows = Array.isArray(row.items) ? row.items as Record<string, unknown>[] : [];
+  return {
+    ...base,
+    payment_mode: ["paid", "combined"].includes(String(row.payment_mode)) ? String(row.payment_mode) as "paid" | "combined" : "receivable",
+    payment_method: typeof row.payment_method === "string" ? row.payment_method : null,
+    paid_on: typeof row.paid_on === "string" ? row.paid_on : null,
+    payment_due_on: typeof row.payment_due_on === "string" ? row.payment_due_on : null,
+    delivered: Boolean(row.delivered),
+    delivered_on: typeof row.delivered_on === "string" ? row.delivered_on : null,
+    delivery_due_on: typeof row.delivery_due_on === "string" ? row.delivery_due_on : null,
+    schedule_post_sale: Boolean(row.schedule_post_sale),
+    post_sale_due_on: typeof row.post_sale_due_on === "string" ? row.post_sale_due_on : null,
+    partner_id: typeof row.partner_id === "string" ? row.partner_id : null,
+    partner_name: typeof partner?.name === "string" ? partner.name : null,
     notes: typeof row.notes === "string" ? row.notes : null,
     items: itemRows.map((item) => ({
       product_id: String(item.product_id),
@@ -1680,8 +1776,8 @@ export const getCurrentUserAccess = cache(async (): Promise<UserAccess> => {
 export async function getUserPermissions(): Promise<UserPermissionRow[]> {
   if (!isSupabaseConfigured) {
     return [
-      { id: "demo-admin", email: "igorcandinho2002@hotmail.com", full_name: "Igor Candinho", role: "admin", active: true, can_access_supplements: true, can_access_fitness: true, can_manage_users: true, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-      { id: "demo-fitness", email: "giuliafaria1@gmail.com", full_name: "Giulia", role: "operator", active: true, can_access_supplements: false, can_access_fitness: true, can_manage_users: false, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "demo-admin", email: "igorcandinho2002@hotmail.com", full_name: "Igor Candinho", role: "admin", active: true, can_access_supplements: true, can_access_fitness: true, can_access_bank: true, can_manage_users: true, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "demo-fitness", email: "giuliafaria1@gmail.com", full_name: "Giulia", role: "operator", active: true, can_access_supplements: false, can_access_fitness: true, can_access_bank: false, can_manage_users: false, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
     ];
   }
   const supabase = await createClient();
@@ -1695,6 +1791,7 @@ export async function getUserPermissions(): Promise<UserPermissionRow[]> {
     active: Boolean(row.active),
     can_access_supplements: Boolean(row.can_access_supplements),
     can_access_fitness: Boolean(row.can_access_fitness),
+    can_access_bank: Boolean(row.can_access_bank),
     can_manage_users: Boolean(row.can_manage_users),
     last_sign_in_at: typeof row.last_sign_in_at === "string" ? row.last_sign_in_at : null,
     created_at: String(row.created_at ?? ""),

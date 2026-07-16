@@ -26,6 +26,7 @@ export type UserPermissionRow = {
   active: boolean;
   can_access_supplements: boolean;
   can_access_fitness: boolean;
+  can_access_bank: boolean;
   can_manage_users: boolean;
   last_sign_in_at: string | null;
   created_at: string;

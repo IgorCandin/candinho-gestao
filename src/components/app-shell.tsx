@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ChartNoAxesCombined,
   CircleDollarSign,
+  FileText,
   ContactRound,
   FlaskConical,
   Handshake,
@@ -30,6 +31,7 @@ const supplementNav = [
   { href: "/suplementos", label: "Visão geral", icon: ChartNoAxesCombined },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/vendas", label: "Comercial", icon: ShoppingBag },
+  { href: "/orcamentos", label: "Orçamentos", icon: FileText },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/clientes", label: "CRM", icon: ContactRound },
   { href: "/parceiros", label: "Parceiros", icon: Handshake },
@@ -170,6 +172,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
     if (href === "/bank") return pathname === href;
     if (href === "/teste/supplements" || href === "/teste/fitness") return pathname === href;
     if (href === "/vendas") return pathname.startsWith("/vendas") || pathname.startsWith("/leads");
+    if (href === "/orcamentos") return pathname.startsWith("/orcamentos");
     return pathname.startsWith(href);
   }
 

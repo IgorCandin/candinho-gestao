@@ -21,6 +21,7 @@ function UserPermissionCard({ user, currentUserId }: { user: UserPermissionRow; 
   const [active, setActive] = useState(user.active);
   const [supplements, setSupplements] = useState(user.can_access_supplements);
   const [fitness, setFitness] = useState(user.can_access_fitness);
+  const [bank, setBank] = useState(user.can_access_bank);
   const [manageUsers, setManageUsers] = useState(user.can_manage_users);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -31,6 +32,7 @@ function UserPermissionCard({ user, currentUserId }: { user: UserPermissionRow; 
       setActive(true);
       setSupplements(true);
       setFitness(true);
+      setBank(true);
       setManageUsers(true);
     } else {
       setManageUsers(false);
@@ -49,6 +51,7 @@ function UserPermissionCard({ user, currentUserId }: { user: UserPermissionRow; 
         p_active: active,
         p_can_access_supplements: supplements,
         p_can_access_fitness: fitness,
+        p_can_access_bank: bank,
         p_can_manage_users: manageUsers,
       });
       if (error) throw error;
@@ -99,6 +102,10 @@ function UserPermissionCard({ user, currentUserId }: { user: UserPermissionRow; 
           <label className="switch-row">
             <div><strong>Candinho Fitness</strong><span>Acesso à operação Fitness e aos próximos módulos comerciais.</span></div>
             <input type="checkbox" checked={fitness} disabled={role === "admin"} onChange={(event) => setFitness(event.target.checked)} />
+          </label>
+          <label className="switch-row">
+            <div><strong>Candinho Bank</strong><span>Acesso às contas, cobranças, faturas, dívidas e projeções financeiras.</span></div>
+            <input type="checkbox" checked={bank} disabled={role === "admin"} onChange={(event) => setBank(event.target.checked)} />
           </label>
           <label className="switch-row">
             <div><strong>Gerenciar usuários</strong><span>Permite alterar perfis e acessos. Disponível apenas para administrador.</span></div>

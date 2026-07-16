@@ -20,6 +20,7 @@ export default async function SalesPage() {
 
       <nav className="period-tabs" aria-label="Área comercial">
         <Link className="period-tab active" href="/vendas">Vendas</Link>
+        <Link className="period-tab" href="/orcamentos">Orçamentos</Link>
         <Link className="period-tab" href="/leads">Leads</Link>
       </nav>
 

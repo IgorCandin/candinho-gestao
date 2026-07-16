@@ -194,6 +194,19 @@ export type QuoteDraft = {
   items: QuoteDraftItem[];
 };
 
+export type QuoteRow = {
+  id: string; quote_number: number; customer_id: string; customer_name: string; location_id: string; location_code: string;
+  lead_id: string | null; sale_id: string | null; status: string; effective_status: string; quoted_on: string; valid_until: string;
+  gross_amount: number; discount_amount: number; total_amount: number; gift_product_id: string | null; gift_product_name: string | null;
+  gift_quantity: number; product_summary: string; total_items: number; created_at: string; updated_at: string;
+};
+
+export type QuoteDetails = QuoteRow & {
+  payment_mode: "receivable" | "paid" | "combined"; payment_method: string | null; paid_on: string | null; payment_due_on: string | null;
+  delivered: boolean; delivered_on: string | null; delivery_due_on: string | null; schedule_post_sale: boolean; post_sale_due_on: string | null;
+  partner_id: string | null; partner_name: string | null; notes: string | null; items: QuoteDraftItem[];
+};
+
 export type PendingOrderRow = {
   id: string; customer_id: string | null; customer_name: string; location_id: string; location_code: string; location_name: string;
   business_at: string; business_date: string; order_at: string; paid_at: string | null; delivered_at: string | null; general_status: string;
