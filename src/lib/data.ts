@@ -156,6 +156,10 @@ function normalizeProduct(row: Record<string, unknown>): ProductCatalogRow {
     incoming_quantity: number(row.incoming_quantity),
     awaiting_sales_quantity: number(row.awaiting_sales_quantity),
     stock_status: text(row.stock_status, Boolean(row.active) ? "out_of_stock" : "inactive"),
+    total_sold: number(row.total_sold),
+    flagship_rank: number(row.flagship_rank),
+    availability_rank: number(row.availability_rank),
+    category_rank: number(row.category_rank),
   };
 }
 
@@ -194,7 +198,7 @@ function normalizeSale(row: Record<string, unknown>): SaleRow {
 
 function normalizeLead(row: Record<string, unknown>): LeadRow {
   return {
-    id: String(row.id), customer_id: typeof row.customer_id === "string" ? row.customer_id : null, customer_name: text(row.customer_name, "Cliente não informado"),
+    id: String(row.id), item_id: null, item_quantity: 1, customer_id: typeof row.customer_id === "string" ? row.customer_id : null, customer_name: text(row.customer_name, "Cliente não informado"),
     location_id: String(row.location_id ?? ""), location_code: text(row.location_code), location_name: text(row.location_name),
     lead_at: String(row.lead_at ?? ""), lead_date: String(row.lead_date ?? ""), lead_month: String(row.lead_month ?? ""),
     lead_status: typeof row.lead_status === "string" ? row.lead_status : null, general_status: text(row.general_status, "pending"),
@@ -218,7 +222,9 @@ export async function getProductCatalog(): Promise<ProductCatalogRow[]> {
     .order("total_sold", { ascending: false })
     .order("name", { ascending: true });
   if (error) throw error;
-  return (data ?? []).map((row) => normalizeProduct(row as Record<string, unknown>));
+  return (data ?? [])
+    .map((row) => normalizeProduct(row as Record<string, unknown>))
+    .filter((product) => !product.name.toLocaleUpperCase("pt-BR").includes("COMBO"));
 }
 
 export async function getProductDetails(productId: string): Promise<ProductDetails | null> {
@@ -285,7 +291,20 @@ export async function getProductManagementDetails(productId: string): Promise<Pr
 
 export async function getProductCategories(): Promise<string[]> {
   const products = await getProductCatalog();
-  return [...new Set(products.map((product) => product.category).filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  const rank = (category: string) => {
+    const value = category.toLocaleLowerCase("pt-BR");
+    if (value.startsWith("força") || value.startsWith("forca")) return 0;
+    if (value.startsWith("energia")) return 1;
+    if (value.startsWith("emagrec")) return 2;
+    if (value.startsWith("massa")) return 3;
+    if (value.startsWith("saúde") || value.startsWith("saude")) return 4;
+    if (value.startsWith("sono")) return 5;
+    if (value.startsWith("acess")) return 6;
+    if (value.startsWith("restrit")) return 7;
+    return 8;
+  };
+  return [...new Set(products.map((product) => product.category).filter(Boolean))]
+    .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b, "pt-BR"));
 }
 
 
@@ -335,7 +354,9 @@ export async function getInventoryOverview(): Promise<InventoryOverviewRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("inventory_control_overview").select("*").order("product_name");
   if (error) throw error;
-  return (data ?? []).map((row) => normalizeInventoryOverview(row as Record<string, unknown>));
+  return (data ?? [])
+    .map((row) => normalizeInventoryOverview(row as Record<string, unknown>))
+    .filter((row) => !row.product_name.toLocaleUpperCase("pt-BR").includes("COMBO"));
 }
 
 export async function getInventoryLocationOverview(): Promise<InventoryLocationRow[]> {
@@ -466,7 +487,44 @@ export async function getLeadsHistory(): Promise<LeadRow[]> {
   const supabase = await createClient();
   const { data, error } = await supabase.from("leads_history").select("*").order("lead_month", { ascending: false }).order("lead_date", { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row) => normalizeLead(row as Record<string, unknown>));
+
+  const baseLeads = (data ?? []).map((row) => normalizeLead(row as Record<string, unknown>));
+  if (baseLeads.length === 0) return [];
+
+  const { data: itemData, error: itemError } = await supabase
+    .from("sale_items")
+    .select("id,sale_id,product_id,quantity,product:products(id,name,image_url)")
+    .in("sale_id", baseLeads.map((lead) => lead.id));
+  if (itemError) throw itemError;
+
+  const itemsByLead = new Map<string, Record<string, unknown>[]>();
+  for (const item of itemData ?? []) {
+    const row = item as Record<string, unknown>;
+    const saleId = String(row.sale_id ?? "");
+    if (!saleId) continue;
+    const list = itemsByLead.get(saleId) ?? [];
+    list.push(row);
+    itemsByLead.set(saleId, list);
+  }
+
+  return baseLeads.flatMap((lead) => {
+    const items = itemsByLead.get(lead.id) ?? [];
+    if (items.length === 0) return [lead];
+    return items.map((item) => {
+      const product = oneRelation(item.product);
+      const quantity = Math.max(number(item.quantity), 1);
+      const productName = text(product?.name, "Produto");
+      return {
+        ...lead,
+        item_id: String(item.id ?? `${lead.id}:${item.product_id ?? productName}`),
+        item_quantity: quantity,
+        product_summary: `${productName} ×${quantity}`,
+        total_items: quantity,
+        primary_product_id: typeof item.product_id === "string" ? item.product_id : typeof product?.id === "string" ? product.id : null,
+        primary_image_url: typeof product?.image_url === "string" ? product.image_url : null,
+      };
+    });
+  });
 }
 
 export async function getLeadDetails(leadId: string): Promise<LeadDetails | null> {
@@ -489,6 +547,7 @@ export async function getLeadDetails(leadId: string): Promise<LeadDetails | null
       product_image_url: lead.primary_image_url,
       category: null,
       brand: null,
+      items: lead.primary_product_id ? [{ id: lead.item_id ?? `${lead.id}:demo`, product_id: lead.primary_product_id, product_name: lead.product_summary ?? "Produto", product_image_url: lead.primary_image_url, category: null, brand: null, quantity: lead.item_quantity || 1 }] : [],
       quote_id: null,
       quote_number: null,
       quote_status: null,
@@ -498,7 +557,7 @@ export async function getLeadDetails(leadId: string): Promise<LeadDetails | null
   }
   const supabase = await createClient();
   const [{ data, error }, { data: quoteData, error: quoteError }] = await Promise.all([
-    supabase.from("sales").select(`id,customer_id,lead_status,general_status,quoted_at,reference,city,phone,notes,customer:customers(id,name,city,phone,reference),items:sale_items(id,product_id,product:products(id,name,image_url,category,brand))`).eq("id", leadId).eq("record_type", "lead").maybeSingle(),
+    supabase.from("sales").select(`id,customer_id,lead_status,general_status,quoted_at,reference,city,phone,notes,customer:customers(id,name,city,phone,reference),items:sale_items(id,product_id,quantity,product:products(id,name,image_url,category,brand))`).eq("id", leadId).eq("record_type", "lead").maybeSingle(),
     supabase.from("sales_quotes").select("id,quote_number,status,total_amount,sale_id").eq("lead_id", leadId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
   if (error) throw error;
@@ -526,6 +585,18 @@ export async function getLeadDetails(leadId: string): Promise<LeadDetails | null
     product_image_url: typeof product?.image_url === "string" ? product.image_url : null,
     category: typeof product?.category === "string" ? product.category : null,
     brand: typeof product?.brand === "string" ? product.brand : null,
+    items: itemRows.map((item) => {
+      const itemProduct = oneRelation(item.product);
+      return {
+        id: String(item.id ?? `${leadId}:${item.product_id ?? "item"}`),
+        product_id: String(item.product_id ?? itemProduct?.id ?? ""),
+        product_name: text(itemProduct?.name, "Produto"),
+        product_image_url: typeof itemProduct?.image_url === "string" ? itemProduct.image_url : null,
+        category: typeof itemProduct?.category === "string" ? itemProduct.category : null,
+        brand: typeof itemProduct?.brand === "string" ? itemProduct.brand : null,
+        quantity: Math.max(number(item.quantity), 1),
+      };
+    }),
     quote_id: quote && typeof quote.id === "string" ? quote.id : null,
     quote_number: quote?.quote_number == null ? null : number(quote.quote_number),
     quote_status: quote && typeof quote.status === "string" ? quote.status : null,

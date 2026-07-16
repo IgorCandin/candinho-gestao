@@ -11,8 +11,8 @@ import type {
 } from "./types";
 
 export const demoProducts: ProductCatalogRow[] = [
-  { id: "p1", name: "Creatina Candinho 300g", category: "Força", brand: "Candinho", image_url: null, thumbnail_url: null, active: true, sale_price: 70, installment_price: 75, physical_quantity: 46, reserved_quantity: 0, available_quantity: 46, incoming_quantity: 0, awaiting_sales_quantity: 0, stock_status: "healthy" },
-  { id: "p2", name: "Touro Power", category: "Energia", brand: "Health Labs", image_url: null, thumbnail_url: null, active: true, sale_price: 64.9, installment_price: 75, physical_quantity: 3, reserved_quantity: 0, available_quantity: 3, incoming_quantity: 0, awaiting_sales_quantity: 0, stock_status: "healthy" },
+  { id: "p1", name: "Creatina Candinho 300g", category: "Força", brand: "Candinho", image_url: null, thumbnail_url: null, active: true, sale_price: 70, installment_price: 75, physical_quantity: 46, reserved_quantity: 0, available_quantity: 46, incoming_quantity: 0, awaiting_sales_quantity: 0, stock_status: "healthy", total_sold: 12, flagship_rank: 0, availability_rank: 0, category_rank: 0 },
+  { id: "p2", name: "Touro Power", category: "Energia", brand: "Health Labs", image_url: null, thumbnail_url: null, active: true, sale_price: 64.9, installment_price: 75, physical_quantity: 3, reserved_quantity: 0, available_quantity: 3, incoming_quantity: 0, awaiting_sales_quantity: 0, stock_status: "healthy", total_sold: 8, flagship_rank: 1, availability_rank: 0, category_rank: 1 },
 ];
 
 export const demoProductDetails: ProductDetails = {
@@ -39,7 +39,7 @@ export const demoSales: SaleRow[] = [
 ];
 
 export const demoLeads: LeadRow[] = [
-  { id: "l1", customer_id: "c2", customer_name: "Lead de exemplo", location_id: "l1", location_code: "CS", location_name: "Estoque principal", lead_at: "2026-07-12T12:00:00-03:00", lead_date: "2026-07-12", lead_month: "2026-07-01", lead_status: "Perguntou sobre", general_status: "pending", reference: null, city: "Caparaó", phone: null, notes: null, product_summary: "Melatonina", total_items: 1, primary_product_id: "p2", primary_image_url: null },
+  { id: "l1", item_id: "demo-lead-item-1", item_quantity: 1, customer_id: "c2", customer_name: "Lead de exemplo", location_id: "l1", location_code: "CS", location_name: "Estoque principal", lead_at: "2026-07-12T12:00:00-03:00", lead_date: "2026-07-12", lead_month: "2026-07-01", lead_status: "Perguntou sobre", general_status: "pending", reference: null, city: "Caparaó", phone: null, notes: null, product_summary: "Melatonina", total_items: 1, primary_product_id: "p2", primary_image_url: null },
 ];
 
 export const demoPendingOrders: PendingOrderRow[] = [

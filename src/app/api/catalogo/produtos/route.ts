@@ -375,7 +375,8 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  const baseProducts = (data ?? []) as Array<Omit<CatalogProduct, "quick_message">>;
+  const baseProducts = ((data ?? []) as Array<Omit<CatalogProduct, "quick_message">>)
+    .filter((product) => !product.name.toLocaleUpperCase("pt-BR").includes("COMBO"));
   const productIds = baseProducts.map((product) => product.id);
   let quickMessages = new Map<string, string | null>();
 

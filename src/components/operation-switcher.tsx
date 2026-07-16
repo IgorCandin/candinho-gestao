@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 export function OperationSwitcher({
   canAccessSupplements,
@@ -15,12 +15,11 @@ export function OperationSwitcher({
   canAccessBank: boolean;
 }) {
   const router = useRouter();
-  const [hoveredOperation, setHoveredOperation] = useState<"fitness" | null>(null);
-
   useEffect(() => {
     if (canAccessSupplements) router.prefetch("/suplementos");
+    if (canAccessFitness) router.prefetch("/fitness");
     if (canAccessBank) router.prefetch("/bank");
-  }, [canAccessSupplements, canAccessBank, router]);
+  }, [canAccessSupplements, canAccessFitness, canAccessBank, router]);
 
   useEffect(() => {
     // A página atual monta a saudação no servidor.
@@ -44,22 +43,6 @@ export function OperationSwitcher({
       );
     }
   }, []);
-
-  const comingSoonStyle = {
-    position: "absolute" as const,
-    right: 12,
-    bottom: 10,
-    padding: "4px 9px",
-    borderRadius: 999,
-    border: "1px solid rgba(160, 166, 178, 0.32)",
-    background: "rgba(20, 24, 32, 0.92)",
-    color: "#aeb4bf",
-    fontSize: 10,
-    fontWeight: 700,
-    letterSpacing: "0.08em",
-    textTransform: "uppercase" as const,
-    pointerEvents: "none" as const,
-  };
 
   const visibleOperations = Number(canAccessSupplements) + Number(canAccessFitness) + Number(canAccessBank);
   const layoutClass = visibleOperations >= 3 ? "three" : visibleOperations === 2 ? "two" : "one";
@@ -85,16 +68,14 @@ export function OperationSwitcher({
         )}
 
         {canAccessFitness && (
-          <div
+          <Link
             className="operation-button fitness"
-            aria-label="Candinho Fitness — em breve"
-            style={{ position: "relative", cursor: "default" }}
-            onMouseEnter={() => setHoveredOperation("fitness")}
-            onMouseLeave={() => setHoveredOperation(null)}
+            href="/fitness"
+            prefetch
+            aria-label="Acessar Candinho Fitness"
           >
             <Image src="/operation-fitness.png" alt="Fitness" width={709} height={236} />
-            {hoveredOperation === "fitness" && <span style={comingSoonStyle}>Em breve</span>}
-          </div>
+          </Link>
         )}
 
         {canAccessBank && (

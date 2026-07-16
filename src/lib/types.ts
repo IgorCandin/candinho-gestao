@@ -1,4 +1,4 @@
-﻿export type ProductCatalogRow = {
+export type ProductCatalogRow = {
   id: string;
   name: string;
   category: string;
@@ -14,6 +14,10 @@
   incoming_quantity: number;
   awaiting_sales_quantity: number;
   stock_status: string;
+  total_sold: number;
+  flagship_rank: number;
+  availability_rank: number;
+  category_rank: number;
 };
 
 export type ProductOption = Pick<ProductCatalogRow, "id" | "name" | "category" | "brand" | "image_url">;
@@ -169,7 +173,7 @@ export type SaleRow = {
 };
 
 export type LeadRow = {
-  id: string; customer_id: string | null; customer_name: string; location_id: string; location_code: string; location_name: string;
+  id: string; item_id: string | null; item_quantity: number; customer_id: string | null; customer_name: string; location_id: string; location_code: string; location_name: string;
   lead_at: string; lead_date: string; lead_month: string; lead_status: string | null; general_status: string; reference: string | null;
   city: string | null; phone: string | null; notes: string | null; product_summary: string | null; total_items: number;
   primary_product_id: string | null; primary_image_url: string | null;
@@ -179,6 +183,7 @@ export type LeadDetails = {
   id: string; customer_id: string | null; customer_name: string; lead_at: string; lead_status: string | null; general_status: string;
   reference: string | null; city: string | null; phone: string | null; notes: string | null; product_id: string | null;
   product_name: string | null; product_image_url: string | null; category: string | null; brand: string | null;
+  items: Array<{ id: string; product_id: string; product_name: string; product_image_url: string | null; category: string | null; brand: string | null; quantity: number }>;
   quote_id: string | null; quote_number: number | null; quote_status: string | null; quote_total_amount: number | null; quote_sale_id: string | null;
 };
 

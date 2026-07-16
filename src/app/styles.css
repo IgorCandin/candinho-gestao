@@ -1848,3 +1848,44 @@ h1{font-size:clamp(27px,3vw,36px)}
 /* Central de Orçamentos */
 .quote-stats-grid{margin-bottom:18px}.quote-toolbar{display:grid;gap:12px;padding:15px 16px;border-bottom:1px solid var(--line)}.quote-search{display:flex;align-items:center;gap:9px;min-height:42px;padding:0 12px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.018);color:var(--muted)}.quote-search input{width:100%;height:40px;border:0;outline:0;background:transparent;color:var(--text)}.quote-filter-row{display:flex;align-items:center;gap:7px;overflow:auto;padding-bottom:2px}.quote-filter{white-space:nowrap;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--muted);font-size:9px;font-weight:850;cursor:pointer}.quote-filter:hover,.quote-filter.active{border-color:rgba(217,164,65,.38);background:var(--gold-soft);color:var(--gold)}.quotes-table{min-width:1120px}.quote-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px}.quote-status-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.quote-action-message{color:var(--muted);font-size:10px}.quote-expired-alert{margin-bottom:18px;border-color:rgba(240,168,79,.34);background:rgba(240,168,79,.07)}.quote-expired-alert .panel-body{display:flex;align-items:flex-start;gap:11px}.quote-expired-alert svg{flex:0 0 auto;color:#ffc177}.quote-expired-alert strong,.quote-expired-alert span{display:block}.quote-expired-alert span{margin-top:4px;color:var(--muted);font-size:10px}.quote-item-card{grid-template-columns:minmax(0,1fr) auto}.quote-item-card .sale-item-copy{padding-left:0}.quote-item-card .sale-item-numbers{text-align:right}
 @media(max-width:700px){.quote-stats-grid{grid-template-columns:1fr 1fr}.quote-toolbar{padding:12px}.quote-filter-row{margin-right:-12px;padding-right:12px}.quote-status-actions{display:grid}.quote-status-actions .button{width:100%}.quote-item-card{display:flex;align-items:center}.quote-item-card .sale-item-numbers{margin-left:auto}}
+
+/* Revisão comercial — catálogo Deck/Gallery e status visual */
+.product-view-toggle{display:inline-flex;align-items:center;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.015)}
+.product-view-toggle button{min-height:32px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;border:0;border-radius:9px;background:transparent;color:var(--muted);font-size:10px;font-weight:850;cursor:pointer}
+.product-view-toggle button.active{background:var(--gold-soft);color:var(--gold);box-shadow:inset 0 0 0 1px rgba(217,164,65,.22)}
+.product-commercial-order-note{display:flex;align-items:center;gap:7px;flex-wrap:wrap;padding:9px 16px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.008);color:var(--muted);font-size:9px}
+.product-commercial-order-note strong{color:#d8dde6;font-size:9px}
+.product-commercial-order-note button{margin-left:auto;padding:0;border:0;background:transparent;color:var(--gold);font-size:9px;font-weight:850;cursor:pointer}
+.product-deck-row td:first-child{position:relative}
+.product-deck-row.stock-available td:first-child{box-shadow:inset 3px 0 0 #45c97a}
+.product-deck-row.stock-incoming td:first-child{box-shadow:inset 3px 0 0 #f0a83f}
+.product-deck-row.stock-empty td:first-child{box-shadow:inset 3px 0 0 #ef6464}
+.product-row-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px}
+.product-incoming-truck{width:28px;height:28px;display:inline-grid;place-items:center;border-radius:9px;border:1px solid rgba(240,168,63,.35);background:rgba(240,168,63,.12);color:#f0a83f;flex:0 0 auto}
+.incoming-text{color:#f0b65e!important}
+.product-gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;padding:16px}
+.product-gallery-card{position:relative;display:grid;grid-template-rows:180px minmax(0,1fr);overflow:hidden;min-height:330px;border:2px solid var(--line);border-radius:17px;background:rgba(255,255,255,.018);color:var(--text);transition:transform .16s ease,border-color .16s ease,background .16s ease}
+.product-gallery-card:hover{transform:translateY(-2px);background:rgba(255,255,255,.028)}
+.product-gallery-card.stock-available{border-color:rgba(69,201,122,.72)}
+.product-gallery-card.stock-incoming{border-color:rgba(240,168,63,.78)}
+.product-gallery-card.stock-empty{border-color:rgba(239,100,100,.72)}
+.product-gallery-image{display:grid;place-items:center;overflow:hidden;padding:14px;background:#f4f4f4;color:#737c8b}
+.product-gallery-image img{width:100%;height:100%;object-fit:contain}
+.product-gallery-copy{display:grid;align-content:start;gap:12px;padding:14px}
+.product-gallery-heading{display:grid;gap:4px}
+.product-gallery-heading strong{font-size:13px;line-height:1.35}
+.product-gallery-heading span{color:var(--muted);font-size:9px}
+.product-gallery-stock{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.product-gallery-stock span{padding:8px 9px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.015);color:var(--muted);font-size:8px}
+.product-gallery-stock b{display:block;margin-top:3px;color:var(--text);font-size:14px}
+.product-gallery-price{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.product-gallery-price strong{font-size:16px;color:#f0c96f}
+.product-gallery-price span{color:var(--muted);font-size:8px;text-align:right}
+.product-gallery-card>.product-incoming-truck{position:absolute;right:10px;bottom:10px;z-index:2;box-shadow:0 8px 20px rgba(0,0,0,.28)}
+.lead-product-list{display:grid;gap:10px}
+.lead-product-list .lead-product-card{padding:10px 0;border-top:1px solid var(--line)}
+.lead-product-list .lead-product-card:first-child{padding-top:0;border-top:0}
+.lead-product-card small{color:#f0c96f;font-size:9px;font-weight:800}
+@media(max-width:1180px){.product-catalog-toolbar{flex-wrap:wrap}.product-catalog-search{flex:1 1 100%}.product-view-toggle{margin-left:auto}}
+@media(max-width:820px){.product-view-toggle{width:100%;margin-left:0}.product-view-toggle button{flex:1 1 0}.product-commercial-order-note{align-items:flex-start;flex-direction:column}.product-commercial-order-note button{margin-left:0}.product-gallery-grid{grid-template-columns:repeat(2,minmax(0,1fr));padding:12px}.product-gallery-card{grid-template-rows:150px minmax(0,1fr)}}
+@media(max-width:520px){.product-gallery-grid{grid-template-columns:1fr}.product-gallery-card{grid-template-rows:180px minmax(0,1fr)}}

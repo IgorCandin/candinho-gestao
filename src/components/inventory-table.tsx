@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { InventoryOverviewRow } from "@/lib/types";
 
-type SortKey = "product" | "physical" | "reserved" | "available" | "incoming" | "status";
+type SortKey = "commercial" | "product" | "physical" | "reserved" | "available" | "incoming" | "status";
 
 type StatusMeta = { label: string; color: string };
 const STATUS: Record<string, StatusMeta> = {
@@ -22,7 +22,7 @@ const STATUS: Record<string, StatusMeta> = {
 export function InventoryTable({ rows }: { rows: InventoryOverviewRow[] }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
-  const [sortKey, setSortKey] = useState<SortKey>("product");
+  const [sortKey, setSortKey] = useState<SortKey>("commercial");
   const [direction, setDirection] = useState<"asc" | "desc">("asc");
 
   function sortBy(key: SortKey) {
@@ -37,6 +37,22 @@ export function InventoryTable({ rows }: { rows: InventoryOverviewRow[] }) {
       .filter((row) => status === "all" || row.stock_status === status)
       .sort((a, b) => {
         let result = 0;
+        if (sortKey === "commercial") {
+          const availabilityRank = (row: InventoryOverviewRow) => row.available_quantity > 0 ? 0 : row.incoming_quantity > 0 ? 1 : 2;
+          const categoryRank = (value: string) => {
+            const category = value.toLocaleLowerCase("pt-BR");
+            if (category.startsWith("força") || category.startsWith("forca")) return 0;
+            if (category.startsWith("energia")) return 1;
+            if (category.startsWith("emagrec")) return 2;
+            if (category.startsWith("massa")) return 3;
+            if (category.startsWith("saúde") || category.startsWith("saude")) return 4;
+            if (category.startsWith("sono")) return 5;
+            if (category.startsWith("acess")) return 6;
+            if (category.startsWith("restrit")) return 7;
+            return 8;
+          };
+          result = availabilityRank(a) - availabilityRank(b) || categoryRank(a.category) - categoryRank(b.category) || a.product_name.localeCompare(b.product_name, "pt-BR");
+        }
         if (sortKey === "product") result = a.product_name.localeCompare(b.product_name, "pt-BR");
         if (sortKey === "physical") result = a.physical_quantity - b.physical_quantity;
         if (sortKey === "reserved") result = a.reserved_quantity - b.reserved_quantity;

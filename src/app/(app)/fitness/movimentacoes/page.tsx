@@ -1,0 +1,4 @@
+import { PageHeader } from "@/components/page-header";
+import { getFitnessMovements } from "@/lib/data";
+import { formatDateTime } from "@/lib/format";
+export default async function Page(){const movements=await getFitnessMovements();return <><PageHeader eyebrow="Candinho Fitness" title="Movimentações" description="Histórico de entradas, saídas, vendas, ajustes e conversões de estoque."/><article className="panel"><div className="table-wrap"><table><thead><tr><th>Data</th><th>Produto</th><th>Tamanho</th><th>Cor</th><th>Movimento</th><th>Quantidade</th><th>Observação</th></tr></thead><tbody>{movements.map((m)=><tr key={m.id}><td>{formatDateTime(m.created_at)}</td><td>{m.product_name}</td><td>{m.size}</td><td>{m.color}</td><td>{m.movement_label}</td><td>{m.quantity_delta>0?`+${m.quantity_delta}`:m.quantity_delta}</td><td>{m.notes||"—"}</td></tr>)}{movements.length===0&&<tr><td colSpan={7}>Nenhuma movimentação registrada.</td></tr>}</tbody></table></div></article></>}

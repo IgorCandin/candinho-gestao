@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import { AlertTriangle, ArrowLeft, CalendarClock, Mail, MessageCircle, Phone, ShoppingBag, UserRound } from "lucide-react";
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/badge";
@@ -109,7 +109,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
 
       <article className="panel customer-history-panel">
         <div className="panel-head"><div><h2>HistÃ³rico de leads</h2><p>Interesses registrados</p></div><strong>{leads.length}</strong></div>
-        {leads.length === 0 ? <div className="empty compact"><strong>Nenhum lead</strong>Os interesses aparecerÃ£o aqui.</div> : <div className="table-wrap"><table><thead><tr><th>Produto</th><th>Data do orÃ§amento</th><th>Status</th><th>ObservaÃ§Ãµes</th><th /></tr></thead><tbody>{leads.map((lead: (typeof leads)[number]) => <tr key={lead.id}><td>{lead.primary_product_id ? <Link className="table-link" href={`/produtos/${lead.primary_product_id}`}>{lead.product_summary ?? "Produto"}</Link> : lead.product_summary ?? "â€”"}</td><td>{formatDateOnly(lead.lead_date)}</td><td><Badge value={lead.lead_status ?? lead.general_status} /></td><td><span className="table-note">{lead.notes ?? "â€”"}</span></td><td><Link className="button ghost compact-button" href={`/leads/${lead.id}`}>Abrir</Link></td></tr>)}</tbody></table></div>}
+        {leads.length === 0 ? <div className="empty compact"><strong>Nenhum lead</strong>Os interesses aparecerÃ£o aqui.</div> : <div className="table-wrap"><table><thead><tr><th>Produto</th><th>Data do orÃ§amento</th><th>Status</th><th>ObservaÃ§Ãµes</th><th /></tr></thead><tbody>{leads.map((lead: (typeof leads)[number]) => <tr key={`${lead.id}:${lead.item_id ?? lead.primary_product_id ?? "lead"}`}><td>{lead.primary_product_id ? <Link className="table-link" href={`/produtos/${lead.primary_product_id}`}>{lead.product_summary ?? "Produto"}</Link> : lead.product_summary ?? "â€”"}</td><td>{formatDateOnly(lead.lead_date)}</td><td><Badge value={lead.lead_status ?? lead.general_status} /></td><td><span className="table-note">{lead.notes ?? "â€”"}</span></td><td><Link className="button ghost compact-button" href={`/leads/${lead.id}`}>Abrir</Link></td></tr>)}</tbody></table></div>}
       </article>
     </>
   );
