@@ -230,6 +230,8 @@ function drawProductCard(
     borderWidth: 0.8,
   });
 
+  page.drawRectangle({ x, y: y + height - 4, width, height: 4, color: GOLD });
+
   const imageX = x + 14;
   const imageY = y + 72;
   const imageSize = 104;
@@ -431,6 +433,24 @@ export async function GET(request: NextRequest) {
     logo = await pdf.embedPng(fallback);
   }
 
+  const cover = pdf.addPage([PAGE_W, PAGE_H]);
+  cover.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: BG });
+  cover.drawRectangle({ x: 0, y: PAGE_H - 14, width: PAGE_W, height: 14, color: GOLD });
+  const coverScale = Math.min(330 / logo.width, 105 / logo.height);
+  cover.drawImage(logo, { x: 48, y: PAGE_H - 175, width: logo.width * coverScale, height: logo.height * coverScale });
+  cover.drawText(safePdfText("CATÁLOGO PREMIUM"), { x: 48, y: PAGE_H - 238, size: 10, font: bold, color: GOLD });
+  cover.drawText(safePdfText("Produtos para sua evolução"), { x: 48, y: PAGE_H - 278, size: 27, font: bold, color: TEXT });
+  cover.drawText(safePdfText("Seleção atualizada da Candinho Suplementos com preços e disponibilidade."), { x: 48, y: PAGE_H - 306, size: 10, font: regular, color: MUTED });
+  cover.drawRectangle({ x: 48, y: PAGE_H - 420, width: PAGE_W - 96, height: 78, color: PANEL, borderColor: LINE, borderWidth: .7 });
+  cover.drawText(safePdfText("ATUALIZADO"), { x: 66, y: PAGE_H - 368, size: 7, font: bold, color: MUTED });
+  cover.drawText(safePdfText(datePtBr()), { x: 66, y: PAGE_H - 390, size: 13, font: bold, color: TEXT });
+  cover.drawText(safePdfText("PRODUTOS"), { x: 232, y: PAGE_H - 368, size: 7, font: bold, color: MUTED });
+  cover.drawText(String(products.length), { x: 232, y: PAGE_H - 392, size: 20, font: bold, color: GOLD });
+  cover.drawText(safePdfText("DISPONIBILIDADE"), { x: 374, y: PAGE_H - 368, size: 7, font: bold, color: MUTED });
+  cover.drawText(safePdfText(includeIncoming ? "Pronta entrega + a caminho" : "Pronta entrega"), { x: 374, y: PAGE_H - 390, size: 10, font: bold, color: TEXT });
+  cover.drawText(safePdfText("QUALIDADE QUE ENTREGA RESULTADO."), { x: 48, y: 120, size: 12, font: bold, color: GOLD });
+  cover.drawText(safePdfText("@candinhosuplementos  |  #VemDeCandin"), { x: 48, y: 98, size: 9, font: regular, color: MUTED });
+
   const cardsPerPage = 6;
   const positions = [
     [34, 524],
@@ -477,7 +497,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    drawFooter(page, regular, Math.floor(offset / cardsPerPage) + 1);
+    drawFooter(page, regular, Math.floor(offset / cardsPerPage) + 2);
   }
 
   const bytes = await pdf.save();

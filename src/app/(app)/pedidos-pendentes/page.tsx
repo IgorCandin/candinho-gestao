@@ -22,10 +22,10 @@ export default async function PendingOrdersPage() {
       />
 
       <section className="grid pending-stats-grid">
-        <StatCard label="Pedidos pendentes" value={String(orders.length)} note="Registros que exigem ação" icon={ClipboardClock} />
-        <StatCard label="Para entregar" value={String(toDeliver)} note="Pedidos aguardando entrega" icon={PackageCheck} />
-        <StatCard label="A receber" value={String(toReceive)} note="Pagamentos ainda pendentes" icon={WalletCards} />
-        <StatCard label="Valor pendente" value={formatCurrency(total)} note="Soma dos pedidos em aberto" icon={CircleDollarSign} />
+        <StatCard href="/pedidos-pendentes" label="Pedidos pendentes" value={String(orders.length)} note="Registros que exigem ação" icon={ClipboardClock} />
+        <StatCard href="/pedidos-pendentes" label="Para entregar" value={String(toDeliver)} note="Pedidos aguardando entrega" icon={PackageCheck} />
+        <StatCard href="/pedidos-pendentes" label="A receber" value={String(toReceive)} note="Pagamentos ainda pendentes" icon={WalletCards} />
+        <StatCard href="/pedidos-pendentes" label="Valor pendente" value={formatCurrency(total)} note="Soma dos pedidos em aberto" icon={CircleDollarSign} />
       </section>
 
       <article className="panel pending-orders-panel">

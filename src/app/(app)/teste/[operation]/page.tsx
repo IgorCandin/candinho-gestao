@@ -17,10 +17,10 @@ export default async function TestLabHome({params}:{params:Promise<{operation:st
   <div className="test-lab-banner"><FlaskConical size={18}/><div><strong>AMBIENTE DE TESTE</strong><span>Dados 100% isolados da operação real de {label}. Pode vender, cancelar, receber e resetar sem afetar faturamento ou estoque oficial.</span></div></div>
   <PageHeader eyebrow={`Área de Teste · ${label}`} title="Visão geral" description="Use este laboratório para validar os fluxos críticos antes de liberar mudanças na operação real." action={<TestLabReset operation={operation}/>}/>
   <section className="stats-grid">
-   <StatCard icon={ShoppingBag} label="Vendas teste" value={String(summary.sales_count)} note={`${summary.pending_payment_count} a receber · ${summary.pending_delivery_count} a entregar`}/>
-   <StatCard icon={Warehouse} label="Estoque disponível" value={String(summary.available_units)} note={`${summary.reserved_units} reservadas · ${summary.incoming_units} a caminho`}/>
-   <StatCard icon={PackageOpen} label="Pedidos abertos" value={String(summary.open_orders)} note="Somente pedidos fictícios"/>
-   <StatCard icon={FlaskConical} label="Resultado simulado" value={formatCurrency(summary.profit)} note={`${formatCurrency(summary.revenue)} em vendas fictícias`}/>
+   <StatCard href={`/teste/${operation}/vendas`} icon={ShoppingBag} label="Vendas teste" value={String(summary.sales_count)} note={`${summary.pending_payment_count} a receber · ${summary.pending_delivery_count} a entregar`}/>
+   <StatCard href={`/teste/${operation}/estoque`} icon={Warehouse} label="Estoque disponível" value={String(summary.available_units)} note={`${summary.reserved_units} reservadas · ${summary.incoming_units} a caminho`}/>
+   <StatCard href={`/teste/${operation}/pedidos`} icon={PackageOpen} label="Pedidos abertos" value={String(summary.open_orders)} note="Somente pedidos fictícios"/>
+   <StatCard href={`/teste/${operation}`} icon={FlaskConical} label="Resultado simulado" value={formatCurrency(summary.profit)} note={`${formatCurrency(summary.revenue)} em vendas fictícias`}/>
   </section>
   <section className="test-lab-quick-grid">
    <Link className="dashboard-action-card" href={`/teste/${operation}/vendas/nova`}><span className="dashboard-action-icon orange"><ShoppingBag size={20}/></span><div><span>Nova venda teste</span><strong>Testar</strong><small>Reserva, pagamento, entrega e cancelamento</small></div></Link>

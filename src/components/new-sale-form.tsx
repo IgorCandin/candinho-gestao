@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { CircleDollarSign, FileText, Gift, LoaderCircle, PackageCheck, PackagePlus, Percent, Plus, Save, Trash2, X } from "lucide-react";
+import { CircleDollarSign, FileText, Gift, Layers3, LoaderCircle, PackageCheck, PackagePlus, Percent, Plus, Save, Trash2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { CustomerCombobox } from "@/components/customer-combobox";
 import { formatCurrency } from "@/lib/format";
-import type { CustomerOption, LocationOption, PartnerOption, QuoteDraft, SaleStockOption } from "@/lib/types";
+import type { CustomerOption, LocationOption, PartnerOption, ProductComboSaleOption, QuoteDraft, SaleStockOption } from "@/lib/types";
 
 const PAYMENT_METHODS = ["Pix", "Dinheiro", "Cartão", "Link de Pagamento", "Pagamento fracionado"] as const;
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
@@ -33,11 +34,12 @@ function priceCondition(price: number, cost: number, standard: number) {
   return "Preço combinado";
 }
 
-export function NewSaleForm({ customers, locations, partners, stock, initialQuote = null }: {
+export function NewSaleForm({ customers, locations, partners, stock, combos, initialQuote = null }: {
   customers: CustomerOption[];
   locations: LocationOption[];
   partners: PartnerOption[];
   stock: SaleStockOption[];
+  combos: ProductComboSaleOption[];
   initialQuote?: QuoteDraft | null;
 }) {
   const router = useRouter();
@@ -64,6 +66,7 @@ export function NewSaleForm({ customers, locations, partners, stock, initialQuot
   const [partnership, setPartnership] = useState(Boolean(initialQuote?.partner_id));
   const [partnerId, setPartnerId] = useState(initialQuote?.partner_id ?? "");
   const [notes, setNotes] = useState(initialQuote?.notes ?? "");
+  const [comboId, setComboId] = useState("");
   const [choiceOpen, setChoiceOpen] = useState(false);
   const [loadingMode, setLoadingMode] = useState<SaveMode | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -82,6 +85,32 @@ export function NewSaleForm({ customers, locations, partners, stock, initialQuot
   }
   function addItem() { setItems((current) => [...current, { key: itemKey(), productId: "", quantity: "1", unitPrice: "" }]); }
   function removeItem(key: string) { setItems((current) => current.length === 1 ? current : current.filter((item) => item.key !== key)); }
+
+  function addCombo() {
+    const combo = combos.find((row) => row.id === comboId);
+    if (!combo) return;
+    let retailTotal = 0;
+    setItems((current) => {
+      const next = [...current];
+      for (const component of combo.items) {
+        const row = rowFor(component.product_id) ?? stock.find((entry) => entry.product_id === component.product_id);
+        const standardPrice = Number(row?.sale_price ?? 0);
+        retailTotal += standardPrice * component.quantity;
+        const existing = next.find((item) => item.productId === component.product_id);
+        if (existing) {
+          existing.quantity = String((Number(existing.quantity) || 0) + component.quantity);
+          if (!existing.unitPrice && row) existing.unitPrice = String(row.sale_price);
+        } else {
+          next.push({ key: itemKey(), productId: component.product_id, quantity: String(component.quantity), unitPrice: row ? String(row.sale_price) : "0" });
+        }
+      }
+      return next.filter((item, index) => !(index === 0 && !item.productId && next.length > 1));
+    });
+    const comboDiscount = Math.max(retailTotal - combo.sale_price, 0);
+    if (comboDiscount > 0) setDiscount((current) => String((Number(current) || 0) + comboDiscount));
+    setMessage(`Combo ${combo.name} aplicado ao orçamento${comboDiscount > 0 ? ` com ${formatCurrency(comboDiscount)} de desconto automático` : ""}.`);
+    setComboId("");
+  }
 
   const grossTotal = items.reduce((sum, item) => sum + Math.max(Number(item.quantity) || 0, 0) * Math.max(Number(item.unitPrice) || 0, 0), 0);
   const discountValue = Math.max(Number(discount) || 0, 0);
@@ -182,7 +211,7 @@ export function NewSaleForm({ customers, locations, partners, stock, initialQuot
       <article className="panel">
         <div className="panel-head"><div><h2>Cliente e orçamento</h2><p>Dados principais da proposta comercial.</p></div><CircleDollarSign size={20}/></div>
         <div className="panel-body form-grid-two">
-          <label className="field"><span>Cliente</span><select className="select" required value={customerId} onChange={(event)=>setCustomerId(event.target.value)}><option value="">Selecione o cliente</option>{customers.map((customer)=><option key={customer.id} value={customer.id}>{customer.name}{customer.city?` · ${customer.city}`:""}</option>)}</select><small>Cliente novo? <Link className="inline-link" href="/clientes/novo">Cadastrar cliente</Link></small></label>
+          <label className="field"><span>Cliente</span><CustomerCombobox customers={customers} value={customerId} onChange={setCustomerId}/><small>Digite para buscar por nome, cidade ou telefone. Cliente novo? <Link className="inline-link" href="/clientes/novo">Cadastrar cliente</Link></small></label>
           <label className="field"><span>Data do orçamento</span><input className="input" type="date" required value={quotedOn} onChange={(event)=>{setQuotedOn(event.target.value);if(!initialQuote)setValidUntil(addDays(event.target.value,7));}}/></label>
           <label className="field"><span>Validade do orçamento</span><input className="input" type="date" min={quotedOn} required value={validUntil} onChange={(event)=>setValidUntil(event.target.value)}/></label>
           <label className="field"><span>Estoque / depósito de origem</span><select className="select" required value={locationId} onChange={(event)=>setLocationId(event.target.value)}>{locations.map((location)=><option key={location.id} value={location.id}>{location.code} · {location.name}</option>)}</select></label>
@@ -193,6 +222,7 @@ export function NewSaleForm({ customers, locations, partners, stock, initialQuot
       <article className="panel">
         <div className="panel-head"><div><h2>Produtos</h2><p>Monte a proposta com quantidade e valor negociado de cada item.</p></div><button className="button ghost compact-button" type="button" onClick={addItem}><Plus size={16}/>Adicionar produto</button></div>
         <div className="panel-body sale-form-items">
+          {combos.length>0&&<div className="budget-combo-picker"><Layers3 size={18}/><div><strong>Adicionar combo pronto</strong><span>Insere os produtos reais do combo e aplica o desconto comercial automaticamente.</span></div><select className="select" value={comboId} onChange={(event)=>setComboId(event.target.value)}><option value="">Selecione um combo</option>{combos.map((combo)=><option key={combo.id} value={combo.id}>{combo.name} · {formatCurrency(combo.sale_price)}</option>)}</select><button className="button ghost compact-button" type="button" disabled={!comboId} onClick={addCombo}><Plus size={15}/>Aplicar</button></div>}
           {items.map((item, index) => {
             const row = rowFor(item.productId);
             const quantity = Number(item.quantity) || 0;

@@ -86,12 +86,12 @@ export default async function PanelCSPage({ searchParams }: { searchParams: Prom
       ) : null}
 
       <section className="grid panel-cs-stats">
-        <StatCard label="Receita bruta" value={formatCurrency(data.grossRevenue)} note="Somente vendas comerciais entregues" icon={CircleDollarSign} />
-        <StatCard label="Lucro" value={formatCurrency(data.profit)} note="Custo histórico preservado por venda" icon={TrendingUp} />
-        <StatCard label="Margem" value={`${data.marginPercent.toFixed(1).replace(".", ",")}%`} note="Lucro sobre o faturamento" icon={Gauge} />
-        <StatCard label="Quantidade de vendas" value={String(data.saleCount)} note="Vendas válidas no período" icon={ShoppingBag} />
-        <StatCard label="Ticket médio" value={formatCurrency(data.averageTicket)} note="Média por venda entregue" icon={ReceiptText} />
-        <StatCard label="Valor a receber" value={formatCurrency(data.receivable)} note={`${data.pendingOrdersCount} pedido(s) com pendência`} icon={WalletCards} />
+        <StatCard href="/vendas" label="Receita bruta" value={formatCurrency(data.grossRevenue)} note="Somente vendas comerciais entregues" icon={CircleDollarSign} />
+        <StatCard href="/vendas" label="Lucro" value={formatCurrency(data.profit)} note="Custo histórico preservado por venda" icon={TrendingUp} />
+        <StatCard href="/vendas" label="Margem" value={`${data.marginPercent.toFixed(1).replace(".", ",")}%`} note="Lucro sobre o faturamento" icon={Gauge} />
+        <StatCard href="/vendas" label="Quantidade de vendas" value={String(data.saleCount)} note="Vendas válidas no período" icon={ShoppingBag} />
+        <StatCard href="/vendas" label="Ticket médio" value={formatCurrency(data.averageTicket)} note="Média por venda entregue" icon={ReceiptText} />
+        <StatCard href="/pedidos-pendentes" label="Valor a receber" value={formatCurrency(data.receivable)} note={`${data.pendingOrdersCount} pedido(s) com pendência`} icon={WalletCards} />
       </section>
 
       <article className="panel panel-cs-sales">

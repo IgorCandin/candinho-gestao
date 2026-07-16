@@ -16,10 +16,10 @@ export default async function PartnersPage() {
     <DemoBanner />
     <PageHeader eyebrow="Rede Candinho" title="Parceiros" description="Metas, comissões, brindes, vendas vinculadas e histórico de acertos em um só lugar." action={<Link className="button gold" href="/parceiros/novo"><Plus size={16} />Novo parceiro</Link>} />
     <section className="stats-grid partner-stats-grid">
-      <StatCard label="Parceiros ativos" value={String(active.length)} note={`${partners.length} cadastrados`} icon={Handshake} />
-      <StatCard label="Acertos pendentes" value={String(pending.length)} note="Metas ou movimentos a revisar" icon={Gift} />
-      <StatCard label="Vendas no ciclo" value={String(partners.reduce((sum, partner) => sum + partner.current_cycle_sales_count, 0))} note={formatCurrency(cycleRevenue)} icon={CircleDollarSign} />
-      <StatCard label="Vendas sem vínculo" value={String(unassigned.length)} note="Registros antigos para revisar" icon={Link2} />
+      <StatCard href="/parceiros" label="Parceiros ativos" value={String(active.length)} note={`${partners.length} cadastrados`} icon={Handshake} />
+      <StatCard href="/parceiros" label="Acertos pendentes" value={String(pending.length)} note="Metas ou movimentos a revisar" icon={Gift} />
+      <StatCard href="/vendas" label="Vendas no ciclo" value={String(partners.reduce((sum, partner) => sum + partner.current_cycle_sales_count, 0))} note={formatCurrency(cycleRevenue)} icon={CircleDollarSign} />
+      <StatCard href="/parceiros" label="Vendas sem vínculo" value={String(unassigned.length)} note="Registros antigos para revisar" icon={Link2} />
     </section>
     <PartnersTable partners={partners} />
   </>;

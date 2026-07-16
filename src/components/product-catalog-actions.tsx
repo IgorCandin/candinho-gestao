@@ -1,6 +1,6 @@
 "use client";
 
-import { FileDown, Plus } from "lucide-react";
+import { FileDown, Layers3, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -16,6 +16,10 @@ export function ProductCatalogActions() {
   return (
     <>
       <div className="product-page-actions">
+        <Link className="button ghost" href="/produtos/combos">
+          <Layers3 size={16} />
+          Combos
+        </Link>
         <button className="button ghost" type="button" onClick={() => setShowCatalogOptions(true)}>
           <FileDown size={16} />
           Gerar catálogo PDF

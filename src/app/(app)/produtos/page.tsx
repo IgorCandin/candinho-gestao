@@ -24,10 +24,10 @@ export default async function ProductsPage() {
       />
 
       <section className="stats-grid product-stats-grid">
-        <StatCard label="Produtos ativos" value={String(active.length)} note={`${products.length} cadastrados`} icon={Boxes} />
-        <StatCard label="Unidades disponíveis" value={String(availableUnits)} note="Saldo livre para vendas" icon={PackageCheck} />
-        <StatCard label="Unidades a caminho" value={String(incomingUnits)} note="Pedidos de fornecedor" icon={PackagePlus} />
-        <StatCard label="Sem miniatura" value={String(missingPhotos)} note="Não carregam foto nas listas" icon={Image} />
+        <StatCard href="/produtos" label="Produtos ativos" value={String(active.length)} note={`${products.length} cadastrados`} icon={Boxes} />
+        <StatCard href="/estoque" label="Unidades disponíveis" value={String(availableUnits)} note="Saldo livre para vendas" icon={PackageCheck} />
+        <StatCard href="/pedidos-fornecedor" label="Unidades a caminho" value={String(incomingUnits)} note="Pedidos de fornecedor" icon={PackagePlus} />
+        <StatCard href="/produtos" label="Sem miniatura" value={String(missingPhotos)} note="Não carregam foto nas listas" icon={Image} />
       </section>
 
       <ProductCatalogTable products={products} categories={categories} />

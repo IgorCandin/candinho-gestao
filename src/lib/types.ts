@@ -20,7 +20,7 @@ export type ProductCatalogRow = {
   category_rank: number;
 };
 
-export type ProductOption = Pick<ProductCatalogRow, "id" | "name" | "category" | "brand" | "image_url">;
+export type ProductOption = Pick<ProductCatalogRow, "id" | "name" | "category" | "brand" | "image_url" | "sale_price">;
 
 export type SaleStockOption = {
   product_id: string;
@@ -828,6 +828,38 @@ export type FitnessInventoryMovementRow = {
   color: string;
   sku: string | null;
 };
+
+
+export type ProductComboRow = {
+  id: string;
+  name: string;
+  description: string | null;
+  sale_price: number;
+  installment_price: number;
+  image_url: string | null;
+  active: boolean;
+  legacy_product_id: string | null;
+  component_count: number;
+  calculated_cost: number;
+  component_summary: string | null;
+  available_quantity: number;
+  incoming_quantity: number;
+  stock_status: string;
+};
+
+export type ProductComboItem = {
+  id: string;
+  combo_id: string;
+  product_id: string;
+  product_name: string;
+  quantity: number;
+  sale_price: number;
+  cost_price: number;
+  image_url: string | null;
+};
+
+export type ProductComboDetails = ProductComboRow & { items: ProductComboItem[] };
+export type ProductComboSaleOption = ProductComboRow & { items: Array<{ product_id: string; quantity: number }> };
 
 // -----------------------------------------------------------------------------
 // Tipagens temporÃ¡rias do Test Lab

@@ -53,10 +53,10 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
       </div>
 
       <section className="grid stats-grid customer-stats-grid">
-        <StatCard label="Compras" value={String(customer.purchase_count)} note="Vendas registradas" icon={ShoppingBag} />
-        <StatCard label="Total comprado" value={formatCurrency(customer.total_spent)} note="HistÃ³rico de vendas" icon={ShoppingBag} />
-        <StatCard label="Leads" value={String(customer.lead_count)} note={`${customer.interaction_count} contato(s) no CRM`} icon={UserRound} />
-        <StatCard label="PrÃ³xima aÃ§Ã£o" value={customer.next_followup_at ? formatDateOnly(customer.next_followup_at) : "Livre"} note={customer.next_action_label} icon={CalendarClock} />
+        <StatCard href="/vendas" label="Compras" value={String(customer.purchase_count)} note="Vendas registradas" icon={ShoppingBag} />
+        <StatCard href="/vendas" label="Total comprado" value={formatCurrency(customer.total_spent)} note="HistÃ³rico de vendas" icon={ShoppingBag} />
+        <StatCard href="/leads" label="Leads" value={String(customer.lead_count)} note={`${customer.interaction_count} contato(s) no CRM`} icon={UserRound} />
+        <StatCard href="/agenda" label="PrÃ³xima aÃ§Ã£o" value={customer.next_followup_at ? formatDateOnly(customer.next_followup_at) : "Livre"} note={customer.next_action_label} icon={CalendarClock} />
       </section>
 
       <section className="customer-profile-grid">

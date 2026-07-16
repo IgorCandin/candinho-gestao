@@ -18,10 +18,10 @@ export default async function QuotesPage() {
     <PageHeader eyebrow="Comercial" title="Orçamentos" description="Central de propostas enviadas, confirmações, perdas e histórico de PDFs." action={<Link className="button gold" href="/vendas/nova"><Plus size={16}/>Novo Orçamento</Link>}/>
     <nav className="period-tabs" aria-label="Área comercial"><Link className="period-tab" href="/vendas">Vendas</Link><Link className="period-tab active" href="/orcamentos">Orçamentos</Link><Link className="period-tab" href="/leads">Leads</Link></nav>
     <section className="stats-grid quote-stats-grid">
-      <StatCard icon={FileText} label="Em orçamento" value={String(open.length)} note="Dentro da validade"/>
-      <StatCard icon={Clock3} label="Vencidos" value={String(expired.length)} note="Podem ser revisados e reenviados"/>
-      <StatCard icon={FileCheck2} label="Confirmados" value={String(confirmed.length)} note="Já convertidos em venda"/>
-      <StatCard icon={CircleDollarSign} label="Valor em aberto" value={formatCurrency(openValue)} note="Orçamentos ativos + vencidos"/>
+      <StatCard href="/orcamentos" icon={FileText} label="Em orçamento" value={String(open.length)} note="Dentro da validade"/>
+      <StatCard href="/orcamentos" icon={Clock3} label="Vencidos" value={String(expired.length)} note="Podem ser revisados e reenviados"/>
+      <StatCard href="/vendas" icon={FileCheck2} label="Confirmados" value={String(confirmed.length)} note="Já convertidos em venda"/>
+      <StatCard href="/orcamentos" icon={CircleDollarSign} label="Valor em aberto" value={formatCurrency(openValue)} note="Orçamentos ativos + vencidos"/>
     </section>
     <article className="panel"><QuotesTable quotes={quotes}/></article>
   </>;

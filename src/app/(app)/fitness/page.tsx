@@ -16,10 +16,10 @@ export default async function FitnessDashboardPage() {
   return <>
     <PageHeader eyebrow="Candinho Fitness" title="Visão geral" description="Vendas, clientes, peças, estoque e reposições em uma operação separada da Suplementos." action={access.canWriteFitness ? <Link className="button gold" href="/fitness/vendas/nova"><ShoppingBag size={16}/>Nova venda</Link> : null}/>
     <section className="stats-grid">
-      <StatCard icon={ShoppingBag} label="Vendas no mês" value={String(summary.month_sales)} note={`${formatCurrency(summary.month_revenue)} em faturamento`} />
-      <StatCard icon={CircleDollarSign} label="Lucro no mês" value={formatCurrency(summary.month_profit)} note={`${formatCurrency(summary.receivable_total)} a receber`} />
-      <StatCard icon={Warehouse} label="Estoque disponível" value={String(summary.available_units)} note={`${summary.reserved_units} reservadas · ${summary.incoming_units} a caminho`} />
-      <StatCard icon={UsersRound} label="Clientes ativos" value={String(summary.active_customers)} note={`${summary.pending_delivery} entrega(s) · ${summary.pending_payment} pagamento(s) pendente(s)`} />
+      <StatCard href="/fitness/vendas" icon={ShoppingBag} label="Vendas no mês" value={String(summary.month_sales)} note={`${formatCurrency(summary.month_revenue)} em faturamento`} />
+      <StatCard href="/fitness/vendas" icon={CircleDollarSign} label="Lucro no mês" value={formatCurrency(summary.month_profit)} note={`${formatCurrency(summary.receivable_total)} a receber`} />
+      <StatCard href="/fitness/estoque" icon={Warehouse} label="Estoque disponível" value={String(summary.available_units)} note={`${summary.reserved_units} reservadas · ${summary.incoming_units} a caminho`} />
+      <StatCard href="/fitness/clientes" icon={UsersRound} label="Clientes ativos" value={String(summary.active_customers)} note={`${summary.pending_delivery} entrega(s) · ${summary.pending_payment} pagamento(s) pendente(s)`} />
     </section>
 
     <section className="test-lab-quick-grid">

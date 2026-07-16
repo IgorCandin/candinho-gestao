@@ -19,10 +19,10 @@ export default async function CustomersPage() {
         action={<Link className="button gold" href="/clientes/novo"><Plus size={16} />Novo cliente</Link>}
       />
       <section className="grid stats-grid crm-stats-grid">
-        <StatCard label="Clientes ativos" value={String(summary.total_active_customers)} note="Cadastros disponíveis" icon={ContactRound} />
-        <StatCard label="Retornos" value={String(returns)} note={`${summary.overdue_followups} atrasado(s) · ${summary.followups_today} para hoje`} icon={CalendarClock} />
-        <StatCard label="Oportunidades" value={String(summary.lead_only_customers + summary.inactive_customers)} note={`${summary.lead_only_customers} leads · ${summary.inactive_customers} inativos`} icon={UserRoundSearch} />
-        <StatCard label="Cuidados" value={String(summary.care_customers)} note="Restrições ou atenção especial" icon={AlertTriangle} />
+        <StatCard href="/clientes" label="Clientes ativos" value={String(summary.total_active_customers)} note="Cadastros disponíveis" icon={ContactRound} />
+        <StatCard href="/agenda" label="Retornos" value={String(returns)} note={`${summary.overdue_followups} atrasado(s) · ${summary.followups_today} para hoje`} icon={CalendarClock} />
+        <StatCard href="/leads" label="Oportunidades" value={String(summary.lead_only_customers + summary.inactive_customers)} note={`${summary.lead_only_customers} leads · ${summary.inactive_customers} inativos`} icon={UserRoundSearch} />
+        <StatCard href="/clientes" label="Cuidados" value={String(summary.care_customers)} note="Restrições ou atenção especial" icon={AlertTriangle} />
       </section>
       <article className="panel crm-customers-panel">
         <div className="panel-head">

@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ArrowUpDown, ImageOff, LayoutGrid, Rows3, Search, Truck } from "lucide-react";
+import { ArrowRight, ArrowUpDown, Eye, EyeOff, ImageOff, LayoutGrid, Rows3, Search, Truck, ZoomIn, ZoomOut } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { ProductCatalogRow } from "@/lib/types";
@@ -60,6 +60,8 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
   const [sortKey, setSortKey] = useState<SortKey>("commercial");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [viewMode, setViewMode] = useState<ViewMode>("deck");
+  const [galleryDensity, setGalleryDensity] = useState(3);
+  const [galleryDetails, setGalleryDetails] = useState(true);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("pt-BR");
@@ -93,6 +95,12 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
           <button className={viewMode === "deck" ? "active" : ""} type="button" onClick={() => setViewMode("deck")}><Rows3 size={15} />Deck</button>
           <button className={viewMode === "gallery" ? "active" : ""} type="button" onClick={() => setViewMode("gallery")}><LayoutGrid size={15} />Gallery</button>
         </div>
+        {viewMode === "gallery" && <div className="product-gallery-controls">
+          <div className="product-gallery-zoom" title="Quantidade de produtos por linha">
+            <ZoomOut size={14}/><input aria-label="Zoom da galeria" type="range" min="1" max="5" step="1" value={galleryDensity} onChange={(event)=>setGalleryDensity(Number(event.target.value))}/><ZoomIn size={14}/>
+          </div>
+          <button className={galleryDetails ? "active" : ""} type="button" onClick={()=>setGalleryDetails((current)=>!current)}>{galleryDetails?<Eye size={14}/>:<EyeOff size={14}/>} {galleryDetails?"Completo":"Essencial"}</button>
+        </div>}
         <span className="product-result-count">{filtered.length} produto{filtered.length === 1 ? "" : "s"}</span>
       </div>
 
@@ -105,7 +113,7 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
       {filtered.length === 0 ? (
         <div className="empty"><strong>Nenhum produto encontrado</strong>Altere os filtros ou a busca.</div>
       ) : viewMode === "gallery" ? (
-        <div className="product-gallery-grid">
+        <div className={`product-gallery-grid density-${galleryDensity} ${galleryDetails ? "show-details" : "essential"}`}>
           {filtered.map((product) => {
             const state = stockLabel(product);
             const border = stockBorder(product);
@@ -115,9 +123,9 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
                   {product.thumbnail_url || product.image_url ? <img src={product.thumbnail_url ?? product.image_url ?? ""} alt={product.name} loading="lazy" /> : <ImageOff size={28} />}
                 </div>
                 <div className="product-gallery-copy">
-                  <div className="product-gallery-heading"><strong>{product.name}</strong><span>{product.category}{product.brand ? ` · ${product.brand}` : ""}</span></div>
-                  <div className="product-gallery-stock"><span>Disponível <b>{product.available_quantity}</b></span><span>A caminho <b>{product.incoming_quantity}</b></span></div>
-                  <div className="product-gallery-price"><strong>{formatCurrency(product.sale_price)}</strong><span>{formatCurrency(product.installment_price)} a prazo</span></div>
+                  <div className="product-gallery-heading"><strong>{product.name}</strong>{galleryDetails&&<span>{product.category}{product.brand ? ` · ${product.brand}` : ""}</span>}</div>
+                  <div className="product-gallery-stock"><span>Disponível <b>{product.available_quantity}</b></span>{galleryDetails&&<span>A caminho <b>{product.incoming_quantity}</b></span>}</div>
+                  {galleryDetails&&<div className="product-gallery-price"><strong>{formatCurrency(product.sale_price)}</strong><span>{formatCurrency(product.installment_price)} a prazo</span></div>}
                   <span className={`badge ${state.tone}`}><span className="dot" />{state.label}</span>
                 </div>
                 <IncomingTruck product={product} />

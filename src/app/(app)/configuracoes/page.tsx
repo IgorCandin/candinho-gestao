@@ -37,10 +37,10 @@ export default async function SettingsPage({searchParams}:{searchParams:Promise<
       )}
 
       <section className="stats-grid settings-stats-grid">
-        <StatCard icon={UsersRound} label="Usuários" value={String(users.length)} note="Contas cadastradas" />
-        <StatCard icon={UserCheck} label="Ativos" value={String(active)} note="Com acesso liberado" />
-        <StatCard icon={ShieldCheck} label="Administradores" value={String(admins)} note="Controle total" />
-        <StatCard icon={UserCog} label="Acessos a operações" value={String(operations)} note="Suplementos + Fitness + Bank" />
+        <StatCard href="/configuracoes" icon={UsersRound} label="Usuários" value={String(users.length)} note="Contas cadastradas" />
+        <StatCard href="/configuracoes" icon={UserCheck} label="Ativos" value={String(active)} note="Com acesso liberado" />
+        <StatCard href="/configuracoes" icon={ShieldCheck} label="Administradores" value={String(admins)} note="Controle total" />
+        <StatCard href="/configuracoes" icon={UserCog} label="Acessos a operações" value={String(operations)} note="Suplementos + Fitness + Bank" />
       </section>
       <UserPermissionsManager users={users} currentUserId={access.id} />
     </>

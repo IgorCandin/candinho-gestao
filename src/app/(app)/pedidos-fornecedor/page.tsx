@@ -26,10 +26,10 @@ export default async function SupplierOrdersPage() {
       />
 
       <section className="stats-grid supplier-stats-grid">
-        <StatCard label="Pedidos em aberto" value={String(pending.length)} note="Pendentes ou parcialmente recebidos" icon={Truck} />
-        <StatCard label="Unidades a caminho" value={String(pendingUnits)} note="Saldo ainda não recebido" icon={Boxes} />
-        <StatCard label="Vendas aguardando" value={String(waitingSales)} note="Reservas que precisam de reposição" icon={PackageCheck} />
-        <StatCard label="Valor em pedidos" value={formatCurrency(pendingValue)} note={`${received.length} pedidos no histórico`} icon={PackageCheck} />
+        <StatCard href="/pedidos-fornecedor" label="Pedidos em aberto" value={String(pending.length)} note="Pendentes ou parcialmente recebidos" icon={Truck} />
+        <StatCard href="/pedidos-fornecedor" label="Unidades a caminho" value={String(pendingUnits)} note="Saldo ainda não recebido" icon={Boxes} />
+        <StatCard href="/pedidos-fornecedor" label="Vendas aguardando" value={String(waitingSales)} note="Reservas que precisam de reposição" icon={PackageCheck} />
+        <StatCard href="/pedidos-fornecedor" label="Valor em pedidos" value={formatCurrency(pendingValue)} note={`${received.length} pedidos no histórico`} icon={PackageCheck} />
       </section>
 
       <SupplierOrdersTable orders={orders} />

@@ -28,10 +28,10 @@ export default async function PartnerDetailsPage({ params }: { params: Promise<{
     <PageHeader eyebrow="Parceria" title={partner.name} description={`${partner.partner_type}${partner.city ? ` · ${partner.city}` : ""}`} action={<Link className="button gold" href={`/parceiros/${partner.id}/editar`}><Edit3 size={16} />Editar parceiro</Link>} />
 
     <section className="stats-grid partner-detail-stats">
-      <StatCard label="Vendas no ciclo" value={String(partner.current_cycle_sales_count)} note={`Desde ${formatDateOnly(partner.cycle_start)}`} icon={UsersRound} />
-      <StatCard label="Faturamento no ciclo" value={formatCurrency(partner.current_cycle_revenue)} note={`${formatCurrency(partner.current_cycle_profit)} de lucro`} icon={CircleDollarSign} />
-      <StatCard label="Recompensa estimada" value={partner.reward_units_due > 0 ? `${partner.reward_units_due} brinde(s)` : formatCurrency(partner.estimated_reward_amount)} note={partner.settlement_pending ? "Acerto pendente" : "Ciclo em andamento"} icon={Gift} />
-      <StatCard label="Estoque no ponto" value={String(partner.linked_location_units)} note={partner.linked_location_code ?? "Sem ponto relacionado"} icon={Boxes} />
+      <StatCard href="/vendas" label="Vendas no ciclo" value={String(partner.current_cycle_sales_count)} note={`Desde ${formatDateOnly(partner.cycle_start)}`} icon={UsersRound} />
+      <StatCard href="/vendas" label="Faturamento no ciclo" value={formatCurrency(partner.current_cycle_revenue)} note={`${formatCurrency(partner.current_cycle_profit)} de lucro`} icon={CircleDollarSign} />
+      <StatCard href="/parceiros" label="Recompensa estimada" value={partner.reward_units_due > 0 ? `${partner.reward_units_due} brinde(s)` : formatCurrency(partner.estimated_reward_amount)} note={partner.settlement_pending ? "Acerto pendente" : "Ciclo em andamento"} icon={Gift} />
+      <StatCard href="/estoque" label="Estoque no ponto" value={String(partner.linked_location_units)} note={partner.linked_location_code ?? "Sem ponto relacionado"} icon={Boxes} />
     </section>
 
     <section className="partner-detail-layout">

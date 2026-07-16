@@ -32,6 +32,9 @@ import type {
   ProductCatalogRow,
   ProductDetails,
   ProductManagementDetails,
+  ProductComboRow,
+  ProductComboDetails,
+  ProductComboSaleOption,
   ProductOption,
   QuoteDraft,
   QuoteRow,
@@ -819,7 +822,7 @@ export async function getCustomerOptions(): Promise<CustomerOption[]> {
   const supabase = await createClient(); const { data, error } = await supabase.from("customers").select("id,name,city,phone").eq("active", true).order("name", { ascending: true }); if (error) throw error;
   return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null }));
 }
-export async function getProductOptions(): Promise<ProductOption[]> { const products = await getProductCatalog(); return products.filter((product) => product.active).map(({ id, name, category, brand, image_url }) => ({ id, name, category, brand, image_url })); }
+export async function getProductOptions(): Promise<ProductOption[]> { const products = await getProductCatalog(); return products.filter((product) => product.active).map(({ id, name, category, brand, image_url, sale_price }) => ({ id, name, category, brand, image_url, sale_price })); }
 export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
@@ -1552,6 +1555,100 @@ export async function getDashboard(): Promise<DashboardData> {
       })
       .slice(0, 8),
   };
+}
+
+
+export async function getProductCombos(): Promise<ProductComboRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("product_combo_overview")
+    .select("*")
+    .order("active", { ascending: false })
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    name: text(row.name, "Combo sem nome"),
+    description: typeof row.description === "string" ? row.description : null,
+    sale_price: number(row.sale_price),
+    installment_price: number(row.installment_price),
+    image_url: typeof row.image_url === "string" ? row.image_url : null,
+    active: Boolean(row.active),
+    legacy_product_id: typeof row.legacy_product_id === "string" ? row.legacy_product_id : null,
+    component_count: number(row.component_count),
+    calculated_cost: number(row.calculated_cost),
+    component_summary: typeof row.component_summary === "string" ? row.component_summary : null,
+    available_quantity: number(row.available_quantity),
+    incoming_quantity: number(row.incoming_quantity),
+    stock_status: text(row.stock_status, "needs_setup"),
+  }));
+}
+
+export async function getProductComboDetails(comboId: string): Promise<ProductComboDetails | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const [{ data: combo, error: comboError }, { data: items, error: itemsError }] = await Promise.all([
+    supabase.from("product_combo_overview").select("*").eq("id", comboId).maybeSingle(),
+    supabase.from("product_combo_items").select("id,combo_id,product_id,quantity,product:products(name,sale_price,cost_price,image_url)").eq("combo_id", comboId).order("created_at"),
+  ]);
+  if (comboError) throw comboError;
+  if (itemsError) throw itemsError;
+  if (!combo) return null;
+  const base: ProductComboRow = {
+    id: String(combo.id), name: text(combo.name, "Combo sem nome"),
+    description: typeof combo.description === "string" ? combo.description : null,
+    sale_price: number(combo.sale_price), installment_price: number(combo.installment_price),
+    image_url: typeof combo.image_url === "string" ? combo.image_url : null, active: Boolean(combo.active),
+    legacy_product_id: typeof combo.legacy_product_id === "string" ? combo.legacy_product_id : null,
+    component_count: number(combo.component_count), calculated_cost: number(combo.calculated_cost),
+    component_summary: typeof combo.component_summary === "string" ? combo.component_summary : null,
+    available_quantity: number(combo.available_quantity), incoming_quantity: number(combo.incoming_quantity),
+    stock_status: text(combo.stock_status, "needs_setup"),
+  };
+  return {
+    ...base,
+    items: (items ?? []).map((row) => {
+      const relation = Array.isArray(row.product) ? row.product[0] : row.product;
+      const product = relation && typeof relation === "object" ? relation as Record<string, unknown> : {};
+      return {
+        id: String(row.id), combo_id: String(row.combo_id), product_id: String(row.product_id),
+        product_name: text(product.name, "Produto"), quantity: number(row.quantity),
+        sale_price: number(product.sale_price), cost_price: number(product.cost_price),
+        image_url: typeof product.image_url === "string" ? product.image_url : null,
+      };
+    }),
+  };
+}
+
+
+export async function getProductComboSaleOptions(): Promise<ProductComboSaleOption[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const [{ data: combos, error: combosError }, { data: items, error: itemsError }] = await Promise.all([
+    supabase.from("product_combo_overview").select("*").eq("active", true).gte("component_count", 2).order("name"),
+    supabase.from("product_combo_items").select("combo_id,product_id,quantity"),
+  ]);
+  if (combosError) throw combosError;
+  if (itemsError) throw itemsError;
+  const byCombo = new Map<string, Array<{ product_id: string; quantity: number }>>();
+  for (const row of items ?? []) {
+    const key = String(row.combo_id);
+    const current = byCombo.get(key) ?? [];
+    current.push({ product_id: String(row.product_id), quantity: number(row.quantity) });
+    byCombo.set(key, current);
+  }
+  return (combos ?? []).map((combo) => ({
+    id: String(combo.id), name: text(combo.name, "Combo"),
+    description: typeof combo.description === "string" ? combo.description : null,
+    sale_price: number(combo.sale_price), installment_price: number(combo.installment_price),
+    image_url: typeof combo.image_url === "string" ? combo.image_url : null, active: Boolean(combo.active),
+    legacy_product_id: typeof combo.legacy_product_id === "string" ? combo.legacy_product_id : null,
+    component_count: number(combo.component_count), calculated_cost: number(combo.calculated_cost),
+    component_summary: typeof combo.component_summary === "string" ? combo.component_summary : null,
+    available_quantity: number(combo.available_quantity), incoming_quantity: number(combo.incoming_quantity),
+    stock_status: text(combo.stock_status, "available"), items: byCombo.get(String(combo.id)) ?? [],
+  }));
 }
 
 
