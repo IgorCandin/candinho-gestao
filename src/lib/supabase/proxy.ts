@@ -28,7 +28,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
     "/dashboard", "/suplementos", "/fitness", "/produtos", "/estoque", "/vendas", "/leads",
-    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs",
+    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs", "/bank",
   ];
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -52,6 +52,7 @@ export async function updateSession(request: NextRequest) {
       active: true,
       can_access_supplements: email === MANAGER_EMAIL,
       can_access_fitness: email === MANAGER_EMAIL || email === FITNESS_SALES_EMAIL,
+      can_access_bank: email === MANAGER_EMAIL,
       can_manage_users: email === MANAGER_EMAIL,
     };
 
@@ -62,6 +63,7 @@ export async function updateSession(request: NextRequest) {
         active: Boolean(row.active),
         can_access_supplements: Boolean(row.can_access_supplements),
         can_access_fitness: Boolean(row.can_access_fitness),
+        can_access_bank: Boolean(row.can_access_bank),
         can_manage_users: Boolean(row.can_manage_users),
       };
     }
@@ -72,6 +74,7 @@ export async function updateSession(request: NextRequest) {
     ];
     const isSupplementRoute = supplementPrefixes.some((prefix) => pathname.startsWith(prefix));
     const isFitnessRoute = pathname.startsWith("/fitness");
+    const isBankRoute = pathname.startsWith("/bank");
     const isManagerRoute = pathname.startsWith("/configuracoes");
 
     if (!access.active && pathname !== "/dashboard") {
@@ -90,7 +93,14 @@ export async function updateSession(request: NextRequest) {
 
     if (isFitnessRoute && !access.can_access_fitness) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : "/dashboard";
+      redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : access.can_access_bank ? "/bank" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isBankRoute && !access.can_access_bank) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : access.can_access_fitness ? "/fitness" : "/dashboard";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }

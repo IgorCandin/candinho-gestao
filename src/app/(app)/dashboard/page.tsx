@@ -16,8 +16,9 @@ export default async function DashboardPage() {
       <OperationSwitcher
         canAccessSupplements={access.canAccessSupplements}
         canAccessFitness={access.canAccessFitness}
+        canAccessBank={access.canAccessBank}
       />
-      {(!access.active || (!access.canAccessSupplements && !access.canAccessFitness)) && (
+      {(!access.active || (!access.canAccessSupplements && !access.canAccessFitness && !access.canAccessBank)) && (
         <p className="operation-access-warning">Seu usuário ainda não possui uma operação liberada.</p>
       )}
     </section>

@@ -47,6 +47,16 @@ const fitnessNav = [
   { href: "/fitness/movimentacoes", label: "Movimentações", icon: History },
 ];
 
+const bankNav = [
+  { href: "/bank", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/bank/cobrancas", label: "Cobranças", icon: CircleDollarSign },
+  { href: "/bank/faturas", label: "Faturas", icon: History },
+  { href: "/bank/emprestimos", label: "Empréstimos e Notinhas", icon: Handshake },
+  { href: "/bank/mensalidades", label: "Planos e Mensalidades", icon: CalendarDays },
+  { href: "/bank/contas", label: "Contas e Carteiras", icon: Building2 },
+  { href: "/bank/visao-anual", label: "Visão Anual", icon: CalendarDays },
+];
+
 const testSupplementNav = [
   { href: "/teste/supplements", label: "Visão geral", icon: FlaskConical },
   { href: "/teste/supplements/vendas", label: "Vendas teste", icon: ShoppingBag },
@@ -63,7 +73,7 @@ const testFitnessNav = [
 
 const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
 
-type Operation = "hub" | "supplements" | "fitness";
+type Operation = "hub" | "supplements" | "fitness" | "bank";
 
 export function AppShell({ children, access }: { children: React.ReactNode; access: UserAccess }) {
   const pathname = usePathname();
@@ -76,18 +86,21 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const settingsOperation = searchParams.get("operacao");
 
   let operation: Operation = "hub";
-  if (isTestFitness || pathname.startsWith("/fitness") || (isSettings && settingsOperation === "fitness")) {
+  if (pathname.startsWith("/bank") || (isSettings && settingsOperation === "bank")) {
+    operation = "bank";
+  } else if (isTestFitness || pathname.startsWith("/fitness") || (isSettings && settingsOperation === "fitness")) {
     operation = "fitness";
   } else if (
     isTestSupplements ||
     (isSettings && settingsOperation === "suplementos") ||
-    (!isHub && !isSettings && !pathname.startsWith("/fitness") && !pathname.startsWith("/teste/"))
+    (!isHub && !isSettings && !pathname.startsWith("/fitness") && !pathname.startsWith("/bank") && !pathname.startsWith("/teste/"))
   ) {
     operation = "supplements";
   }
 
   const isFitness = operation === "fitness";
   const isSupplements = operation === "supplements";
+  const isBank = operation === "bank";
   const isRealFitness = isFitness && !isTest && !isSettings;
   const isRealSupplements = isSupplements && !isTest && !isSettings;
 
@@ -97,9 +110,11 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
       ? testSupplementNav
       : isTestFitness
         ? testFitnessNav
-        : isFitness
-          ? fitnessNav
-          : supplementNav;
+        : isBank
+          ? bankNav
+          : isFitness
+            ? fitnessNav
+            : supplementNav;
 
   const mobileShortcuts = isSettings
     ? []
@@ -109,34 +124,49 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
           { href: `/teste/${operation}/vendas/nova`, label: "Nova venda", icon: CircleDollarSign, primary: true },
           { href: `/teste/${operation}/estoque`, label: "Estoque", icon: Warehouse, primary: false },
         ]
-      : isFitness
+      : isBank
         ? [
-            { href: "/fitness/pedidos/novo", label: "Novo pedido", icon: Truck, primary: false },
-            { href: "/fitness/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
-            { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch, primary: false },
+            { href: "/bank/cobrancas", label: "Cobranças", icon: CircleDollarSign, primary: false },
+            { href: "/bank", label: "Início", icon: ChartNoAxesCombined, primary: true },
+            { href: "/bank/faturas", label: "Faturas", icon: History, primary: false },
           ]
-        : [
-            { href: "/leads/novo", label: "Novo lead", icon: UserRoundPlus, primary: false },
-            { href: "/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
-            { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
-          ];
+        : isFitness
+          ? [
+              { href: "/fitness/pedidos/novo", label: "Novo pedido", icon: Truck, primary: false },
+              { href: "/fitness/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
+              { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch, primary: false },
+            ]
+          : [
+              { href: "/leads/novo", label: "Novo lead", icon: UserRoundPlus, primary: false },
+              { href: "/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
+              { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
+            ];
 
-  const mobileMenuNav = isTest
+  const mobileMenuNav = isTest || isBank
     ? nav
     : nav.filter(({ href }) => (isFitness ? href !== "/fitness/produtos" : href !== "/produtos"));
   const showSupplementActions = access.canWriteSupplements && isRealSupplements;
   const showFitnessActions = access.canWriteFitness && isRealFitness;
-  const settingsHref = operation === "fitness" ? "/configuracoes?operacao=fitness" : operation === "supplements" ? "/configuracoes?operacao=suplementos" : "/configuracoes";
-  const brand = isFitness
-    ? { src: "/candinho-fitness-logo.webp", alt: "Candinho Fitness" }
-    : isSupplements
-      ? { src: "/candinho-suplementos-logo.webp", alt: "Candinho Suplementos" }
-      : { src: "/candinho-company-logo.webp", alt: "Candinho Company" };
+  const settingsHref = operation === "fitness"
+    ? "/configuracoes?operacao=fitness"
+    : operation === "supplements"
+      ? "/configuracoes?operacao=suplementos"
+      : operation === "bank"
+        ? "/configuracoes?operacao=bank"
+        : "/configuracoes";
+  const brand = isBank
+    ? { src: "/candinho-bank-logo.png", alt: "Candinho Bank" }
+    : isFitness
+      ? { src: "/candinho-fitness-logo.webp", alt: "Candinho Fitness" }
+      : isSupplements
+        ? { src: "/candinho-suplementos-logo.webp", alt: "Candinho Suplementos" }
+        : { src: "/candinho-company-logo.webp", alt: "Candinho Company" };
 
   function isActive(href: string) {
     if (href === "/dashboard") return pathname === href;
     if (href === "/suplementos") return pathname === href;
     if (href === "/fitness") return pathname === href;
+    if (href === "/bank") return pathname === href;
     if (href === "/teste/supplements" || href === "/teste/fitness") return pathname === href;
     if (href === "/vendas") return pathname.startsWith("/vendas") || pathname.startsWith("/leads");
     return pathname.startsWith(href);
@@ -149,6 +179,12 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
       </main>
     );
   }
+
+  const sidebarSlogan = isTest
+    ? "Dados isolados · pode testar sem medo."
+    : isBank
+      ? "Seu dinheiro, suas decisões, sua visão."
+      : "Qualidade que entrega resultado.";
 
   return (
     <div className={`app-shell theme-${operation === "hub" ? "hub" : operation}${isTest ? " test-lab-shell" : ""}`}>
@@ -170,7 +206,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
         <div className="sidebar-footer">
           <div className="sidebar-user"><span>{access.name}</span><small>{access.email ?? "Acesso local"}</small></div>
-          <p className="sidebar-slogan">{isTest ? "Dados isolados · pode testar sem medo." : "Qualidade que entrega resultado."}</p>
+          <p className="sidebar-slogan">{sidebarSlogan}</p>
           {access.canManageUsers && (
             <Link className={`nav-link ${isSettings ? "primary" : ""}`} href={settingsHref} title="Configurações">
               <Settings size={18} />

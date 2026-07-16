@@ -12,8 +12,10 @@ export type UserAccess = {
   canAccessSupplements: boolean;
   canAccessFitness: boolean;
   canManageUsers: boolean;
+  canAccessBank: boolean;
   canWriteSupplements: boolean;
   canWriteFitness: boolean;
+  canWriteBank: boolean;
 };
 
 export type UserPermissionRow = {
@@ -43,8 +45,10 @@ export function getFallbackUserAccess(email?: string | null): UserAccess {
       canAccessSupplements: true,
       canAccessFitness: true,
       canManageUsers: true,
+      canAccessBank: true,
       canWriteSupplements: true,
       canWriteFitness: true,
+      canWriteBank: true,
     };
   }
 
@@ -58,8 +62,10 @@ export function getFallbackUserAccess(email?: string | null): UserAccess {
       canAccessSupplements: false,
       canAccessFitness: true,
       canManageUsers: false,
+      canAccessBank: false,
       canWriteSupplements: false,
       canWriteFitness: true,
+      canWriteBank: false,
     };
   }
 
@@ -72,8 +78,10 @@ export function getFallbackUserAccess(email?: string | null): UserAccess {
     canAccessSupplements: false,
     canAccessFitness: false,
     canManageUsers: false,
+    canAccessBank: false,
     canWriteSupplements: false,
     canWriteFitness: false,
+    canWriteBank: false,
   };
 }
 
@@ -93,7 +101,9 @@ export function normalizeUserAccess(row: Record<string, unknown> | null | undefi
     canAccessSupplements: active && Boolean(row.can_access_supplements),
     canAccessFitness: active && Boolean(row.can_access_fitness),
     canManageUsers: active && Boolean(row.can_manage_users),
+    canAccessBank: active && Boolean(row.can_access_bank),
     canWriteSupplements: active && Boolean(row.can_write_supplements),
     canWriteFitness: active && Boolean(row.can_write_fitness),
+    canWriteBank: active && Boolean(row.can_write_bank),
   };
 }

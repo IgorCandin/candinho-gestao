@@ -8,16 +8,19 @@ import { useEffect, useState } from "react";
 export function OperationSwitcher({
   canAccessSupplements,
   canAccessFitness,
+  canAccessBank,
 }: {
   canAccessSupplements: boolean;
   canAccessFitness: boolean;
+  canAccessBank: boolean;
 }) {
   const router = useRouter();
-  const [hoveredOperation, setHoveredOperation] = useState<"fitness" | "bank" | null>(null);
+  const [hoveredOperation, setHoveredOperation] = useState<"fitness" | null>(null);
 
   useEffect(() => {
     if (canAccessSupplements) router.prefetch("/suplementos");
-  }, [canAccessSupplements, router]);
+    if (canAccessBank) router.prefetch("/bank");
+  }, [canAccessSupplements, canAccessBank, router]);
 
   useEffect(() => {
     // A página atual monta a saudação no servidor.
@@ -58,6 +61,9 @@ export function OperationSwitcher({
     pointerEvents: "none" as const,
   };
 
+  const visibleOperations = Number(canAccessSupplements) + Number(canAccessFitness) + Number(canAccessBank);
+  const layoutClass = visibleOperations >= 3 ? "three" : visibleOperations === 2 ? "two" : "one";
+
   return (
     <>
       <form action="/auth/signout" method="post" className="hub-signout-form">
@@ -66,7 +72,7 @@ export function OperationSwitcher({
         </button>
       </form>
 
-      <div className="operation-buttons three">
+      <div className={`operation-buttons ${layoutClass}`}>
         {canAccessSupplements && (
           <Link
             className="operation-button supplements"
@@ -91,16 +97,16 @@ export function OperationSwitcher({
           </div>
         )}
 
-        <div
-          className="operation-button bank"
-          aria-label="Candinho Bank — em breve"
-          style={{ position: "relative", cursor: "default" }}
-          onMouseEnter={() => setHoveredOperation("bank")}
-          onMouseLeave={() => setHoveredOperation(null)}
-        >
-          <Image src="/operation-bank.png" alt="Bank" width={709} height={236} />
-          {hoveredOperation === "bank" && <span style={comingSoonStyle}>Em breve</span>}
-        </div>
+        {canAccessBank && (
+          <Link
+            className="operation-button bank"
+            href="/bank"
+            prefetch
+            aria-label="Acessar Candinho Bank"
+          >
+            <Image src="/operation-bank.png" alt="Bank" width={709} height={236} />
+          </Link>
+        )}
       </div>
 
       <style>{`
@@ -133,11 +139,6 @@ export function OperationSwitcher({
           color: #ffffff;
         }
 
-        /*
-         * Ajuste de altura para notebooks e telas menores.
-         * A intenção é reproduzir a sensação visual do zoom 90% sem alterar
-         * o zoom real do navegador.
-         */
         @media (min-width: 821px) and (max-height: 900px) {
           .hub-standalone .content-hub {
             min-height: 100dvh;
@@ -170,7 +171,9 @@ export function OperationSwitcher({
             font-size: 13px;
           }
 
-          .operation-buttons.three {
+          .operation-buttons.three,
+          .operation-buttons.two,
+          .operation-buttons.one {
             gap: 14px;
           }
 

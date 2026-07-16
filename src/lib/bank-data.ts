@@ -1,0 +1,215 @@
+import { isSupabaseConfigured } from "./config";
+import { createClient } from "./supabase/server";
+
+const number = (value: unknown) => Number(value ?? 0);
+const nullableText = (value: unknown) => (typeof value === "string" && value.trim() ? value : null);
+
+export type BankDashboardSummary = {
+  totalBalance: number;
+  latestBalanceDate: string | null;
+  dueThisMonth: number;
+  overdueTotal: number;
+  next30Days: number;
+  invoicesThisMonth: number;
+  totalDebtRemaining: number;
+  balanceAfterCurrentMonthCommitments: number;
+  receivableThisMonth: number;
+  receivableOverdue: number;
+  receivableNext30Days: number;
+  projectedBalanceAfterCurrentMonth: number;
+};
+
+export type BankChargePreview = {
+  id: string;
+  title: string;
+  dueDate: string;
+  remainingAmount: number;
+  effectiveStatus: string;
+  category: string | null;
+  origin: string | null;
+};
+
+export type BankAccountBalance = {
+  id: string;
+  name: string;
+  accountType: string;
+  origin: string | null;
+  balance: number;
+  balanceDate: string | null;
+};
+
+export type BankAnnualProjection = {
+  referenceMonth: string;
+  cardInvoices: number;
+  cardSubscriptionEstimate: number;
+  directCharges: number;
+  debtPayments: number;
+  directSubscriptions: number;
+  totalCommitments: number;
+  receivables: number;
+  recurringIncomeEstimate: number;
+  totalExpectedIncome: number;
+  projectedResult: number;
+};
+
+export type BankDashboardData = {
+  summary: BankDashboardSummary;
+  upcomingCharges: BankChargePreview[];
+  accounts: BankAccountBalance[];
+  annualProjection: BankAnnualProjection[];
+};
+
+const emptySummary: BankDashboardSummary = {
+  totalBalance: 0,
+  latestBalanceDate: null,
+  dueThisMonth: 0,
+  overdueTotal: 0,
+  next30Days: 0,
+  invoicesThisMonth: 0,
+  totalDebtRemaining: 0,
+  balanceAfterCurrentMonthCommitments: 0,
+  receivableThisMonth: 0,
+  receivableOverdue: 0,
+  receivableNext30Days: 0,
+  projectedBalanceAfterCurrentMonth: 0,
+};
+
+export async function getBankDashboardData(): Promise<BankDashboardData> {
+  if (!isSupabaseConfigured) {
+    return {
+      summary: emptySummary,
+      upcomingCharges: [],
+      accounts: [],
+      annualProjection: [],
+    };
+  }
+
+  const supabase = await createClient();
+  const [summaryResult, chargesResult, accountsResult, projectionResult] = await Promise.all([
+    supabase.from("bank_dashboard_summary").select("*").single(),
+    supabase
+      .from("bank_charges_overview")
+      .select("id,title,due_date,remaining_amount,effective_status,category,origin")
+      .not("effective_status", "in", "(paid,cancelled)")
+      .order("due_date", { ascending: true })
+      .limit(6),
+    supabase
+      .from("bank_account_current_balances")
+      .select("id,name,account_type,origin,balance,balance_date")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true })
+      .order("name", { ascending: true }),
+    supabase.rpc("bank_get_annual_projection"),
+  ]);
+
+  if (summaryResult.error) throw summaryResult.error;
+  if (chargesResult.error) throw chargesResult.error;
+  if (accountsResult.error) throw accountsResult.error;
+  if (projectionResult.error) throw projectionResult.error;
+
+  const summaryRow = (summaryResult.data ?? {}) as Record<string, unknown>;
+  const summary: BankDashboardSummary = {
+    totalBalance: number(summaryRow.total_balance),
+    latestBalanceDate: nullableText(summaryRow.latest_balance_date),
+    dueThisMonth: number(summaryRow.due_this_month),
+    overdueTotal: number(summaryRow.overdue_total),
+    next30Days: number(summaryRow.next_30_days),
+    invoicesThisMonth: number(summaryRow.invoices_this_month),
+    totalDebtRemaining: number(summaryRow.total_debt_remaining),
+    balanceAfterCurrentMonthCommitments: number(summaryRow.balance_after_current_month_commitments),
+    receivableThisMonth: number(summaryRow.receivable_this_month),
+    receivableOverdue: number(summaryRow.receivable_overdue),
+    receivableNext30Days: number(summaryRow.receivable_next_30_days),
+    projectedBalanceAfterCurrentMonth: number(summaryRow.projected_balance_after_current_month),
+  };
+
+  const upcomingCharges: BankChargePreview[] = (chargesResult.data ?? []).map((row: Record<string, unknown>) => ({
+    id: String(row.id),
+    title: String(row.title ?? "Cobrança"),
+    dueDate: String(row.due_date ?? ""),
+    remainingAmount: number(row.remaining_amount),
+    effectiveStatus: String(row.effective_status ?? "pending"),
+    category: nullableText(row.category),
+    origin: nullableText(row.origin),
+  }));
+
+  const accounts: BankAccountBalance[] = (accountsResult.data ?? []).map((row: Record<string, unknown>) => ({
+    id: String(row.id),
+    name: String(row.name ?? "Conta"),
+    accountType: String(row.account_type ?? "bank"),
+    origin: nullableText(row.origin),
+    balance: number(row.balance),
+    balanceDate: nullableText(row.balance_date),
+  }));
+
+  const annualProjection: BankAnnualProjection[] = (projectionResult.data ?? []).map((row: Record<string, unknown>) => ({
+    referenceMonth: String(row.reference_month ?? ""),
+    cardInvoices: number(row.card_invoices),
+    cardSubscriptionEstimate: number(row.card_subscription_estimate),
+    directCharges: number(row.direct_charges),
+    debtPayments: number(row.debt_payments),
+    directSubscriptions: number(row.direct_subscriptions),
+    totalCommitments: number(row.total_commitments),
+    receivables: number(row.receivables),
+    recurringIncomeEstimate: number(row.recurring_income_estimate),
+    totalExpectedIncome: number(row.total_expected_income),
+    projectedResult: number(row.projected_result),
+  }));
+
+  return { summary, upcomingCharges, accounts, annualProjection };
+}
+
+export async function getBankCharges(): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bank_charges_overview")
+    .select("*")
+    .order("due_date", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getBankCardsAndInvoices(): Promise<{ cards: Record<string, unknown>[]; invoices: Record<string, unknown>[] }> {
+  if (!isSupabaseConfigured) return { cards: [], invoices: [] };
+  const supabase = await createClient();
+  const [cardsResult, invoicesResult] = await Promise.all([
+    supabase.from("bank_cards").select("*").eq("is_active", true).order("display_order", { ascending: true }).order("name", { ascending: true }),
+    supabase.from("bank_card_invoice_overview").select("*").order("reference_month", { ascending: true }),
+  ]);
+  if (cardsResult.error) throw cardsResult.error;
+  if (invoicesResult.error) throw invoicesResult.error;
+  return { cards: cardsResult.data ?? [], invoices: invoicesResult.data ?? [] };
+}
+
+export async function getBankDebts(): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("bank_debts_overview").select("*").order("next_due_date", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getBankSubscriptions(): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("bank_subscriptions_overview").select("*").order("name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getBankAccounts(): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("bank_account_current_balances").select("*").eq("is_active", true).order("display_order", { ascending: true }).order("name", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function getBankAnnualProjection(): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("bank_get_annual_projection");
+  if (error) throw error;
+  return data ?? [];
+}
