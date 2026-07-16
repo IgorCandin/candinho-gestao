@@ -67,3 +67,38 @@ export async function saveBankBalances(formData: FormData) {
   revalidatePath("/bank/contas");
   redirect(`/bank/contas?salvo=1&data=${encodeURIComponent(balanceDate)}`);
 }
+
+
+export async function createBankAccount(formData: FormData) {
+  const name = String(formData.get("name") ?? "").trim();
+  const accountType = String(formData.get("account_type") ?? "bank");
+  const origin = String(formData.get("origin") ?? "").trim() || null;
+  const notes = String(formData.get("notes") ?? "").trim() || null;
+  const displayOrderRaw = String(formData.get("display_order") ?? "0").trim();
+  const displayOrder = Number.isFinite(Number(displayOrderRaw)) ? Math.trunc(Number(displayOrderRaw)) : 0;
+
+  if (!name) throw new Error("Informe o nome da conta ou carteira.");
+  if (!["bank", "cash", "wallet", "saved", "other"].includes(accountType)) throw new Error("Tipo de conta inválido.");
+
+  const supabase = await createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error("Sessão não encontrada.");
+  const { data: canWrite, error: permissionError } = await supabase.rpc("can_write_bank");
+  if (permissionError) throw permissionError;
+  if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
+
+  const { error } = await supabase.from("bank_accounts").insert({
+    name,
+    account_type: accountType,
+    origin,
+    notes,
+    display_order: displayOrder,
+    is_active: true,
+    created_by: user.id,
+  });
+  if (error) throw error;
+
+  revalidatePath("/bank");
+  revalidatePath("/bank/contas");
+  redirect("/bank/contas?salvo=conta-criada");
+}

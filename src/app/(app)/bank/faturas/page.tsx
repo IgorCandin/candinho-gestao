@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { CheckCircle2, ChevronRight, CreditCard, Layers3, Save, X } from "lucide-react";
+import { CheckCircle2, ChevronRight, CreditCard, Layers3, Plus, Save, X } from "lucide-react";
 import { getBankCardsAndInvoices } from "@/lib/bank-data";
 import { formatCurrency, formatDateOnly, formatMonthYear } from "@/lib/format";
-import { saveBankInvoices } from "./actions";
+import { createBankCard, saveBankInvoices } from "./actions";
 
 function currentMonthInBrazil() {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -52,6 +52,7 @@ export default async function BankInvoicesPage({
   const params = await searchParams;
   const { cards, invoices } = await getBankCardsAndInvoices();
   const updating = params.acao === "atualizar";
+  const creatingCard = params.acao === "novo-cartao";
   const mode = params.modo === "todas" ? "todas" : "individual";
   const selectedCard = cards.find((card) => String(card.id) === params.cartao) ?? cards[0] ?? null;
   const selectedIndex = selectedCard ? cards.findIndex((card) => String(card.id) === String(selectedCard.id)) : -1;
@@ -74,7 +75,8 @@ export default async function BankInvoicesPage({
         </div>
         <div className="bank-header-actions">
           <span className="bank-module-badge"><CreditCard size={16} />{cards.length} cartões</span>
-          {!updating && cards.length > 0 && (
+          {!updating && !creatingCard && <Link className="button ghost" href="/bank/faturas?acao=novo-cartao"><Plus size={16} />Novo cartão</Link>}
+          {!updating && !creatingCard && cards.length > 0 && (
             <Link className="button gold" href="/bank/faturas?acao=atualizar">
               <CreditCard size={16} />Atualizar faturas
             </Link>
@@ -82,16 +84,37 @@ export default async function BankInvoicesPage({
         </div>
       </div>
 
-      {params.salvo === "1" && (
+      {params.salvo && (
         <div className="bank-success-banner">
           <CheckCircle2 size={18} />
           <div>
-            <strong>Faturas salvas com sucesso.</strong>
-            <span>{mode === "todas" && selectedCard ? `Próximo cartão carregado: ${String(selectedCard.name ?? "Cartão")}.` : "A projeção e o Dashboard já usam os novos valores."}</span>
+            <strong>{params.salvo === "cartao-criado" ? "Cartão criado com sucesso." : "Faturas salvas com sucesso."}</strong>
+            <span>{params.salvo === "cartao-criado" ? "O novo cartão já pode receber as próximas 12 faturas." : mode === "todas" && selectedCard ? `Próximo cartão carregado: ${String(selectedCard.name ?? "Cartão")}.` : "A projeção e o Dashboard já usam os novos valores."}</span>
           </div>
         </div>
       )}
 
+
+      {creatingCard && (
+        <article className="panel bank-charge-form-panel">
+          <div className="panel-head">
+            <div><h2>Novo cartão</h2><p>Cadastre o cartão antes de informar as faturas dos próximos 12 meses.</p></div>
+            <Link className="icon-link" href="/bank/faturas" aria-label="Fechar"><X size={17} /></Link>
+          </div>
+          <form action={createBankCard}>
+            <div className="panel-body bank-charge-form-grid">
+              <label className="field"><span>Nome do cartão</span><input className="input" name="name" placeholder="Ex.: Nubank Giulia" required /></label>
+              <label className="field"><span>Instituição</span><input className="input" name="institution" placeholder="Ex.: Nubank" /></label>
+              <label className="field"><span>Titular</span><input className="input" name="holder_name" placeholder="Ex.: Giulia" /></label>
+              <label className="field"><span>Dia do vencimento</span><input className="input" name="due_day" type="number" min="1" max="31" required /></label>
+              <label className="field"><span>Dia do fechamento</span><input className="input" name="closing_day" type="number" min="1" max="31" /></label>
+              <label className="field"><span>Origem</span><input className="input" name="origin" placeholder="Pessoal, Company..." /></label>
+              <label className="field bank-charge-form-wide"><span>Observações</span><textarea className="input bank-textarea" name="notes" /></label>
+            </div>
+            <div className="bank-balance-update-actions"><Link className="button ghost" href="/bank/faturas">Cancelar</Link><button className="button gold" type="submit"><Save size={16} />Salvar cartão</button></div>
+          </form>
+        </article>
+      )}
       {updating && cards.length > 0 && selectedCard && (
         <article className="panel bank-invoice-update-panel">
           <div className="panel-head">

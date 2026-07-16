@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { Building2, CheckCircle2, RefreshCcw, Save, X } from "lucide-react";
+import { Building2, CheckCircle2, Plus, RefreshCcw, Save, X } from "lucide-react";
 import { getBankAccounts } from "@/lib/bank-data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
-import { saveBankBalances } from "./actions";
+import { createBankAccount, saveBankBalances } from "./actions";
 
 function todayInBrazil() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -25,6 +25,7 @@ export default async function BankAccountsPage({
   const params = await searchParams;
   const accounts = await getBankAccounts();
   const updating = params.acao === "atualizar-saldo";
+  const creating = params.acao === "nova-conta";
   const balanceDate = params.data && /^\d{4}-\d{2}-\d{2}$/.test(params.data) ? params.data : todayInBrazil();
 
   return (
@@ -37,7 +38,8 @@ export default async function BankAccountsPage({
         </div>
         <div className="bank-header-actions">
           <span className="bank-module-badge"><Building2 size={16} />{accounts.length} contas</span>
-          {!updating && accounts.length > 0 && (
+          {!updating && !creating && <Link className="button ghost" href="/bank/contas?acao=nova-conta"><Plus size={16} />Nova conta</Link>}
+          {!updating && !creating && accounts.length > 0 && (
             <Link className="button gold" href="/bank/contas?acao=atualizar-saldo">
               <RefreshCcw size={16} />Atualizar saldo
             </Link>
@@ -45,14 +47,33 @@ export default async function BankAccountsPage({
         </div>
       </div>
 
-      {params.salvo === "1" && (
+      {params.salvo && (
         <div className="bank-success-banner">
           <CheckCircle2 size={18} />
           <div>
-            <strong>Saldo atualizado com sucesso.</strong>
-            <span>O histórico diário de {formatDateOnly(balanceDate)} foi salvo para todas as contas.</span>
+            <strong>{params.salvo === "conta-criada" ? "Conta criada com sucesso." : "Saldo atualizado com sucesso."}</strong>
+            <span>{params.salvo === "conta-criada" ? "A nova conta já está disponível para receber atualizações de saldo." : `O histórico diário de ${formatDateOnly(balanceDate)} foi salvo para todas as contas.`}</span>
           </div>
         </div>
+      )}
+
+      {creating && (
+        <article className="panel bank-charge-form-panel">
+          <div className="panel-head">
+            <div><h2>Nova conta ou carteira</h2><p>Cadastre bancos, dinheiro físico, valores guardados e outras carteiras.</p></div>
+            <Link className="icon-link" href="/bank/contas" aria-label="Fechar"><X size={17} /></Link>
+          </div>
+          <form action={createBankAccount}>
+            <div className="panel-body bank-charge-form-grid">
+              <label className="field"><span>Nome</span><input className="input" name="name" placeholder="Ex.: Nubank Empresarial" required /></label>
+              <label className="field"><span>Tipo</span><select className="input" name="account_type" defaultValue="bank"><option value="bank">Banco</option><option value="cash">Dinheiro físico</option><option value="wallet">Carteira</option><option value="saved">Guardado</option><option value="other">Outro</option></select></label>
+              <label className="field"><span>Origem</span><input className="input" name="origin" placeholder="Pessoal, Company..." /></label>
+              <label className="field"><span>Ordem de exibição</span><input className="input" name="display_order" type="number" defaultValue="0" /></label>
+              <label className="field bank-charge-form-wide"><span>Observações</span><textarea className="input bank-textarea" name="notes" /></label>
+            </div>
+            <div className="bank-balance-update-actions"><Link className="button ghost" href="/bank/contas">Cancelar</Link><button className="button gold" type="submit"><Save size={16} />Salvar conta</button></div>
+          </form>
+        </article>
       )}
 
       {updating && accounts.length > 0 && (
