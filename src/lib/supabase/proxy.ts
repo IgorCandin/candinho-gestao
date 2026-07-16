@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import type { User } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { FITNESS_SALES_EMAIL, MANAGER_EMAIL } from "@/lib/access";
 
@@ -20,11 +21,36 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const pathname = request.nextUrl.pathname;
+  let user: User | null = null;
+  let invalidSession = false;
+
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) {
+      invalidSession = true;
+    } else {
+      user = data.user;
+    }
+  } catch {
+    // A stale or revoked refresh token should behave like a signed-out session,
+    // not as an application error in middleware.
+    invalidSession = true;
+  }
+
+  const clearSupabaseCookies = (target: NextResponse) => {
+    request.cookies.getAll().forEach(({ name }) => {
+      if (name.startsWith("sb-")) {
+        target.cookies.set(name, "", { maxAge: 0, path: "/" });
+      }
+    });
+    return target;
+  };
+
+  if (invalidSession) {
+    response = clearSupabaseCookies(NextResponse.next({ request }));
+  }
+
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
     "/dashboard", "/suplementos", "/fitness", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
@@ -36,7 +62,8 @@ export async function updateSession(request: NextRequest) {
     const redirectUrl = request.nextUrl.clone();
     redirectUrl.pathname = "/login";
     redirectUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(redirectUrl);
+    const redirectResponse = NextResponse.redirect(redirectUrl);
+    return invalidSession ? clearSupabaseCookies(redirectResponse) : redirectResponse;
   }
 
   if (user && isAuthPage && pathname === "/login") {
