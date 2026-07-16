@@ -1510,3 +1510,77 @@ h1{font-size:clamp(27px,3vw,36px)}
   .bank-balance-update-actions { flex-direction: column-reverse; }
   .bank-balance-update-actions .button { width: 100%; }
 }
+
+/* Candinho Bank — atualização de faturas em 12 meses */
+.bank-invoice-update-panel { margin-bottom: 18px; overflow: hidden; border-color: rgba(25,201,120,.24); }
+.bank-invoice-mode-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.008);
+}
+.bank-invoice-mode-tabs { display: inline-flex; gap: 7px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: rgba(0,0,0,.14); }
+.bank-invoice-mode-tabs a {
+  min-height: 34px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.bank-invoice-mode-tabs a.active { background: rgba(25,201,120,.11); color: #78e6a3; box-shadow: inset 0 0 0 1px rgba(25,201,120,.18); }
+.bank-invoice-progress { color: #78e6a3; font-size: 10px; font-weight: 850; }
+.bank-invoice-selector {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.bank-invoice-selector .field { width: min(360px, 100%); }
+.bank-invoice-card-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.bank-invoice-card-summary > div { padding: 11px 12px; border-radius: 11px; background: rgba(255,255,255,.022); }
+.bank-invoice-card-summary span, .bank-invoice-card-summary strong { display: block; }
+.bank-invoice-card-summary span { color: var(--muted); font-size: 9px; }
+.bank-invoice-card-summary strong { margin-top: 4px; font-size: 11px; }
+.bank-invoice-month-list { display: grid; }
+.bank-invoice-month-row {
+  display: grid;
+  grid-template-columns: minmax(170px,.8fr) minmax(190px,.65fr) minmax(150px,.45fr);
+  align-items: end;
+  gap: 18px;
+  padding: 13px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.bank-invoice-month-row:last-child { border-bottom: 0; }
+.bank-invoice-month-title, .bank-invoice-month-status { display: grid; gap: 4px; align-self: center; }
+.bank-invoice-month-title strong { font-size: 12px; text-transform: capitalize; }
+.bank-invoice-month-title span { color: var(--muted); font-size: 9px; }
+.bank-invoice-month-status { justify-items: end; }
+.bank-invoice-month-status small { color: var(--muted); font-size: 8px; text-align: right; }
+
+@media(max-width:760px){
+  .bank-invoice-mode-row { align-items: stretch; flex-direction: column; }
+  .bank-invoice-mode-tabs { width: 100%; }
+  .bank-invoice-mode-tabs a { flex: 1 1 0; justify-content: center; }
+  .bank-invoice-selector { align-items: stretch; flex-direction: column; }
+  .bank-invoice-selector .field { width: 100%; }
+  .bank-invoice-selector .button { width: 100%; }
+  .bank-invoice-card-summary { grid-template-columns: 1fr; }
+  .bank-invoice-month-row { grid-template-columns: 1fr; gap: 10px; }
+  .bank-invoice-month-status { justify-items: start; }
+  .bank-invoice-month-status small { text-align: left; }
+}
