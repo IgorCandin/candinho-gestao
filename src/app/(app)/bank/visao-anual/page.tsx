@@ -9,11 +9,14 @@ export default async function BankAnnualPage() {
   const totalCommitments = projection.reduce((sum, month) => sum + month.totalCommitments, 0);
   const projectedFinalBalance = data.summary.totalBalance + projection.reduce((sum, month) => sum + month.projectedResult, 0);
 
-  let runningBalance = data.summary.totalBalance;
-  const months = projection.map((month) => {
-    runningBalance += month.projectedResult;
-    return { ...month, runningBalance };
-  });
+  const months = projection.reduce<Array<(typeof projection)[number] & { runningBalance: number }>>(
+    (items, month) => {
+      const previousBalance = items.at(-1)?.runningBalance ?? data.summary.totalBalance;
+      items.push({ ...month, runningBalance: previousBalance + month.projectedResult });
+      return items;
+    },
+    [],
+  );
 
   return (
     <section>

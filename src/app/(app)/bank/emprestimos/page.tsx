@@ -298,7 +298,7 @@ export default async function BankDebtsPage({
                   <div>
                     <span>{debtTypeLabel(debt.debt_type)}</span>
                     <h2>{String(debt.name ?? "Dívida")}</h2>
-                    {debt.creditor_name && <small>Credor: {String(debt.creditor_name)}</small>}
+                    {Boolean(debt.creditor_name) && <small>Credor: {String(debt.creditor_name)}</small>}
                   </div>
                   <span className={`badge ${debtStatusClass(status)}`}>{debtStatusLabel(status)}</span>
                 </div>
