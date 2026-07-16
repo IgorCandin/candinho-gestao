@@ -1584,3 +1584,64 @@ h1{font-size:clamp(27px,3vw,36px)}
   .bank-invoice-month-status { justify-items: start; }
   .bank-invoice-month-status small { text-align: left; }
 }
+
+/* Candinho Bank — cobranças operacionais */
+.bank-charge-form-panel,
+.bank-charge-payment-panel {
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-color: rgba(25,201,120,.24);
+}
+.bank-charge-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+  padding: 18px 20px;
+}
+.bank-charge-form-wide { grid-column: 1 / -1; }
+.bank-textarea { min-height: 78px; resize: vertical; padding-top: 10px; padding-bottom: 10px; }
+.bank-charge-payment-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.bank-charge-payment-summary > div {
+  padding: 12px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.022);
+}
+.bank-charge-payment-summary span,
+.bank-charge-payment-summary strong { display: block; }
+.bank-charge-payment-summary span { color: var(--muted); font-size: 9px; }
+.bank-charge-payment-summary strong { margin-top: 5px; font-size: 12px; }
+.bank-charge-payment-fields {
+  display: grid;
+  grid-template-columns: minmax(180px,.6fr) minmax(260px,1fr);
+  gap: 14px;
+  padding: 18px 20px;
+}
+.bank-charge-pay-button {
+  min-height: 31px;
+  padding: 0 10px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+.bank-charge-action-done {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #78e6a3;
+  font-size: 9px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media(max-width:760px){
+  .bank-charge-form-grid,
+  .bank-charge-payment-summary,
+  .bank-charge-payment-fields { grid-template-columns: 1fr; }
+  .bank-charge-form-wide { grid-column: auto; }
+  .bank-charge-pay-button { width: 100%; justify-content: center; }
+}

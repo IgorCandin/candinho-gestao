@@ -95,7 +95,7 @@ export default async function BankDashboardPage() {
           <div><strong>Atualizar faturas</strong><span>Preencha individualmente ou avance cartão por cartão.</span></div>
           <ArrowRight size={17} />
         </Link>
-        <Link href="/bank/cobrancas" className="bank-quick-card">
+        <Link href="/bank/cobrancas?acao=nova" className="bank-quick-card">
           <ReceiptText size={20} />
           <div><strong>Nova cobrança</strong><span>Registre uma conta com vencimento e origem.</span></div>
           <ArrowRight size={17} />
