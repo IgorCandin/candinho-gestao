@@ -158,9 +158,11 @@ function ProfitEvolutionChart() {
         : "negative";
 
   const comparisonText =
-    data?.percentageChange === null
-      ? "Sem base no período anterior"
-      : `${data.percentageChange >= 0 ? "↑" : "↓"} ${Math.abs(data.percentageChange).toFixed(1).replace(".", ",")}% vs. período anterior`;
+    !data
+      ? "Carregando comparação..."
+      : data.percentageChange === null
+        ? "Sem base no período anterior"
+        : `${data.percentageChange >= 0 ? "↑" : "↓"} ${Math.abs(data.percentageChange).toFixed(1).replace(".", ",")}% vs. período anterior`;
 
   const hovered =
     hoveredIndex !== null && geometry.points[hoveredIndex]
