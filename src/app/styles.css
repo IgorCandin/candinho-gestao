@@ -1645,3 +1645,105 @@ h1{font-size:clamp(27px,3vw,36px)}
   .bank-charge-form-wide { grid-column: auto; }
   .bank-charge-pay-button { width: 100%; justify-content: center; }
 }
+
+/* Candinho Bank — empréstimos e notinhas operacionais */
+.bank-debt-form-panel,
+.bank-debt-action-panel {
+  margin-bottom: 18px;
+  overflow: hidden;
+  border-color: rgba(25,201,120,.24);
+}
+.bank-debt-form-grid,
+.bank-debt-action-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 14px;
+  padding: 18px 20px;
+}
+.bank-debt-form-wide { grid-column: 1 / -1; }
+.bank-debt-action-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: 10px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.bank-debt-action-summary > div {
+  padding: 12px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.022);
+}
+.bank-debt-action-summary span,
+.bank-debt-action-summary strong { display: block; }
+.bank-debt-action-summary span { color: var(--muted); font-size: 9px; }
+.bank-debt-action-summary strong { margin-top: 5px; font-size: 12px; }
+.bank-debt-postpone-warning {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 20px 0;
+  padding: 14px;
+  border: 1px solid rgba(238, 180, 80, .22);
+  border-radius: 12px;
+  background: rgba(238, 180, 80, .06);
+  color: #efc66f;
+}
+.bank-debt-postpone-warning > div { display: grid; gap: 4px; }
+.bank-debt-postpone-warning strong { font-size: 11px; }
+.bank-debt-postpone-warning span { color: #c9b98f; font-size: 9px; line-height: 1.45; }
+.bank-debt-postpone-fields { grid-template-columns: 1fr; }
+.bank-debt-card .bank-detail-card-head small {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 9px;
+}
+.bank-debt-progress {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+.bank-debt-progress > div:first-child {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.bank-debt-progress span { color: var(--muted); font-size: 9px; }
+.bank-debt-progress strong { font-size: 10px; }
+.bank-debt-progress-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255,255,255,.045);
+}
+.bank-debt-progress-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #19c978, #63dba3);
+}
+.bank-debt-card-actions {
+  display: flex;
+  gap: 9px;
+  margin-top: 16px;
+}
+.bank-debt-card-actions .button {
+  min-height: 34px;
+  padding: 0 11px;
+  font-size: 9px;
+}
+
+@media(max-width:900px){
+  .bank-debt-action-summary { grid-template-columns: repeat(2, minmax(0,1fr)); }
+}
+@media(max-width:760px){
+  .bank-debt-form-grid,
+  .bank-debt-action-fields,
+  .bank-debt-action-summary { grid-template-columns: 1fr; }
+  .bank-debt-form-wide { grid-column: auto; }
+  .bank-debt-card-actions { flex-direction: column; }
+  .bank-debt-card-actions .button { width: 100%; justify-content: center; }
+}
