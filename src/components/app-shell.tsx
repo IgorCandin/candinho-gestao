@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Archive, ArrowLeft, BarChart3, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
-  Handshake, HeartPulse, History, Home, Images, Inbox, Link2, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
+  Handshake, HeartPulse, History, Home, Images, Inbox, Link2, ListTodo, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
   Truck, UserRoundPlus, UsersRound,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
@@ -58,6 +58,8 @@ const centralNav = [
   { href: "/central", label: "Visão Geral", icon: HeartPulse },
   { href: "/central/inbox", label: "Atendimento", icon: Inbox },
   { href: "/central/clientes", label: "Clientes", icon: UsersRound },
+  { href: "/central/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/central/pendencias", label: "Pendências", icon: ListTodo },
   { href: "/central/midia", label: "Mídia", icon: Images },
   { href: "/central/nexus", label: "Nexus IA", icon: Bot },
   { href: "/central/integracoes", label: "Integrações", icon: Link2 },
@@ -92,6 +94,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
   const mobileShortcuts = isSettings ? [] : isCentral ? [
     { href: "/central/inbox", label: "Inbox", icon: Inbox, primary: true },
+    { href: "/central/pendencias", label: "Pendências", icon: ListTodo, primary: false },
     { href: "/central/midia", label: "Mídia", icon: Images, primary: false },
     { href: "/central/nexus", label: "Nexus", icon: Bot, primary: false },
   ] : isPartner ? [

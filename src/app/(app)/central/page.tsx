@@ -1,17 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bot, CheckCircle2, ImageIcon, Inbox, Link2, MessageCircleMore, PlugZap, UsersRound } from "lucide-react";
+import { Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListTodo, MessageCircleMore, PlugZap, UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess } from "@/lib/data";
-import { getCentralDashboardSnapshot, getCentralIntegrationReadiness } from "@/lib/central-data";
+import { getCentralAgendaSnapshot, getCentralDashboardSnapshot, getCentralIntegrationReadiness } from "@/lib/central-data";
 
 const providerLabel: Record<string, string> = { whatsapp: "WhatsApp", instagram: "Instagram", facebook: "Facebook" };
 
 export default async function CentralPage() {
   const access = await getCurrentUserAccess();
   if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
-  const [data, readiness] = await Promise.all([getCentralDashboardSnapshot(), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
+  const [data, agenda, readiness] = await Promise.all([getCentralDashboardSnapshot(), getCentralAgendaSnapshot("planned", null), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
   const metaReady = Boolean(readiness?.meta.ready);
   const aiReady = Boolean(readiness?.openai.ready);
 
@@ -23,12 +23,16 @@ export default async function CentralPage() {
       <StatCard href="/central/inbox?status=pending" label="Aguardando retorno" value={String(data.pending_conversations)} note="Conversas marcadas como pendentes" icon={MessageCircleMore}/>
       <StatCard href="/central/clientes" label="Contatos unificados" value={String(data.contacts)} note="Meta, cadastro manual e CRM" icon={UsersRound}/>
       <StatCard href="/central/midia" label="Arquivos de mídia" value={String(data.media_assets)} note="Biblioteca privada pesquisável" icon={ImageIcon}/>
+      <StatCard href="/central/agenda" label="Agenda hoje" value={String(agenda.summary.today_count)} note={`${agenda.summary.next_seven_days_count} nos próximos 7 dias`} icon={CalendarDays}/>
+      <StatCard href="/central/pendencias" label="Pendências" value={String(agenda.summary.pending_count)} note={`${agenda.summary.overdue_count} atrasada(s)`} icon={ListTodo}/>
       <StatCard href="/central/nexus" label="Insights ativos" value={String(data.active_ai_insights)} note="Sugestões geradas pelo Nexus" icon={Bot}/>
     </section>
 
     <section className="central-launch-grid">
       <Link href="/central/inbox" className="central-launch-card primary"><Inbox size={24}/><span><strong>Atendimento</strong><small>Fila única com busca, filtros, status e contexto do cliente.</small></span></Link>
       <Link href="/central/clientes" className="central-launch-card"><UsersRound size={24}/><span><strong>Clientes</strong><small>Cadastre manualmente e una identidades sem apagar as origens.</small></span></Link>
+      <Link href="/central/agenda" className="central-launch-card"><CalendarDays size={24}/><span><strong>Agenda</strong><small>Compromissos e tarefas de todas as operações.</small></span></Link>
+      <Link href="/central/pendencias" className="central-launch-card"><ListTodo size={24}/><span><strong>Pendências</strong><small>Fila única do que ainda precisa ser resolvido.</small></span></Link>
       <Link href="/central/midia" className="central-launch-card"><ImageIcon size={24}/><span><strong>Mídia</strong><small>Fotos, vídeos e documentos organizados para uso futuro.</small></span></Link>
       <Link href="/central/nexus" className="central-launch-card"><Bot size={24}/><span><strong>Nexus IA</strong><small>Sugestões para você revisar antes de qualquer envio.</small></span></Link>
     </section>

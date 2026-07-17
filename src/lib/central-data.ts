@@ -166,6 +166,41 @@ export type CentralMediaAsset = {
   signed_url: string | null;
 };
 
+
+export type CentralAgendaTask = {
+  id: string;
+  title: string;
+  category: string;
+  due_at: string;
+  due_date: string;
+  status: string;
+  priority: string;
+  operation_scope: string;
+  central_contact_id: string | null;
+  contact_name: string | null;
+  contact_phone: string | null;
+  assigned_to: string | null;
+  assigned_name: string | null;
+  notes: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+};
+
+export type CentralAgendaSummary = {
+  today_count: number;
+  overdue_count: number;
+  next_seven_days_count: number;
+  completed_month_count: number;
+  pending_count: number;
+};
+
+export type CentralAgendaSnapshot = {
+  summary: CentralAgendaSummary;
+  items: CentralAgendaTask[];
+};
+
+export type CentralAgendaUser = { id: string; name: string };
+
 export type CentralAiInsight = {
   id: string;
   operation_scope: string;
@@ -439,6 +474,24 @@ export async function getCentralContactDetails(contactId: string): Promise<Centr
     identities: (identitiesResult.data ?? []) as CentralContactIdentity[],
     conversations: (conversationsResult.data ?? []) as CentralInboxItem[],
   };
+}
+
+
+export async function getCentralAgendaSnapshot(status: string | null = null, scope: string | null = null): Promise<CentralAgendaSnapshot> {
+  const fallback: CentralAgendaSnapshot = { summary: { today_count: 0, overdue_count: 0, next_seven_days_count: 0, completed_month_count: 0, pending_count: 0 }, items: [] };
+  if (!isSupabaseConfigured) return fallback;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("central_agenda_snapshot", { p_from: null, p_to: null, p_status: status, p_scope: scope, p_limit: 500 });
+  if (error) throw error;
+  return asObject<CentralAgendaSnapshot>(data, fallback);
+}
+
+export async function getCentralAgendaUsers(): Promise<CentralAgendaUser[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("profiles").select("id,full_name,email").eq("active", true).neq("role", "partner").order("full_name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ id: String(row.id), name: String(row.full_name || row.email || "Usuário") }));
 }
 
 export async function getPartnerPortalDashboard(): Promise<PartnerPortalDashboard | null> {
