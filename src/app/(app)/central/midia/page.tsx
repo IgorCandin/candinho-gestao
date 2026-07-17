@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { FileText, ImageIcon, Search, Video } from "lucide-react";
+import { CheckCircle2, Clock3, FileText, ImageIcon, Search, Sparkles, Video } from "lucide-react";
 import { CentralMediaUploader } from "@/components/central-media-uploader";
 import { PageHeader } from "@/components/page-header";
-import { getCentralMediaAssets } from "@/lib/central-data";
+import { getCentralMediaAssets, getCentralIntegrationReadiness } from "@/lib/central-data";
 import { getCurrentUserAccess } from "@/lib/data";
 import { formatDateTime } from "@/lib/format";
 
@@ -12,17 +12,30 @@ function AssetIcon({ mime }: { mime: string | null }) {
   return <ImageIcon size={28}/>;
 }
 
+function aiCategory(metadata: Record<string, unknown> | null) {
+  const value = metadata?.category;
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
 export default async function CentralMediaPage({ searchParams }: { searchParams: Promise<{ q?: string; scope?: string }> }) {
   const access = await getCurrentUserAccess();
   if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
   const params = await searchParams;
   const allowedScopes = [access.role === "admin" ? "company" : null, access.canAccessSupplements ? "supplements" : null, access.canAccessFitness ? "fitness" : null].filter((item): item is string => Boolean(item));
   const requestedScope = params.scope && allowedScopes.includes(params.scope) ? params.scope : null;
-  const assets = await getCentralMediaAssets(params.q ?? "", requestedScope);
+  const [assets, readiness] = await Promise.all([getCentralMediaAssets(params.q ?? "", requestedScope), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
+  const aiReady = Boolean(readiness?.openai.ready);
+  const classifiedCount = assets.filter((asset) => Boolean(asset.description_ai)).length;
 
   return <>
     <PageHeader eyebrow="Candinho Central" title="Biblioteca de mídia" description="Guarde material da Candinho em um só lugar e encontre depois por nome, descrição ou tags." />
     <article className="panel central-media-upload-panel"><div className="panel-body"><CentralMediaUploader scopes={allowedScopes}/></div></article>
+
+    <section className="central-media-summary">
+      <div><span>Arquivos exibidos</span><strong>{assets.length}</strong></div>
+      <div><span>Classificados por IA</span><strong>{classifiedCount}</strong></div>
+      <div className={aiReady ? "ready" : "waiting"}><span>Nexus Mídia</span><strong>{aiReady ? "Pronto" : "Aguardando chave"}</strong></div>
+    </section>
 
     <form className="central-media-search" method="get">
       <label><Search size={16}/><input name="q" defaultValue={params.q ?? ""} placeholder="Ex.: creatina academia, feedback, story..." /></label>
@@ -33,9 +46,18 @@ export default async function CentralMediaPage({ searchParams }: { searchParams:
     {assets.length === 0 ? <article className="panel"><div className="empty"><ImageIcon size={28}/><strong>Nenhuma mídia encontrada</strong>Envie o primeiro arquivo ou altere a busca.</div></article> : <section className="central-media-grid">{assets.map((asset) => {
       const image = asset.mime_type?.startsWith("image/") && asset.signed_url;
       const video = asset.mime_type?.startsWith("video/") && asset.signed_url;
+      const supportedImage = ["image/jpeg", "image/png", "image/webp"].includes(asset.mime_type ?? "");
+      const classified = Boolean(asset.description_ai);
+      const category = aiCategory(asset.ai_metadata);
       return <article className="central-media-card" key={asset.id}>
         <div className="central-media-preview">{image ? <img src={asset.signed_url!} alt={asset.description_ai ?? asset.original_filename ?? "Mídia"}/> : video ? <video src={asset.signed_url!} controls preload="metadata"/> : <AssetIcon mime={asset.mime_type}/>}</div>
-        <div className="central-media-card-body"><div><span>{asset.operation_scope}</span><small>{formatDateTime(asset.created_at)}</small></div><strong>{asset.description_ai ?? asset.original_filename ?? "Arquivo sem nome"}</strong>{asset.tags?.length > 0 && <div className="central-media-tags">{asset.tags.slice(0, 7).map((tag) => <i key={tag}>{tag}</i>)}</div>}</div>
+        <div className="central-media-card-body">
+          <div><span>{asset.operation_scope}</span><small>{formatDateTime(asset.created_at)}</small></div>
+          <strong>{asset.description_ai ?? asset.original_filename ?? "Arquivo sem nome"}</strong>
+          <div className={`central-media-ai-status ${classified ? "ready" : "waiting"}`}>{classified ? <CheckCircle2 size={13}/> : supportedImage ? <Clock3 size={13}/> : <Sparkles size={13}/>}<span>{classified ? "Classificado por IA" : supportedImage ? aiReady ? "Aguardando classificação" : "IA aguardando chave" : "Arquivo armazenado"}</span></div>
+          {category && <small className="central-media-category">Categoria: {category}</small>}
+          {asset.tags?.length > 0 && <div className="central-media-tags">{asset.tags.slice(0, 7).map((tag) => <i key={tag}>{tag}</i>)}</div>}
+        </div>
       </article>;
     })}</section>}
   </>;

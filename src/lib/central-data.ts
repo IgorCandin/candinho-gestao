@@ -83,13 +83,30 @@ export type CentralMessage = {
 
 export type CentralContact = {
   id: string;
+  operation_scope: string;
   display_name: string;
   phone: string | null;
+  email: string | null;
   instagram_username: string | null;
   preferred_channel: string | null;
   notes: string | null;
   supplements_customer_id: string | null;
   fitness_customer_id: string | null;
+};
+
+export type CentralContactIdentity = {
+  id: string;
+  provider: string;
+  account_external_id: string;
+  external_id: string;
+  username: string | null;
+  display_name: string | null;
+};
+
+export type CentralContactDetails = {
+  contact: CentralContact | null;
+  identities: CentralContactIdentity[];
+  conversations: CentralInboxItem[];
 };
 
 export type CentralConversationDetails = {
@@ -353,7 +370,7 @@ export async function getCentralConversationDetails(conversationId: string): Pro
   const conversation = conversationResult.data as CentralInboxItem | null;
   let contact: CentralContact | null = null;
   if (conversation?.contact_id) {
-    const contactResult = await supabase.from("central_contacts").select("id,display_name,phone,instagram_username,preferred_channel,notes,supplements_customer_id,fitness_customer_id").eq("id", conversation.contact_id).maybeSingle();
+    const contactResult = await supabase.from("central_contacts").select("id,operation_scope,display_name,phone,email,instagram_username,preferred_channel,notes,supplements_customer_id,fitness_customer_id").eq("id", conversation.contact_id).maybeSingle();
     if (contactResult.error) throw contactResult.error;
     contact = contactResult.data as CentralContact | null;
   }
@@ -405,6 +422,25 @@ export async function getCentralAiInsights(limit = 50): Promise<CentralAiInsight
   return (data ?? []) as CentralAiInsight[];
 }
 
+
+export async function getCentralContactDetails(contactId: string): Promise<CentralContactDetails> {
+  if (!isSupabaseConfigured) return { contact: null, identities: [], conversations: [] };
+  const supabase = await createClient();
+  const [contactResult, identitiesResult, conversationsResult] = await Promise.all([
+    supabase.from("central_contacts").select("id,operation_scope,display_name,phone,email,instagram_username,preferred_channel,notes,supplements_customer_id,fitness_customer_id").eq("id", contactId).maybeSingle(),
+    supabase.from("central_contact_identities").select("id,provider,account_external_id,external_id,username,display_name").eq("contact_id", contactId).order("provider"),
+    supabase.from("central_inbox_overview").select("*").eq("contact_id", contactId).order("last_message_at", { ascending: false }).limit(50),
+  ]);
+  if (contactResult.error) throw contactResult.error;
+  if (identitiesResult.error) throw identitiesResult.error;
+  if (conversationsResult.error) throw conversationsResult.error;
+  return {
+    contact: contactResult.data as CentralContact | null,
+    identities: (identitiesResult.data ?? []) as CentralContactIdentity[],
+    conversations: (conversationsResult.data ?? []) as CentralInboxItem[],
+  };
+}
+
 export async function getPartnerPortalDashboard(): Promise<PartnerPortalDashboard | null> {
   if (!isSupabaseConfigured) return null;
   const supabase = await createClient();
@@ -442,7 +478,7 @@ export async function getCentralContacts(limit = 200): Promise<CentralContact[]>
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("central_contacts")
-    .select("id,display_name,phone,instagram_username,preferred_channel,notes,supplements_customer_id,fitness_customer_id")
+    .select("id,operation_scope,display_name,phone,email,instagram_username,preferred_channel,notes,supplements_customer_id,fitness_customer_id")
     .order("display_name")
     .limit(limit);
   if (error) throw error;
