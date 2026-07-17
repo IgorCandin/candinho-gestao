@@ -5,9 +5,10 @@ import { Badge } from "@/components/badge";
 import { CustomerCRMPanel } from "@/components/customer-crm-panel";
 import { CustomerProfileEditor } from "@/components/customer-profile-editor";
 import { DemoBanner } from "@/components/demo-banner";
+import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
-import { getCustomerDetails, getCustomerInteractions, getCustomerLeads, getCustomerPendingOrders, getCustomerSales } from "@/lib/data";
+import { getCustomerDetails, getCustomerInteractions, getCustomerLeads, getCustomerPendingOrders, getCustomerSales, getEntitySwipeNavigation } from "@/lib/data";
 import { formatCurrency, formatDate, formatDateOnly } from "@/lib/format";
 
 function Line({ label, value }: { label: string; value: React.ReactNode }) {
@@ -19,12 +20,13 @@ const wa = (phone: string) => `https://wa.me/${phone.replace(/\D/g, "").startsWi
 
 export default async function CustomerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [customer, sales, leads, pending, interactions] = await Promise.all([
+  const [customer, sales, leads, pending, interactions, swipe] = await Promise.all([
     getCustomerDetails(id),
     getCustomerSales(id),
     getCustomerLeads(id),
     getCustomerPendingOrders(id),
     getCustomerInteractions(id),
+    getEntitySwipeNavigation("customer", id),
   ]);
   if (!customer) notFound();
 
@@ -43,6 +45,7 @@ export default async function CustomerDetailsPage({ params }: { params: Promise<
           </div>
         )}
       />
+      <EntitySwipeNavigator previous={swipe.previous} next={swipe.next} />
 
       <div className="customer-radar-strip">
         <div><Badge value={customer.radar_status} /><strong>{customer.next_action_label}</strong></div>

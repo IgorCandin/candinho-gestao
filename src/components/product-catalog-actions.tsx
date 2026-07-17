@@ -1,10 +1,10 @@
 "use client";
 
-import { FileDown, Layers3, Plus } from "lucide-react";
+import { BarChart3, FileDown, Layers3, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-export function ProductCatalogActions() {
+export function ProductCatalogActions({ canWrite = true }: { canWrite?: boolean }) {
   const [showCatalogOptions, setShowCatalogOptions] = useState(false);
 
   function openCatalog(includeIncoming: boolean) {
@@ -20,15 +20,19 @@ export function ProductCatalogActions() {
           <Layers3 size={16} />
           Combos
         </Link>
-        <button className="button ghost" type="button" onClick={() => setShowCatalogOptions(true)}>
+        {canWrite && <Link className="button ghost" href="/produtos/gerencial">
+          <BarChart3 size={16} />
+          Área Gerencial
+        </Link>}
+        {canWrite && <button className="button ghost" type="button" onClick={() => setShowCatalogOptions(true)}>
           <FileDown size={16} />
           Gerar catálogo PDF
-        </button>
+        </button>}
 
-        <Link className="button gold" href="/produtos/novo">
+        {canWrite && <Link className="button gold" href="/produtos/novo">
           <Plus size={16} />
           Novo produto
-        </Link>
+        </Link>}
       </div>
 
       {showCatalogOptions && (

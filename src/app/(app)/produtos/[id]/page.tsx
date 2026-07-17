@@ -2,9 +2,10 @@ import Link from "next/link";
 import { ArrowLeft, BadgeInfo, CalendarDays, CheckCircle2, CircleDollarSign, Edit3, PackageCheck, PackagePlus, Tags, Warehouse } from "lucide-react";
 import { notFound } from "next/navigation";
 import { DemoBanner } from "@/components/demo-banner";
+import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { PageHeader } from "@/components/page-header";
 import { ProductImageUploader } from "@/components/product-image-uploader";
-import { getProductDetails } from "@/lib/data";
+import { getEntitySwipeNavigation, getProductDetails } from "@/lib/data";
 import { formatCurrency } from "@/lib/format";
 
 function DetailItem({ label, value }: { label: string; value: string | number | null | undefined }) {
@@ -27,7 +28,7 @@ function stockState(status: string) {
 
 export default async function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const product = await getProductDetails(id);
+  const [product, swipe] = await Promise.all([getProductDetails(id), getEntitySwipeNavigation("product", id)]);
   if (!product) notFound();
   const state = stockState(product.stock_status);
 
@@ -40,6 +41,7 @@ export default async function ProductDetailsPage({ params }: { params: Promise<{
         description="Informações comerciais, fotos leves e situação atual do produto."
         action={<div className="page-header-action-group"><Link className="button gold" href={`/produtos/${product.id}/editar`}><Edit3 size={16} />Editar produto</Link><Link className="button ghost" href={`/estoque/${product.id}`}><Warehouse size={16} />Ver estoque</Link><Link className="button ghost" href="/produtos"><ArrowLeft size={16} />Voltar</Link></div>}
       />
+      <EntitySwipeNavigator previous={swipe.previous} next={swipe.next} />
 
       <section className="product-stock-summary">
         <article><PackageCheck size={18} /><div><span>Físico</span><strong>{product.physical_quantity}</strong></div></article>

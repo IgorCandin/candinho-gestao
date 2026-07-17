@@ -32,6 +32,8 @@ import type {
   ProductCatalogRow,
   ProductDetails,
   ProductManagementDetails,
+  ProductDataQualityRow,
+  SwipeNavigation,
   ProductComboRow,
   ProductComboDetails,
   ProductComboSaleOption,
@@ -289,6 +291,88 @@ export async function getProductManagementDetails(productId: string): Promise<Pr
     default_supplier_id: typeof data.default_supplier_id === "string" ? data.default_supplier_id : null,
     default_supplier_name: typeof data.default_supplier_name === "string" ? data.default_supplier_name : null,
     updated_at: String(data.updated_at ?? ""),
+  };
+}
+
+
+export async function getProductDataQuality(): Promise<ProductDataQualityRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("product_management_details").select("*").eq("active", true).order("name");
+  if (error) throw error;
+  const fieldChecks: Array<[string, (row: Record<string, unknown>) => boolean]> = [
+    ["Foto principal", (r) => Boolean(r.image_url)],
+    ["Marca", (r) => Boolean(typeof r.brand === "string" && r.brand.trim())],
+    ["SKU", (r) => Boolean(typeof r.sku === "string" && r.sku.trim())],
+    ["Fornecedor padrão", (r) => Boolean(r.default_supplier_id)],
+    ["Descrição", (r) => Boolean(typeof r.description === "string" && r.description.trim())],
+    ["Objetivo", (r) => Boolean(typeof r.objective === "string" && r.objective.trim())],
+    ["Perfil ideal", (r) => Boolean(typeof r.ideal_profile === "string" && r.ideal_profile.trim())],
+    ["Duração/doses", (r) => Number(r.duration_days ?? 0) > 0],
+    ["Informações", (r) => Boolean(typeof r.information === "string" && r.information.trim())],
+    ["Mensagem rápida", (r) => Boolean(typeof r.quick_message === "string" && r.quick_message.trim())],
+    ["Palavras-chave", (r) => Boolean(typeof r.keywords === "string" && r.keywords.trim())],
+    ["Estoque mínimo", (r) => Number(r.min_stock ?? 0) > 0],
+    ["Estoque ideal", (r) => Number(r.ideal_stock ?? 0) > 0],
+    ["Preço de custo", (r) => Number(r.cost_price ?? 0) > 0],
+    ["Preço de venda", (r) => Number(r.sale_price ?? 0) > 0],
+  ];
+  return (data ?? []).filter((row) => !String(row.name ?? "").toLocaleUpperCase("pt-BR").includes("COMBO")).map((raw) => {
+    const row = raw as Record<string, unknown>;
+    const missing = fieldChecks.filter(([,check]) => !check(row)).map(([label]) => label);
+    return {
+      id: String(row.id),
+      name: text(row.name, "Produto sem nome"),
+      category: text(row.category, "Sem categoria"),
+      brand: typeof row.brand === "string" ? row.brand : null,
+      completion_pct: Math.round(((fieldChecks.length - missing.length) / fieldChecks.length) * 100),
+      missing_fields: missing,
+    };
+  });
+}
+
+export async function getEntitySwipeNavigation(kind: "product" | "customer" | "sale" | "quote" | "partner" | "fitness_product" | "fitness_customer" | "fitness_sale", currentId: string): Promise<SwipeNavigation> {
+  if (!isSupabaseConfigured) return { previous: null, next: null };
+  const supabase = await createClient();
+  let rows: Array<{ id: string }> = [];
+  if (kind === "product") {
+    const products = await getProductCatalog();
+    rows = products.map((item) => ({ id: item.id }));
+  } else if (kind === "customer") {
+    const result = await supabase.from("customers").select("id").order("name");
+    if (result.error) throw result.error;
+    rows = (result.data ?? []).map((item) => ({ id: String(item.id) }));
+  } else if (kind === "sale") {
+    const result = await supabase.from("sales").select("id").eq("record_type", "sale").neq("general_status", "cancelled").order("quoted_at", { ascending: false });
+    if (result.error) throw result.error;
+    rows = (result.data ?? []).map((item) => ({ id: String(item.id) }));
+  } else if (kind === "quote") {
+    const result = await supabase.from("sales_quotes").select("id").order("created_at", { ascending: false });
+    if (result.error) throw result.error;
+    rows = (result.data ?? []).map((item) => ({ id: String(item.id) }));
+  } else if (kind === "partner") {
+    const result = await supabase.from("partner_management_overview").select("id").order("name");
+    if (result.error) throw result.error;
+    rows = (result.data ?? []).map((item) => ({ id: String(item.id) }));
+  } else if (kind === "fitness_product") {
+    const result = await supabase.from("fitness_products").select("id").order("name");
+    if (result.error) throw result.error;
+    rows = (result.data ?? []).map((item) => ({ id: String(item.id) }));
+  } else if (kind === "fitness_customer") {
+    const result = await supabase.from("fitness_customers").select("id").order("name");
+    if (result.error) throw result.error;
+    rows = (result.data ?? []).map((item) => ({ id: String(item.id) }));
+  } else {
+    const result = await supabase.from("fitness_sales").select("id").order("quoted_on", { ascending: false });
+    if (result.error) throw result.error;
+    rows = (result.data ?? []).map((item) => ({ id: String(item.id) }));
+  }
+  const index = rows.findIndex((item) => item.id === currentId);
+  if (index < 0) return { previous: null, next: null };
+  const base = kind === "product" ? "/produtos" : kind === "customer" ? "/clientes" : kind === "sale" ? "/vendas" : kind === "quote" ? "/orcamentos" : kind === "partner" ? "/parceiros" : kind === "fitness_product" ? "/fitness/produtos" : kind === "fitness_customer" ? "/fitness/clientes" : "/fitness/vendas";
+  return {
+    previous: index > 0 ? { href: `${base}/${rows[index - 1].id}` } : null,
+    next: index < rows.length - 1 ? { href: `${base}/${rows[index + 1].id}` } : null,
   };
 }
 
@@ -1944,8 +2028,8 @@ export const getCurrentUserAccess = cache(async (): Promise<UserAccess> => {
 export async function getUserPermissions(): Promise<UserPermissionRow[]> {
   if (!isSupabaseConfigured) {
     return [
-      { id: "demo-admin", email: "igorcandinho2002@hotmail.com", full_name: "Igor Candinho", role: "admin", active: true, can_access_supplements: true, can_access_fitness: true, can_access_bank: true, can_manage_users: true, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-      { id: "demo-fitness", email: "giuliafaria1@gmail.com", full_name: "Giulia", role: "operator", active: true, can_access_supplements: false, can_access_fitness: true, can_access_bank: false, can_manage_users: false, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "demo-admin", email: "igorcandinho2002@hotmail.com", full_name: "Igor Candinho", role: "admin", active: true, can_access_supplements: true, can_write_supplements: true, can_access_fitness: true, can_write_fitness: true, can_access_bank: true, can_write_bank: true, can_manage_users: true, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "demo-fitness", email: "giuliafaria1@gmail.com", full_name: "Giulia", role: "operator", active: true, can_access_supplements: true, can_write_supplements: false, can_access_fitness: true, can_write_fitness: true, can_access_bank: true, can_write_bank: true, can_manage_users: false, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
     ];
   }
   const supabase = await createClient();
@@ -1955,11 +2039,14 @@ export async function getUserPermissions(): Promise<UserPermissionRow[]> {
     id: String(row.id),
     email: String(row.email ?? ""),
     full_name: String(row.full_name ?? "Usuário"),
-    role: (["admin", "operator", "partner"].includes(String(row.role)) ? String(row.role) : "partner") as UserPermissionRow["role"],
+    role: (["admin", "operator", "sales", "partner"].includes(String(row.role)) ? String(row.role) : "partner") as UserPermissionRow["role"],
     active: Boolean(row.active),
     can_access_supplements: Boolean(row.can_access_supplements),
+    can_write_supplements: Boolean(row.can_write_supplements),
     can_access_fitness: Boolean(row.can_access_fitness),
+    can_write_fitness: Boolean(row.can_write_fitness),
     can_access_bank: Boolean(row.can_access_bank),
+    can_write_bank: Boolean(row.can_write_bank),
     can_manage_users: Boolean(row.can_manage_users),
     last_sign_in_at: typeof row.last_sign_in_at === "string" ? row.last_sign_in_at : null,
     created_at: String(row.created_at ?? ""),

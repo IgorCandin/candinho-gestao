@@ -3,9 +3,10 @@ import { ArrowLeft, CalendarDays, CircleDollarSign, FilePenLine, FileText, Gift,
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/badge";
 import { DemoBanner } from "@/components/demo-banner";
+import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { PageHeader } from "@/components/page-header";
 import { QuoteStatusActions } from "@/components/quote-status-actions";
-import { getQuoteDetails } from "@/lib/data";
+import { getEntitySwipeNavigation, getQuoteDetails } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 
 function Line({ label, value }: { label: string; value: React.ReactNode }) { if (value==null||value===""||value==="—") return null; return <div className="sale-detail-line"><span>{label}</span><strong>{value}</strong></div>; }
@@ -13,7 +14,7 @@ function paymentModeLabel(value: string) { return value==="paid"?"Pago":value===
 
 export default async function QuoteDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const quote = await getQuoteDetails(id);
+  const [quote, swipe] = await Promise.all([getQuoteDetails(id), getEntitySwipeNavigation("quote", id)]);
   if (!quote) notFound();
   const canEdit = quote.status === "quoted";
   const action = <div className="page-header-actions">
@@ -25,6 +26,7 @@ export default async function QuoteDetailsPage({ params }: { params: Promise<{ i
   return <>
     <DemoBanner/>
     <PageHeader eyebrow="Orçamento" title={`#${quote.quote_number} · ${quote.customer_name}`} description="Revise a proposta, abra o PDF ou converta em venda quando o cliente confirmar." action={action}/>
+    <EntitySwipeNavigator previous={swipe.previous} next={swipe.next} />
     {quote.effective_status==="expired"&&<article className="panel quote-expired-alert"><div className="panel-body"><CalendarDays size={20}/><div><strong>Este orçamento venceu em {formatDateOnly(quote.valid_until)}.</strong><span>Você ainda pode abrir, editar a validade e confirmar sem cadastrar os produtos novamente.</span></div></div></article>}
     <section className="sale-details-layout">
       <div className="sale-details-main">

@@ -3,11 +3,12 @@ import { notFound } from "next/navigation";
 import { Boxes, CircleDollarSign, Edit3, Gift, Handshake, MapPin, Phone, Store, TrendingUp, UsersRound } from "lucide-react";
 import { Badge } from "@/components/badge";
 import { DemoBanner } from "@/components/demo-banner";
+import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { PageHeader } from "@/components/page-header";
 import { PartnerSettlementPanel } from "@/components/partner-settlement-panel";
 import { PartnerUnassignedSales } from "@/components/partner-unassigned-sales";
 import { StatCard } from "@/components/stat-card";
-import { getPartnerDetails } from "@/lib/data";
+import { getEntitySwipeNavigation, getPartnerDetails } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 
 function rewardLabel(type: string) {
@@ -20,24 +21,26 @@ function rewardLabel(type: string) {
 
 export default async function PartnerDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const details = await getPartnerDetails(id);
+  const [details, swipe] = await Promise.all([getPartnerDetails(id), getEntitySwipeNavigation("partner", id)]);
   if (!details) notFound();
   const { overview: partner, sales, settlements, unassignedSales } = details;
+  const progressPct = partner.reward_type === "gift_per_sales" && (partner.target_sales ?? 0) > 0 ? Math.round((partner.progress_sales / (partner.target_sales ?? 1)) * 100) : Math.round(partner.progress_pct);
   return <>
     <DemoBanner />
     <PageHeader eyebrow="Parceria" title={partner.name} description={`${partner.partner_type}${partner.city ? ` · ${partner.city}` : ""}`} action={<Link className="button gold" href={`/parceiros/${partner.id}/editar`}><Edit3 size={16} />Editar parceiro</Link>} />
+    <EntitySwipeNavigator previous={swipe.previous} next={swipe.next} />
 
     <section className="stats-grid partner-detail-stats">
       <StatCard href="/vendas" label="Vendas no ciclo" value={String(partner.current_cycle_sales_count)} note={`Desde ${formatDateOnly(partner.cycle_start)}`} icon={UsersRound} />
       <StatCard href="/vendas" label="Faturamento no ciclo" value={formatCurrency(partner.current_cycle_revenue)} note={`${formatCurrency(partner.current_cycle_profit)} de lucro`} icon={CircleDollarSign} />
-      <StatCard href="/parceiros" label="Recompensa estimada" value={partner.reward_units_due > 0 ? `${partner.reward_units_due} brinde(s)` : formatCurrency(partner.estimated_reward_amount)} note={partner.settlement_pending ? "Acerto pendente" : "Ciclo em andamento"} icon={Gift} />
+      <StatCard href="/parceiros" label="Recompensa estimada" value={partner.reward_units_due > 0 ? `${partner.reward_units_due} meta(s)` : formatCurrency(partner.estimated_reward_amount)} note={partner.reward_units_due > 0 ? "Histórico a conciliar" : partner.settlement_pending ? "Acerto pendente" : "Ciclo em andamento"} icon={Gift} />
       <StatCard href="/estoque" label="Estoque no ponto" value={String(partner.linked_location_units)} note={partner.linked_location_code ?? "Sem ponto relacionado"} icon={Boxes} />
     </section>
 
     <section className="partner-detail-layout">
       <div className="partner-detail-main">
         <article className="panel partner-progress-panel"><div className="panel-head"><div><h2>Progresso da parceria</h2><p>{partner.reward_description ?? rewardLabel(partner.reward_type)}</p></div><Badge value={partner.settlement_pending ? "pending" : partner.status === "Pausado" || !partner.active ? "inactive" : "active"} /></div><div className="panel-body">
-          {partner.reward_type === "gift_per_sales" ? <><div className="partner-progress-large"><div><strong>{partner.progress_sales}</strong><span>de {partner.target_sales ?? 0} vendas</span></div><div><strong>{Math.round(partner.progress_pct)}%</strong><span>da meta</span></div></div><div className="partner-progress-track large"><span style={{ width: `${partner.progress_pct}%` }} /></div>{partner.reward_units_due > 0 && <p className="partner-reward-alert"><Gift size={17} />Meta alcançada: {partner.reward_units_due} recompensa(s) disponível(is).</p>}</> : <div className="partner-progress-large"><div><strong>{partner.current_cycle_sales_count}</strong><span>vendas contabilizadas</span></div><div><strong>{partner.reward_type === "fixed_per_sale" || partner.reward_type === "percentage" ? formatCurrency(partner.estimated_reward_amount) : "Manual"}</strong><span>recompensa estimada</span></div></div>}
+          {partner.reward_type === "gift_per_sales" ? <><div className="partner-progress-large"><div><strong>{partner.progress_sales}</strong><span>de {partner.target_sales ?? 0} vendas</span></div><div><strong>{progressPct}%</strong><span>para o próximo brinde</span></div></div><div className="partner-progress-track large"><span style={{ width: `${progressPct}%` }} /></div>{partner.reward_units_due > 0 && <p className="partner-reward-alert"><Gift size={17} />{partner.reward_units_due} meta(s) de brinde alcançada(s) neste histórico. Registre os acertos já entregues para iniciar um novo ciclo.</p>}</> : <div className="partner-progress-large"><div><strong>{partner.current_cycle_sales_count}</strong><span>vendas contabilizadas</span></div><div><strong>{partner.reward_type === "fixed_per_sale" || partner.reward_type === "percentage" ? formatCurrency(partner.estimated_reward_amount) : "Manual"}</strong><span>recompensa estimada</span></div></div>}
         </div></article>
 
         <article className="panel"><div className="panel-head"><div><h2>Vendas vinculadas</h2><p>Histórico comercial atribuído a este parceiro.</p></div><strong>{sales.length}</strong></div>{sales.length === 0 ? <div className="empty"><TrendingUp size={25} /><strong>Nenhuma venda vinculada</strong>Selecione o parceiro ao registrar uma nova venda.</div> : <div className="table-wrap"><table className="table partner-sales-table"><thead><tr><th>Cliente</th><th>Produto</th><th>Data</th><th>Pagamento</th><th>Entrega</th><th>Valor</th></tr></thead><tbody>{sales.map((sale) => <tr key={sale.id}><td><Link className="table-link" href={`/vendas/${sale.id}`}><strong>{sale.customer_name}</strong></Link></td><td>{sale.product_summary ?? "—"}</td><td>{formatDateOnly(sale.sale_date)}</td><td><Badge value={sale.payment_status} /></td><td><Badge value={sale.delivery_status} /></td><td><strong>{formatCurrency(sale.total_amount)}</strong></td></tr>)}</tbody></table></div>}</article>

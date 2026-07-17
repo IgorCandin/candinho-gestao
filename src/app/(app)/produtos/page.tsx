@@ -1,36 +1,15 @@
-import { Boxes, Image, PackageCheck, PackagePlus } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { ProductCatalogTable } from "@/components/product-catalog-table";
 import { ProductCatalogActions } from "@/components/product-catalog-actions";
-import { StatCard } from "@/components/stat-card";
-import { getProductCatalog, getProductCategories } from "@/lib/data";
+import { getCurrentUserAccess, getInventoryLocationOverview, getProductCatalog, getProductCategories } from "@/lib/data";
 
 export default async function ProductsPage() {
-  const [products, categories] = await Promise.all([getProductCatalog(), getProductCategories()]);
-  const active = products.filter((product) => product.active);
-  const availableUnits = active.reduce((sum, product) => sum + product.available_quantity, 0);
-  const incomingUnits = active.reduce((sum, product) => sum + product.incoming_quantity, 0);
-  const missingPhotos = active.filter((product) => !product.thumbnail_url).length;
-
-  return (
-    <>
-      <DemoBanner />
-      <PageHeader
-        eyebrow="Catálogo"
-        title="Produtos"
-        description="Catálogo comercial seguro, estoque disponível e gestão completa de cada produto."
-        action={<ProductCatalogActions />}
-      />
-
-      <section className="stats-grid product-stats-grid">
-        <StatCard href="/produtos" label="Produtos ativos" value={String(active.length)} note={`${products.length} cadastrados`} icon={Boxes} />
-        <StatCard href="/estoque" label="Unidades disponíveis" value={String(availableUnits)} note="Saldo livre para vendas" icon={PackageCheck} />
-        <StatCard href="/pedidos-fornecedor" label="Unidades a caminho" value={String(incomingUnits)} note="Pedidos de fornecedor" icon={PackagePlus} />
-        <StatCard href="/produtos" label="Sem miniatura" value={String(missingPhotos)} note="Não carregam foto nas listas" icon={Image} />
-      </section>
-
-      <ProductCatalogTable products={products} categories={categories} />
-    </>
-  );
+  const [access, products, categories, locations] = await Promise.all([getCurrentUserAccess(), getProductCatalog(), getProductCategories(), getInventoryLocationOverview()]);
+  return <>
+    <DemoBanner />
+    <PageHeader eyebrow="Catálogo" title="Produtos" description="Consulta rápida de preço, disponibilidade e reposição. Os indicadores administrativos ficam separados na Área Gerencial." action={<ProductCatalogActions canWrite={access.canWriteSupplements} />} />
+    <ProductCatalogTable products={products} categories={categories} salesMode={access.role === "sales"} />
+    {access.role === "sales" && <article className="panel sales-location-panel"><div className="panel-head"><div><h2>Disponibilidade por filial / parceiro</h2><p>Onde existe estoque livre ou reposição prevista.</p></div></div><div className="table-wrap"><table className="table"><thead><tr><th>Produto</th><th>Local</th><th>Disponível</th><th>A caminho</th></tr></thead><tbody>{locations.filter((row)=>row.available_quantity>0||row.incoming_quantity>0).map((row)=><tr key={`${row.product_id}-${row.location_id}`}><td><strong>{row.product_name}</strong></td><td>{row.location_name}<small className="crm-cell-note">{row.location_code}</small></td><td>{row.available_quantity}</td><td>{row.incoming_quantity}</td></tr>)}</tbody></table></div></article>}
+  </>;
 }

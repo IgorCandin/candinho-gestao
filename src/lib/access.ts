@@ -1,7 +1,7 @@
 export const MANAGER_EMAIL = "igorcandinho2002@hotmail.com";
 export const FITNESS_SALES_EMAIL = "giuliafaria1@gmail.com";
 
-export type AccessRole = "admin" | "operator" | "partner" | "restricted";
+export type AccessRole = "admin" | "operator" | "sales" | "partner" | "restricted";
 
 export type UserAccess = {
   id: string | null;
@@ -25,8 +25,11 @@ export type UserPermissionRow = {
   role: Exclude<AccessRole, "restricted">;
   active: boolean;
   can_access_supplements: boolean;
+  can_write_supplements: boolean;
   can_access_fitness: boolean;
+  can_write_fitness: boolean;
   can_access_bank: boolean;
+  can_write_bank: boolean;
   can_manage_users: boolean;
   last_sign_in_at: string | null;
   created_at: string;
@@ -88,7 +91,7 @@ export function getFallbackUserAccess(email?: string | null): UserAccess {
 
 export function normalizeUserAccess(row: Record<string, unknown> | null | undefined, email?: string | null): UserAccess {
   if (!row) return getFallbackUserAccess(email);
-  const role = typeof row.role === "string" && ["admin", "operator", "partner"].includes(row.role)
+  const role = typeof row.role === "string" && ["admin", "operator", "sales", "partner"].includes(row.role)
     ? row.role as Exclude<AccessRole, "restricted">
     : "restricted";
   const active = Boolean(row.active);

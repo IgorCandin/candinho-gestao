@@ -5,33 +5,14 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
-  ArrowLeft,
-  Archive,
-  Building2,
-  CalendarDays,
-  ChartNoAxesCombined,
-  CircleDollarSign,
-  ContactRound,
-  FlaskConical,
-  Handshake,
-  History,
-  Home,
-  LogOut,
-  Menu,
-  PackageOpen,
-  PackageSearch,
-  RefreshCcw,
-  Settings,
-  ShoppingBag,
-  Truck,
-  UserRoundPlus,
-  UsersRound,
-  Warehouse,
+  Archive, ArrowLeft, BarChart3, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
+  Handshake, History, Home, LogOut, Menu, PackageSearch, RefreshCcw, Settings, ShoppingBag, Truck, UserRoundPlus, UsersRound,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 
 const supplementNav = [
-  { href: "/suplementos", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/suplementos", label: "Início", icon: Home },
+  { href: "/suplementos/painel", label: "Painel Gerencial", icon: BarChart3 },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/vendas", label: "Comercial", icon: ShoppingBag },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
@@ -39,9 +20,11 @@ const supplementNav = [
   { href: "/parceiros", label: "Parceiros", icon: Handshake },
   { href: "/movimentacoes", label: "Movimentações", icon: History },
 ];
+const supplementSalesNav = [{ href: "/produtos", label: "Consulta de produtos", icon: PackageSearch }];
 
 const fitnessNav = [
-  { href: "/fitness", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/fitness", label: "Início", icon: Home },
+  { href: "/fitness/painel", label: "Painel Gerencial", icon: BarChart3 },
   { href: "/fitness/vendas", label: "Comercial", icon: ShoppingBag },
   { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/fitness/estoque", label: "Estoque", icon: History },
@@ -49,6 +32,10 @@ const fitnessNav = [
   { href: "/fitness/pedidos", label: "Pedidos", icon: Truck },
   { href: "/fitness/fornecedores", label: "Fornecedores", icon: Handshake },
   { href: "/fitness/movimentacoes", label: "Movimentações", icon: History },
+];
+const fitnessSalesNav = [
+  { href: "/fitness/produtos", label: "Consulta de produtos", icon: PackageSearch },
+  { href: "/fitness/estoque", label: "Consulta de estoque", icon: History },
 ];
 
 const bankNav = [
@@ -64,255 +51,39 @@ const bankNav = [
   { href: "/bank/visao-anual", label: "Visão Anual", icon: CalendarDays },
   { href: "/bank/fechamento", label: "Fechamento Mensal", icon: Archive },
 ];
-
-const testSupplementNav = [
-  { href: "/teste/supplements", label: "Visão geral", icon: FlaskConical },
-  { href: "/teste/supplements/vendas", label: "Vendas teste", icon: ShoppingBag },
-  { href: "/teste/supplements/estoque", label: "Estoque teste", icon: Warehouse },
-  { href: "/teste/supplements/pedidos", label: "Pedidos teste", icon: PackageOpen },
-];
-
-const testFitnessNav = [
-  { href: "/teste/fitness", label: "Visão geral", icon: FlaskConical },
-  { href: "/teste/fitness/vendas", label: "Vendas teste", icon: ShoppingBag },
-  { href: "/teste/fitness/estoque", label: "Estoque teste", icon: Warehouse },
-  { href: "/teste/fitness/pedidos", label: "Pedidos teste", icon: PackageOpen },
-];
-
 const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
-
 type Operation = "hub" | "supplements" | "fitness" | "bank";
 
 export function AppShell({ children, access }: { children: React.ReactNode; access: UserAccess }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const mobileMenuRef = useRef<HTMLDetailsElement>(null);
-  const isHub = pathname === "/dashboard";
-  const isSettings = pathname.startsWith("/configuracoes");
-  const isTestSupplements = pathname.startsWith("/teste/supplements");
-  const isTestFitness = pathname.startsWith("/teste/fitness");
-  const isTest = isTestSupplements || isTestFitness;
-  const settingsOperation = searchParams.get("operacao");
+  const pathname=usePathname(); const router=useRouter(); const searchParams=useSearchParams(); const mobileMenuRef=useRef<HTMLDetailsElement>(null);
+  const isHub=pathname==="/dashboard"; const isSettings=pathname.startsWith("/configuracoes"); const settingsOperation=searchParams.get("operacao");
+  let operation:Operation="hub";
+  if(pathname.startsWith("/bank")||(isSettings&&settingsOperation==="bank")) operation="bank";
+  else if(pathname.startsWith("/fitness")||(isSettings&&settingsOperation==="fitness")) operation="fitness";
+  else if(!isHub) operation="supplements";
 
-  let operation: Operation = "hub";
-  if (pathname.startsWith("/bank") || (isSettings && settingsOperation === "bank")) {
-    operation = "bank";
-  } else if (isTestFitness || pathname.startsWith("/fitness") || (isSettings && settingsOperation === "fitness")) {
-    operation = "fitness";
-  } else if (
-    isTestSupplements ||
-    (isSettings && settingsOperation === "suplementos") ||
-    (!isHub && !isSettings && !pathname.startsWith("/fitness") && !pathname.startsWith("/bank") && !pathname.startsWith("/teste/"))
-  ) {
-    operation = "supplements";
-  }
+  const isFitness=operation==="fitness", isSupplements=operation==="supplements", isBank=operation==="bank", isSalesProfile=access.role==="sales";
+  const nav=isHub?hubNav:isBank?bankNav:isFitness?(isSalesProfile?fitnessSalesNav:fitnessNav):(isSalesProfile?supplementSalesNav:supplementNav);
+  const mobileShortcuts=isSettings?[]:isBank?[{href:"/bank/atualizar",label:"Atualizar",icon:RefreshCcw,primary:false},{href:"/bank",label:"Início",icon:ChartNoAxesCombined,primary:true},{href:"/bank/faturas",label:"Faturas",icon:History,primary:false}]:isFitness?(isSalesProfile?[{href:"/fitness/produtos",label:"Produtos",icon:PackageSearch,primary:true},{href:"/fitness/estoque",label:"Estoque",icon:History,primary:false}]:[{href:"/fitness/pedidos/novo",label:"Novo pedido",icon:Truck,primary:false},{href:"/fitness/vendas/nova",label:"Nova venda",icon:CircleDollarSign,primary:true},{href:"/fitness/produtos",label:"Produtos",icon:PackageSearch,primary:false}]):(isSalesProfile?[{href:"/produtos",label:"Produtos",icon:PackageSearch,primary:true}]:[{href:"/leads/novo",label:"Novo lead",icon:UserRoundPlus,primary:false},{href:"/vendas/nova",label:"Novo Orçamento",icon:CircleDollarSign,primary:true},{href:"/produtos",label:"Produtos",icon:PackageSearch,primary:false}]);
+  const showSupplementActions=access.canWriteSupplements&&isSupplements&&!isSettings;
+  const showFitnessActions=access.canWriteFitness&&isFitness&&!isSettings;
+  const settingsHref=operation==="fitness"?"/configuracoes?operacao=fitness":operation==="supplements"?"/configuracoes?operacao=suplementos":operation==="bank"?"/configuracoes?operacao=bank":"/configuracoes";
+  const brand=isBank?{src:"/candinho-bank-logo.png",alt:"Candinho Bank"}:isFitness?{src:"/candinho-fitness-logo.webp",alt:"Candinho Fitness"}:isSupplements?{src:"/candinho-suplementos-logo.webp",alt:"Candinho Suplementos"}:{src:"/candinho-company-logo.webp",alt:"Candinho Company"};
 
-  const isFitness = operation === "fitness";
-  const isSupplements = operation === "supplements";
-  const isBank = operation === "bank";
-  const isRealFitness = isFitness && !isTest && !isSettings;
-  const isRealSupplements = isSupplements && !isTest && !isSettings;
+  useEffect(()=>{mobileMenuRef.current?.removeAttribute("open");},[pathname]);
+  function closeMobileMenu(){mobileMenuRef.current?.removeAttribute("open");}
+  function goBack(){if(typeof window!=="undefined"&&window.history.length>1){router.back();return;}router.push(operation==="fitness"?"/fitness":operation==="bank"?"/bank":"/suplementos");}
+  function isActive(href:string){if(["/dashboard","/suplementos","/fitness","/bank"].includes(href))return pathname===href;if(href==="/vendas")return pathname.startsWith("/vendas")||pathname.startsWith("/leads")||pathname.startsWith("/orcamentos");return pathname.startsWith(href);}
 
-  const nav = isHub
-    ? hubNav
-    : isTestSupplements
-      ? testSupplementNav
-      : isTestFitness
-        ? testFitnessNav
-        : isBank
-          ? bankNav
-          : isFitness
-            ? fitnessNav
-            : supplementNav;
-
-  const mobileShortcuts = isSettings
-    ? []
-    : isTest
-      ? [
-          { href: `/teste/${operation}`, label: "Teste", icon: FlaskConical, primary: false },
-          { href: `/teste/${operation}/vendas/nova`, label: "Nova venda", icon: CircleDollarSign, primary: true },
-          { href: `/teste/${operation}/estoque`, label: "Estoque", icon: Warehouse, primary: false },
-        ]
-      : isBank
-        ? [
-            { href: "/bank/atualizar", label: "Atualizar", icon: RefreshCcw, primary: false },
-            { href: "/bank", label: "Início", icon: ChartNoAxesCombined, primary: true },
-            { href: "/bank/faturas", label: "Faturas", icon: History, primary: false },
-          ]
-        : isFitness
-          ? [
-              { href: "/fitness/pedidos/novo", label: "Novo pedido", icon: Truck, primary: false },
-              { href: "/fitness/vendas/nova", label: "Nova venda", icon: CircleDollarSign, primary: true },
-              { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch, primary: false },
-            ]
-          : [
-              { href: "/leads/novo", label: "Novo lead", icon: UserRoundPlus, primary: false },
-              { href: "/vendas/nova", label: "Novo Orçamento", icon: CircleDollarSign, primary: true },
-              { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
-            ];
-
-  const mobileMenuNav = isTest || isBank
-    ? nav
-    : nav.filter(({ href }) => (isFitness ? href !== "/fitness/produtos" : href !== "/produtos"));
-  const showSupplementActions = access.canWriteSupplements && isRealSupplements;
-  const showFitnessActions = access.canWriteFitness && isRealFitness;
-  const settingsHref = operation === "fitness"
-    ? "/configuracoes?operacao=fitness"
-    : operation === "supplements"
-      ? "/configuracoes?operacao=suplementos"
-      : operation === "bank"
-        ? "/configuracoes?operacao=bank"
-        : "/configuracoes";
-  const brand = isBank
-    ? { src: "/candinho-bank-logo.png", alt: "Candinho Bank" }
-    : isFitness
-      ? { src: "/candinho-fitness-logo.webp", alt: "Candinho Fitness" }
-      : isSupplements
-        ? { src: "/candinho-suplementos-logo.webp", alt: "Candinho Suplementos" }
-        : { src: "/candinho-company-logo.webp", alt: "Candinho Company" };
-
-
-  useEffect(() => {
-    mobileMenuRef.current?.removeAttribute("open");
-  }, [pathname]);
-
-  function closeMobileMenu() {
-    mobileMenuRef.current?.removeAttribute("open");
-  }
-
-  function goBack() {
-    if (typeof window !== "undefined" && window.history.length > 1) {
-      router.back();
-      return;
-    }
-    router.push(operation === "fitness" ? "/fitness" : operation === "bank" ? "/bank" : "/suplementos");
-  }
-
-  function isActive(href: string) {
-    if (href === "/dashboard") return pathname === href;
-    if (href === "/suplementos") return pathname === href;
-    if (href === "/fitness") return pathname === href;
-    if (href === "/bank") return pathname === href;
-    if (href === "/teste/supplements" || href === "/teste/fitness") return pathname === href;
-    if (href === "/vendas") return pathname.startsWith("/vendas") || pathname.startsWith("/leads") || pathname.startsWith("/orcamentos");
-    return pathname.startsWith(href);
-  }
-
-  if (isHub) {
-    return (
-      <main className="hub-standalone">
-        <div className="content content-hub">{children}</div>
-      </main>
-    );
-  }
-
-  const sidebarSlogan = isTest
-    ? "Dados isolados · pode testar sem medo."
-    : isBank
-      ? "Seu dinheiro, suas decisões, sua visão."
-      : "Qualidade que entrega resultado.";
-
-  return (
-    <div className={`app-shell theme-${operation === "hub" ? "hub" : operation}${isTest ? " test-lab-shell" : ""}`}>
-      <aside className="sidebar">
-        <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}>
-          <Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority />
-        </Link>
-
-        {isTest && <div className="test-lab-sidebar-badge"><FlaskConical size={14}/><span>ÁREA DE TESTE</span></div>}
-
-        <nav className="nav">
-          {nav.map(({ href, label, icon: Icon }) => (
-            <Link className={`nav-link ${isActive(href) ? "primary" : ""}`} href={href} key={href} title={label}>
-              <Icon size={18} />
-              <span className="nav-label">{label}</span>
-            </Link>
-          ))}
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="sidebar-user"><span>{access.name}</span><small>{access.email ?? "Acesso local"}</small></div>
-          <p className="sidebar-slogan">{sidebarSlogan}</p>
-          {access.canManageUsers && (
-            <Link className={`nav-link ${isSettings ? "primary" : ""}`} href={settingsHref} title="Configurações">
-              <Settings size={18} />
-              <span className="nav-label">Configurações</span>
-            </Link>
-          )}
-          <form action="/auth/signout" method="post">
-            <button className="nav-link" style={{ width: "100%", border: 0, background: "transparent" }} title="Sair">
-              <LogOut size={18} />
-              <span className="nav-label">Sair</span>
-            </button>
-          </form>
-        </div>
-      </aside>
-
-      <header className="mobile-header">
-        <button className="mobile-back-button" type="button" aria-label="Voltar à tela anterior" onClick={goBack}>
-          <ArrowLeft size={22} />
-        </button>
-        <Link href="/dashboard" className="mobile-brand-link" aria-label={`${brand.alt} — voltar às operações`}>
-          <Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority />
-        </Link>
-
-        <details className="mobile-menu" ref={mobileMenuRef}>
-          <summary aria-label="Abrir menu">
-            <Menu size={20} />
-            <span>Menu</span>
-          </summary>
-          <div className="mobile-menu-panel">
-            {mobileMenuNav.map(({ href, label, icon: Icon }) => (
-              <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={`mobile-menu-${href}`} onClick={closeMobileMenu}>
-                <Icon size={18} />
-                <span>{label}</span>
-              </Link>
-            ))}
-            {access.canManageUsers && (
-              <Link className={`mobile-menu-link ${isSettings ? "primary" : ""}`} href={settingsHref} onClick={closeMobileMenu}>
-                <Settings size={18} />
-                <span>Configurações</span>
-              </Link>
-            )}
-            <form action="/auth/signout" method="post">
-              <button className="mobile-menu-link mobile-signout" type="submit">
-                <LogOut size={18} />
-                <span>Sair</span>
-              </button>
-            </form>
-          </div>
-        </details>
-      </header>
-
-      <main className="main">
-        {(showSupplementActions || showFitnessActions) && (
-          <header className="topbar">
-            <div className="topbar-actions">
-              {showSupplementActions && <>
-                <Link className="button ghost" href="/leads/novo"><UserRoundPlus size={16} />Novo lead</Link>
-                <Link className="button gold" href="/vendas/nova"><CircleDollarSign size={16} />Novo Orçamento</Link>
-              </>}
-              {showFitnessActions && <>
-                <Link className="button ghost" href="/fitness/pedidos/novo"><Truck size={16} />Novo pedido</Link>
-                <Link className="button gold" href="/fitness/vendas/nova"><CircleDollarSign size={16} />Nova venda</Link>
-              </>}
-            </div>
-          </header>
-        )}
-        <div className="content">{children}</div>
-      </main>
-
-      {mobileShortcuts.length > 0 && (
-        <nav className="mobile-nav mobile-action-nav" style={{ gridTemplateColumns: `repeat(${mobileShortcuts.length}, minmax(0, 1fr))` }}>
-          {mobileShortcuts.map(({ href, label, icon: Icon, primary }) => (
-            <Link className={`mobile-link mobile-action-link ${primary ? "mobile-action-primary" : ""} ${isActive(href) ? "primary" : ""}`} href={href} key={href}>
-              <Icon size={20} />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </nav>
-      )}
-    </div>
-  );
+  if(isHub)return <main className="hub-standalone"><div className="content content-hub">{children}</div></main>;
+  return <div className={`app-shell theme-${operation}`}>
+    <aside className="sidebar">
+      <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}><Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority/></Link>
+      <nav className="nav">{nav.map(({href,label,icon:Icon})=><Link className={`nav-link ${isActive(href)?"primary":""}`} href={href} key={href}><Icon size={18}/><span className="nav-label">{label}</span></Link>)}</nav>
+      <div className="sidebar-footer"><div className="sidebar-user"><span>{access.name}</span><small>{access.role==="sales"?"Perfil Vendas":access.email??"Acesso local"}</small></div><p className="sidebar-slogan">{isBank?"Seu dinheiro, suas decisões, sua visão.":"Qualidade que entrega resultado."}</p>{access.canManageUsers&&<Link className={`nav-link ${isSettings?"primary":""}`} href={settingsHref}><Settings size={18}/><span className="nav-label">Configurações</span></Link>}<form action="/auth/signout" method="post"><button className="nav-link" style={{width:"100%",border:0,background:"transparent"}}><LogOut size={18}/><span className="nav-label">Sair</span></button></form></div>
+    </aside>
+    <header className="mobile-header"><button className="mobile-back-button" type="button" onClick={goBack}><ArrowLeft size={22}/></button><Link href="/dashboard" className="mobile-brand-link"><Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority/></Link><details className="mobile-menu" ref={mobileMenuRef}><summary><Menu size={20}/><span>Menu</span></summary><div className="mobile-menu-panel">{nav.map(({href,label,icon:Icon})=><Link className={`mobile-menu-link ${isActive(href)?"primary":""}`} href={href} key={href} onClick={closeMobileMenu}><Icon size={18}/><span>{label}</span></Link>)}{access.canManageUsers&&<Link className={`mobile-menu-link ${isSettings?"primary":""}`} href={settingsHref} onClick={closeMobileMenu}><Settings size={18}/><span>Configurações</span></Link>}<form action="/auth/signout" method="post"><button className="mobile-menu-link mobile-signout" type="submit"><LogOut size={18}/><span>Sair</span></button></form></div></details></header>
+    <main className="main">{(showSupplementActions||showFitnessActions)&&<header className="topbar"><div className="topbar-actions">{showSupplementActions&&<><Link className="button ghost" href="/leads/novo"><UserRoundPlus size={16}/>Novo lead</Link><Link className="button gold" href="/vendas/nova"><CircleDollarSign size={16}/>Novo Orçamento</Link></>}{showFitnessActions&&<><Link className="button ghost" href="/fitness/pedidos/novo"><Truck size={16}/>Novo pedido</Link><Link className="button gold" href="/fitness/vendas/nova"><CircleDollarSign size={16}/>Nova venda</Link></>}</div></header>}<div className="content">{children}</div></main>
+    {mobileShortcuts.length>0&&<nav className="mobile-nav mobile-action-nav" style={{gridTemplateColumns:`repeat(${mobileShortcuts.length}, minmax(0, 1fr))`}}>{mobileShortcuts.map(({href,label,icon:Icon,primary})=><Link className={`mobile-link mobile-action-link ${primary?"mobile-action-primary":""} ${isActive(href)?"primary":""}`} href={href} key={href}><Icon size={20}/><span>{label}</span></Link>)}</nav>}
+  </div>;
 }

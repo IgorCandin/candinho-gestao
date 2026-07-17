@@ -67,6 +67,21 @@ export type ProductManagementDetails = ProductDetails & {
 };
 
 
+
+export type ProductDataQualityRow = {
+  id: string;
+  name: string;
+  category: string;
+  brand: string | null;
+  completion_pct: number;
+  missing_fields: string[];
+};
+
+export type SwipeNavigation = {
+  previous: { href: string; label?: string } | null;
+  next: { href: string; label?: string } | null;
+};
+
 export type InventoryOverviewRow = {
   product_id: string;
   product_name: string;

@@ -48,16 +48,17 @@ export function PartnersTable({ partners }: { partners: PartnerOverview[] }) {
         <span className="product-result-count">{rows.length} parceiro(s)</span>
       </div>
       {rows.length === 0 ? <div className="empty"><Handshake size={26} /><strong>Nenhum parceiro encontrado</strong>Ajuste os filtros ou cadastre uma nova parceria.</div> : (
-        <div className="table-wrap"><table className="table partners-table"><thead><tr><th>Parceiro</th><th>Regra</th><th>Ciclo atual</th><th>Progresso</th><th>Acerto</th><th>Última venda</th></tr></thead><tbody>{rows.map((partner) => (
-          <tr key={partner.id}>
+        <div className="table-wrap"><table className="table partners-table"><thead><tr><th>Parceiro</th><th>Regra</th><th>Ciclo atual</th><th>Progresso</th><th>Acerto</th><th>Última venda</th></tr></thead><tbody>{rows.map((partner) => {
+          const progressPct = partner.reward_type === "gift_per_sales" && (partner.target_sales ?? 0) > 0 ? Math.round((partner.progress_sales / (partner.target_sales ?? 1)) * 100) : partner.progress_pct;
+          return <tr key={partner.id}>
             <td><Link className="partner-name-cell" href={`/parceiros/${partner.id}`}><span className="partner-avatar"><Handshake size={18} /></span><span><strong>{partner.name}</strong><small>{[partner.partner_type, partner.city].filter(Boolean).join(" · ")}</small></span></Link></td>
             <td><Link className="table-link" href={`/parceiros/${partner.id}`}><strong>{rewardLabel(partner)}</strong>{partner.linked_location_code && <small className="crm-cell-note">Ponto: {partner.linked_location_code}</small>}</Link></td>
             <td><strong>{partner.current_cycle_sales_count} venda(s)</strong><small className="crm-cell-note">{formatCurrency(partner.current_cycle_revenue)}</small></td>
-            <td>{partner.reward_type === "gift_per_sales" ? <div className="partner-progress-cell"><div className="partner-progress-track"><span style={{ width: `${partner.progress_pct}%` }} /></div><small>{partner.progress_sales}/{partner.target_sales ?? 0}</small></div> : <span className="muted-value">{partner.current_cycle_sales_count > 0 ? "Com movimento" : "Sem movimento"}</span>}</td>
-            <td>{partner.settlement_pending ? <span className="partner-pending-label"><Gift size={14} />{partner.reward_units_due > 0 ? `${partner.reward_units_due} brinde(s)` : partner.estimated_reward_amount > 0 ? formatCurrency(partner.estimated_reward_amount) : "Revisar acerto"}</span> : <Badge value={partner.status === "Pausado" || !partner.active ? "inactive" : "active"} />}</td>
+            <td>{partner.reward_type === "gift_per_sales" ? <div className="partner-progress-cell"><div className="partner-progress-track"><span style={{ width: `${progressPct}%` }} /></div><small>{partner.progress_sales}/{partner.target_sales ?? 0}</small></div> : <span className="muted-value">{partner.current_cycle_sales_count > 0 ? "Com movimento" : "Sem movimento"}</span>}</td>
+            <td>{partner.settlement_pending ? <span className="partner-pending-label"><Gift size={14} />{partner.reward_units_due > 0 ? `${partner.reward_units_due} meta(s)` : partner.estimated_reward_amount > 0 ? formatCurrency(partner.estimated_reward_amount) : "Revisar acerto"}</span> : <Badge value={partner.status === "Pausado" || !partner.active ? "inactive" : "active"} />}</td>
             <td>{partner.last_sale_on ? formatDateOnly(partner.last_sale_on) : <span className="muted-value">—</span>}</td>
-          </tr>
-        ))}</tbody></table></div>
+          </tr>;
+        })}</tbody></table></div>
       )}
     </article>
   );

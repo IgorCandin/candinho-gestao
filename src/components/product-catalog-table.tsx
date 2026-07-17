@@ -52,7 +52,7 @@ function IncomingTruck({ product }: { product: ProductCatalogRow }) {
   return <span className="product-incoming-truck" title={`${product.incoming_quantity} unidade(s) a caminho`} aria-label={`${product.incoming_quantity} unidade(s) a caminho`}><Truck size={15} /></span>;
 }
 
-export function ProductCatalogTable({ products, categories }: { products: ProductCatalogRow[]; categories: string[] }) {
+export function ProductCatalogTable({ products, categories, salesMode = false }: { products: ProductCatalogRow[]; categories: string[]; salesMode?: boolean }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("active");
@@ -104,6 +104,7 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
         <span className="product-result-count">{filtered.length} produto{filtered.length === 1 ? "" : "s"}</span>
       </div>
 
+      {salesMode && <div className="sales-profile-note"><strong>Perfil Vendas</strong><span>Consulta somente comercial: preço de venda, disponibilidade e produtos a caminho.</span></div>}
       <div className="product-commercial-order-note">
         <span>Ordem padrão:</span>
         <strong>Creatina Candinho → disponível → a caminho → zerado → categoria estratégica → mais vendidos</strong>
@@ -118,7 +119,7 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
             const state = stockLabel(product);
             const border = stockBorder(product);
             return (
-              <Link className={`product-gallery-card stock-${border}`} href={`/produtos/${product.id}`} key={product.id}>
+              <Link className={`product-gallery-card stock-${border}`} href={salesMode ? "/produtos" : `/produtos/${product.id}`} key={product.id}>
                 <div className="product-gallery-image">
                   {product.thumbnail_url || product.image_url ? <img src={product.thumbnail_url ?? product.image_url ?? ""} alt={product.name} loading="lazy" /> : <ImageOff size={28} />}
                 </div>
@@ -149,7 +150,7 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
               const state = stockLabel(product);
               const border = stockBorder(product);
               return <tr className={`product-deck-row stock-${border}`} key={product.id}>
-                <td><Link className="product-cell product-link" href={`/produtos/${product.id}`}>
+                <td><Link className="product-cell product-link" href={salesMode ? "/produtos" : `/produtos/${product.id}`}>
                   {product.thumbnail_url ? <img className="product-thumb" src={product.thumbnail_url} alt="" loading="lazy" /> : <span className="product-avatar">{product.image_url ? <ImageOff size={17} /> : product.name.slice(0, 2).toUpperCase()}</span>}
                   <div><div className="cell-main">{product.name}</div><div className="cell-sub">{product.category}{product.brand ? ` · ${product.brand}` : ""}</div></div>
                 </Link></td>
@@ -158,7 +159,7 @@ export function ProductCatalogTable({ products, categories }: { products: Produc
                 <td className="amount">{formatCurrency(product.sale_price)}</td>
                 <td className="amount">{formatCurrency(product.installment_price)}</td>
                 <td><span className={`badge ${state.tone}`}><span className="dot" />{state.label}</span></td>
-                <td><div className="product-row-actions"><IncomingTruck product={product} /><Link className="icon-link" href={`/produtos/${product.id}`} aria-label={`Abrir ${product.name}`}><ArrowRight size={18} /></Link></div></td>
+                <td><div className="product-row-actions"><IncomingTruck product={product} />{!salesMode && <Link className="icon-link" href={`/produtos/${product.id}`} aria-label={`Abrir ${product.name}`}><ArrowRight size={18} /></Link>}</div></td>
               </tr>;
             })}</tbody>
           </table>
