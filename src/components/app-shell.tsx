@@ -3,10 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Archive, ArrowLeft, BarChart3, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
-  Handshake, HeartPulse, History, Home, Images, Inbox, Link2, LogOut, Menu, PackageSearch, RefreshCcw, Settings, ShoppingBag,
+  Handshake, HeartPulse, History, Home, Images, Inbox, Link2, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
   Truck, UserRoundPlus, UsersRound,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
@@ -71,18 +71,16 @@ type Operation = "hub" | "central" | "supplements" | "fitness" | "bank" | "partn
 export function AppShell({ children, access }: { children: React.ReactNode; access: UserAccess }) {
   const pathname = usePathname();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
   const isHub = pathname === "/dashboard";
   const isSettings = pathname.startsWith("/configuracoes");
-  const settingsOperation = searchParams.get("operacao");
 
   let operation: Operation = "hub";
   if (pathname.startsWith("/central")) operation = "central";
   else if (pathname.startsWith("/parceiro")) operation = "partner";
-  else if (pathname.startsWith("/bank") || (isSettings && settingsOperation === "bank")) operation = "bank";
-  else if (pathname.startsWith("/fitness") || (isSettings && settingsOperation === "fitness")) operation = "fitness";
-  else if (!isHub) operation = "supplements";
+  else if (pathname.startsWith("/bank")) operation = "bank";
+  else if (pathname.startsWith("/fitness")) operation = "fitness";
+  else if (!isHub && !isSettings) operation = "supplements";
 
   const isCentral = operation === "central";
   const isPartner = operation === "partner";
@@ -90,7 +88,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const isSupplements = operation === "supplements";
   const isBank = operation === "bank";
   const isSalesProfile = access.role === "sales";
-  const nav = isHub ? hubNav : isCentral ? centralNav : isPartner ? partnerNav : isBank ? bankNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
+  const nav = operation === "hub" ? hubNav : isCentral ? centralNav : isPartner ? partnerNav : isBank ? bankNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
 
   const mobileShortcuts = isSettings ? [] : isCentral ? [
     { href: "/central/inbox", label: "Inbox", icon: Inbox, primary: true },
@@ -119,14 +117,13 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
   const showSupplementActions = access.canWriteSupplements && isSupplements && !isSettings;
   const showFitnessActions = access.canWriteFitness && isFitness && !isSettings;
-  const settingsHref = operation === "fitness" ? "/configuracoes?operacao=fitness" : operation === "supplements" ? "/configuracoes?operacao=suplementos" : operation === "bank" ? "/configuracoes?operacao=bank" : "/configuracoes";
   const brand = isBank ? { src: "/candinho-bank-logo.png", alt: "Candinho Bank" } : isFitness ? { src: "/candinho-fitness-logo.webp", alt: "Candinho Fitness" } : isSupplements ? { src: "/candinho-suplementos-logo.webp", alt: "Candinho Suplementos" } : { src: "/candinho-company-logo.webp", alt: "Candinho Company" };
 
   useEffect(() => { mobileMenuRef.current?.removeAttribute("open"); }, [pathname]);
   function closeMobileMenu() { mobileMenuRef.current?.removeAttribute("open"); }
   function goBack() {
     if (typeof window !== "undefined" && window.history.length > 1) { router.back(); return; }
-    router.push(isCentral ? "/central" : isPartner ? "/parceiro" : isFitness ? "/fitness" : isBank ? "/bank" : "/suplementos");
+    router.push(isSettings ? "/dashboard" : isCentral ? "/central" : isPartner ? "/parceiro" : isFitness ? "/fitness" : isBank ? "/bank" : "/suplementos");
   }
   function isActive(href: string) {
     if (["/dashboard", "/central", "/parceiro", "/suplementos", "/fitness", "/bank"].includes(href)) return pathname === href;
@@ -143,7 +140,6 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
       <div className="sidebar-footer">
         <div className="sidebar-user"><span>{access.name}</span><small>{access.role === "partner" ? "Perfil Parceiro" : access.role === "sales" ? "Perfil Vendas" : access.email ?? "Acesso local"}</small></div>
         <p className="sidebar-slogan">{isBank ? "Seu dinheiro, suas decisões, sua visão." : isCentral ? "Atendimento, informação e decisão em um só lugar." : isPartner ? "Sua parceria com transparência." : "Qualidade que entrega resultado."}</p>
-        {access.canManageUsers && <Link className={`nav-link ${isSettings ? "primary" : ""}`} href={settingsHref}><Settings size={18} /><span className="nav-label">Configurações</span></Link>}
         <form action="/auth/signout" method="post"><button className="nav-link" style={{ width: "100%", border: 0, background: "transparent" }}><LogOut size={18} /><span className="nav-label">Sair</span></button></form>
       </div>
     </aside>
@@ -153,7 +149,6 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
       <Link href="/dashboard" className="mobile-brand-link"><Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority /></Link>
       <details className="mobile-menu" ref={mobileMenuRef}><summary><Menu size={20} /><span>Menu</span></summary><div className="mobile-menu-panel">
         {nav.map(({ href, label, icon: Icon }) => <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={href} onClick={closeMobileMenu}><Icon size={18} /><span>{label}</span></Link>)}
-        {access.canManageUsers && <Link className={`mobile-menu-link ${isSettings ? "primary" : ""}`} href={settingsHref} onClick={closeMobileMenu}><Settings size={18} /><span>Configurações</span></Link>}
         <form action="/auth/signout" method="post"><button className="mobile-menu-link mobile-signout" type="submit"><LogOut size={18} /><span>Sair</span></button></form>
       </div></details>
     </header>

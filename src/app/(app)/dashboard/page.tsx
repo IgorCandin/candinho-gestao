@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Bot, Building2, Handshake, HeartPulse, Inbox, Landmark, Shirt, Sparkles } from "lucide-react";
+import { Handshake, Link2, Sparkles, UserRound } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getAppBootstrapSnapshot } from "@/lib/central-data";
 import { formatCurrency } from "@/lib/format";
@@ -31,7 +31,6 @@ export default async function DashboardPage() {
   const supplements = home?.supplements ?? null;
   const fitness = home?.fitness ?? null;
   const bank = home?.bank ?? null;
-  const centralVisible = access.role === "admin" || access.canAccessSupplements || access.canAccessFitness;
 
   return (
     <section className="company-home">
@@ -39,25 +38,9 @@ export default async function DashboardPage() {
 
       <Image className="company-home-logo" src="/candinho-company-logo.webp" alt="Candinho Company" width={1000} height={343} priority />
       <div className="company-home-heading">
-        <span>Candinho Company</span>
         <h1>Olá, {access.name}.</h1>
-        <p>Entre direto no que precisa. Sem repetir informações de cada operação.</p>
+        <p>Escolha uma operação ou acesse as áreas de gestão.</p>
       </div>
-
-      {centralVisible && (
-        <Link className="company-home-central" href="/central">
-          <span className="company-home-central-icon"><HeartPulse size={30} /></span>
-          <span className="company-home-central-copy">
-            <small>Centro de comando</small>
-            <strong>Candinho Central</strong>
-            <em>Atendimento, clientes, mídia, integrações e Nexus IA.</em>
-          </span>
-          <span className="company-home-central-metrics">
-            <b><Inbox size={15} />{Number(home?.central?.unread ?? 0)} não lidas</b>
-            <b><Bot size={15} />{Number(home?.central?.open_conversations ?? 0)} conversas abertas</b>
-          </span>
-        </Link>
-      )}
 
       <div className="company-home-operations">
         {access.canAccessSupplements && (
@@ -96,10 +79,9 @@ export default async function DashboardPage() {
 
       {access.canManageUsers && (
         <div className="company-home-admin-row">
-          <Link href="/parceiros/gerencial"><Handshake size={17} /><span><strong>Parceiros</strong><small>Gestão e acessos do portal</small></span></Link>
-          <Link href="/configuracoes"><Building2 size={17} /><span><strong>Perfis e permissões</strong><small>Usuários da Candinho Company</small></span></Link>
-          <Link href="/central/integracoes"><Landmark size={17} /><span><strong>Integrações</strong><small>Saúde dos canais conectados</small></span></Link>
-          {access.canAccessFitness && <Link href="/fitness"><Shirt size={17} /><span><strong>Fitness</strong><small>Operação independente</small></span></Link>}
+          <Link href="/parceiros/gerencial"><Handshake size={18} /><span><strong>PARCEIROS</strong><small>Gestão, regras e acessos do portal</small></span></Link>
+          <Link href="/configuracoes"><UserRound size={18} /><span><strong>PERFIL</strong><small>Perfis e permissões da equipe</small></span></Link>
+          <Link href="/central/integracoes"><Link2 size={18} /><span><strong>INTEGRAÇÕES</strong><small>Meta, OpenAI e saúde dos canais</small></span></Link>
         </div>
       )}
 

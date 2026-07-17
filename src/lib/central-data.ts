@@ -112,6 +112,28 @@ export type CentralIntegrationHealth = {
   last_event_at?: string | null;
 };
 
+
+export type CentralIntegrationReadiness = {
+  meta: {
+    webhook_url: string;
+    verify_token_configured: boolean;
+    app_secret_configured: boolean;
+    ready: boolean;
+  };
+  openai: {
+    api_key_configured: boolean;
+    media_model: string;
+    nexus_model: string;
+    ready: boolean;
+  };
+  functions: {
+    meta_webhook: string;
+    media_classifier: string;
+    nexus_suggest: string;
+    partner_portal_invite: string;
+  };
+};
+
 export type CentralMediaAsset = {
   id: string;
   operation_scope: string;
@@ -335,6 +357,15 @@ export async function getCentralConversationDetails(conversationId: string): Pro
     contact = contactResult.data as CentralContact | null;
   }
   return { conversation, contact, messages: (messagesResult.data ?? []) as CentralMessage[] };
+}
+
+
+export async function getCentralIntegrationReadiness(): Promise<CentralIntegrationReadiness | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.functions.invoke("central-integration-readiness");
+  if (error || !data || typeof data !== "object") return null;
+  return data as CentralIntegrationReadiness;
 }
 
 export async function getCentralIntegrationHealth(): Promise<CentralIntegrationHealth[]> {
