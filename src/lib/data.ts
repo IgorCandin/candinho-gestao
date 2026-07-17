@@ -2019,7 +2019,7 @@ export const getCurrentUserAccess = cache(async (): Promise<UserAccess> => {
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   const email = userData.user?.email ?? null;
-  const { data, error } = await supabase.rpc("get_my_access");
+  const { data, error } = await supabase.rpc("get_my_access_v2");
   if (error) return getFallbackUserAccess(email);
   const row = Array.isArray(data) ? data[0] : data;
   return normalizeUserAccess((row ?? null) as Record<string, unknown> | null, email);
@@ -2028,12 +2028,12 @@ export const getCurrentUserAccess = cache(async (): Promise<UserAccess> => {
 export async function getUserPermissions(): Promise<UserPermissionRow[]> {
   if (!isSupabaseConfigured) {
     return [
-      { id: "demo-admin", email: "igorcandinho2002@hotmail.com", full_name: "Igor Candinho", role: "admin", active: true, can_access_supplements: true, can_write_supplements: true, can_access_fitness: true, can_write_fitness: true, can_access_bank: true, can_write_bank: true, can_manage_users: true, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
-      { id: "demo-fitness", email: "giuliafaria1@gmail.com", full_name: "Giulia", role: "operator", active: true, can_access_supplements: true, can_write_supplements: false, can_access_fitness: true, can_write_fitness: true, can_access_bank: true, can_write_bank: true, can_manage_users: false, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "demo-admin", email: "igorcandinho2002@hotmail.com", full_name: "Igor Candinho", role: "admin", active: true, can_access_supplements: true, can_write_supplements: true, can_access_fitness: true, can_write_fitness: true, can_access_bank: true, can_write_bank: true, can_access_marketing: true, can_write_marketing: true, can_manage_users: true, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+      { id: "demo-fitness", email: "giuliafaria1@gmail.com", full_name: "Giulia", role: "operator", active: true, can_access_supplements: true, can_write_supplements: false, can_access_fitness: true, can_write_fitness: true, can_access_bank: true, can_write_bank: true, can_access_marketing: false, can_write_marketing: false, can_manage_users: false, last_sign_in_at: new Date().toISOString(), created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
     ];
   }
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("list_user_permissions");
+  const { data, error } = await supabase.rpc("list_user_permissions_v2");
   if (error) throw error;
   return (data ?? []).map((row: Record<string, unknown>) => ({
     id: String(row.id),
@@ -2047,6 +2047,8 @@ export async function getUserPermissions(): Promise<UserPermissionRow[]> {
     can_write_fitness: Boolean(row.can_write_fitness),
     can_access_bank: Boolean(row.can_access_bank),
     can_write_bank: Boolean(row.can_write_bank),
+    can_access_marketing: Boolean(row.can_access_marketing),
+    can_write_marketing: Boolean(row.can_write_marketing),
     can_manage_users: Boolean(row.can_manage_users),
     last_sign_in_at: typeof row.last_sign_in_at === "string" ? row.last_sign_in_at : null,
     created_at: String(row.created_at ?? ""),

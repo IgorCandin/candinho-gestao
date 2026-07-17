@@ -20,9 +20,9 @@ function aiCategory(metadata: Record<string, unknown> | null) {
 
 export default async function CentralMediaPage({ searchParams }: { searchParams: Promise<{ q?: string; scope?: string; kind?: string; ai?: string; contact?: string }> }) {
   const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
+  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const params = await searchParams;
-  const allowedScopes = [access.role === "admin" ? "company" : null, access.canAccessSupplements ? "supplements" : null, access.canAccessFitness ? "fitness" : null].filter((item): item is string => Boolean(item));
+  const allowedScopes = [access.role === "admin" ? "company" : null, access.canAccessSupplements ? "supplements" : null, access.canAccessFitness ? "fitness" : null, access.canAccessMarketing ? "marketing" : null].filter((item): item is string => Boolean(item));
   const requestedScope = params.scope && allowedScopes.includes(params.scope) ? params.scope : null;
   const requestedKind = ["image", "video", "document"].includes(params.kind ?? "") ? params.kind! : null;
   const requestedAi = ["classified", "pending", "not_applicable"].includes(params.ai ?? "") ? params.ai! : null;
@@ -46,7 +46,7 @@ export default async function CentralMediaPage({ searchParams }: { searchParams:
 
     <form className="central-media-search central-media-search-v2" method="get">
       <label><Search size={16}/><input name="q" defaultValue={params.q ?? ""} placeholder="Ex.: creatina academia, feedback, story..." /></label>
-      <select name="scope" defaultValue={requestedScope ?? ""}><option value="">Todas as operações</option>{allowedScopes.map((scope) => <option value={scope} key={scope}>{scope === "company" ? "Company" : scope === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select>
+      <select name="scope" defaultValue={requestedScope ?? ""}><option value="">Todas as operações</option>{allowedScopes.map((scope) => <option value={scope} key={scope}>{scope === "company" ? "Company" : scope === "supplements" ? "Suplementos" : scope === "fitness" ? "Fitness" : "Marketing"}</option>)}</select>
       <select name="kind" defaultValue={requestedKind ?? ""}><option value="">Todos os tipos</option><option value="image">Imagens</option><option value="video">Vídeos</option><option value="document">Documentos</option></select>
       <select name="ai" defaultValue={requestedAi ?? ""}><option value="">Todos os status IA</option><option value="classified">Classificados</option><option value="pending">Aguardando IA</option><option value="not_applicable">Sem análise visual</option></select>
       <select name="contact" defaultValue={requestedContact ?? ""}><option value="">Todos os contatos</option>{contacts.map((contact) => <option value={contact.id} key={contact.id}>{contact.display_name}</option>)}</select>

@@ -415,7 +415,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const localLogo = await readFile(
-      path.join(process.cwd(), "public", "candinho-suplementos-logo.webp"),
+      path.join(process.cwd(), "public", "candinho-suplementos-logo.png"),
     );
     logo = await pdf.embedPng(await imageToPngBuffer(localLogo));
   } catch {

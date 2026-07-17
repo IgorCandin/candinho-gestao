@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 const providers = new Set(["whatsapp", "instagram", "facebook"]);
-const scopes = new Set(["company", "supplements", "fitness"]);
+const scopes = new Set(["company", "supplements", "fitness", "marketing"]);
 
 export async function registerCentralIntegration(formData: FormData) {
   const provider = String(formData.get("provider") ?? "").trim().toLowerCase();

@@ -110,7 +110,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   let logo: PDFImage | null = null;
   try {
-    const webp = await readFile(path.join(process.cwd(), "public", "candinho-suplementos-logo.webp"));
+    const webp = await readFile(path.join(process.cwd(), "public", "candinho-suplementos-logo.png"));
     logo = await pdf.embedPng(await sharp(webp).png().toBuffer());
   } catch {
     logo = null;

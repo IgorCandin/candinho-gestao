@@ -9,9 +9,9 @@ import { getCurrentUserAccess } from "@/lib/data";
 
 export default async function CentralPendingPage({ searchParams }: { searchParams: Promise<{ scope?: string; priority?: string }> }) {
   const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
+  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const params = await searchParams;
-  const allowedScopes = ["company", ...(access.canAccessSupplements || access.role === "admin" ? ["supplements"] : []), ...(access.canAccessFitness || access.role === "admin" ? ["fitness"] : [])];
+  const allowedScopes = ["company", ...(access.canAccessSupplements || access.role === "admin" ? ["supplements"] : []), ...(access.canAccessFitness || access.role === "admin" ? ["fitness"] : []), ...(access.canAccessMarketing || access.role === "admin" ? ["marketing"] : [])];
   const scope = params.scope && allowedScopes.includes(params.scope) ? params.scope : null;
   const priority = params.priority && ["normal","attention","urgent"].includes(params.priority) ? params.priority : null;
   const [agenda, contacts, users] = await Promise.all([getCentralAgendaSnapshot("planned", scope), getCentralContacts(), getCentralAgendaUsers()]);

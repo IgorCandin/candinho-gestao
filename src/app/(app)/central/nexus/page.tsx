@@ -13,7 +13,7 @@ function parseInsight(content: string) {
 
 export default async function NexusPage() {
   const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
+  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const [insights, readiness] = await Promise.all([getCentralAiInsights(), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
   const aiReady = Boolean(readiness?.openai.ready);
 

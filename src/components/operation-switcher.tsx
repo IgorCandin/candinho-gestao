@@ -9,17 +9,20 @@ export function OperationSwitcher({
   canAccessSupplements,
   canAccessFitness,
   canAccessBank,
+  canAccessMarketing,
 }: {
   canAccessSupplements: boolean;
   canAccessFitness: boolean;
   canAccessBank: boolean;
+  canAccessMarketing: boolean;
 }) {
   const router = useRouter();
   useEffect(() => {
     if (canAccessSupplements) router.prefetch("/suplementos");
     if (canAccessFitness) router.prefetch("/fitness");
     if (canAccessBank) router.prefetch("/bank");
-  }, [canAccessSupplements, canAccessFitness, canAccessBank, router]);
+    if (canAccessMarketing) router.prefetch("/marketing");
+  }, [canAccessSupplements, canAccessFitness, canAccessBank, canAccessMarketing, router]);
 
   useEffect(() => {
     // A página atual monta a saudação no servidor.
@@ -44,7 +47,7 @@ export function OperationSwitcher({
     }
   }, []);
 
-  const visibleOperations = Number(canAccessSupplements) + Number(canAccessFitness) + Number(canAccessBank);
+  const visibleOperations = Number(canAccessSupplements) + Number(canAccessFitness) + Number(canAccessBank) + Number(canAccessMarketing);
   const layoutClass = visibleOperations >= 3 ? "three" : visibleOperations === 2 ? "two" : "one";
 
   return (
@@ -86,6 +89,17 @@ export function OperationSwitcher({
             aria-label="Acessar Candinho Bank"
           >
             <Image src="/operation-bank.png" alt="Bank" width={709} height={236} />
+          </Link>
+        )}
+
+        {canAccessMarketing && (
+          <Link
+            className="operation-button marketing"
+            href="/marketing"
+            prefetch
+            aria-label="Acessar Candinho Marketing"
+          >
+            <Image src="/operation-marketing.png" alt="Marketing" width={709} height={236} />
           </Link>
         )}
       </div>

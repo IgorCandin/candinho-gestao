@@ -10,6 +10,7 @@ export type CompanyHomeSummary = {
   supplements: Record<string, unknown> | null;
   fitness: Record<string, unknown> | null;
   bank: Record<string, unknown> | null;
+  marketing: Record<string, unknown> | null;
   partner: Record<string, unknown> | null;
 };
 
@@ -26,6 +27,8 @@ export type AppBootstrapSnapshot = {
     can_write_fitness: boolean;
     can_access_bank: boolean;
     can_write_bank: boolean;
+    can_access_marketing: boolean;
+    can_write_marketing: boolean;
     can_manage_users: boolean;
   };
   feature_flags: FeatureFlags;
@@ -130,6 +133,23 @@ export type CentralIntegrationHealth = {
   last_event_at?: string | null;
 };
 
+
+
+export type CentralGovernanceAuditEvent = {
+  id: number;
+  entity_type: string;
+  entity_id: string | null;
+  action: string;
+  details: Record<string, unknown>;
+  created_by: string | null;
+  created_by_name: string | null;
+  created_at: string;
+};
+
+export type CentralGovernanceSnapshot = {
+  audit: CentralGovernanceAuditEvent[];
+  integrations: CentralIntegrationHealth[];
+};
 
 export type CentralIntegrationReadiness = {
   meta: {
@@ -438,6 +458,21 @@ export async function getCentralIntegrationHealth(): Promise<CentralIntegrationH
   const { data, error } = await supabase.rpc("central_integration_health_snapshot");
   if (error) throw error;
   return Array.isArray(data) ? data as CentralIntegrationHealth[] : [];
+}
+
+export async function getCentralGovernanceSnapshot(limit = 100): Promise<CentralGovernanceSnapshot> {
+  if (!isSupabaseConfigured) return { audit: [], integrations: [] };
+  const supabase = await createClient();
+  const [auditResult, integrationResult] = await Promise.all([
+    supabase.rpc("central_governance_audit_feed", { p_limit: limit }),
+    supabase.rpc("central_integration_health_snapshot"),
+  ]);
+  if (auditResult.error) throw auditResult.error;
+  if (integrationResult.error) throw integrationResult.error;
+  return {
+    audit: Array.isArray(auditResult.data) ? auditResult.data as CentralGovernanceAuditEvent[] : [],
+    integrations: Array.isArray(integrationResult.data) ? integrationResult.data as CentralIntegrationHealth[] : [],
+  };
 }
 
 export async function getCentralMediaAssets(

@@ -48,10 +48,10 @@ export function CentralTaskCreateForm({ scopes, contacts, users }: { scopes: str
   return <div className="central-task-create">
     <button type="button" className="button gold" onClick={() => setOpen((v) => !v)}><CalendarPlus size={16}/>{open ? "Fechar" : "Nova tarefa"}</button>
     {open && <form className="central-task-create-form panel" onSubmit={submit}>
-      <div className="panel-head"><div><h2>Nova tarefa</h2><p>Crie uma pendência para Company, Suplementos ou Fitness.</p></div><Plus size={18}/></div>
+      <div className="panel-head"><div><h2>Nova tarefa</h2><p>Crie uma pendência para Company, Suplementos, Fitness ou Marketing.</p></div><Plus size={18}/></div>
       <div className="panel-body central-task-create-grid">
         <label className="field field-span-two"><span>Título</span><input className="input" name="title" required placeholder="Ex.: Retornar para cliente sobre creatina"/></label>
-        <label className="field"><span>Operação</span><select className="select" name="operation_scope" defaultValue={scopes[0] ?? "company"}>{scopes.map((scope) => <option key={scope} value={scope}>{scope === "company" ? "Candinho Company" : scope === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select></label>
+        <label className="field"><span>Operação</span><select className="select" name="operation_scope" defaultValue={scopes[0] ?? "company"}>{scopes.map((scope) => <option key={scope} value={scope}>{scope === "company" ? "Candinho Company" : scope === "supplements" ? "Suplementos" : scope === "fitness" ? "Fitness" : "Marketing"}</option>)}</select></label>
         <label className="field"><span>Categoria</span><select className="select" name="category" defaultValue="task">{categoryOptions.map(([value,label]) => <option value={value} key={value}>{label}</option>)}</select></label>
         <label className="field"><span>Data</span><input className="input" type="date" name="due_date" required/></label>
         <label className="field"><span>Horário</span><input className="input" type="time" name="due_time" defaultValue="12:00"/></label>

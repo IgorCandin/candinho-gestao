@@ -5,7 +5,7 @@ import { formatDateTime } from "@/lib/format";
 import type { CentralAgendaTask } from "@/lib/central-data";
 
 const categoryLabel: Record<string,string> = { task: "Tarefa", delivery: "Entrega", payment: "Cobrança", follow_up: "Retorno", post_sale: "Pós-venda", supplier: "Fornecedor", other: "Outro" };
-const scopeLabel: Record<string,string> = { company: "Company", supplements: "Suplementos", fitness: "Fitness" };
+const scopeLabel: Record<string,string> = { company: "Company", supplements: "Suplementos", fitness: "Fitness", marketing: "Marketing" };
 
 function todayBrazil() { return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date()); }
 

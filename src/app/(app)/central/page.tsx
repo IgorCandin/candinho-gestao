@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListTodo, MessageCircleMore, PlugZap, UsersRound } from "lucide-react";
+import { Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListTodo, MessageCircleMore, PlugZap, ShieldCheck, UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess } from "@/lib/data";
@@ -10,7 +10,7 @@ const providerLabel: Record<string, string> = { whatsapp: "WhatsApp", instagram:
 
 export default async function CentralPage() {
   const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
+  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const [data, agenda, readiness] = await Promise.all([getCentralDashboardSnapshot(), getCentralAgendaSnapshot("planned", null), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
   const metaReady = Boolean(readiness?.meta.ready);
   const aiReady = Boolean(readiness?.openai.ready);
@@ -35,6 +35,7 @@ export default async function CentralPage() {
       <Link href="/central/pendencias" className="central-launch-card"><ListTodo size={24}/><span><strong>Pendências</strong><small>Fila única do que ainda precisa ser resolvido.</small></span></Link>
       <Link href="/central/midia" className="central-launch-card"><ImageIcon size={24}/><span><strong>Mídia</strong><small>Fotos, vídeos e documentos organizados para uso futuro.</small></span></Link>
       <Link href="/central/nexus" className="central-launch-card"><Bot size={24}/><span><strong>Nexus IA</strong><small>Sugestões para você revisar antes de qualquer envio.</small></span></Link>
+      {access.canManageUsers && <Link href="/central/governanca" className="central-launch-card"><ShieldCheck size={24}/><span><strong>Governança</strong><small>Auditoria de acessos, integrações e mudanças críticas.</small></span></Link>}
     </section>
 
     {access.canManageUsers && <article className="panel central-readiness-panel">

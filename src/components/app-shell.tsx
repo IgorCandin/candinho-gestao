@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Archive, ArrowLeft, BarChart3, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
   Handshake, HeartPulse, History, Home, Images, Inbox, Link2, ListTodo, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
-  Truck, UserRoundPlus, UsersRound,
+  Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 
@@ -63,12 +63,17 @@ const centralNav = [
   { href: "/central/midia", label: "Mídia", icon: Images },
   { href: "/central/nexus", label: "Nexus IA", icon: Bot },
   { href: "/central/integracoes", label: "Integrações", icon: Link2 },
+  { href: "/central/governanca", label: "Governança", icon: ShieldCheck },
+];
+
+const marketingNav = [
+  { href: "/marketing", label: "Visão geral", icon: Megaphone },
 ];
 
 const partnerNav = [{ href: "/parceiro", label: "Meu Painel", icon: Handshake }];
 const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
 
-type Operation = "hub" | "central" | "supplements" | "fitness" | "bank" | "partner";
+type Operation = "hub" | "central" | "supplements" | "fitness" | "bank" | "marketing" | "partner";
 
 export function AppShell({ children, access }: { children: React.ReactNode; access: UserAccess }) {
   const pathname = usePathname();
@@ -81,6 +86,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   if (pathname.startsWith("/central")) operation = "central";
   else if (pathname.startsWith("/parceiro")) operation = "partner";
   else if (pathname.startsWith("/bank")) operation = "bank";
+  else if (pathname.startsWith("/marketing")) operation = "marketing";
   else if (pathname.startsWith("/fitness")) operation = "fitness";
   else if (!isHub && !isSettings) operation = "supplements";
 
@@ -89,14 +95,19 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const isFitness = operation === "fitness";
   const isSupplements = operation === "supplements";
   const isBank = operation === "bank";
+  const isMarketing = operation === "marketing";
   const isSalesProfile = access.role === "sales";
-  const nav = operation === "hub" ? hubNav : isCentral ? centralNav : isPartner ? partnerNav : isBank ? bankNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
+  const centralVisibleNav = access.canManageUsers ? centralNav : centralNav.filter((item) => item.href !== "/central/governanca");
+  const nav = operation === "hub" ? hubNav : isCentral ? centralVisibleNav : isPartner ? partnerNav : isBank ? bankNav : isMarketing ? marketingNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
 
   const mobileShortcuts = isSettings ? [] : isCentral ? [
     { href: "/central/inbox", label: "Inbox", icon: Inbox, primary: true },
     { href: "/central/pendencias", label: "Pendências", icon: ListTodo, primary: false },
     { href: "/central/midia", label: "Mídia", icon: Images, primary: false },
     { href: "/central/nexus", label: "Nexus", icon: Bot, primary: false },
+  ] : isMarketing ? [
+    { href: "/marketing", label: "Marketing", icon: Megaphone, primary: true },
+    { href: "/central/midia?scope=marketing", label: "Mídia", icon: Images, primary: false },
   ] : isPartner ? [
     { href: "/parceiro", label: "Meu painel", icon: Handshake, primary: true },
   ] : isBank ? [
@@ -120,16 +131,16 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
   const showSupplementActions = access.canWriteSupplements && isSupplements && !isSettings;
   const showFitnessActions = access.canWriteFitness && isFitness && !isSettings;
-  const brand = isBank ? { src: "/candinho-bank-logo.png", alt: "Candinho Bank" } : isFitness ? { src: "/candinho-fitness-logo.webp", alt: "Candinho Fitness" } : isSupplements ? { src: "/candinho-suplementos-logo.webp", alt: "Candinho Suplementos" } : { src: "/candinho-company-logo.webp", alt: "Candinho Company" };
+  const brand = isBank ? { src: "/candinho-bank-logo.png", alt: "Candinho Bank", width: 664, height: 146 } : isMarketing ? { src: "/candinho-marketing-logo.png", alt: "Candinho Marketing", width: 1244, height: 184 } : isCentral ? { src: "/candinho-central-logo.png", alt: "Candinho Central", width: 1203, height: 190 } : isFitness ? { src: "/candinho-fitness-logo.png", alt: "Candinho Fitness", width: 1109, height: 190 } : isSupplements ? { src: "/candinho-suplementos-logo.png", alt: "Candinho Suplementos", width: 1475, height: 258 } : { src: "/candinho-company-logo.png", alt: "Candinho Company", width: 1356, height: 480 };
 
   useEffect(() => { mobileMenuRef.current?.removeAttribute("open"); }, [pathname]);
   function closeMobileMenu() { mobileMenuRef.current?.removeAttribute("open"); }
   function goBack() {
     if (typeof window !== "undefined" && window.history.length > 1) { router.back(); return; }
-    router.push(isSettings ? "/dashboard" : isCentral ? "/central" : isPartner ? "/parceiro" : isFitness ? "/fitness" : isBank ? "/bank" : "/suplementos");
+    router.push(isSettings ? "/dashboard" : isCentral ? "/central" : isPartner ? "/parceiro" : isMarketing ? "/marketing" : isFitness ? "/fitness" : isBank ? "/bank" : "/suplementos");
   }
   function isActive(href: string) {
-    if (["/dashboard", "/central", "/parceiro", "/suplementos", "/fitness", "/bank"].includes(href)) return pathname === href;
+    if (["/dashboard", "/central", "/parceiro", "/suplementos", "/fitness", "/bank", "/marketing"].includes(href)) return pathname === href;
     if (href === "/vendas") return pathname.startsWith("/vendas") || pathname.startsWith("/leads") || pathname.startsWith("/orcamentos");
     return pathname.startsWith(href);
   }
@@ -138,18 +149,18 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
   return <div className={`app-shell theme-${operation}`}>
     <aside className="sidebar">
-      <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}><Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority /></Link>
+      <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}><Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={brand.width} height={brand.height} priority /></Link>
       <nav className="nav">{nav.map(({ href, label, icon: Icon }) => <Link className={`nav-link ${isActive(href) ? "primary" : ""}`} href={href} key={href}><Icon size={18} /><span className="nav-label">{label}</span></Link>)}</nav>
       <div className="sidebar-footer">
         <div className="sidebar-user"><span>{access.name}</span><small>{access.role === "partner" ? "Perfil Parceiro" : access.role === "sales" ? "Perfil Vendas" : access.email ?? "Acesso local"}</small></div>
-        <p className="sidebar-slogan">{isBank ? "Seu dinheiro, suas decisões, sua visão." : isCentral ? "Atendimento, informação e decisão em um só lugar." : isPartner ? "Sua parceria com transparência." : "Qualidade que entrega resultado."}</p>
+        <p className="sidebar-slogan">{isBank ? "Seu dinheiro, suas decisões, sua visão." : isCentral ? "Atendimento, informação e decisão em um só lugar." : isPartner ? "Sua parceria com transparência." : isMarketing ? "Operação preparada para a próxima fase da Candinho." : "Qualidade que entrega resultado."}</p>
         <form action="/auth/signout" method="post"><button className="nav-link" style={{ width: "100%", border: 0, background: "transparent" }}><LogOut size={18} /><span className="nav-label">Sair</span></button></form>
       </div>
     </aside>
 
     <header className="mobile-header">
       <button className="mobile-back-button" type="button" onClick={goBack}><ArrowLeft size={22} /></button>
-      <Link href="/dashboard" className="mobile-brand-link"><Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={1000} height={343} priority /></Link>
+      <Link href="/dashboard" className="mobile-brand-link"><Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={brand.width} height={brand.height} priority /></Link>
       <details className="mobile-menu" ref={mobileMenuRef}><summary><Menu size={20} /><span>Menu</span></summary><div className="mobile-menu-panel">
         {nav.map(({ href, label, icon: Icon }) => <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={href} onClick={closeMobileMenu}><Icon size={18} /><span>{label}</span></Link>)}
         <form action="/auth/signout" method="post"><button className="mobile-menu-link mobile-signout" type="submit"><LogOut size={18} /><span>Sair</span></button></form>

@@ -13,11 +13,11 @@ const providerMeta: Record<string, { label: string; icon: typeof MessageCircle }
   facebook: { label: "Facebook", icon: MessageCircle },
 };
 
-const scopeLabel: Record<string, string> = { company: "Company", supplements: "Suplementos", fitness: "Fitness" };
+const scopeLabel: Record<string, string> = { company: "Company", supplements: "Suplementos", fitness: "Fitness", marketing: "Marketing" };
 
 export default async function CentralInboxPage({ searchParams }: { searchParams: Promise<{ provider?: string; status?: string; conversa?: string; q?: string; scope?: string }> }) {
   const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
+  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const params = await searchParams;
   const allItems = await getCentralInboxSnapshot(params.provider, params.status, 200);
   const q = (params.q ?? "").trim().toLowerCase();
@@ -36,7 +36,7 @@ export default async function CentralInboxPage({ searchParams }: { searchParams:
       <form method="get" className="central-inbox-filter-form">
         <label className="central-inbox-search"><Search size={15}/><input name="q" defaultValue={params.q ?? ""} placeholder="Buscar contato ou mensagem..."/></label>
         <select name="provider" defaultValue={params.provider ?? ""}><option value="">Todos os canais</option><option value="whatsapp">WhatsApp</option><option value="instagram">Instagram</option><option value="facebook">Facebook</option></select>
-        <select name="scope" defaultValue={params.scope ?? ""}><option value="">Todas as operações</option><option value="company">Company</option><option value="supplements">Suplementos</option><option value="fitness">Fitness</option></select>
+        <select name="scope" defaultValue={params.scope ?? ""}><option value="">Todas as operações</option><option value="company">Company</option><option value="supplements">Suplementos</option><option value="fitness">Fitness</option><option value="marketing">Marketing</option></select>
         <select name="status" defaultValue={params.status ?? ""}><option value="">Todos os status</option><option value="open">Abertas</option><option value="pending">Pendentes</option><option value="closed">Concluídas</option></select>
         <button className="button ghost compact-button" type="submit">Filtrar</button>
       </form>

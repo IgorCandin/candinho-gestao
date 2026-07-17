@@ -8,7 +8,7 @@ import { formatDateTime } from "@/lib/format";
 import { registerCentralIntegration } from "./actions";
 
 const labels: Record<string, string> = { whatsapp: "WhatsApp", instagram: "Instagram", facebook: "Facebook" };
-const scopeLabels: Record<string, string> = { company: "Candinho Company", supplements: "Suplementos", fitness: "Fitness" };
+const scopeLabels: Record<string, string> = { company: "Candinho Company", supplements: "Suplementos", fitness: "Fitness", marketing: "Marketing" };
 
 function statusMeta(item: { status: string; health_status?: string | null }) {
   const health = item.health_status ?? item.status;
@@ -65,7 +65,7 @@ export default async function IntegrationsPage({ searchParams }: Props) {
       <div className="panel-head"><div><h2>Cadastrar conta Meta</h2><p>Salve somente os identificadores públicos/operacionais. Tokens, chaves e segredos continuam nos Secrets das Edge Functions.</p></div><Plus size={20}/></div>
       <form action={registerCentralIntegration} className="panel-body integration-account-form">
         <label className="field"><span>Canal</span><select className="input" name="provider" required defaultValue="whatsapp"><option value="whatsapp">WhatsApp</option><option value="instagram">Instagram</option><option value="facebook">Facebook</option></select></label>
-        <label className="field"><span>Operação</span><select className="input" name="operation_scope" required defaultValue="company"><option value="company">Candinho Company</option><option value="supplements">Candinho Suplementos</option><option value="fitness">Candinho Fitness</option></select></label>
+        <label className="field"><span>Operação</span><select className="input" name="operation_scope" required defaultValue="company"><option value="company">Candinho Company</option><option value="supplements">Candinho Suplementos</option><option value="fitness">Candinho Fitness</option><option value="marketing">Candinho Marketing</option></select></label>
         <label className="field"><span>Nome da conta</span><input className="input" name="account_name" placeholder="Ex.: Candinho Suplementos" maxLength={180}/></label>
         <label className="field integration-account-id"><span>ID externo da conta</span><input className="input" name="account_external_id" placeholder="Cole o identificador fornecido pela plataforma Meta" maxLength={180} required/><small>Use o identificador técnico da conta/canal. Não cole access token, app secret ou senha.</small></label>
         <div className="integration-account-actions"><button className="button gold" type="submit"><Save size={16}/>Salvar conta</button></div>

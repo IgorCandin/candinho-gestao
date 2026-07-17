@@ -13,9 +13,11 @@ export type UserAccess = {
   canAccessFitness: boolean;
   canManageUsers: boolean;
   canAccessBank: boolean;
+  canAccessMarketing: boolean;
   canWriteSupplements: boolean;
   canWriteFitness: boolean;
   canWriteBank: boolean;
+  canWriteMarketing: boolean;
 };
 
 export type UserPermissionRow = {
@@ -30,6 +32,8 @@ export type UserPermissionRow = {
   can_write_fitness: boolean;
   can_access_bank: boolean;
   can_write_bank: boolean;
+  can_access_marketing: boolean;
+  can_write_marketing: boolean;
   can_manage_users: boolean;
   last_sign_in_at: string | null;
   created_at: string;
@@ -50,9 +54,11 @@ export function getFallbackUserAccess(email?: string | null): UserAccess {
       canAccessFitness: true,
       canManageUsers: true,
       canAccessBank: true,
+      canAccessMarketing: true,
       canWriteSupplements: true,
       canWriteFitness: true,
       canWriteBank: true,
+      canWriteMarketing: true,
     };
   }
 
@@ -67,9 +73,11 @@ export function getFallbackUserAccess(email?: string | null): UserAccess {
       canAccessFitness: true,
       canManageUsers: false,
       canAccessBank: false,
+      canAccessMarketing: false,
       canWriteSupplements: false,
       canWriteFitness: true,
       canWriteBank: false,
+      canWriteMarketing: false,
     };
   }
 
@@ -83,9 +91,11 @@ export function getFallbackUserAccess(email?: string | null): UserAccess {
     canAccessFitness: false,
     canManageUsers: false,
     canAccessBank: false,
+    canAccessMarketing: false,
     canWriteSupplements: false,
     canWriteFitness: false,
     canWriteBank: false,
+    canWriteMarketing: false,
   };
 }
 
@@ -106,8 +116,10 @@ export function normalizeUserAccess(row: Record<string, unknown> | null | undefi
     canAccessFitness: active && Boolean(row.can_access_fitness),
     canManageUsers: active && Boolean(row.can_manage_users),
     canAccessBank: active && Boolean(row.can_access_bank),
+    canAccessMarketing: active && Boolean(row.can_access_marketing),
     canWriteSupplements: active && Boolean(row.can_write_supplements),
     canWriteFitness: active && Boolean(row.can_write_fitness),
     canWriteBank: active && Boolean(row.can_write_bank),
+    canWriteMarketing: active && Boolean(row.can_write_marketing),
   };
 }

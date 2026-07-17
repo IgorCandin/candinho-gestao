@@ -8,10 +8,10 @@ export default function LoginPage() {
         <div className="login-visual">
           <Image
             className="login-company-logo"
-            src="/candinho-company-logo.webp"
+            src="/candinho-company-logo.png"
             alt="Candinho Company"
-            width={1000}
-            height={343}
+            width={1356}
+            height={480}
             priority
           />
 
@@ -25,17 +25,25 @@ export default function LoginPage() {
           <h2>Entrar</h2>
           <LoginForm />
 
-          <div className="login-operations login-operations-three" aria-label="Operações da Candinho Company">
+          <div className="login-operations login-operations-five" aria-label="Operações da Candinho Company">
             <div className="login-operation-logo">
-              <Image src="/candinho-suplementos-logo.webp" alt="Candinho Suplementos" width={1000} height={343} />
+              <Image src="/candinho-suplementos-logo.png" alt="Candinho Suplementos" width={1475} height={258} />
             </div>
             <span className="login-operation-divider" aria-hidden="true" />
             <div className="login-operation-logo">
-              <Image src="/candinho-fitness-logo.webp" alt="Candinho Fitness" width={1000} height={343} />
+              <Image src="/candinho-fitness-logo.png" alt="Candinho Fitness" width={1109} height={190} />
             </div>
             <span className="login-operation-divider" aria-hidden="true" />
             <div className="login-operation-logo login-bank-logo">
-              <Image src="/candinho-bank-logo.png" alt="Candinho Bank" width={1000} height={343} />
+              <Image src="/candinho-bank-logo.png" alt="Candinho Bank" width={664} height={146} />
+            </div>
+            <span className="login-operation-divider" aria-hidden="true" />
+            <div className="login-operation-logo">
+              <Image src="/candinho-central-logo.png" alt="Candinho Central" width={1203} height={190} />
+            </div>
+            <span className="login-operation-divider" aria-hidden="true" />
+            <div className="login-operation-logo">
+              <Image src="/candinho-marketing-logo.png" alt="Candinho Marketing" width={1244} height={184} />
             </div>
           </div>
 

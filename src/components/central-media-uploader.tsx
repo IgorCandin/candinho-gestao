@@ -66,7 +66,7 @@ export function CentralMediaUploader({ scopes, contacts }: { scopes: string[]; c
   return <div className="central-media-uploader">
     <div className="central-media-uploader-head"><ImagePlus size={20}/><span><strong>Adicionar à biblioteca</strong><small>Fotos, vídeos e PDFs ficam privados e podem ser ligados a um cliente.</small></span></div>
     <div className="central-media-uploader-fields central-media-uploader-fields-v2">
-      <select className="select" value={scope} onChange={(event) => { setScope(event.target.value); setContactId(""); }}>{scopes.map((item) => <option value={item} key={item}>{item === "company" ? "Candinho Company" : item === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select>
+      <select className="select" value={scope} onChange={(event) => { setScope(event.target.value); setContactId(""); }}>{scopes.map((item) => <option value={item} key={item}>{item === "company" ? "Candinho Company" : item === "supplements" ? "Suplementos" : item === "fitness" ? "Fitness" : "Marketing"}</option>)}</select>
       <select className="select" value={contactId} onChange={(event) => setContactId(event.target.value)}><option value="">Sem vínculo com contato</option>{availableContacts.map((contact) => <option value={contact.id} key={contact.id}>{contact.display_name}</option>)}</select>
       <input ref={inputRef} className="input central-file-input" type="file" accept="image/*,video/*,application/pdf" />
       <button className="button gold" type="button" onClick={upload} disabled={loading}>{loading ? <LoaderCircle className="spin" size={16}/> : <UploadCloud size={16}/>}Enviar</button>

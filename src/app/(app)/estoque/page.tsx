@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, Building2, CircleDollarSign, Clock3, PackageCheck, PackageOpen, ShieldAlert, TriangleAlert } from "lucide-react";
+import { Boxes, Building2, CircleDollarSign, ClipboardCheck, Clock3, PackageCheck, PackageOpen, ShieldAlert, TriangleAlert } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { InventoryActions } from "@/components/inventory-actions";
 import { InventoryTable } from "@/components/inventory-table";
@@ -24,7 +24,7 @@ export default async function StockPage() {
 
   return <>
     <DemoBanner />
-    <PageHeader eyebrow="Logística" title="Estoque" description="Aqui você controla onde cada unidade está. Cadastro e informações comerciais continuam na aba Produtos." action={<InventoryActions products={products} locations={locations} locationRows={locationRows}/>}/>
+    <PageHeader eyebrow="Logística" title="Estoque" description="Aqui você controla onde cada unidade está. Cadastro e informações comerciais continuam na aba Produtos." action={<div className="page-header-actions"><Link className="button ghost" href="/estoque/reconciliacao"><ClipboardCheck size={16}/>Reconciliação</Link><InventoryActions products={products} locations={locations} locationRows={locationRows}/></div>}/>
 
     <section className="stats-grid inventory-stats-grid inventory-v2-stats">
       <StatCard label="Unidades físicas" value={String(summary.physical_units)} note={`${summary.products_with_stock} produtos com saldo`} icon={Boxes}/>

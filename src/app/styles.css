@@ -2548,3 +2548,109 @@ h1{font-size:clamp(27px,3vw,36px)}
   .central-media-search-v2>label{grid-column:auto}
   .central-media-detail-preview{min-height:280px}
 }
+
+/* =========================================================
+   Pacote Consolidado V5 · Identidade + Marketing + Governança
+   ========================================================= */
+.app-shell.theme-marketing {
+  --gold: #ff4a4a;
+  --gold-soft: rgba(255,74,74,.13);
+  --accent-button-from: #ff6b6b;
+  --accent-button-to: #d92d2d;
+  --accent-contrast: #150707;
+  --accent-nav-text: #ff8d8d;
+  background: radial-gradient(circle at 12% 0%, rgba(255,74,74,.08), transparent 28rem), var(--bg);
+}
+.app-shell.theme-marketing .nav-link.primary { box-shadow: inset 0 0 0 1px rgba(255,74,74,.12); }
+.app-shell.theme-marketing .input:focus,
+.app-shell.theme-marketing .select:focus { border-color: rgba(255,74,74,.68); box-shadow: 0 0 0 3px rgba(255,74,74,.11); }
+
+.company-home-operations { grid-template-columns: repeat(auto-fit,minmax(210px,1fr)); }
+.company-operation-card.marketing:hover { border-color: rgba(255,74,74,.58); }
+.company-operation-card.marketing .company-operation-mini-kpis strong { color: #ff8d8d; }
+.company-home-admin-row { grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); }
+.central-logo-wrap img { height: 68px; }
+
+.login-operations-five {
+  grid-template-columns: minmax(0,1fr) 1px minmax(0,1fr) 1px minmax(0,1fr) 1px minmax(0,1fr) 1px minmax(0,1fr);
+  gap: 8px;
+}
+.login-operations-five .login-operation-logo img { max-height: 44px; }
+.login-operations-five .login-bank-logo img { max-height: 48px; }
+
+.page-header-actions { display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap; }
+
+.marketing-foundation-hero { margin-bottom:18px; }
+.marketing-foundation-brand { display:grid;grid-template-columns:minmax(260px,.7fr) minmax(0,1.3fr);align-items:center;gap:28px;padding:28px;overflow:hidden;border-color:rgba(255,74,74,.24);background:linear-gradient(135deg,rgba(255,74,74,.075),rgba(15,19,27,.96) 48%); }
+.marketing-foundation-logo { min-height:120px;display:grid;place-items:center;padding:18px;border-right:1px solid rgba(255,74,74,.17); }
+.marketing-foundation-logo img { width:100%;height:auto;max-height:86px;object-fit:contain; }
+.marketing-foundation-copy { display:grid;gap:10px; }
+.marketing-foundation-copy h2 { margin:0;font-size:22px; }
+.marketing-foundation-copy p { margin:0;max-width:720px;color:var(--muted);font-size:10px;line-height:1.7; }
+.marketing-status-pill { width:max-content;display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid rgba(255,74,74,.28);border-radius:999px;background:rgba(255,74,74,.08);color:#ff8d8d;font-size:8px;font-weight:900;text-transform:uppercase;letter-spacing:.07em; }
+.marketing-foundation-links .central-launch-card.primary { border-color:rgba(255,74,74,.3);background:rgba(255,74,74,.055); }
+.marketing-definition-panel { margin-top:4px; }
+.marketing-definition-grid { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px; }
+.marketing-definition-grid>div { display:grid;gap:5px;padding:13px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.015); }
+.marketing-definition-grid strong { font-size:10px; }
+.marketing-definition-grid span { color:var(--muted);font-size:8px;line-height:1.5; }
+
+.central-governance-stats { margin-bottom:18px; }
+.governance-health-panel { margin-bottom:18px; }
+.governance-health-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px; }
+.governance-health-card { display:grid;gap:8px;padding:14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.016); }
+.governance-health-card>div { display:grid;gap:3px; }
+.governance-health-card strong { font-size:11px; }
+.governance-health-card span,.governance-health-card small { color:var(--muted);font-size:8px;line-height:1.45; }
+.governance-health-card>b { width:max-content;padding:5px 8px;border-radius:999px;background:rgba(154,163,178,.1);color:#c9d0db;font-size:8px; }
+.governance-health-card.healthy>b { background:rgba(70,195,123,.1);color:#76dda0; }
+.governance-health-card.error>b { background:rgba(239,100,100,.1);color:#ff9292; }
+.governance-health-card.stale>b,.governance-health-card.never_synced>b { background:rgba(240,168,79,.1);color:#ffc177; }
+.governance-audit-list { display:grid; }
+.governance-audit-row { display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:11px;padding:12px 16px;border-top:1px solid var(--line); }
+.governance-audit-row:first-child { border-top:0; }
+.governance-audit-icon { width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:rgba(124,156,255,.09);color:#9bb2ff; }
+.governance-audit-row>div { display:grid;gap:3px; }
+.governance-audit-row strong { font-size:10px; }
+.governance-audit-row span { color:#c8cfdb;font-size:9px; }
+.governance-audit-row small { color:var(--muted);font-size:8px; }
+
+.inventory-reconciliation-notice { margin-bottom:16px;border-color:rgba(240,168,79,.28);background:rgba(240,168,79,.045); }
+.inventory-reconciliation-notice .panel-body { display:flex;align-items:flex-start;gap:12px; }
+.inventory-reconciliation-notice svg { flex:0 0 auto;color:#ffc177; }
+.inventory-reconciliation-notice strong,.inventory-reconciliation-notice span { display:block; }
+.inventory-reconciliation-notice strong { font-size:11px; }
+.inventory-reconciliation-notice span { margin-top:4px;color:var(--muted);font-size:9px;line-height:1.55; }
+.inventory-reconciliation-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px; }
+.inventory-reconciliation-list { display:grid; }
+.inventory-reconciliation-row { display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:11px;padding:13px 15px;border-top:1px solid var(--line);color:inherit; }
+.inventory-reconciliation-row:first-child { border-top:0; }
+.inventory-reconciliation-row>span { width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:rgba(240,168,79,.08);color:#ffc177; }
+.inventory-reconciliation-row>div { display:grid;gap:4px; }
+.inventory-reconciliation-row strong { font-size:10px; }
+.inventory-reconciliation-row small { color:var(--muted);font-size:8px;line-height:1.45; }
+.inventory-reconciliation-row>b { padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.04);color:#cbd2de;font-size:8px;white-space:nowrap; }
+.inventory-reconciliation-row.product:hover { background:rgba(255,255,255,.018); }
+.inventory-reconciliation-row.needs_count_confirmation>span { background:rgba(124,156,255,.08);color:#9bb2ff; }
+.badge.scope-marketing { border-color:rgba(255,74,74,.3);color:#ff8d8d; }
+
+@media(max-width:1000px){
+  .marketing-definition-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .governance-health-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .inventory-reconciliation-grid{grid-template-columns:1fr}
+}
+@media(max-width:820px){
+  .login-operations-five{grid-template-columns:1fr;gap:10px}
+  .login-operations-five .login-operation-divider{width:100%;height:1px}
+  .login-operations-five .login-operation-logo img{max-height:46px}
+  .marketing-foundation-brand{grid-template-columns:1fr;padding:20px}
+  .marketing-foundation-logo{border-right:0;border-bottom:1px solid rgba(255,74,74,.17)}
+}
+@media(max-width:620px){
+  .marketing-definition-grid,.governance-health-grid{grid-template-columns:1fr}
+  .page-header-actions{width:100%;justify-content:stretch}
+  .page-header-actions>*{flex:1 1 auto}
+}
+.permission-operation-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1100px){.permission-operation-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.permission-operation-grid{grid-template-columns:1fr}}

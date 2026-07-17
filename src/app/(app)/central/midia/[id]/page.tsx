@@ -17,7 +17,7 @@ function value(metadata: Record<string, unknown> | null, key: string) {
 
 export default async function CentralMediaDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
+  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const { id } = await params;
   const [asset, contacts, conversations, readiness] = await Promise.all([
     getCentralMediaAssetDetails(id),

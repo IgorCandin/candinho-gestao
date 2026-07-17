@@ -10,7 +10,7 @@ const providerLabel: Record<string, string> = { whatsapp: "WhatsApp", instagram:
 
 export default async function CentralContactPage({ params }: { params: Promise<{ id: string }> }) {
   const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness)) redirect("/dashboard");
+  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const { id } = await params;
   const data = await getCentralContactDetails(id);
   if (!data.contact) notFound();
@@ -27,7 +27,7 @@ export default async function CentralContactPage({ params }: { params: Promise<{
           <div><small>E-mail</small><strong>{contact.email ?? "—"}</strong></div>
           <div><small>Instagram</small><strong>{contact.instagram_username ? `@${contact.instagram_username}` : "—"}</strong></div>
           <div><small>Canal preferido</small><strong>{contact.preferred_channel ? providerLabel[contact.preferred_channel] ?? contact.preferred_channel : "—"}</strong></div>
-          <div><small>Espaço</small><strong>{contact.operation_scope === "company" ? "Candinho Company" : contact.operation_scope === "supplements" ? "Suplementos" : "Fitness"}</strong></div>
+          <div><small>Espaço</small><strong>{contact.operation_scope === "company" ? "Candinho Company" : contact.operation_scope === "supplements" ? "Suplementos" : contact.operation_scope === "fitness" ? "Fitness" : "Marketing"}</strong></div>
           <div className="central-contact-detail-notes"><small>Observações</small><strong>{contact.notes ?? "Nenhuma observação cadastrada."}</strong></div>
         </div>
       </article>

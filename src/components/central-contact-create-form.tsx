@@ -49,7 +49,7 @@ export function CentralContactCreateForm({ scopes }: { scopes: string[] }) {
       <div className="panel-head"><div><h2>Novo contato</h2><p>Cadastre alguém manualmente antes mesmo de receber uma mensagem pela Meta.</p></div><Plus size={18}/></div>
       <div className="panel-body central-contact-create-grid">
         <label className="field"><span>Nome</span><input className="input" name="display_name" required placeholder="Nome do cliente"/></label>
-        <label className="field"><span>Espaço</span><select className="select" name="operation_scope" defaultValue={scopes[0] ?? "company"}>{scopes.map((scope) => <option value={scope} key={scope}>{scope === "company" ? "Candinho Company" : scope === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select></label>
+        <label className="field"><span>Espaço</span><select className="select" name="operation_scope" defaultValue={scopes[0] ?? "company"}>{scopes.map((scope) => <option value={scope} key={scope}>{scope === "company" ? "Candinho Company" : scope === "supplements" ? "Suplementos" : scope === "fitness" ? "Fitness" : "Marketing"}</option>)}</select></label>
         <label className="field"><span>Telefone</span><input className="input" name="phone" placeholder="(32) 99999-9999"/></label>
         <label className="field"><span>E-mail</span><input className="input" type="email" name="email" placeholder="cliente@email.com"/></label>
         <label className="field"><span>Instagram</span><input className="input" name="instagram_username" placeholder="@usuario"/></label>
