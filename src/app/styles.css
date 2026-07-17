@@ -1967,3 +1967,11 @@ h1{font-size:clamp(27px,3vw,36px)}
   .budget-pdf-actions { display: grid; grid-template-columns: 1fr; }
   .budget-pdf-actions .button { width: 100%; justify-content: center; }
 }
+
+
+/* Combo image upload */
+.combo-image-editor{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px;align-items:center;padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.015)}
+.combo-image-preview{width:150px;aspect-ratio:1/1;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:#0b0e14;display:grid;place-items:center}
+.combo-image-preview img{width:100%;height:100%;object-fit:contain;background:#fff}
+.combo-image-copy{display:grid;gap:8px}.combo-image-copy>strong{font-size:12px}.combo-image-copy>span{color:var(--muted);font-size:10px;line-height:1.5}.combo-image-url-fallback{padding:10px 0}.combo-image-url-fallback summary{cursor:pointer;color:var(--muted);font-size:10px;margin-bottom:9px}.combo-image-url-fallback[open] summary{color:var(--gold)}
+@media(max-width:620px){.combo-image-editor{grid-template-columns:1fr}.combo-image-preview{width:100%;max-width:240px;margin:0 auto}.combo-image-copy .product-image-actions{display:grid;grid-template-columns:1fr}.combo-image-copy .button{width:100%}}

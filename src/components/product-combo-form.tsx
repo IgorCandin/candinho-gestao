@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/format";
 import type { ProductComboDetails, ProductOption } from "@/lib/types";
+import { ComboImageUploader } from "@/components/combo-image-uploader";
 
 type DraftItem = { key: string; productId: string; quantity: string };
 function key() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
@@ -70,7 +71,8 @@ export function ProductComboForm({ combo, products }: { combo?: ProductComboDeta
           <label className="field field-span-two"><span>Nome do combo</span><input className="input" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="Ex.: Combo Foco Total"/></label>
           <label className="field"><span>Preço à vista</span><input className="input" type="number" min="0" step="0.01" value={salePrice} onChange={(e)=>setSalePrice(e.target.value)}/></label>
           <label className="field"><span>Preço a prazo</span><input className="input" type="number" min="0" step="0.01" value={installmentPrice} onChange={(e)=>setInstallmentPrice(e.target.value)}/></label>
-          <label className="field field-span-two"><span>Imagem do combo (URL opcional)</span><input className="input" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} placeholder="Cole a URL de uma arte do combo"/></label>
+          <div className="field field-span-two"><ComboImageUploader value={imageUrl} onChange={setImageUrl}/></div>
+          <details className="field field-span-two combo-image-url-fallback"><summary>Usar URL de imagem</summary><input className="input" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} placeholder="Cole a URL de uma arte do combo"/></details>
           <label className="field field-span-two"><span>Descrição</span><textarea className="textarea" rows={4} value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="Explique o objetivo do combo e para quem ele é indicado."/></label>
         </div>
       </article>

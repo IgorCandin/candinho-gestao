@@ -37,3 +37,9 @@ Pacote consolidado gerado sobre a V1 Final Estabilizada.
 - Next.js: compilacao, TypeScript, geracao das paginas e lista final de rotas concluidas.
 
 Observacao: o processo de build do ambiente de execucao encerrou por timeout depois de exibir a lista final completa das rotas. Os artefatos de build foram gerados e as etapas de compilacao/TypeScript/paginas foram concluidas.
+
+
+## Adição de validação de deploy
+- Editor de Combos agora permite adicionar, trocar ou remover a foto diretamente do celular/computador.
+- A imagem é otimizada para WEBP e enviada ao bucket `product-images`.
+- O campo de URL continua disponível como opção avançada.
