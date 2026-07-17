@@ -54,7 +54,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
     "/dashboard", "/suplementos", "/fitness", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
-    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs", "/bank",
+    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs", "/bank", "/central", "/parceiro",
   ];
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -81,6 +81,7 @@ export async function updateSession(request: NextRequest) {
       can_access_fitness: email === MANAGER_EMAIL || email === FITNESS_SALES_EMAIL,
       can_access_bank: email === MANAGER_EMAIL,
       can_manage_users: email === MANAGER_EMAIL,
+      role: email === MANAGER_EMAIL ? "admin" : "operator",
     };
 
     const { data } = await supabase.rpc("get_my_access");
@@ -92,6 +93,7 @@ export async function updateSession(request: NextRequest) {
         can_access_fitness: Boolean(row.can_access_fitness),
         can_access_bank: Boolean(row.can_access_bank),
         can_manage_users: Boolean(row.can_manage_users),
+        role: typeof row.role === "string" ? row.role : "operator",
       };
     }
 
@@ -103,6 +105,8 @@ export async function updateSession(request: NextRequest) {
     const isFitnessRoute = pathname.startsWith("/fitness");
     const isBankRoute = pathname.startsWith("/bank");
     const isManagerRoute = pathname.startsWith("/configuracoes");
+    const isCentralRoute = pathname.startsWith("/central");
+    const isPartnerPortalRoute = pathname.startsWith("/parceiro");
 
     if (!access.active && pathname !== "/dashboard") {
       const redirectUrl = request.nextUrl.clone();
@@ -128,6 +132,21 @@ export async function updateSession(request: NextRequest) {
     if (isBankRoute && !access.can_access_bank) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : access.can_access_fitness ? "/fitness" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+
+    if (isCentralRoute && !(access.role === "admin" || access.can_access_supplements || access.can_access_fitness)) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = access.role === "partner" ? "/parceiro" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isPartnerPortalRoute && access.role !== "partner") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/dashboard";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }

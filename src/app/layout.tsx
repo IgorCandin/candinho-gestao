@@ -5,7 +5,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
-  description: "Gestão integrada das operações Candinho Suplementos e Candinho Fitness.",
+  description: "Gestão integrada da Candinho Company: Central, Suplementos, Fitness, Bank e Portal do Parceiro.",
   applicationName: "Candinho Company",
   manifest: "/manifest.webmanifest",
 };

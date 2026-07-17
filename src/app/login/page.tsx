@@ -17,7 +17,7 @@ export default function LoginPage() {
 
           <div className="login-intro">
             <h1>A operação da Candinho em um só lugar.</h1>
-            <p>Estoque, vendas, clientes, catálogo e histórico com regras seguras e uma interface otimizada.</p>
+            <p>Central de atendimento, operações, estoque, parceiros e finanças com regras seguras em uma única plataforma.</p>
           </div>
         </div>
 
