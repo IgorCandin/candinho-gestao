@@ -158,12 +158,23 @@ export type CentralMediaAsset = {
   storage_path: string | null;
   original_filename: string | null;
   mime_type: string | null;
+  source: string | null;
+  source_url: string | null;
   description_ai: string | null;
   search_text: string | null;
   ai_metadata: Record<string, unknown> | null;
   tags: string[];
+  contact_id: string | null;
+  contact_name: string | null;
+  conversation_id: string | null;
   created_at: string;
   signed_url: string | null;
+};
+
+export type CentralMediaAssetDetails = CentralMediaAsset & {
+  width: number | null;
+  height: number | null;
+  duration_seconds: number | null;
 };
 
 
@@ -429,10 +440,23 @@ export async function getCentralIntegrationHealth(): Promise<CentralIntegrationH
   return Array.isArray(data) ? data as CentralIntegrationHealth[] : [];
 }
 
-export async function getCentralMediaAssets(query = "", scope: string | null = null): Promise<CentralMediaAsset[]> {
+export async function getCentralMediaAssets(
+  query = "",
+  scope: string | null = null,
+  kind: string | null = null,
+  aiStatus: string | null = null,
+  contactId: string | null = null,
+): Promise<CentralMediaAsset[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("central_media_search", { p_query: query || null, p_scope: scope, p_limit: 120 });
+  const { data, error } = await supabase.rpc("central_media_search_v2", {
+    p_query: query || null,
+    p_scope: scope,
+    p_kind: kind,
+    p_ai_status: aiStatus,
+    p_contact_id: contactId,
+    p_limit: 120,
+  });
   if (error) throw error;
   const rows = (data ?? []) as Omit<CentralMediaAsset, "signed_url">[];
   const paths = rows.map((row) => row.storage_path).filter((path): path is string => Boolean(path));
@@ -447,6 +471,35 @@ export async function getCentralMediaAssets(query = "", scope: string | null = n
     }
   }
   return rows.map((row) => ({ ...row, signed_url: row.storage_path ? signedByPath.get(row.storage_path) ?? null : null }));
+}
+
+export async function getCentralMediaAssetDetails(assetId: string): Promise<CentralMediaAssetDetails | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const { data: asset, error } = await supabase
+    .from("central_media_assets")
+    .select("id,operation_scope,storage_path,original_filename,mime_type,source,source_url,description_ai,search_text,ai_metadata,width,height,duration_seconds,contact_id,conversation_id,created_at")
+    .eq("id", assetId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!asset) return null;
+  const [tagsResult, contactResult] = await Promise.all([
+    supabase.from("central_media_tags").select("tag").eq("media_asset_id", assetId).order("tag"),
+    asset.contact_id ? supabase.from("central_contacts").select("display_name").eq("id", asset.contact_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+  ]);
+  if (tagsResult.error) throw tagsResult.error;
+  if (contactResult.error) throw contactResult.error;
+  let signedUrl: string | null = null;
+  if (asset.storage_path) {
+    const signed = await supabase.storage.from("central-media").createSignedUrl(asset.storage_path, 3600);
+    signedUrl = signed.data?.signedUrl ?? null;
+  }
+  return {
+    ...(asset as Omit<CentralMediaAssetDetails, "tags" | "contact_name" | "signed_url">),
+    tags: (tagsResult.data ?? []).map((row) => row.tag),
+    contact_name: contactResult.data?.display_name ?? null,
+    signed_url: signedUrl,
+  };
 }
 
 export async function getCentralAiInsights(limit = 50): Promise<CentralAiInsight[]> {

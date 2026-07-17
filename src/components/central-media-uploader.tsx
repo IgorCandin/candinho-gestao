@@ -3,18 +3,22 @@
 import { ImagePlus, LoaderCircle, Sparkles, UploadCloud } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import type { CentralContact } from "@/lib/central-data";
 import { createClient } from "@/lib/supabase/client";
 
 function safeFilename(name: string) {
   return name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-");
 }
 
-export function CentralMediaUploader({ scopes }: { scopes: string[] }) {
+export function CentralMediaUploader({ scopes, contacts }: { scopes: string[]; contacts: CentralContact[] }) {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const [scope, setScope] = useState(scopes[0] ?? "company");
+  const [contactId, setContactId] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  const availableContacts = contacts.filter((contact) => contact.operation_scope === "company" || contact.operation_scope === scope || scope === "company");
 
   async function upload() {
     const file = inputRef.current?.files?.[0];
@@ -36,6 +40,7 @@ export function CentralMediaUploader({ scopes }: { scopes: string[] }) {
         mime_type: file.type || null,
         source: "upload",
         search_text: file.name,
+        contact_id: contactId || null,
       }).select("id").single();
       if (assetResult.error) {
         await supabase.storage.from("central-media").remove([path]);
@@ -51,6 +56,7 @@ export function CentralMediaUploader({ scopes }: { scopes: string[] }) {
         setMessage(file.type.includes("heic") || file.type.includes("heif") ? "Arquivo HEIC/HEIF armazenado. A análise visual requer conversão para JPEG, PNG ou WebP." : "Arquivo enviado para a biblioteca.");
       }
       if (inputRef.current) inputRef.current.value = "";
+      setContactId("");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível enviar o arquivo.");
@@ -58,9 +64,10 @@ export function CentralMediaUploader({ scopes }: { scopes: string[] }) {
   }
 
   return <div className="central-media-uploader">
-    <div className="central-media-uploader-head"><ImagePlus size={20}/><span><strong>Adicionar à biblioteca</strong><small>Fotos, vídeos e PDFs ficam privados.</small></span></div>
-    <div className="central-media-uploader-fields">
-      <select className="select" value={scope} onChange={(event) => setScope(event.target.value)}>{scopes.map((item) => <option value={item} key={item}>{item === "company" ? "Candinho Company" : item === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select>
+    <div className="central-media-uploader-head"><ImagePlus size={20}/><span><strong>Adicionar à biblioteca</strong><small>Fotos, vídeos e PDFs ficam privados e podem ser ligados a um cliente.</small></span></div>
+    <div className="central-media-uploader-fields central-media-uploader-fields-v2">
+      <select className="select" value={scope} onChange={(event) => { setScope(event.target.value); setContactId(""); }}>{scopes.map((item) => <option value={item} key={item}>{item === "company" ? "Candinho Company" : item === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select>
+      <select className="select" value={contactId} onChange={(event) => setContactId(event.target.value)}><option value="">Sem vínculo com contato</option>{availableContacts.map((contact) => <option value={contact.id} key={contact.id}>{contact.display_name}</option>)}</select>
       <input ref={inputRef} className="input central-file-input" type="file" accept="image/*,video/*,application/pdf" />
       <button className="button gold" type="button" onClick={upload} disabled={loading}>{loading ? <LoaderCircle className="spin" size={16}/> : <UploadCloud size={16}/>}Enviar</button>
     </div>
