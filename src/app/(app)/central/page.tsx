@@ -1,22 +1,24 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListTodo, MessageCircleMore, PlugZap, ShieldCheck, UsersRound } from "lucide-react";
+import { Bell, Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListTodo, MessageCircleMore, PlugZap, Search, ShieldCheck, UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess } from "@/lib/data";
-import { getCentralAgendaSnapshot, getCentralDashboardSnapshot, getCentralIntegrationReadiness } from "@/lib/central-data";
+import { getCentralAgendaSnapshot, getCentralAlertsSnapshot, getCentralDashboardSnapshot, getCentralIntegrationReadiness } from "@/lib/central-data";
 
 const providerLabel: Record<string, string> = { whatsapp: "WhatsApp", instagram: "Instagram", facebook: "Facebook" };
 
 export default async function CentralPage() {
   const access = await getCurrentUserAccess();
   if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
-  const [data, agenda, readiness] = await Promise.all([getCentralDashboardSnapshot(), getCentralAgendaSnapshot("planned", null), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
+  const [data, agenda, alerts, readiness] = await Promise.all([getCentralDashboardSnapshot(), getCentralAgendaSnapshot("planned", null), getCentralAlertsSnapshot(), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
   const metaReady = Boolean(readiness?.meta.ready);
   const aiReady = Boolean(readiness?.openai.ready);
 
   return <>
     <PageHeader eyebrow="Candinho Company" title="Candinho Central" description="Seu centro de comando para atendimento, relacionamento, mídia e inteligência entre as operações." action={<Link className="button gold" href="/central/inbox"><Inbox size={16}/>Abrir atendimento</Link>}/>
+
+    <form className="central-home-search" action="/central/busca" method="get"><Search size={18}/><input name="q" placeholder="Buscar cliente, produto, parceiro, tarefa ou mídia..."/><button className="button gold compact-button" type="submit">Buscar</button></form>
 
     <section className="stats-grid central-stats-grid">
       <StatCard href="/central/inbox" label="Mensagens não lidas" value={String(data.unread)} note={`${data.open_conversations} conversa(s) aberta(s)`} icon={Inbox}/>
@@ -25,11 +27,14 @@ export default async function CentralPage() {
       <StatCard href="/central/midia" label="Arquivos de mídia" value={String(data.media_assets)} note="Biblioteca privada pesquisável" icon={ImageIcon}/>
       <StatCard href="/central/agenda" label="Agenda hoje" value={String(agenda.summary.today_count)} note={`${agenda.summary.next_seven_days_count} nos próximos 7 dias`} icon={CalendarDays}/>
       <StatCard href="/central/pendencias" label="Pendências" value={String(agenda.summary.pending_count)} note={`${agenda.summary.overdue_count} atrasada(s)`} icon={ListTodo}/>
+      <StatCard href="/central/alertas" label="Alertas ativos" value={String(alerts.summary.total)} note={`${alerts.summary.critical} crítico(s) · ${alerts.summary.attention} em atenção`} icon={Bell}/>
       <StatCard href="/central/nexus" label="Insights ativos" value={String(data.active_ai_insights)} note="Sugestões geradas pelo Nexus" icon={Bot}/>
     </section>
 
     <section className="central-launch-grid">
-      <Link href="/central/inbox" className="central-launch-card primary"><Inbox size={24}/><span><strong>Atendimento</strong><small>Fila única com busca, filtros, status e contexto do cliente.</small></span></Link>
+      <Link href="/central/busca" className="central-launch-card primary"><Search size={24}/><span><strong>Busca Global</strong><small>Encontre clientes, produtos, parceiros, tarefas e mídias em uma única pesquisa.</small></span></Link>
+      <Link href="/central/alertas" className="central-launch-card"><Bell size={24}/><span><strong>Alertas</strong><small>Veja o que exige atenção agora em toda a Company.</small></span></Link>
+      <Link href="/central/inbox" className="central-launch-card"><Inbox size={24}/><span><strong>Atendimento</strong><small>Fila única com busca, filtros, status e contexto do cliente.</small></span></Link>
       <Link href="/central/clientes" className="central-launch-card"><UsersRound size={24}/><span><strong>Clientes</strong><small>Cadastre manualmente e una identidades sem apagar as origens.</small></span></Link>
       <Link href="/central/agenda" className="central-launch-card"><CalendarDays size={24}/><span><strong>Agenda</strong><small>Compromissos e tarefas de todas as operações.</small></span></Link>
       <Link href="/central/pendencias" className="central-launch-card"><ListTodo size={24}/><span><strong>Pendências</strong><small>Fila única do que ainda precisa ser resolvido.</small></span></Link>

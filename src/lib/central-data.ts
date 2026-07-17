@@ -151,6 +151,45 @@ export type CentralGovernanceSnapshot = {
   integrations: CentralIntegrationHealth[];
 };
 
+export type CentralFeatureFlag = {
+  key: string;
+  enabled: boolean;
+  description: string | null;
+  updated_at: string | null;
+  updated_by: string | null;
+};
+
+export type CentralGovernanceSnapshotV2 = CentralGovernanceSnapshot & {
+  feature_flags: CentralFeatureFlag[];
+  users: { total: number; active: number; admins: number; operators: number; sales: number; partners: number; marketing_access: number };
+  partner_portal: { eligible: number; active_portals: number; without_portal: number };
+};
+
+export type CentralSearchResult = {
+  result_type: string;
+  entity_id: string;
+  title: string;
+  subtitle: string | null;
+  href: string;
+  operation_scope: string;
+  score: number;
+};
+
+export type CentralAlertItem = {
+  key: string;
+  severity: "critical" | "attention" | "info" | string;
+  category: string;
+  title: string;
+  description: string;
+  count: number;
+  href: string;
+};
+
+export type CentralAlertsSnapshot = {
+  summary: { total: number; critical: number; attention: number; info: number };
+  items: CentralAlertItem[];
+};
+
 export type CentralIntegrationReadiness = {
   meta: {
     webhook_url: string;
@@ -375,6 +414,37 @@ export type InventoryWorkspaceAttention = {
   details: Record<string, unknown>;
 };
 
+export type InventoryReconciliationItem = {
+  attention_type: "product" | "location" | string;
+  entity_id: string;
+  title: string;
+  issue_code: string;
+  details: Record<string, unknown>;
+  review_status: "open" | "reviewing" | "resolved" | string;
+  review_notes: string | null;
+  review_updated_at: string | null;
+  resolved_at: string | null;
+  resolved_by: string | null;
+};
+
+export type InventoryReconciliationHistory = {
+  id: string;
+  attention_type: string;
+  entity_id: string;
+  issue_code: string;
+  review_status: string;
+  notes: string | null;
+  resolved_at: string | null;
+  updated_at: string;
+  resolved_by_name: string | null;
+};
+
+export type InventoryReconciliationSnapshot = {
+  summary: { open: number; reviewing: number; resolved_current: number; total_current: number };
+  items: InventoryReconciliationItem[];
+  history: InventoryReconciliationHistory[];
+};
+
 export type InventoryWorkspaceSnapshot = {
   summary: {
     active_products: number;
@@ -473,6 +543,32 @@ export async function getCentralGovernanceSnapshot(limit = 100): Promise<Central
     audit: Array.isArray(auditResult.data) ? auditResult.data as CentralGovernanceAuditEvent[] : [],
     integrations: Array.isArray(integrationResult.data) ? integrationResult.data as CentralIntegrationHealth[] : [],
   };
+}
+
+export async function getCentralGovernanceSnapshotV2(limit = 150): Promise<CentralGovernanceSnapshotV2> {
+  const fallback: CentralGovernanceSnapshotV2 = { audit: [], integrations: [], feature_flags: [], users: { total: 0, active: 0, admins: 0, operators: 0, sales: 0, partners: 0, marketing_access: 0 }, partner_portal: { eligible: 0, active_portals: 0, without_portal: 0 } };
+  if (!isSupabaseConfigured) return fallback;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("central_governance_snapshot_v2", { p_limit: limit });
+  if (error) throw error;
+  return asObject<CentralGovernanceSnapshotV2>(data, fallback);
+}
+
+export async function getCentralGlobalSearch(query: string, limit = 80): Promise<CentralSearchResult[]> {
+  if (!isSupabaseConfigured || query.trim().length < 2) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("central_global_search", { p_query: query.trim(), p_limit: limit });
+  if (error) throw error;
+  return (data ?? []) as CentralSearchResult[];
+}
+
+export async function getCentralAlertsSnapshot(): Promise<CentralAlertsSnapshot> {
+  const fallback: CentralAlertsSnapshot = { summary: { total: 0, critical: 0, attention: 0, info: 0 }, items: [] };
+  if (!isSupabaseConfigured) return fallback;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("central_alerts_snapshot");
+  if (error) throw error;
+  return asObject<CentralAlertsSnapshot>(data, fallback);
 }
 
 export async function getCentralMediaAssets(
@@ -612,6 +708,15 @@ export async function getInventoryWorkspaceSnapshot(): Promise<InventoryWorkspac
   const { data, error } = await supabase.rpc("inventory_workspace_snapshot");
   if (error) throw error;
   return asObject<InventoryWorkspaceSnapshot>(data, { summary: null, locations: [], attention: [] });
+}
+
+export async function getInventoryReconciliationSnapshot(): Promise<InventoryReconciliationSnapshot> {
+  const fallback: InventoryReconciliationSnapshot = { summary: { open: 0, reviewing: 0, resolved_current: 0, total_current: 0 }, items: [], history: [] };
+  if (!isSupabaseConfigured) return fallback;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("inventory_reconciliation_snapshot");
+  if (error) throw error;
+  return asObject<InventoryReconciliationSnapshot>(data, fallback);
 }
 
 export async function getCentralContacts(limit = 200): Promise<CentralContact[]> {

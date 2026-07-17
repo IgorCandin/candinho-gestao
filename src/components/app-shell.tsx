@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Archive, ArrowLeft, BarChart3, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
+  Archive, ArrowLeft, BarChart3, Bell, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
   Handshake, HeartPulse, History, Home, Images, Inbox, Link2, ListTodo, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
-  Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck,
+  Search, Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 
@@ -56,6 +56,8 @@ const bankNav = [
 
 const centralNav = [
   { href: "/central", label: "Visão Geral", icon: HeartPulse },
+  { href: "/central/busca", label: "Busca Global", icon: Search },
+  { href: "/central/alertas", label: "Alertas", icon: Bell },
   { href: "/central/inbox", label: "Atendimento", icon: Inbox },
   { href: "/central/clientes", label: "Clientes", icon: UsersRound },
   { href: "/central/agenda", label: "Agenda", icon: CalendarDays },
@@ -101,10 +103,10 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const nav = operation === "hub" ? hubNav : isCentral ? centralVisibleNav : isPartner ? partnerNav : isBank ? bankNav : isMarketing ? marketingNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
 
   const mobileShortcuts = isSettings ? [] : isCentral ? [
-    { href: "/central/inbox", label: "Inbox", icon: Inbox, primary: true },
+    { href: "/central/busca", label: "Buscar", icon: Search, primary: true },
+    { href: "/central/alertas", label: "Alertas", icon: Bell, primary: false },
+    { href: "/central/inbox", label: "Inbox", icon: Inbox, primary: false },
     { href: "/central/pendencias", label: "Pendências", icon: ListTodo, primary: false },
-    { href: "/central/midia", label: "Mídia", icon: Images, primary: false },
-    { href: "/central/nexus", label: "Nexus", icon: Bot, primary: false },
   ] : isMarketing ? [
     { href: "/marketing", label: "Marketing", icon: Megaphone, primary: true },
     { href: "/central/midia?scope=marketing", label: "Mídia", icon: Images, primary: false },

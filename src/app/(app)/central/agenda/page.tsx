@@ -24,7 +24,7 @@ export default async function CentralAgendaPage({ searchParams }: { searchParams
       <StatCard href="/central/agenda?status=completed" label="Concluídas no mês" value={String(agenda.summary.completed_month_count)} note="tarefas finalizadas" icon={CheckCircle2}/>
     </section>
     <article className="panel central-task-filter-panel"><form className="panel-body central-task-filter-form" method="get">
-      <label><span>Operação</span><select className="select" name="scope" defaultValue={scope ?? ""}><option value="">Todas</option>{allowedScopes.map((item) => <option value={item} key={item}>{item === "company" ? "Company" : item === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select></label>
+      <label><span>Operação</span><select className="select" name="scope" defaultValue={scope ?? ""}><option value="">Todas</option>{allowedScopes.map((item) => <option value={item} key={item}>{item === "company" ? "Company" : item === "supplements" ? "Suplementos" : item === "fitness" ? "Fitness" : "Marketing"}</option>)}</select></label>
       <label><span>Status</span><select className="select" name="status" defaultValue={status ?? ""}><option value="">Todos</option><option value="planned">Pendentes</option><option value="completed">Concluídas</option><option value="cancelled">Canceladas</option></select></label>
       <button className="button ghost" type="submit"><ListChecks size={15}/>Filtrar</button>
     </form></article>

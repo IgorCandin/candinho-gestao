@@ -25,7 +25,7 @@ export default async function CentralPendingPage({ searchParams }: { searchParam
       <StatCard href="/central/agenda?status=completed" label="Concluídas no mês" value={String(agenda.summary.completed_month_count)} note="ações resolvidas" icon={CircleCheckBig}/>
     </section>
     <article className="panel central-task-filter-panel"><form className="panel-body central-task-filter-form" method="get">
-      <label><span>Operação</span><select className="select" name="scope" defaultValue={scope ?? ""}><option value="">Todas</option>{allowedScopes.map((item) => <option value={item} key={item}>{item === "company" ? "Company" : item === "supplements" ? "Suplementos" : "Fitness"}</option>)}</select></label>
+      <label><span>Operação</span><select className="select" name="scope" defaultValue={scope ?? ""}><option value="">Todas</option>{allowedScopes.map((item) => <option value={item} key={item}>{item === "company" ? "Company" : item === "supplements" ? "Suplementos" : item === "fitness" ? "Fitness" : "Marketing"}</option>)}</select></label>
       <label><span>Prioridade</span><select className="select" name="priority" defaultValue={priority ?? ""}><option value="">Todas</option><option value="urgent">Urgente</option><option value="attention">Atenção</option><option value="normal">Normal</option></select></label>
       <button className="button ghost" type="submit"><ListTodo size={15}/>Filtrar</button>
     </form></article>
