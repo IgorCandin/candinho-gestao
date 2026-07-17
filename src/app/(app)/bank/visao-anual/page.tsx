@@ -62,6 +62,10 @@ export default async function BankAnnualPage() {
               </div>
               <div className="bank-annual-lines">
                 <div><span>Entradas previstas</span><strong>{formatCurrency(month.totalExpectedIncome)}</strong></div>
+                <div><span>Contas a receber Bank</span><strong>{formatCurrency(month.receivables)}</strong></div>
+                <div><span>Rendas recorrentes</span><strong>{formatCurrency(month.recurringIncomeEstimate)}</strong></div>
+                <div><span>À receber das operações</span><strong>{formatCurrency(month.operationReceivables)}</strong></div>
+                <div><span>Projeção Suplementos · 70%</span><strong>{formatCurrency(month.supplementsProfitProjection)}</strong></div>
                 <div><span>Faturas informadas</span><strong>{formatCurrency(month.cardInvoices)}</strong></div>
                 <div><span>Mensalidades em cartão estimadas</span><strong>{formatCurrency(month.cardSubscriptionEstimate)}</strong></div>
                 <div><span>Cobranças</span><strong>{formatCurrency(month.directCharges)}</strong></div>

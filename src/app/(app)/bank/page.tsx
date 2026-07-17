@@ -30,6 +30,7 @@ export default async function BankDashboardPage() {
   const currentProjection = data.annualProjection[0];
   const currentCommitments = currentProjection?.totalCommitments ?? (data.summary.dueThisMonth + data.summary.invoicesThisMonth);
   const currentExpectedIncome = currentProjection?.totalExpectedIncome ?? data.summary.receivableThisMonth;
+  const operationReceivables = data.operationReceivablesSummary;
   const projectedAvailable = data.summary.totalBalance + currentExpectedIncome - currentCommitments;
   const differenceLabel = projectedAvailable < 0 ? "Falta para cobrir" : "Saldo após compromissos";
   const visibleProjection = data.annualProjection.slice(0, 6);
@@ -70,8 +71,13 @@ export default async function BankDashboardPage() {
         <article className="stat-card">
           <div className="stat-head"><span>A receber</span><span className="stat-icon"><TrendingUp size={17} /></span></div>
           <div className="stat-value">{formatCurrency(currentExpectedIncome)}</div>
-          <div className="stat-note">Entradas e recebimentos previstos no mês atual.</div>
+          <div className="stat-note">Entradas recorrentes, recebimentos e operações previstos no mês atual.</div>
         </article>
+        <Link className="stat-card stat-card-link" href="/bank/operacoes">
+          <div className="stat-head"><span>À receber nas operações</span><span className="stat-icon"><CircleDollarSign size={17} /></span></div>
+          <div className="stat-value">{formatCurrency(operationReceivables.total)}</div>
+          <div className="stat-note">Suplementos {formatCurrency(operationReceivables.supplementsTotal)} · Fitness {formatCurrency(operationReceivables.fitnessTotal)}. Clique para detalhar.</div>
+        </Link>
         <article className="stat-card">
           <div className="stat-head"><span>A pagar</span><span className="stat-icon"><ReceiptText size={17} /></span></div>
           <div className="stat-value">{formatCurrency(currentCommitments)}</div>

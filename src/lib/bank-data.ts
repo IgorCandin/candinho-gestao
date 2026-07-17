@@ -58,8 +58,43 @@ export type BankAnnualProjection = {
   totalCommitments: number;
   receivables: number;
   recurringIncomeEstimate: number;
+  operationReceivables: number;
+  supplementsProfitProjection: number;
   totalExpectedIncome: number;
   projectedResult: number;
+};
+
+export type BankOperationReceivable = {
+  operation: "supplements" | "fitness";
+  operationLabel: string;
+  saleId: string;
+  customerName: string;
+  productSummary: string;
+  amount: number;
+  profit: number;
+  dueDate: string;
+  quotedOn: string;
+  paymentStatus: string;
+  deliveryStatus: string;
+  href: string;
+};
+
+export type BankOperationReceivableSummary = {
+  total: number;
+  totalCount: number;
+  supplementsTotal: number;
+  supplementsCount: number;
+  fitnessTotal: number;
+  fitnessCount: number;
+};
+
+export type BankSupplementsProfitProjection = {
+  periodStart: string | null;
+  periodEnd: string | null;
+  averageMonthlyProfit: number;
+  projectionFactor: number;
+  projectedMonthlyReceivable: number;
+  monthlyHistory: Array<{ month: string; profit: number }>;
 };
 
 export type BankDashboardData = {
@@ -68,6 +103,9 @@ export type BankDashboardData = {
   upcomingReceivables: BankReceivablePreview[];
   accounts: BankAccountBalance[];
   annualProjection: BankAnnualProjection[];
+  operationReceivables: BankOperationReceivable[];
+  operationReceivablesSummary: BankOperationReceivableSummary;
+  supplementsProfitProjection: BankSupplementsProfitProjection;
 };
 
 const emptySummary: BankDashboardSummary = {
@@ -93,11 +131,14 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
       upcomingReceivables: [],
       accounts: [],
       annualProjection: [],
+      operationReceivables: [],
+      operationReceivablesSummary: { total: 0, totalCount: 0, supplementsTotal: 0, supplementsCount: 0, fitnessTotal: 0, fitnessCount: 0 },
+      supplementsProfitProjection: { periodStart: null, periodEnd: null, averageMonthlyProfit: 0, projectionFactor: 0.7, projectedMonthlyReceivable: 0, monthlyHistory: [] },
     };
   }
 
   const supabase = await createClient();
-  const [summaryResult, chargesResult, receivablesResult, accountsResult, projectionResult] = await Promise.all([
+  const [summaryResult, chargesResult, receivablesResult, accountsResult, projectionResult, operationReceivablesResult, supplementsProjectionResult] = await Promise.all([
     supabase.from("bank_dashboard_summary").select("*").single(),
     supabase
       .from("bank_charges_overview")
@@ -118,6 +159,8 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
       .order("display_order", { ascending: true })
       .order("name", { ascending: true }),
     supabase.rpc("bank_get_annual_projection"),
+    supabase.rpc("bank_get_operation_receivables"),
+    supabase.rpc("bank_get_supplements_profit_projection"),
   ]);
 
   if (summaryResult.error) throw summaryResult.error;
@@ -125,6 +168,8 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
   if (receivablesResult.error) throw receivablesResult.error;
   if (accountsResult.error) throw accountsResult.error;
   if (projectionResult.error) throw projectionResult.error;
+  if (operationReceivablesResult.error) throw operationReceivablesResult.error;
+  if (supplementsProjectionResult.error) throw supplementsProjectionResult.error;
 
   const summaryRow = (summaryResult.data ?? {}) as Record<string, unknown>;
   const summary: BankDashboardSummary = {
@@ -181,11 +226,80 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     totalCommitments: number(row.total_commitments),
     receivables: number(row.receivables),
     recurringIncomeEstimate: number(row.recurring_income_estimate),
+    operationReceivables: number(row.operation_receivables),
+    supplementsProfitProjection: number(row.supplements_profit_projection),
     totalExpectedIncome: number(row.total_expected_income),
     projectedResult: number(row.projected_result),
   }));
 
-  return { summary, upcomingCharges, upcomingReceivables, accounts, annualProjection };
+  const operationReceivables: BankOperationReceivable[] = (operationReceivablesResult.data ?? []).map((row: Record<string, unknown>) => ({
+    operation: String(row.operation ?? "supplements") === "fitness" ? "fitness" : "supplements",
+    operationLabel: String(row.operation_label ?? "Operação"),
+    saleId: String(row.sale_id ?? ""),
+    customerName: String(row.customer_name ?? "Cliente"),
+    productSummary: String(row.product_summary ?? "Venda sem itens"),
+    amount: number(row.amount),
+    profit: number(row.profit),
+    dueDate: String(row.due_date ?? ""),
+    quotedOn: String(row.quoted_on ?? ""),
+    paymentStatus: String(row.payment_status ?? "receivable"),
+    deliveryStatus: String(row.delivery_status ?? ""),
+    href: String(row.href ?? "#"),
+  }));
+
+  const operationReceivablesSummary: BankOperationReceivableSummary = operationReceivables.reduce(
+    (acc, item) => {
+      acc.total += item.amount;
+      acc.totalCount += 1;
+      if (item.operation === "fitness") {
+        acc.fitnessTotal += item.amount;
+        acc.fitnessCount += 1;
+      } else {
+        acc.supplementsTotal += item.amount;
+        acc.supplementsCount += 1;
+      }
+      return acc;
+    },
+    { total: 0, totalCount: 0, supplementsTotal: 0, supplementsCount: 0, fitnessTotal: 0, fitnessCount: 0 },
+  );
+
+  const supplementsProjectionRow = ((supplementsProjectionResult.data ?? [])[0] ?? {}) as Record<string, unknown>;
+  const rawHistory = Array.isArray(supplementsProjectionRow.monthly_history) ? supplementsProjectionRow.monthly_history : [];
+  const supplementsProfitProjection: BankSupplementsProfitProjection = {
+    periodStart: nullableText(supplementsProjectionRow.period_start),
+    periodEnd: nullableText(supplementsProjectionRow.period_end),
+    averageMonthlyProfit: number(supplementsProjectionRow.average_monthly_profit),
+    projectionFactor: number(supplementsProjectionRow.projection_factor),
+    projectedMonthlyReceivable: number(supplementsProjectionRow.projected_monthly_receivable),
+    monthlyHistory: rawHistory.map((item) => {
+      const row = item as Record<string, unknown>;
+      return { month: String(row.month ?? ""), profit: number(row.profit) };
+    }),
+  };
+
+  return {
+    summary,
+    upcomingCharges,
+    upcomingReceivables,
+    accounts,
+    annualProjection,
+    operationReceivables,
+    operationReceivablesSummary,
+    supplementsProfitProjection,
+  };
+}
+
+export async function getBankOperationReceivables(): Promise<{
+  items: BankOperationReceivable[];
+  summary: BankOperationReceivableSummary;
+  supplementsProjection: BankSupplementsProfitProjection;
+}> {
+  const data = await getBankDashboardData();
+  return {
+    items: data.operationReceivables,
+    summary: data.operationReceivablesSummary,
+    supplementsProjection: data.supplementsProfitProjection,
+  };
 }
 
 export async function getBankCharges(): Promise<Record<string, unknown>[]> {

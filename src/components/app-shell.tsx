@@ -52,6 +52,7 @@ const fitnessNav = [
 const bankNav = [
   { href: "/bank", label: "Visão geral", icon: ChartNoAxesCombined },
   { href: "/bank/entradas", label: "Entradas e Receber", icon: CircleDollarSign },
+  { href: "/bank/operacoes", label: "À Receber Operações", icon: ShoppingBag },
   { href: "/bank/cobrancas", label: "Cobranças", icon: CircleDollarSign },
   { href: "/bank/faturas", label: "Faturas", icon: History },
   { href: "/bank/emprestimos", label: "Empréstimos e Notinhas", icon: Handshake },

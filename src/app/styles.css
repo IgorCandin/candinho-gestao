@@ -1975,3 +1975,39 @@ h1{font-size:clamp(27px,3vw,36px)}
 .combo-image-preview img{width:100%;height:100%;object-fit:contain;background:#fff}
 .combo-image-copy{display:grid;gap:8px}.combo-image-copy>strong{font-size:12px}.combo-image-copy>span{color:var(--muted);font-size:10px;line-height:1.5}.combo-image-url-fallback{padding:10px 0}.combo-image-url-fallback summary{cursor:pointer;color:var(--muted);font-size:10px;margin-bottom:9px}.combo-image-url-fallback[open] summary{color:var(--gold)}
 @media(max-width:620px){.combo-image-editor{grid-template-columns:1fr}.combo-image-preview{width:100%;max-width:240px;margin:0 auto}.combo-image-copy .product-image-actions{display:grid;grid-template-columns:1fr}.combo-image-copy .button{width:100%}}
+
+/* Bank · valores a receber integrados das operações */
+.bank-operation-projection-card{border-color:rgba(217,164,65,.32);background:linear-gradient(145deg,rgba(217,164,65,.07),rgba(16,20,28,.98))}
+.bank-operation-projection-panel{margin-top:18px}
+.bank-operation-projection-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.bank-operation-projection-summary>div{padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:rgba(255,255,255,.018)}
+.bank-operation-projection-summary span{display:block;color:var(--muted);font-size:10px}
+.bank-operation-projection-summary strong{display:block;margin-top:6px;font-size:13px}
+.bank-operation-history{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}
+.bank-operation-history>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid rgba(217,164,65,.18);border-radius:12px;background:var(--gold-soft)}
+.bank-operation-history span{color:var(--muted);font-size:10px;text-transform:capitalize}
+.bank-operation-history strong{font-size:12px;color:var(--gold)}
+.bank-operation-receivables-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:18px;align-items:start}
+.bank-operation-receivable-list{display:grid}
+.bank-operation-receivable-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:14px;padding:14px 0;border-top:1px solid var(--line);color:inherit;text-decoration:none;transition:background .16s ease,border-color .16s ease}
+.bank-operation-receivable-row:first-child{border-top:0;padding-top:2px}
+.bank-operation-receivable-row:hover{background:rgba(217,164,65,.035)}
+.bank-operation-receivable-row>svg{color:var(--gold)}
+.bank-operation-receivable-main{min-width:0;display:grid;gap:4px}
+.bank-operation-receivable-main strong{font-size:12px}
+.bank-operation-receivable-main span{overflow:hidden;text-overflow:ellipsis;color:#c7ced9;font-size:10px;line-height:1.45}
+.bank-operation-receivable-main small{color:var(--muted);font-size:9px}
+.bank-operation-receivable-value{display:grid;gap:4px;text-align:right;white-space:nowrap}
+.bank-operation-receivable-value strong{font-size:13px;color:var(--gold)}
+.bank-operation-receivable-value span{color:var(--muted);font-size:9px}
+
+@media (max-width:900px){
+  .bank-operation-projection-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .bank-operation-receivables-grid{grid-template-columns:1fr}
+}
+@media (max-width:620px){
+  .bank-operation-projection-summary,.bank-operation-history{grid-template-columns:1fr}
+  .bank-operation-receivable-row{grid-template-columns:minmax(0,1fr) auto;gap:10px}
+  .bank-operation-receivable-row>svg{display:none}
+  .bank-operation-receivable-main span{white-space:normal}
+}
