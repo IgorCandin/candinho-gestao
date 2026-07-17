@@ -54,7 +54,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
     "/dashboard", "/suplementos", "/fitness", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
-    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs", "/bank", "/central", "/parceiro",
+    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs", "/bank", "/central", "/marketing", "/parceiro",
   ];
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -80,11 +80,12 @@ export async function updateSession(request: NextRequest) {
       can_access_supplements: email === MANAGER_EMAIL,
       can_access_fitness: email === MANAGER_EMAIL || email === FITNESS_SALES_EMAIL,
       can_access_bank: email === MANAGER_EMAIL,
+      can_access_marketing: email === MANAGER_EMAIL,
       can_manage_users: email === MANAGER_EMAIL,
       role: email === MANAGER_EMAIL ? "admin" : "operator",
     };
 
-    const { data } = await supabase.rpc("get_my_access");
+    const { data } = await supabase.rpc("get_my_access_v2");
     const row = Array.isArray(data) ? data[0] : data;
     if (row) {
       access = {
@@ -92,6 +93,7 @@ export async function updateSession(request: NextRequest) {
         can_access_supplements: Boolean(row.can_access_supplements),
         can_access_fitness: Boolean(row.can_access_fitness),
         can_access_bank: Boolean(row.can_access_bank),
+        can_access_marketing: Boolean(row.can_access_marketing),
         can_manage_users: Boolean(row.can_manage_users),
         role: typeof row.role === "string" ? row.role : "operator",
       };
@@ -106,6 +108,7 @@ export async function updateSession(request: NextRequest) {
     const isBankRoute = pathname.startsWith("/bank");
     const isManagerRoute = pathname.startsWith("/configuracoes");
     const isCentralRoute = pathname.startsWith("/central");
+    const isMarketingRoute = pathname.startsWith("/marketing");
     const isPartnerPortalRoute = pathname.startsWith("/parceiro");
 
     if (!access.active && pathname !== "/dashboard") {
@@ -137,7 +140,14 @@ export async function updateSession(request: NextRequest) {
     }
 
 
-    if (isCentralRoute && !(access.role === "admin" || access.can_access_supplements || access.can_access_fitness)) {
+    if (isMarketingRoute && !access.can_access_marketing) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : access.can_access_fitness ? "/fitness" : access.can_access_bank ? "/bank" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isCentralRoute && !(access.role === "admin" || access.can_access_supplements || access.can_access_fitness || access.can_access_marketing)) {
       const redirectUrl = request.nextUrl.clone();
       redirectUrl.pathname = access.role === "partner" ? "/parceiro" : "/dashboard";
       redirectUrl.search = "";

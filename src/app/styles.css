@@ -2695,3 +2695,125 @@ h1{font-size:clamp(27px,3vw,36px)}
 @media(max-width:620px){.central-search-result-row,.central-alert-row,.reconciliation-history-row{grid-template-columns:auto minmax(0,1fr)}.central-search-result-row>b,.central-alert-row>b,.reconciliation-history-row time{grid-column:2;text-align:left}.reconciliation-row-head{grid-template-columns:auto minmax(0,1fr)}.reconciliation-row-head>b{grid-column:2;width:max-content}}
 .central-home-search{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;margin:-2px 0 18px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.014)}.central-home-search>svg{color:var(--muted)}.central-home-search input{border:0;background:transparent;color:var(--text);outline:none;font:inherit;min-width:0}.central-home-search input::placeholder{color:var(--muted)}
 @media(max-width:620px){.central-home-search{grid-template-columns:auto minmax(0,1fr)}.central-home-search .button{grid-column:1/-1;justify-content:center}}
+
+/* Pacote Consolidado V7 — identidade, responsividade, investimento e Radar */
+.login-operation-segment{display:contents}
+
+/* Sidebar: mantém a operação completa visível e permite rolagem em telas baixas/zoom 100%. */
+.sidebar{height:100dvh;max-height:100dvh;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-gutter:stable}
+.sidebar-company-logo{width:100%;height:auto;max-height:92px;object-fit:contain}
+.sidebar-footer{flex:0 0 auto}
+.main,.content{min-width:0;max-width:100%;overflow-x:clip}
+
+/* Home Company sem cabeçalho visual duplicado e com ordem fixa centralizada. */
+.company-home-clean{gap:22px;padding-top:clamp(42px,7vh,84px)}
+.company-home-heading-compact{margin-bottom:4px}
+.company-home-heading-compact h1{font-size:clamp(30px,3.5vw,46px)}
+.company-home-operation-groups{width:min(1120px,100%);display:grid;gap:14px}
+.company-home-operation-groups .company-home-operations{width:100%;display:flex;align-items:stretch;justify-content:center;gap:14px}
+.company-home-operation-groups .company-operation-card{width:min(100%,354px);flex:0 1 354px}
+.company-home-operations-secondary .company-operation-card{flex-basis:354px}
+.company-home-admin-row{grid-template-columns:repeat(3,minmax(0,1fr))}
+
+/* Tela inicial das operações: o logotipo completo já está no menu lateral. */
+.operation-home-no-heading{margin-top:0}
+.operation-home-toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:14px}
+.operation-home-toolbar>span{color:var(--muted);font-size:11px;font-weight:800;letter-spacing:.04em}
+.central-home-search-first{margin-top:0}
+.marketing-foundation-hero-clean .marketing-foundation-brand{grid-template-columns:1fr}
+.marketing-foundation-hero-clean .marketing-foundation-copy{padding:2px 4px}
+
+/* Gallery: zoom significa tamanho do card, não quantidade fixa de colunas. */
+.product-gallery-grid{--gallery-card-min:210px;grid-template-columns:repeat(auto-fit,minmax(min(100%,var(--gallery-card-min)),1fr))!important;align-items:stretch}
+.product-gallery-grid.zoom-1{--gallery-card-min:132px}
+.product-gallery-grid.zoom-2{--gallery-card-min:168px}
+.product-gallery-grid.zoom-3{--gallery-card-min:210px}
+.product-gallery-grid.zoom-4{--gallery-card-min:258px}
+.product-gallery-grid.zoom-5{--gallery-card-min:320px}
+.product-gallery-grid.zoom-1 .product-gallery-card{grid-template-rows:108px minmax(0,1fr);min-height:220px}
+.product-gallery-grid.zoom-2 .product-gallery-card{grid-template-rows:126px minmax(0,1fr);min-height:245px}
+.product-gallery-grid.zoom-3 .product-gallery-card{grid-template-rows:150px minmax(0,1fr);min-height:285px}
+.product-gallery-grid.zoom-4 .product-gallery-card{grid-template-rows:175px minmax(0,1fr);min-height:320px}
+.product-gallery-grid.zoom-5 .product-gallery-card{grid-template-rows:210px minmax(0,1fr);min-height:365px}
+.product-gallery-grid.zoom-1 .product-gallery-copy,.product-gallery-grid.zoom-2 .product-gallery-copy{padding:10px;gap:8px}
+.product-gallery-grid.zoom-1 .product-gallery-heading strong{font-size:10px}
+.product-gallery-grid.zoom-2 .product-gallery-heading strong{font-size:11px}
+.product-gallery-zoom{min-width:180px}
+.product-gallery-zoom input{min-width:90px;flex:1}
+
+/* Investimento operacional */
+.operation-investment-panel{margin:18px 0}
+.operation-investment-panel.compact{margin:14px 0}
+.operation-investment-head{align-items:center}
+.operation-investment-toggle{display:inline-flex;align-items:center;padding:3px;border:1px solid var(--line);border-radius:11px;background:rgba(255,255,255,.018)}
+.operation-investment-toggle button{min-height:34px;padding:0 12px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-size:10px;font-weight:850}
+.operation-investment-toggle button.active{background:var(--gold-soft);color:var(--gold)}
+.operation-investment-body{display:grid;gap:14px}
+.operation-investment-total{display:grid;gap:5px;padding:16px 18px;border:1px solid rgba(217,164,65,.26);border-radius:14px;background:linear-gradient(145deg,rgba(217,164,65,.08),rgba(255,255,255,.015))}
+.operation-investment-total span{color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.08em}
+.operation-investment-total strong{font-size:30px;letter-spacing:-.03em}
+.operation-investment-total small{color:var(--muted);font-size:9px}
+.operation-investment-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.operation-investment-grid.single{grid-template-columns:1fr}
+.operation-investment-card{display:grid;gap:11px;padding:16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.018)}
+.operation-investment-card-title{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.06em}
+.operation-investment-card.supplements .operation-investment-card-title svg{color:var(--gold)}
+.operation-investment-card.fitness .operation-investment-card-title svg{color:#ef4b9a}
+.operation-investment-card>strong{font-size:24px}
+.operation-investment-breakdown{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.operation-investment-breakdown>span{min-width:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:3px 6px;padding:9px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:8px}
+.operation-investment-breakdown svg{grid-row:1/3;color:var(--muted)}
+.operation-investment-breakdown b{color:var(--text);font-size:11px}
+.operation-investment-breakdown small{grid-column:2;color:var(--muted);font-size:8px}
+.operation-home-actions-five{grid-template-columns:repeat(5,minmax(0,1fr))}
+
+/* Radar de Oportunidades */
+.crm-stats-grid-five{grid-template-columns:repeat(5,minmax(0,1fr))}
+.opportunity-radar-panel{overflow:hidden}
+.opportunity-radar-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line)}
+.opportunity-radar-search{flex:1 1 320px;min-width:220px}
+.opportunity-radar-toolbar>.select{width:auto;min-width:150px}
+.opportunity-radar-table{min-width:1250px}
+.opportunity-radar-table td{vertical-align:top}
+.opportunity-radar-table td>small,.radar-source-label{display:block;margin-top:4px;color:var(--muted);font-size:9px;line-height:1.4}
+.radar-source-label{max-width:120px}
+.radar-care-alert{display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:3px 6px;border-radius:999px;background:rgba(240,168,79,.09);color:#ffc177;font-size:8px;font-weight:800}
+.radar-action-text{display:block;max-width:260px;color:#d7dce5;font-size:10px;line-height:1.5}
+
+@media(max-width:1180px){
+  .operation-home-actions-five{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .crm-stats-grid-five{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:900px){
+  .company-home-operation-groups .company-home-operations{flex-wrap:wrap}
+  .company-home-operation-groups .company-operation-card{flex:1 1 min(100%,320px)}
+  .company-home-admin-row{grid-template-columns:1fr}
+  .operation-investment-grid{grid-template-columns:1fr}
+}
+@media(max-width:820px){
+  .sidebar{overflow:visible}
+  .company-home-clean{padding-top:62px}
+  .company-home-operation-groups .company-home-operations{display:grid;grid-template-columns:1fr}
+  .company-home-operation-groups .company-operation-card{width:100%;max-width:none}
+  .product-gallery-controls{align-items:center;flex-wrap:wrap}
+  .product-gallery-zoom{min-width:0;width:100%}
+  .product-gallery-grid.zoom-1{--gallery-card-min:138px}
+  .product-gallery-grid.zoom-2{--gallery-card-min:158px}
+  .product-gallery-grid.zoom-3{--gallery-card-min:185px}
+  .product-gallery-grid.zoom-4{--gallery-card-min:235px}
+  .product-gallery-grid.zoom-5{--gallery-card-min:100%}
+  .operation-investment-head{align-items:flex-start;flex-direction:column}
+  .operation-investment-toggle{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .operation-investment-breakdown{grid-template-columns:1fr}
+  .operation-home-toolbar{align-items:stretch;flex-direction:column}
+  .bank-home-toolbar .bank-header-actions{width:100%}
+  .opportunity-radar-toolbar{align-items:stretch;flex-direction:column}
+  .opportunity-radar-toolbar>.select,.opportunity-radar-search{width:100%;min-width:0}
+}
+@media(max-width:620px){
+  .operation-home-actions-five,.crm-stats-grid-five{grid-template-columns:1fr}
+  .product-gallery-grid{padding:10px;gap:10px}
+  .product-gallery-grid.zoom-1,.product-gallery-grid.zoom-2{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .product-gallery-grid.zoom-3,.product-gallery-grid.zoom-4,.product-gallery-grid.zoom-5{grid-template-columns:1fr!important}
+  .product-gallery-grid.zoom-1 .product-gallery-card,.product-gallery-grid.zoom-2 .product-gallery-card{grid-template-rows:118px minmax(0,1fr);min-height:235px}
+}

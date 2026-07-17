@@ -1,8 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CalendarDays, Images, Megaphone, MessagesSquare, Sparkles } from "lucide-react";
-import { PageHeader } from "@/components/page-header";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export default async function MarketingPage() {
@@ -10,15 +8,8 @@ export default async function MarketingPage() {
   if (!(access.role === "admin" || access.canAccessMarketing)) redirect("/dashboard");
 
   return <>
-    <PageHeader
-      eyebrow="Candinho Company"
-      title="Candinho Marketing"
-      description="A operação já está criada dentro da Company. Os módulos de negócio ficam em espera até a definição oficial da estratégia e do fluxo de trabalho."
-    />
-
-    <section className="marketing-foundation-hero">
+    <section className="marketing-foundation-hero marketing-foundation-hero-clean">
       <article className="marketing-foundation-brand panel">
-        <div className="marketing-foundation-logo"><Image src="/candinho-marketing-logo.png" alt="Candinho Marketing" width={1244} height={184} priority /></div>
         <div className="marketing-foundation-copy">
           <span className="marketing-status-pill"><Sparkles size={14}/>Fundação ativa</span>
           <h2>Operação pronta para receber a próxima definição.</h2>

@@ -98,6 +98,38 @@ export type BankSupplementsProfitProjection = {
 };
 
 
+
+export type OperationInvestmentMetrics = {
+  monthlyReceivedCost: number;
+  monthlyReceivedUnits: number;
+  monthlyPendingOrderCost: number;
+  monthlyOrderedCost: number;
+  monthlyInvested: number;
+  stockCost: number;
+  openOrdersCost: number;
+  openOrdersUnits: number;
+  capitalAllocated: number;
+};
+
+export type OperationInvestmentSnapshot = {
+  referenceMonth: string | null;
+  supplements: OperationInvestmentMetrics;
+  fitness: OperationInvestmentMetrics;
+  company: { monthlyInvested: number; stockCost: number; openOrdersCost: number; capitalAllocated: number };
+};
+
+const emptyInvestmentMetrics: OperationInvestmentMetrics = {
+  monthlyReceivedCost: 0, monthlyReceivedUnits: 0, monthlyPendingOrderCost: 0, monthlyOrderedCost: 0, monthlyInvested: 0,
+  stockCost: 0, openOrdersCost: 0, openOrdersUnits: 0, capitalAllocated: 0,
+};
+
+export const emptyOperationInvestment: OperationInvestmentSnapshot = {
+  referenceMonth: null,
+  supplements: { ...emptyInvestmentMetrics },
+  fitness: { ...emptyInvestmentMetrics },
+  company: { monthlyInvested: 0, stockCost: 0, openOrdersCost: 0, capitalAllocated: 0 },
+};
+
 export type BankPatrimony = {
   totalCashBalance: number;
   companyCashBalance: number;
@@ -154,6 +186,7 @@ export type BankDashboardData = {
   operationReceivablesSummary: BankOperationReceivableSummary;
   supplementsProfitProjection: BankSupplementsProfitProjection;
   patrimony: BankPatrimony;
+  investment: OperationInvestmentSnapshot;
   reviewAlerts: BankReviewAlert[];
 };
 
@@ -184,12 +217,13 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
       operationReceivablesSummary: { total: 0, totalCount: 0, supplementsTotal: 0, supplementsCount: 0, fitnessTotal: 0, fitnessCount: 0 },
       supplementsProfitProjection: { periodStart: null, periodEnd: null, averageMonthlyProfit: 0, projectionFactor: 0.7, projectedMonthlyReceivable: 0, monthlyHistory: [] },
       patrimony: { totalCashBalance: 0, companyCashBalance: 0, supplementsStockCost: 0, supplementsStockSaleValue: 0, fitnessStockCost: 0, fitnessStockSaleValue: 0, totalInventoryCost: 0, bankReceivables: 0, operationReceivables: 0, totalReceivables: 0, companyDebtRemaining: 0, totalDebtRemaining: 0, operationalNetPosition: 0, totalNetPosition: 0 },
+      investment: emptyOperationInvestment,
       reviewAlerts: [],
     };
   }
 
   const supabase = await createClient();
-  const [summaryResult, chargesResult, receivablesResult, accountsResult, projectionResult, operationReceivablesResult, supplementsProjectionResult, patrimonyResult, subscriptionsResult, cardsResult, currentInvoicesResult] = await Promise.all([
+  const [summaryResult, chargesResult, receivablesResult, accountsResult, projectionResult, operationReceivablesResult, supplementsProjectionResult, patrimonyResult, investmentResult, subscriptionsResult, cardsResult, currentInvoicesResult] = await Promise.all([
     supabase.from("bank_dashboard_summary").select("*").single(),
     supabase
       .from("bank_charges_overview")
@@ -213,6 +247,7 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     supabase.rpc("bank_get_operation_receivables"),
     supabase.rpc("bank_get_supplements_profit_projection"),
     supabase.rpc("bank_get_company_patrimony"),
+    supabase.rpc("bank_operation_investment_snapshot"),
     supabase.from("bank_subscriptions").select("id,name,provider,amount,billing_day,origin,is_active").eq("is_active", true),
     supabase.from("bank_cards").select("id,name").eq("is_active", true),
     supabase.from("bank_card_invoice_overview").select("id,card_id,card_name,reference_month,amount,status,due_date").eq("reference_month", new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit" }).format(new Date()) + "-01"),
@@ -226,6 +261,7 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
   if (operationReceivablesResult.error) throw operationReceivablesResult.error;
   if (supplementsProjectionResult.error) throw supplementsProjectionResult.error;
   if (patrimonyResult.error) throw patrimonyResult.error;
+  if (investmentResult.error) throw investmentResult.error;
   if (subscriptionsResult.error) throw subscriptionsResult.error;
   if (cardsResult.error) throw cardsResult.error;
   if (currentInvoicesResult.error) throw currentInvoicesResult.error;
@@ -354,6 +390,35 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     totalNetPosition: number(patrimonyRow.total_net_position),
   };
 
+
+  const rawInvestment = (investmentResult.data ?? {}) as Record<string, unknown>;
+  const parseInvestmentMetrics = (value: unknown): OperationInvestmentMetrics => {
+    const row = (value ?? {}) as Record<string, unknown>;
+    return {
+      monthlyReceivedCost: number(row.monthly_received_cost),
+      monthlyReceivedUnits: number(row.monthly_received_units),
+      monthlyPendingOrderCost: number(row.monthly_pending_order_cost),
+      monthlyOrderedCost: number(row.monthly_ordered_cost),
+      monthlyInvested: number(row.monthly_invested),
+      stockCost: number(row.stock_cost),
+      openOrdersCost: number(row.open_orders_cost),
+      openOrdersUnits: number(row.open_orders_units),
+      capitalAllocated: number(row.capital_allocated),
+    };
+  };
+  const companyInvestmentRow = (rawInvestment.company ?? {}) as Record<string, unknown>;
+  const investment: OperationInvestmentSnapshot = {
+    referenceMonth: nullableText(rawInvestment.reference_month),
+    supplements: parseInvestmentMetrics(rawInvestment.supplements),
+    fitness: parseInvestmentMetrics(rawInvestment.fitness),
+    company: {
+      monthlyInvested: number(companyInvestmentRow.monthly_invested),
+      stockCost: number(companyInvestmentRow.stock_cost),
+      openOrdersCost: number(companyInvestmentRow.open_orders_cost),
+      capitalAllocated: number(companyInvestmentRow.capital_allocated),
+    },
+  };
+
   const reviewAlerts: BankReviewAlert[] = [];
   const today = new Date();
   const staleAccounts = accounts.filter((account) => {
@@ -398,7 +463,38 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     operationReceivablesSummary,
     supplementsProfitProjection,
     patrimony,
+    investment,
     reviewAlerts,
+  };
+}
+
+
+export async function getOperationInvestmentSnapshot(): Promise<OperationInvestmentSnapshot> {
+  if (!isSupabaseConfigured) return emptyOperationInvestment;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("bank_operation_investment_snapshot");
+  if (error) throw error;
+  const raw = (data ?? {}) as Record<string, unknown>;
+  const parse = (value: unknown): OperationInvestmentMetrics => {
+    const row = (value ?? {}) as Record<string, unknown>;
+    return {
+      monthlyReceivedCost: number(row.monthly_received_cost),
+      monthlyReceivedUnits: number(row.monthly_received_units),
+      monthlyPendingOrderCost: number(row.monthly_pending_order_cost),
+      monthlyOrderedCost: number(row.monthly_ordered_cost),
+      monthlyInvested: number(row.monthly_invested),
+      stockCost: number(row.stock_cost),
+      openOrdersCost: number(row.open_orders_cost),
+      openOrdersUnits: number(row.open_orders_units),
+      capitalAllocated: number(row.capital_allocated),
+    };
+  };
+  const company = (raw.company ?? {}) as Record<string, unknown>;
+  return {
+    referenceMonth: nullableText(raw.reference_month),
+    supplements: parse(raw.supplements),
+    fitness: parse(raw.fitness),
+    company: { monthlyInvested: number(company.monthly_invested), stockCost: number(company.stock_cost), openOrdersCost: number(company.open_orders_cost), capitalAllocated: number(company.capital_allocated) },
   };
 }
 

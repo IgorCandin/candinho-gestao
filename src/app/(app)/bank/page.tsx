@@ -13,6 +13,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { getBankDashboardData } from "@/lib/bank-data";
+import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
 import { formatCurrency, formatDateOnly, formatMonthYear } from "@/lib/format";
 
 function statusLabel(status: string) {
@@ -39,12 +40,8 @@ export default async function BankDashboardPage() {
 
   return (
     <section className="bank-dashboard">
-      <div className="page-header bank-page-header">
-        <div>
-          <div className="eyebrow">Candinho Bank</div>
-          <h1>Seu financeiro hoje</h1>
-          <p>Saldo real, compromissos, entradas previstas e projeção dos próximos meses em uma única visão.</p>
-        </div>
+      <div className="operation-home-toolbar bank-home-toolbar">
+        <span>Seu financeiro hoje</span>
         <div className="bank-header-actions">
           <Link className="button ghost" href="/bank/atualizar"><RefreshCcw size={16} />Atualização rápida</Link>
           <Link className="button gold" href="/bank/faturas?acao=atualizar"><CreditCard size={16} />Atualizar faturas</Link>
@@ -91,6 +88,8 @@ export default async function BankDashboardPage() {
           <div className="stat-note">Saldo atual + entradas previstas − compromissos do mês.</div>
         </article>
       </div>
+
+      <OperationInvestmentPanel data={data.investment} />
 
       <div className="bank-quick-actions">
         <Link href="/bank/atualizar" className="bank-quick-card">

@@ -1,15 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BarChart3, PackageOpen, PackageSearch, ShoppingBag, Warehouse } from "lucide-react";
-import { PageHeader } from "@/components/page-header";
 import { getCurrentUserAccess, getFitnessDashboard } from "@/lib/data";
 
 export default async function FitnessHomePage(){
   const [access,summary]=await Promise.all([getCurrentUserAccess(),getFitnessDashboard()]);
   if(access.role==="sales") redirect("/fitness/produtos");
   return <>
-    <PageHeader eyebrow="Candinho Fitness" title="Início" description="Uma entrada limpa para vender e consultar a operação. Indicadores completos ficam no Painel Gerencial."/>
-    <section className="operation-home-hero">
+    <section className="operation-home-hero operation-home-no-heading">
       <Link className="operation-home-primary fitness" href={access.canWriteFitness?"/fitness/vendas/nova":"/fitness/produtos"}><ShoppingBag size={24}/><div><span>Ação principal</span><strong>{access.canWriteFitness?"Nova venda":"Consultar produtos"}</strong><small>{access.canWriteFitness?"Registrar uma venda da Fitness":"Preço e disponibilidade"}</small></div></Link>
       <div className="operation-home-kpis">
         <Link href="/fitness/vendas"><span>Pendências</span><strong>{summary.pending_delivery+summary.pending_payment}</strong><small>{summary.pending_delivery} entregar · {summary.pending_payment} receber</small></Link>

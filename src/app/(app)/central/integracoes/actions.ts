@@ -23,7 +23,7 @@ export async function registerCentralIntegration(formData: FormData) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Sessão não encontrada.");
 
-  const { data: access, error: accessError } = await supabase.rpc("get_my_access");
+  const { data: access, error: accessError } = await supabase.rpc("get_my_access_v2");
   if (accessError) throw accessError;
   const row = Array.isArray(access) ? access[0] : access;
   if (!row || !(row.role === "admin" || row.can_manage_users)) {

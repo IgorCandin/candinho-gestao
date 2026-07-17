@@ -60,7 +60,7 @@ export function ProductCatalogTable({ products, categories, salesMode = false }:
   const [sortKey, setSortKey] = useState<SortKey>("commercial");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [viewMode, setViewMode] = useState<ViewMode>("deck");
-  const [galleryDensity, setGalleryDensity] = useState(3);
+  const [galleryZoom, setGalleryZoom] = useState(3);
   const [galleryDetails, setGalleryDetails] = useState(true);
 
   const filtered = useMemo(() => {
@@ -96,8 +96,8 @@ export function ProductCatalogTable({ products, categories, salesMode = false }:
           <button className={viewMode === "gallery" ? "active" : ""} type="button" onClick={() => setViewMode("gallery")}><LayoutGrid size={15} />Gallery</button>
         </div>
         {viewMode === "gallery" && <div className="product-gallery-controls">
-          <div className="product-gallery-zoom" title="Quantidade de produtos por linha">
-            <ZoomOut size={14}/><input aria-label="Zoom da galeria" type="range" min="1" max="5" step="1" value={galleryDensity} onChange={(event)=>setGalleryDensity(Number(event.target.value))}/><ZoomIn size={14}/>
+          <div className="product-gallery-zoom" title="Tamanho dos cards da galeria">
+            <ZoomOut size={14}/><input aria-label="Tamanho dos cards da galeria" type="range" min="1" max="5" step="1" value={galleryZoom} onChange={(event)=>setGalleryZoom(Number(event.target.value))}/><ZoomIn size={14}/>
           </div>
           <button className={galleryDetails ? "active" : ""} type="button" onClick={()=>setGalleryDetails((current)=>!current)}>{galleryDetails?<Eye size={14}/>:<EyeOff size={14}/>} {galleryDetails?"Completo":"Essencial"}</button>
         </div>}
@@ -114,7 +114,7 @@ export function ProductCatalogTable({ products, categories, salesMode = false }:
       {filtered.length === 0 ? (
         <div className="empty"><strong>Nenhum produto encontrado</strong>Altere os filtros ou a busca.</div>
       ) : viewMode === "gallery" ? (
-        <div className={`product-gallery-grid density-${galleryDensity} ${galleryDetails ? "show-details" : "essential"}`}>
+        <div className={`product-gallery-grid zoom-${galleryZoom} ${galleryDetails ? "show-details" : "essential"}`}>
           {filtered.map((product) => {
             const state = stockLabel(product);
             const border = stockBorder(product);

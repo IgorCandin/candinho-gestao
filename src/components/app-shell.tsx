@@ -7,9 +7,10 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Archive, ArrowLeft, BarChart3, Bell, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
   Handshake, HeartPulse, History, Home, Images, Inbox, Link2, ListTodo, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
-  Search, Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck,
+  Search, Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck, Radar,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
+import { BRAND_ASSETS } from "@/lib/brand-assets";
 
 const supplementNav = [
   { href: "/suplementos", label: "Início", icon: Home },
@@ -19,6 +20,7 @@ const supplementNav = [
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/estoque", label: "Estoque", icon: Boxes },
   { href: "/clientes", label: "CRM", icon: ContactRound },
+  { href: "/clientes/radar", label: "Radar", icon: Radar },
   { href: "/parceiros", label: "Parceiros", icon: Handshake },
   { href: "/movimentacoes", label: "Movimentações", icon: History },
 ];
@@ -106,7 +108,6 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
     { href: "/central/busca", label: "Buscar", icon: Search, primary: true },
     { href: "/central/alertas", label: "Alertas", icon: Bell, primary: false },
     { href: "/central/inbox", label: "Inbox", icon: Inbox, primary: false },
-    { href: "/central/pendencias", label: "Pendências", icon: ListTodo, primary: false },
   ] : isMarketing ? [
     { href: "/marketing", label: "Marketing", icon: Megaphone, primary: true },
     { href: "/central/midia?scope=marketing", label: "Mídia", icon: Images, primary: false },
@@ -133,7 +134,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
   const showSupplementActions = access.canWriteSupplements && isSupplements && !isSettings;
   const showFitnessActions = access.canWriteFitness && isFitness && !isSettings;
-  const brand = isBank ? { src: "/candinho-bank-logo.png", alt: "Candinho Bank", width: 664, height: 146 } : isMarketing ? { src: "/candinho-marketing-logo.png", alt: "Candinho Marketing", width: 1244, height: 184 } : isCentral ? { src: "/candinho-central-logo.png", alt: "Candinho Central", width: 1203, height: 190 } : isFitness ? { src: "/candinho-fitness-logo.png", alt: "Candinho Fitness", width: 1109, height: 190 } : isSupplements ? { src: "/candinho-suplementos-logo.png", alt: "Candinho Suplementos", width: 1475, height: 258 } : { src: "/candinho-company-logo.png", alt: "Candinho Company", width: 1356, height: 480 };
+  const brand = isBank ? BRAND_ASSETS.bank.complete : isMarketing ? BRAND_ASSETS.marketing.complete : isCentral ? BRAND_ASSETS.central.complete : isFitness ? BRAND_ASSETS.fitness.complete : isSupplements ? BRAND_ASSETS.supplements.complete : BRAND_ASSETS.company.complete;
 
   useEffect(() => { mobileMenuRef.current?.removeAttribute("open"); }, [pathname]);
   function closeMobileMenu() { mobileMenuRef.current?.removeAttribute("open"); }

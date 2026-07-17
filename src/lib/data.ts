@@ -901,6 +901,96 @@ export async function getCustomerCRMSummary(): Promise<CustomerCRMSummary> {
     total_customer_value: number(data.total_customer_value),
   };
 }
+export type CustomerOpportunityRadarRow = {
+  customer_id: string;
+  customer_name: string;
+  phone: string | null;
+  city: string | null;
+  reference: string | null;
+  purchase_count: number;
+  total_spent: number;
+  last_purchase_at: string | null;
+  days_since_last_purchase: number | null;
+  days_since_last_contact: number | null;
+  lead_count: number;
+  pending_followup_count: number;
+  next_followup_at: string | null;
+  last_product_name: string | null;
+  most_purchased_product: string | null;
+  estimated_duration_days: number | null;
+  expected_repurchase_on: string | null;
+  days_to_repurchase: number | null;
+  creatine_profile: string;
+  priority_source: string;
+  opportunity_score: number;
+  opportunity_priority: "Alta" | "Média" | "Baixa";
+  opportunity_label: string;
+  recommended_action: string;
+  care_alert: boolean;
+};
+
+export type CustomerOpportunityRadarSummary = {
+  possible_customers: number;
+  high_priority: number;
+  medium_priority: number;
+  likely_repurchase: number;
+  forgotten_leads: number;
+  appsheet_prioritized: number;
+};
+
+export async function getCustomerOpportunityRadar(): Promise<CustomerOpportunityRadarRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("customer_opportunity_radar_v3")
+    .select("customer_id,customer_name,phone,city,reference,purchase_count,total_spent,last_purchase_at,days_since_last_purchase,days_since_last_contact,lead_count,pending_followup_count,next_followup_at,last_product_name,most_purchased_product,estimated_duration_days,expected_repurchase_on,days_to_repurchase,creatine_profile,priority_source,opportunity_score,opportunity_priority,opportunity_label,recommended_action,care_alert")
+    .eq("is_priority_opportunity", true);
+  if (error) throw error;
+  const priorityRank: Record<string, number> = { Alta: 1, "Média": 2, Baixa: 3 };
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    customer_id: String(row.customer_id),
+    customer_name: text(row.customer_name, "Cliente sem nome"),
+    phone: typeof row.phone === "string" ? row.phone : null,
+    city: typeof row.city === "string" ? row.city : null,
+    reference: typeof row.reference === "string" ? row.reference : null,
+    purchase_count: number(row.purchase_count),
+    total_spent: number(row.total_spent),
+    last_purchase_at: typeof row.last_purchase_at === "string" ? row.last_purchase_at : null,
+    days_since_last_purchase: row.days_since_last_purchase == null ? null : number(row.days_since_last_purchase),
+    days_since_last_contact: row.days_since_last_contact == null ? null : number(row.days_since_last_contact),
+    lead_count: number(row.lead_count),
+    pending_followup_count: number(row.pending_followup_count),
+    next_followup_at: typeof row.next_followup_at === "string" ? row.next_followup_at : null,
+    last_product_name: typeof row.last_product_name === "string" ? row.last_product_name : null,
+    most_purchased_product: typeof row.most_purchased_product === "string" ? row.most_purchased_product : null,
+    estimated_duration_days: row.estimated_duration_days == null ? null : number(row.estimated_duration_days),
+    expected_repurchase_on: typeof row.expected_repurchase_on === "string" ? row.expected_repurchase_on : null,
+    days_to_repurchase: row.days_to_repurchase == null ? null : number(row.days_to_repurchase),
+    creatine_profile: text(row.creatine_profile, "Não informado"),
+    priority_source: text(row.priority_source, "Histórico automático"),
+    opportunity_score: number(row.opportunity_score),
+    opportunity_priority: (["Alta", "Média", "Baixa"].includes(String(row.opportunity_priority)) ? String(row.opportunity_priority) : "Baixa") as "Alta" | "Média" | "Baixa",
+    opportunity_label: text(row.opportunity_label, "Relacionamento ativo"),
+    recommended_action: text(row.recommended_action, "Avaliar histórico antes de entrar em contato."),
+    care_alert: Boolean(row.care_alert),
+  })).sort((a,b) => (priorityRank[a.opportunity_priority]-priorityRank[b.opportunity_priority]) || b.opportunity_score-a.opportunity_score || a.customer_name.localeCompare(b.customer_name,"pt-BR"));
+}
+
+export async function getCustomerOpportunityRadarSummary(): Promise<CustomerOpportunityRadarSummary> {
+  if (!isSupabaseConfigured) return { possible_customers: 0, high_priority: 0, medium_priority: 0, likely_repurchase: 0, forgotten_leads: 0, appsheet_prioritized: 0 };
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("customer_opportunity_radar_summary_v3").select("*").single();
+  if (error) throw error;
+  return {
+    possible_customers: number(data.possible_customers),
+    high_priority: number(data.high_priority),
+    medium_priority: number(data.medium_priority),
+    likely_repurchase: number(data.likely_repurchase),
+    forgotten_leads: number(data.forgotten_leads),
+    appsheet_prioritized: number(data.appsheet_prioritized),
+  };
+}
+
 export async function getCustomerOptions(): Promise<CustomerOption[]> {
   if (!isSupabaseConfigured) return demoCustomers.map(({ id, name, city, phone }) => ({ id, name, city, phone }));
   const supabase = await createClient(); const { data, error } = await supabase.from("customers").select("id,name,city,phone").eq("active", true).order("name", { ascending: true }); if (error) throw error;

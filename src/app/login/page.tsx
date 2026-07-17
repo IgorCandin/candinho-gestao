@@ -1,19 +1,22 @@
 import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
+import { BRAND_ASSETS } from "@/lib/brand-assets";
 
 export default function LoginPage() {
+  const company = BRAND_ASSETS.company.complete;
+  const operations = [
+    BRAND_ASSETS.fitness.reduced,
+    BRAND_ASSETS.supplements.reduced,
+    BRAND_ASSETS.bank.reduced,
+    BRAND_ASSETS.central.reduced,
+    BRAND_ASSETS.marketing.reduced,
+  ];
+
   return (
     <main className="login-page login-company-theme">
       <section className="login-shell">
         <div className="login-visual">
-          <Image
-            className="login-company-logo"
-            src="/candinho-company-logo.png"
-            alt="Candinho Company"
-            width={1356}
-            height={480}
-            priority
-          />
+          <Image className="login-company-logo" src={company.src} alt={company.alt} width={company.width} height={company.height} priority />
 
           <div className="login-intro">
             <h1>A operação da Candinho em um só lugar.</h1>
@@ -26,25 +29,14 @@ export default function LoginPage() {
           <LoginForm />
 
           <div className="login-operations login-operations-five" aria-label="Operações da Candinho Company">
-            <div className="login-operation-logo">
-              <Image src="/candinho-suplementos-logo.png" alt="Candinho Suplementos" width={1475} height={258} />
-            </div>
-            <span className="login-operation-divider" aria-hidden="true" />
-            <div className="login-operation-logo">
-              <Image src="/candinho-fitness-logo.png" alt="Candinho Fitness" width={1109} height={190} />
-            </div>
-            <span className="login-operation-divider" aria-hidden="true" />
-            <div className="login-operation-logo login-bank-logo">
-              <Image src="/candinho-bank-logo.png" alt="Candinho Bank" width={664} height={146} />
-            </div>
-            <span className="login-operation-divider" aria-hidden="true" />
-            <div className="login-operation-logo">
-              <Image src="/candinho-central-logo.png" alt="Candinho Central" width={1203} height={190} />
-            </div>
-            <span className="login-operation-divider" aria-hidden="true" />
-            <div className="login-operation-logo">
-              <Image src="/candinho-marketing-logo.png" alt="Candinho Marketing" width={1244} height={184} />
-            </div>
+            {operations.map((operation, index) => (
+              <div className="login-operation-segment" key={operation.src}>
+                {index > 0 && <span className="login-operation-divider" aria-hidden="true" />}
+                <div className={`login-operation-logo ${operation.src.includes("bank") ? "login-bank-logo" : ""}`}>
+                  <Image src={operation.src} alt={operation.alt} width={operation.width} height={operation.height} />
+                </div>
+              </div>
+            ))}
           </div>
 
           <p className="login-slogan">Qualidade que entrega resultado.</p>

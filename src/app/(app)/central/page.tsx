@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Bell, Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListTodo, MessageCircleMore, PlugZap, Search, ShieldCheck, UsersRound } from "lucide-react";
-import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getCentralAgendaSnapshot, getCentralAlertsSnapshot, getCentralDashboardSnapshot, getCentralIntegrationReadiness } from "@/lib/central-data";
@@ -16,9 +15,8 @@ export default async function CentralPage() {
   const aiReady = Boolean(readiness?.openai.ready);
 
   return <>
-    <PageHeader eyebrow="Candinho Company" title="Candinho Central" description="Seu centro de comando para atendimento, relacionamento, mídia e inteligência entre as operações." action={<Link className="button gold" href="/central/inbox"><Inbox size={16}/>Abrir atendimento</Link>}/>
 
-    <form className="central-home-search" action="/central/busca" method="get"><Search size={18}/><input name="q" placeholder="Buscar cliente, produto, parceiro, tarefa ou mídia..."/><button className="button gold compact-button" type="submit">Buscar</button></form>
+    <form className="central-home-search central-home-search-first" action="/central/busca" method="get"><Search size={18}/><input name="q" placeholder="Buscar cliente, produto, parceiro, tarefa ou mídia..."/><button className="button gold compact-button" type="submit">Buscar</button></form>
 
     <section className="stats-grid central-stats-grid">
       <StatCard href="/central/inbox" label="Mensagens não lidas" value={String(data.unread)} note={`${data.open_conversations} conversa(s) aberta(s)`} icon={Inbox}/>
@@ -37,7 +35,6 @@ export default async function CentralPage() {
       <Link href="/central/inbox" className="central-launch-card"><Inbox size={24}/><span><strong>Atendimento</strong><small>Fila única com busca, filtros, status e contexto do cliente.</small></span></Link>
       <Link href="/central/clientes" className="central-launch-card"><UsersRound size={24}/><span><strong>Clientes</strong><small>Cadastre manualmente e una identidades sem apagar as origens.</small></span></Link>
       <Link href="/central/agenda" className="central-launch-card"><CalendarDays size={24}/><span><strong>Agenda</strong><small>Compromissos e tarefas de todas as operações.</small></span></Link>
-      <Link href="/central/pendencias" className="central-launch-card"><ListTodo size={24}/><span><strong>Pendências</strong><small>Fila única do que ainda precisa ser resolvido.</small></span></Link>
       <Link href="/central/midia" className="central-launch-card"><ImageIcon size={24}/><span><strong>Mídia</strong><small>Fotos, vídeos e documentos organizados para uso futuro.</small></span></Link>
       <Link href="/central/nexus" className="central-launch-card"><Bot size={24}/><span><strong>Nexus IA</strong><small>Sugestões para você revisar antes de qualquer envio.</small></span></Link>
       {access.canManageUsers && <Link href="/central/governanca" className="central-launch-card"><ShieldCheck size={24}/><span><strong>Governança</strong><small>Auditoria de acessos, integrações e mudanças críticas.</small></span></Link>}
