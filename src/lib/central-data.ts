@@ -195,6 +195,10 @@ export type CentralIntegrationReadiness = {
     webhook_url: string;
     verify_token_configured: boolean;
     app_secret_configured: boolean;
+    graph_api_version_configured?: boolean;
+    receive_ready?: boolean;
+    send_ready?: boolean;
+    send?: { whatsapp: boolean; instagram: boolean; facebook: boolean };
     ready: boolean;
   };
   openai: {
@@ -205,6 +209,7 @@ export type CentralIntegrationReadiness = {
   };
   functions: {
     meta_webhook: string;
+    meta_send?: string;
     media_classifier: string;
     nexus_suggest: string;
     partner_portal_invite: string;
@@ -387,6 +392,27 @@ export type PartnerPortalAdminSnapshot = {
   partners: PartnerPortalAdminRow[];
   without_portal_count: number;
   active_portals: number;
+};
+
+export type PartnerPortalHealthItem = {
+  partner_id: string;
+  partner_name: string;
+  contact_name: string | null;
+  partner_active: boolean;
+  profile_id: string | null;
+  portal_access_active: boolean | null;
+  portal_user_name: string | null;
+  portal_username: string | null;
+  portal_user_email: string | null;
+  profile_active: boolean | null;
+  profile_role: string | null;
+  last_sign_in_at: string | null;
+  health_status: string;
+};
+
+export type PartnerPortalHealthSnapshot = {
+  summary: { ready: number; attention: number; total: number };
+  items: PartnerPortalHealthItem[];
 };
 
 export type InventoryWorkspaceLocation = {
@@ -682,7 +708,7 @@ export async function getPartnerPortalDashboard(): Promise<PartnerPortalDashboar
   if (!isSupabaseConfigured) return null;
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("partner_portal_dashboard", { p_from: null, p_to: null });
-  if (error) return null;
+  if (error) throw error;
   return asObject<PartnerPortalDashboard>(data, null as unknown as PartnerPortalDashboard);
 }
 
@@ -700,6 +726,15 @@ export async function getPartnerPortalAdminSnapshot(): Promise<PartnerPortalAdmi
   const { data, error } = await supabase.rpc("partner_portal_admin_snapshot");
   if (error) throw error;
   return asObject<PartnerPortalAdminSnapshot>(data, { partners: [], without_portal_count: 0, active_portals: 0 });
+}
+
+export async function getPartnerPortalHealthSnapshot(): Promise<PartnerPortalHealthSnapshot> {
+  const fallback: PartnerPortalHealthSnapshot = { summary: { ready: 0, attention: 0, total: 0 }, items: [] };
+  if (!isSupabaseConfigured) return fallback;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("partner_portal_health_snapshot");
+  if (error) throw error;
+  return asObject<PartnerPortalHealthSnapshot>(data, fallback);
 }
 
 export async function getInventoryWorkspaceSnapshot(): Promise<InventoryWorkspaceSnapshot> {

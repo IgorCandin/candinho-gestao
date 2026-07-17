@@ -1,15 +1,15 @@
 import Link from "next/link";
-import { ArrowLeft, CircleDollarSign, Gift, Handshake, KeyRound, Link2, TriangleAlert } from "lucide-react";
+import { ArrowLeft, CheckCircle2, CircleDollarSign, Gift, Handshake, KeyRound, Link2, ShieldCheck, TriangleAlert } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { PartnerPortalAccessManager } from "@/components/partner-portal-access-manager";
 import { StatCard } from "@/components/stat-card";
-import { getPartnerPortalAdminSnapshot } from "@/lib/central-data";
+import { getPartnerPortalAdminSnapshot, getPartnerPortalHealthSnapshot } from "@/lib/central-data";
 import { getPartnersOverview, getUnassignedPartnershipSales } from "@/lib/data";
-import { formatCurrency, formatDateOnly } from "@/lib/format";
+import { formatCurrency, formatDateOnly, formatDateTime } from "@/lib/format";
 
 export default async function PartnerManagementPage(){
-  const [partners,unassigned,portal]=await Promise.all([getPartnersOverview(),getUnassignedPartnershipSales(),getPartnerPortalAdminSnapshot()]);
+  const [partners,unassigned,portal,portalHealth]=await Promise.all([getPartnersOverview(),getUnassignedPartnershipSales(),getPartnerPortalAdminSnapshot(),getPartnerPortalHealthSnapshot()]);
   const active=partners.filter((p)=>p.active&&p.status!=="Pausado");
   const pending=partners.filter((p)=>p.settlement_pending);
   const sales=partners.reduce((sum,p)=>sum+p.current_cycle_sales_count,0);
@@ -26,6 +26,11 @@ export default async function PartnerManagementPage(){
       <StatCard href="/parceiros/gerencial" label="Vendas sem vínculo" value={String(unassigned.length)} note="Legado para revisar" icon={Link2}/>
       <StatCard href="/parceiros/gerencial" label="Cadastros incompletos" value={String(incomplete)} note="Sem telefone, cidade ou contato" icon={TriangleAlert}/>
     </section>
+
+    <article className="panel partner-portal-health-panel">
+      <div className="panel-head"><div><h2>Saúde do Portal Parceiro</h2><p>Diagnóstico real do login, vínculo e isolamento de permissões.</p></div><span className={`badge ${portalHealth.summary.attention ? "orange" : "green"}`}>{portalHealth.summary.attention ? <TriangleAlert size={13}/> : <ShieldCheck size={13}/>} {portalHealth.summary.ready}/{portalHealth.summary.total} prontos</span></div>
+      <div className="table-wrap"><table className="partner-access-table"><thead><tr><th>Parceiro</th><th>Login</th><th>Vínculo</th><th>Último acesso</th><th>Diagnóstico</th></tr></thead><tbody>{portalHealth.items.map((item) => <tr key={item.partner_id}><td><strong>{item.partner_name}</strong><small>{item.contact_name ?? "Sem contato"}</small></td><td>{item.portal_username ?? item.portal_user_email ?? "Sem login"}</td><td>{item.portal_access_active ? "Ativo" : item.profile_id ? "Pausado" : "Não criado"}</td><td>{item.last_sign_in_at ? formatDateTime(item.last_sign_in_at) : "Nunca entrou"}</td><td><span className={`badge ${item.health_status === "ready" ? "green" : item.health_status === "paused" || item.health_status === "no_login" ? "orange" : "red"}`}>{item.health_status === "ready" ? <CheckCircle2 size={12}/> : <TriangleAlert size={12}/>} {item.health_status === "ready" ? "Pronto" : item.health_status === "no_login" ? "Sem login" : item.health_status === "paused" ? "Pausado" : item.health_status === "permission_leak" ? "Permissão interna indevida" : item.health_status === "invalid_role" ? "Perfil incorreto" : "Revisar"}</span></td></tr>)}</tbody></table></div>
+    </article>
 
     <PartnerPortalAccessManager partners={portal.partners}/>
 

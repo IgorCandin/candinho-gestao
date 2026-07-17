@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Boxes, CircleDollarSign, Gift, Handshake, PackageOpen, Target } from "lucide-react";
+import { Boxes, CircleDollarSign, Gift, Handshake, LogOut, PackageOpen, Target, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getPartnerMonthlyHistory, getPartnerPortalDashboard } from "@/lib/central-data";
@@ -9,9 +9,22 @@ import { formatCurrency, formatDateTime, formatMonthYear } from "@/lib/format";
 export default async function PartnerPortalPage() {
   const access = await getCurrentUserAccess();
   if (access.role !== "partner") redirect("/dashboard");
-  const [dashboard, history] = await Promise.all([getPartnerPortalDashboard(), getPartnerMonthlyHistory(12)]);
+  let dashboard;
+  let history;
+  try {
+    [dashboard, history] = await Promise.all([getPartnerPortalDashboard(), getPartnerMonthlyHistory(12)]);
+  } catch (error) {
+    console.error("partner portal load error", error);
+    return <section className="partner-portal-error-wrap">
+      <article className="panel"><div className="empty"><TriangleAlert size={28}/><strong>Não foi possível carregar seu Portal agora</strong>Seu login está ativo, mas houve uma falha ao consultar os dados da parceria. Saia e entre novamente; se continuar, a Candinho consegue revisar o vínculo sem criar outra conta.</div></article>
+      <form action="/auth/signout" method="post"><button className="button ghost" type="submit"><LogOut size={15}/>Sair e entrar novamente</button></form>
+    </section>;
+  }
   if (!dashboard?.profile || !dashboard.summary) {
-    return <article className="panel"><div className="empty"><Handshake size={28}/><strong>Seu perfil ainda não foi vinculado a uma parceria</strong>Fale com a Candinho para concluir a configuração do acesso.</div></article>;
+    return <section className="partner-portal-error-wrap">
+      <article className="panel"><div className="empty"><Handshake size={28}/><strong>Seu login existe, mas o vínculo com a parceria está incompleto</strong>Fale com a Candinho para vincular este usuário ao parceiro correto. Não é necessário criar outra conta.</div></article>
+      <form action="/auth/signout" method="post"><button className="button ghost" type="submit"><LogOut size={15}/>Sair</button></form>
+    </section>;
   }
   const { profile, summary } = dashboard;
   const isGiftPerSales = profile.reward_type === "gift_per_sales" && Boolean(summary.target_sales);
@@ -33,7 +46,7 @@ export default async function PartnerPortalPage() {
       : "Acompanhe os ciclos junto à Candinho.";
 
   return <>
-    <PageHeader eyebrow="Portal do Parceiro" title={profile.partner_name} description="Acompanhe os números da sua parceria com transparência. Você visualiza apenas os dados ligados ao seu próprio perfil." />
+    <PageHeader eyebrow="Portal do Parceiro" title={profile.partner_name} description="Acompanhe os números da sua parceria com transparência. Você visualiza apenas os dados ligados ao seu próprio perfil." action={<form action="/auth/signout" method="post"><button className="button ghost" type="submit"><LogOut size={15}/>Sair</button></form>} />
 
     <section className="partner-portal-hero">
       <article className="partner-portal-contract panel"><div className="panel-body"><span className="partner-portal-icon"><Handshake size={26}/></span><div><small>{isFixedRepasse ? "Condição comercial" : "Regra da parceria"}</small><strong>{conditionValue}</strong><p>{profile.settlement_rule ?? profile.reward_description ?? "Regra de parceria cadastrada pela Candinho."}</p></div></div></article>

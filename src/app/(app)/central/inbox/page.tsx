@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Mail, MessageCircle, Search, UserRound } from "lucide-react";
 import { CentralConversationActions } from "@/components/central-conversation-actions";
+import { CentralReplyComposer } from "@/components/central-reply-composer";
 import { PageHeader } from "@/components/page-header";
 import { getCentralConversationDetails, getCentralInboxSnapshot } from "@/lib/central-data";
 import { getCurrentUserAccess } from "@/lib/data";
@@ -71,6 +72,7 @@ export default async function CentralInboxPage({ searchParams }: { searchParams:
           <div className="central-chat-body">
             {details.messages.length === 0 ? <div className="empty">Sem mensagens registradas.</div> : details.messages.map((message) => <div className={`central-message ${message.direction}`} key={message.id}><span>{message.body ?? `[${message.message_type}]`}</span><small>{formatDateTime(message.sent_at)}{message.delivery_status ? ` · ${message.delivery_status}` : ""}</small></div>)}
           </div>
+          <CentralReplyComposer conversationId={details.conversation.conversation_id} provider={details.conversation.provider}/>
           <div className="central-customer-context central-customer-context-v2">
             <div><small>Contato</small><strong>{details.contact?.display_name ?? details.conversation.contact_name}</strong></div>
             <div><small>Telefone</small><strong>{details.contact?.phone ?? "—"}</strong></div>

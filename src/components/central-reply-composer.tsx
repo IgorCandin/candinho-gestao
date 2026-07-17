@@ -1,0 +1,79 @@
+"use client";
+
+import { Bot, LoaderCircle, Send, TriangleAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+export function CentralReplyComposer({ conversationId, provider }: { conversationId: string; provider: string }) {
+  const router = useRouter();
+  const [body, setBody] = useState("");
+  const [loading, setLoading] = useState<"send" | "nexus" | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [warning, setWarning] = useState<string | null>(null);
+
+  async function suggest() {
+    setLoading("nexus");
+    setMessage(null);
+    setWarning(null);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("central-nexus-suggest", { body: { conversation_id: conversationId } });
+      if (error) throw error;
+      if (data?.error) throw new Error(String(data.error));
+      const suggestion = data?.suggestion;
+      if (typeof suggestion?.suggested_reply === "string") setBody(suggestion.suggested_reply);
+      if (suggestion?.requires_human) setWarning(`Revisão humana necessária${suggestion?.reason ? `: ${suggestion.reason}` : "."}`);
+      else setMessage("Sugestão do Nexus carregada. Revise antes de enviar.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível gerar a sugestão. Verifique a configuração da OpenAI.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function send() {
+    const text = body.trim();
+    if (!text) return;
+    setLoading("send");
+    setMessage(null);
+    setWarning(null);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("central-meta-send", { body: { conversation_id: conversationId, body: text } });
+      if (error) throw error;
+      if (data?.error) throw new Error(String(data.error));
+      setBody("");
+      setMessage("Mensagem enviada e registrada no histórico.");
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível enviar a mensagem.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  const supported = ["whatsapp", "instagram", "facebook"].includes(provider);
+
+  return <div className="central-reply-composer">
+    <textarea
+      value={body}
+      onChange={(event) => setBody(event.target.value)}
+      placeholder={supported ? "Digite a resposta para o cliente..." : "Este canal ainda não aceita resposta pelo sistema."}
+      maxLength={4096}
+      disabled={!supported || loading === "send"}
+      rows={3}
+    />
+    <div className="central-reply-composer-footer">
+      <div className="central-reply-composer-status">
+        <small>{body.length}/4096</small>
+        {warning && <span className="central-reply-warning"><TriangleAlert size={13}/>{warning}</span>}
+        {message && <span>{message}</span>}
+      </div>
+      <div className="central-reply-composer-actions">
+        <button type="button" className="button ghost compact-button" onClick={suggest} disabled={!supported || Boolean(loading)}>{loading === "nexus" ? <LoaderCircle className="spin" size={15}/> : <Bot size={15}/>}Gerar com Nexus</button>
+        <button type="button" className="button gold compact-button" onClick={send} disabled={!supported || !body.trim() || Boolean(loading)}>{loading === "send" ? <LoaderCircle className="spin" size={15}/> : <Send size={15}/>}Enviar</button>
+      </div>
+    </div>
+  </div>;
+}

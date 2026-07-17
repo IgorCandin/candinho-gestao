@@ -1,6 +1,7 @@
+import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Handshake, Link2, Sparkles, UserRound } from "lucide-react";
+import { Handshake, Link2, UserRound } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getAppBootstrapSnapshot } from "@/lib/central-data";
 import { formatCurrency } from "@/lib/format";
@@ -13,21 +14,7 @@ function num(source: Record<string, unknown> | null | undefined, key: string) {
 export default async function DashboardPage() {
   const [access, bootstrap] = await Promise.all([getCurrentUserAccess(), getAppBootstrapSnapshot()]);
 
-  if (access.role === "partner") {
-    const brand = BRAND_ASSETS.company.complete;
-    return (
-      <section className="company-home partner-entry-home">
-        <form action="/auth/signout" method="post" className="company-home-signout"><button type="submit">Sair</button></form>
-        <Image className="company-home-logo" src={brand.src} alt={brand.alt} width={brand.width} height={brand.height} priority />
-        <div className="company-home-heading"><span>Portal do Parceiro</span><h1>Olá, {access.name}.</h1><p>Acompanhe sua parceria, vendas e estoque em um só lugar.</p></div>
-        <Link className="company-home-central partner-entry-card" href="/parceiro">
-          <span className="company-home-central-icon"><Handshake size={30} /></span>
-          <span><small>Seu acesso</small><strong>Abrir meu painel</strong><em>Vendas, estoque, metas e condições da parceria.</em></span>
-          <Sparkles size={22} />
-        </Link>
-      </section>
-    );
-  }
+  if (access.role === "partner") redirect("/parceiro");
 
   const home = bootstrap?.home;
   const supplements = home?.supplements ?? null;

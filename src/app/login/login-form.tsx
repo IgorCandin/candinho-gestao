@@ -34,7 +34,12 @@ export function LoginForm() {
 
       const result = await supabase.auth.signInWithPassword({ email, password });
       if (result.error) throw new Error("Usuário ou senha inválidos.");
-      window.location.href = "/dashboard";
+
+      const { data: accessData } = await supabase.rpc("get_my_access_v2");
+      const access = Array.isArray(accessData) ? accessData[0] : accessData;
+      const requestedNext = new URLSearchParams(window.location.search).get("next");
+      const safeNext = requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//") ? requestedNext : null;
+      window.location.href = access?.role === "partner" ? "/parceiro" : (safeNext ?? "/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Não foi possível entrar.");
     } finally {

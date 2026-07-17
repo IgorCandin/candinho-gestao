@@ -66,13 +66,6 @@ export async function updateSession(request: NextRequest) {
     return invalidSession ? clearSupabaseCookies(redirectResponse) : redirectResponse;
   }
 
-  if (user && isAuthPage && pathname === "/login") {
-    const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = "/dashboard";
-    redirectUrl.search = "";
-    return NextResponse.redirect(redirectUrl);
-  }
-
   if (user) {
     const email = user.email?.trim().toLowerCase() ?? "";
     let access = {
@@ -99,6 +92,13 @@ export async function updateSession(request: NextRequest) {
       };
     }
 
+    if (isAuthPage && pathname === "/login") {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = access.role === "partner" ? "/parceiro" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
     const supplementPrefixes = [
       "/suplementos", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads", "/clientes", "/movimentacoes",
       "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs",
@@ -109,7 +109,7 @@ export async function updateSession(request: NextRequest) {
     const isManagerRoute = pathname.startsWith("/configuracoes");
     const isCentralRoute = pathname.startsWith("/central");
     const isMarketingRoute = pathname.startsWith("/marketing");
-    const isPartnerPortalRoute = pathname.startsWith("/parceiro");
+    const isPartnerPortalRoute = pathname === "/parceiro" || pathname.startsWith("/parceiro/");
 
     if (!access.active && pathname !== "/dashboard") {
       const redirectUrl = request.nextUrl.clone();

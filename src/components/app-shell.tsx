@@ -88,7 +88,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
 
   let operation: Operation = "hub";
   if (pathname.startsWith("/central")) operation = "central";
-  else if (pathname.startsWith("/parceiro")) operation = "partner";
+  else if (pathname === "/parceiro" || pathname.startsWith("/parceiro/")) operation = "partner";
   else if (pathname.startsWith("/bank")) operation = "bank";
   else if (pathname.startsWith("/marketing")) operation = "marketing";
   else if (pathname.startsWith("/fitness")) operation = "fitness";

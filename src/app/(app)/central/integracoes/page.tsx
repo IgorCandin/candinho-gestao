@@ -30,7 +30,9 @@ export default async function IntegrationsPage({ searchParams }: Props) {
   const params = await searchParams;
   const savedProvider = typeof params.salvo === "string" ? params.salvo : null;
   const [integrations, readiness] = await Promise.all([getCentralIntegrationHealth(), getCentralIntegrationReadiness()]);
-  const metaReady = Boolean(readiness?.meta.ready);
+  const metaReceiveReady = Boolean(readiness?.meta.receive_ready ?? readiness?.meta.ready);
+  const metaSendReady = Boolean(readiness?.meta.send_ready);
+  const metaReady = metaReceiveReady && metaSendReady;
   const openAiReady = Boolean(readiness?.openai.ready);
   const webhookUrl = readiness?.meta.webhook_url ?? "https://ilboydbakpcfoaexpnhw.supabase.co/functions/v1/central-meta-webhook";
 
@@ -41,11 +43,15 @@ export default async function IntegrationsPage({ searchParams }: Props) {
 
     <section className="integration-readiness-grid">
       <article className="panel integration-readiness-card">
-        <div className="panel-head"><div><h2>Meta · Mensagens</h2><p>Backend para WhatsApp, Instagram e Facebook.</p></div><ReadyBadge ready={metaReady} readyLabel="Pronto para conectar" pendingLabel="Faltam credenciais"/></div>
+        <div className="panel-head"><div><h2>Meta · Mensagens</h2><p>Recebimento por webhook e resposta pelo Inbox.</p></div><ReadyBadge ready={metaReady} readyLabel="Receber e responder" pendingLabel={metaReceiveReady ? "Recebe; envio pendente" : "Faltam credenciais"}/></div>
         <div className="panel-body integration-check-list">
           <div><Webhook size={18}/><span><strong>Webhook publicado</strong><small>Recepção centralizada de eventos da Meta.</small></span><span className="badge green">Ativo</span></div>
           <div><KeyRound size={18}/><span><strong>META_WEBHOOK_VERIFY_TOKEN</strong><small>Token usado na validação inicial do webhook.</small></span><ReadyBadge ready={Boolean(readiness?.meta.verify_token_configured)} readyLabel="Configurado"/></div>
           <div><ShieldCheck size={18}/><span><strong>META_APP_SECRET</strong><small>Usado para validar a assinatura dos eventos recebidos.</small></span><ReadyBadge ready={Boolean(readiness?.meta.app_secret_configured)} readyLabel="Configurado"/></div>
+          <div><KeyRound size={18}/><span><strong>META_GRAPH_API_VERSION</strong><small>Versão da API usada pelas respostas enviadas pelo Inbox.</small></span><ReadyBadge ready={Boolean(readiness?.meta.graph_api_version_configured)} readyLabel="Configurada"/></div>
+          <div><MessageCircle size={18}/><span><strong>Envio WhatsApp</strong><small>Usa META_WHATSAPP_ACCESS_TOKEN ou META_ACCESS_TOKEN.</small></span><ReadyBadge ready={Boolean(readiness?.meta.send?.whatsapp)} readyLabel="Pronto"/></div>
+          <div><MessageCircle size={18}/><span><strong>Envio Instagram</strong><small>Usa META_INSTAGRAM_ACCESS_TOKEN ou META_ACCESS_TOKEN.</small></span><ReadyBadge ready={Boolean(readiness?.meta.send?.instagram)} readyLabel="Pronto"/></div>
+          <div><MessageCircle size={18}/><span><strong>Envio Facebook</strong><small>Usa META_FACEBOOK_PAGE_ACCESS_TOKEN ou META_ACCESS_TOKEN.</small></span><ReadyBadge ready={Boolean(readiness?.meta.send?.facebook)} readyLabel="Pronto"/></div>
           <div className="integration-webhook-row"><Link2 size={18}/><span><strong>URL de callback</strong><code>{webhookUrl}</code></span><CopyTextButton value={webhookUrl} label="Copiar URL"/></div>
         </div>
       </article>
@@ -72,11 +78,11 @@ export default async function IntegrationsPage({ searchParams }: Props) {
       </form>
     </article>
 
-    <article className="panel central-integration-security"><div className="panel-body"><Link2 size={22}/><div><strong>Ordem para ativar de verdade</strong><p>1. Cadastre acima os IDs das contas que farão parte da Central. 2. Configure os segredos pendentes nas Edge Functions. 3. Configure o callback no aplicativo da Meta. 4. Associe os eventos/mensagens às contas cadastradas. 5. Assim que os primeiros eventos chegarem, a saúde do canal e o Inbox passam a refletir a integração real. Tokens e segredos nunca são gravados em central_integrations.settings.</p></div></div></article>
+    <article className="panel central-integration-security"><div className="panel-body"><Link2 size={22}/><div><strong>Ordem para ativar de verdade</strong><p>1. Cadastre acima os IDs das contas que farão parte da Central. 2. Configure META_WEBHOOK_VERIFY_TOKEN e META_APP_SECRET para receber. 3. Configure META_GRAPH_API_VERSION e o token do canal para responder. 4. Configure o callback no aplicativo da Meta. 5. Quando o primeiro evento real chegar, a conta cadastrada é reconhecida pelo ID, mantém a operação escolhida e passa para conectada. 6. As respostas são enviadas pelo próprio Inbox. Tokens e segredos nunca são gravados em central_integrations.settings.</p></div></div></article>
 
     <div className="section-heading integration-channel-heading"><span>Canais cadastrados</span><h2>Saúde das contas</h2><p>Contas cadastradas aparecem aqui mesmo antes da conexão. Depois da ativação externa, você acompanha sincronização, erros e eventos processados.</p></div>
     <section className="central-health-grid">
-      {integrations.length === 0 ? ["whatsapp", "instagram", "facebook"].map((provider) => <article className="central-health-card" key={provider}><span className="central-health-icon"><MessageCircle size={22}/></span><div><small>Canal</small><strong>{labels[provider]}</strong><em>{metaReady ? "Backend pronto; cadastre uma conta para iniciar a ativação." : "Aguardando credenciais da Meta."}</em></div><span className="badge gray">Não cadastrada</span></article>) : integrations.map((item) => {
+      {integrations.length === 0 ? ["whatsapp", "instagram", "facebook"].map((provider) => <article className="central-health-card" key={provider}><span className="central-health-icon"><MessageCircle size={22}/></span><div><small>Canal</small><strong>{labels[provider]}</strong><em>{metaReceiveReady ? (metaSendReady ? "Recebimento e envio preparados; cadastre a conta para ativar." : "Recebimento preparado; envio ainda aguarda token/API version.") : "Aguardando credenciais de webhook da Meta."}</em></div><span className="badge gray">Não cadastrada</span></article>) : integrations.map((item) => {
         const meta = statusMeta(item); const Icon = meta.icon;
         return <article className="central-health-card" key={`${item.provider}-${item.operation_scope}-${item.account_external_id ?? item.account_name ?? "account"}`}>
           <span className="central-health-icon"><MessageCircle size={22}/></span>
