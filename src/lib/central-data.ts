@@ -101,6 +101,7 @@ export type CentralConversationDetails = {
 export type CentralIntegrationHealth = {
   provider: string;
   operation_scope: string;
+  account_external_id?: string | null;
   account_name: string | null;
   status: string;
   last_sync_at: string | null;

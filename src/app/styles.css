@@ -2362,3 +2362,19 @@ h1{font-size:clamp(27px,3vw,36px)}
   .inventory-location-grid{grid-template-columns:1fr}
   .partner-portal-stats{grid-template-columns:1fr 1fr}
 }
+
+/* Central integrations setup V3 */
+.integration-success-banner { display:flex; align-items:flex-start; gap:10px; margin-bottom:14px; padding:12px 14px; border:1px solid rgba(70,195,123,.28); border-radius:13px; background:rgba(70,195,123,.06); color:#7bdd9d; }
+.integration-success-banner>span { display:grid; gap:3px; }
+.integration-success-banner strong { font-size:10px; }
+.integration-success-banner small { color:var(--muted); font-size:8px; line-height:1.45; }
+.integration-account-setup { margin:18px 0 14px; }
+.integration-account-setup>.panel-head>svg { color:var(--gold); }
+.integration-account-form { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:end; }
+.integration-account-form .field>span { color:var(--muted); font-size:8px; font-weight:750; }
+.integration-account-id { grid-column:span 2; }
+.integration-account-id>small { margin-top:5px; color:var(--muted); font-size:7px; line-height:1.4; }
+.integration-account-actions { display:flex; justify-content:flex-end; }
+.central-health-account-id { width:max-content; max-width:100%; overflow:hidden; padding:3px 6px; border:1px solid var(--line); border-radius:6px; color:#aab3c2; font-size:7px; text-overflow:ellipsis; white-space:nowrap; }
+@media(max-width:900px){.integration-account-form{grid-template-columns:1fr 1fr}.integration-account-id{grid-column:1/-1}.integration-account-actions{grid-column:1/-1;justify-content:flex-start}}
+@media(max-width:620px){.integration-account-form{grid-template-columns:1fr}.integration-account-id,.integration-account-actions{grid-column:auto}}
