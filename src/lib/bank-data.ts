@@ -97,6 +97,53 @@ export type BankSupplementsProfitProjection = {
   monthlyHistory: Array<{ month: string; profit: number }>;
 };
 
+
+export type BankPatrimony = {
+  totalCashBalance: number;
+  companyCashBalance: number;
+  supplementsStockCost: number;
+  supplementsStockSaleValue: number;
+  fitnessStockCost: number;
+  fitnessStockSaleValue: number;
+  totalInventoryCost: number;
+  bankReceivables: number;
+  operationReceivables: number;
+  totalReceivables: number;
+  companyDebtRemaining: number;
+  totalDebtRemaining: number;
+  operationalNetPosition: number;
+  totalNetPosition: number;
+};
+
+export type BankReviewAlert = {
+  kind: "stale_balance" | "overdue_invoice" | "duplicate_subscription" | "missing_invoice";
+  title: string;
+  description: string;
+  href: string;
+  count: number;
+  amount?: number;
+};
+
+export type BankMonthClosure = {
+  id: string;
+  referenceMonth: string;
+  closedOn: string;
+  totalBalance: number;
+  companyCashBalance: number;
+  bankReceivables: number;
+  operationReceivables: number;
+  supplementsStockCost: number;
+  fitnessStockCost: number;
+  companyDebtRemaining: number;
+  totalDebtRemaining: number;
+  projectedIncome: number;
+  projectedCommitments: number;
+  projectedResult: number;
+  operationalNetPosition: number;
+  totalNetPosition: number;
+  notes: string | null;
+};
+
 export type BankDashboardData = {
   summary: BankDashboardSummary;
   upcomingCharges: BankChargePreview[];
@@ -106,6 +153,8 @@ export type BankDashboardData = {
   operationReceivables: BankOperationReceivable[];
   operationReceivablesSummary: BankOperationReceivableSummary;
   supplementsProfitProjection: BankSupplementsProfitProjection;
+  patrimony: BankPatrimony;
+  reviewAlerts: BankReviewAlert[];
 };
 
 const emptySummary: BankDashboardSummary = {
@@ -134,11 +183,13 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
       operationReceivables: [],
       operationReceivablesSummary: { total: 0, totalCount: 0, supplementsTotal: 0, supplementsCount: 0, fitnessTotal: 0, fitnessCount: 0 },
       supplementsProfitProjection: { periodStart: null, periodEnd: null, averageMonthlyProfit: 0, projectionFactor: 0.7, projectedMonthlyReceivable: 0, monthlyHistory: [] },
+      patrimony: { totalCashBalance: 0, companyCashBalance: 0, supplementsStockCost: 0, supplementsStockSaleValue: 0, fitnessStockCost: 0, fitnessStockSaleValue: 0, totalInventoryCost: 0, bankReceivables: 0, operationReceivables: 0, totalReceivables: 0, companyDebtRemaining: 0, totalDebtRemaining: 0, operationalNetPosition: 0, totalNetPosition: 0 },
+      reviewAlerts: [],
     };
   }
 
   const supabase = await createClient();
-  const [summaryResult, chargesResult, receivablesResult, accountsResult, projectionResult, operationReceivablesResult, supplementsProjectionResult] = await Promise.all([
+  const [summaryResult, chargesResult, receivablesResult, accountsResult, projectionResult, operationReceivablesResult, supplementsProjectionResult, patrimonyResult, subscriptionsResult, cardsResult, currentInvoicesResult] = await Promise.all([
     supabase.from("bank_dashboard_summary").select("*").single(),
     supabase
       .from("bank_charges_overview")
@@ -161,6 +212,10 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     supabase.rpc("bank_get_annual_projection"),
     supabase.rpc("bank_get_operation_receivables"),
     supabase.rpc("bank_get_supplements_profit_projection"),
+    supabase.rpc("bank_get_company_patrimony"),
+    supabase.from("bank_subscriptions").select("id,name,provider,amount,billing_day,origin,is_active").eq("is_active", true),
+    supabase.from("bank_cards").select("id,name").eq("is_active", true),
+    supabase.from("bank_card_invoice_overview").select("id,card_id,card_name,reference_month,amount,status,due_date").eq("reference_month", new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit" }).format(new Date()) + "-01"),
   ]);
 
   if (summaryResult.error) throw summaryResult.error;
@@ -170,6 +225,10 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
   if (projectionResult.error) throw projectionResult.error;
   if (operationReceivablesResult.error) throw operationReceivablesResult.error;
   if (supplementsProjectionResult.error) throw supplementsProjectionResult.error;
+  if (patrimonyResult.error) throw patrimonyResult.error;
+  if (subscriptionsResult.error) throw subscriptionsResult.error;
+  if (cardsResult.error) throw cardsResult.error;
+  if (currentInvoicesResult.error) throw currentInvoicesResult.error;
 
   const summaryRow = (summaryResult.data ?? {}) as Record<string, unknown>;
   const summary: BankDashboardSummary = {
@@ -277,6 +336,58 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     }),
   };
 
+  const patrimonyRow = ((patrimonyResult.data ?? [])[0] ?? {}) as Record<string, unknown>;
+  const patrimony: BankPatrimony = {
+    totalCashBalance: number(patrimonyRow.total_cash_balance),
+    companyCashBalance: number(patrimonyRow.company_cash_balance),
+    supplementsStockCost: number(patrimonyRow.supplements_stock_cost),
+    supplementsStockSaleValue: number(patrimonyRow.supplements_stock_sale_value),
+    fitnessStockCost: number(patrimonyRow.fitness_stock_cost),
+    fitnessStockSaleValue: number(patrimonyRow.fitness_stock_sale_value),
+    totalInventoryCost: number(patrimonyRow.total_inventory_cost),
+    bankReceivables: number(patrimonyRow.bank_receivables),
+    operationReceivables: number(patrimonyRow.operation_receivables),
+    totalReceivables: number(patrimonyRow.total_receivables),
+    companyDebtRemaining: number(patrimonyRow.company_debt_remaining),
+    totalDebtRemaining: number(patrimonyRow.total_debt_remaining),
+    operationalNetPosition: number(patrimonyRow.operational_net_position),
+    totalNetPosition: number(patrimonyRow.total_net_position),
+  };
+
+  const reviewAlerts: BankReviewAlert[] = [];
+  const today = new Date();
+  const staleAccounts = accounts.filter((account) => {
+    if (!account.balanceDate) return true;
+    const ageMs = today.getTime() - new Date(`${account.balanceDate}T12:00:00Z`).getTime();
+    return ageMs > 7 * 24 * 60 * 60 * 1000;
+  });
+  if (staleAccounts.length > 0) {
+    reviewAlerts.push({ kind: "stale_balance", title: "Saldos precisam de atualização", description: `${staleAccounts.length} conta(s) estão há mais de 7 dias sem novo saldo.`, href: "/bank/atualizar", count: staleAccounts.length });
+  }
+
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(today);
+  const overdueInvoices = (currentInvoicesResult.data ?? []).filter((row: Record<string, unknown>) => String(row.status ?? "planned") !== "paid" && String(row.status ?? "planned") !== "cancelled" && String(row.due_date ?? "") < todayKey && number(row.amount) > 0);
+  if (overdueInvoices.length > 0) {
+    reviewAlerts.push({ kind: "overdue_invoice", title: "Faturas vencidas ainda abertas", description: `${overdueInvoices.length} fatura(s) do mês já passaram do vencimento e continuam em aberto.`, href: "/bank/faturas", count: overdueInvoices.length, amount: overdueInvoices.reduce((sum, row) => sum + number((row as Record<string, unknown>).amount), 0) });
+  }
+
+  const currentInvoiceCardIds = new Set((currentInvoicesResult.data ?? []).map((row: Record<string, unknown>) => String(row.card_id)));
+  const missingInvoices = (cardsResult.data ?? []).filter((row: Record<string, unknown>) => !currentInvoiceCardIds.has(String(row.id)));
+  if (missingInvoices.length > 0) {
+    reviewAlerts.push({ kind: "missing_invoice", title: "Cartões sem fatura do mês", description: `${missingInvoices.length} cartão(ões) ainda não têm valor informado para o mês atual.`, href: "/bank/atualizar", count: missingInvoices.length });
+  }
+
+  const duplicateMap = new Map<string, number>();
+  for (const raw of subscriptionsResult.data ?? []) {
+    const row = raw as Record<string, unknown>;
+    const key = [String(row.name ?? "").trim().toLowerCase(), String(row.provider ?? "").trim().toLowerCase(), number(row.amount).toFixed(2), String(row.billing_day ?? ""), String(row.origin ?? "").trim().toLowerCase()].join("|");
+    duplicateMap.set(key, (duplicateMap.get(key) ?? 0) + 1);
+  }
+  const duplicateCount = [...duplicateMap.values()].filter((count) => count > 1).reduce((sum, count) => sum + count - 1, 0);
+  if (duplicateCount > 0) {
+    reviewAlerts.push({ kind: "duplicate_subscription", title: "Possíveis mensalidades duplicadas", description: `${duplicateCount} lançamento(s) parecem duplicados. Revise antes de confiar na projeção.`, href: "/bank/mensalidades", count: duplicateCount });
+  }
+
   return {
     summary,
     upcomingCharges,
@@ -286,6 +397,8 @@ export async function getBankDashboardData(): Promise<BankDashboardData> {
     operationReceivables,
     operationReceivablesSummary,
     supplementsProfitProjection,
+    patrimony,
+    reviewAlerts,
   };
 }
 
@@ -379,4 +492,31 @@ export async function getBankAnnualProjection(): Promise<Record<string, unknown>
   const { data, error } = await supabase.rpc("bank_get_annual_projection");
   if (error) throw error;
   return data ?? [];
+}
+
+
+export async function getBankMonthClosures(): Promise<BankMonthClosure[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("bank_month_closures").select("*").order("reference_month", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    id: String(row.id),
+    referenceMonth: String(row.reference_month ?? ""),
+    closedOn: String(row.closed_on ?? ""),
+    totalBalance: number(row.total_balance),
+    companyCashBalance: number(row.company_cash_balance),
+    bankReceivables: number(row.bank_receivables),
+    operationReceivables: number(row.operation_receivables),
+    supplementsStockCost: number(row.supplements_stock_cost),
+    fitnessStockCost: number(row.fitness_stock_cost),
+    companyDebtRemaining: number(row.company_debt_remaining),
+    totalDebtRemaining: number(row.total_debt_remaining),
+    projectedIncome: number(row.projected_income),
+    projectedCommitments: number(row.projected_commitments),
+    projectedResult: number(row.projected_result),
+    operationalNetPosition: number(row.operational_net_position),
+    totalNetPosition: number(row.total_net_position),
+    notes: nullableText(row.notes),
+  }));
 }

@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
+  Archive,
   Building2,
   CalendarDays,
   ChartNoAxesCombined,
@@ -19,6 +20,7 @@ import {
   Menu,
   PackageOpen,
   PackageSearch,
+  RefreshCcw,
   Settings,
   ShoppingBag,
   Truck,
@@ -51,6 +53,7 @@ const fitnessNav = [
 
 const bankNav = [
   { href: "/bank", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/bank/atualizar", label: "Atualização Rápida", icon: RefreshCcw },
   { href: "/bank/entradas", label: "Entradas e Receber", icon: CircleDollarSign },
   { href: "/bank/operacoes", label: "À Receber Operações", icon: ShoppingBag },
   { href: "/bank/cobrancas", label: "Cobranças", icon: CircleDollarSign },
@@ -59,6 +62,7 @@ const bankNav = [
   { href: "/bank/mensalidades", label: "Planos e Mensalidades", icon: CalendarDays },
   { href: "/bank/contas", label: "Contas e Carteiras", icon: Building2 },
   { href: "/bank/visao-anual", label: "Visão Anual", icon: CalendarDays },
+  { href: "/bank/fechamento", label: "Fechamento Mensal", icon: Archive },
 ];
 
 const testSupplementNav = [
@@ -132,7 +136,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
         ]
       : isBank
         ? [
-            { href: "/bank/cobrancas", label: "Cobranças", icon: CircleDollarSign, primary: false },
+            { href: "/bank/atualizar", label: "Atualizar", icon: RefreshCcw, primary: false },
             { href: "/bank", label: "Início", icon: ChartNoAxesCombined, primary: true },
             { href: "/bank/faturas", label: "Faturas", icon: History, primary: false },
           ]

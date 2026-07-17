@@ -201,6 +201,18 @@ export default async function BankInvoicesPage({
                         />
                       </div>
                     </label>
+                    <label className="field bank-invoice-recurring-mode">
+                      <span>Esse valor já inclui recorrências?</span>
+                      <select
+                        className="input"
+                        name={`includes_recurring:${month}`}
+                        defaultValue={invoice?.includes_recurring === false ? "false" : "true"}
+                      >
+                        <option value="true">Sim · é o total da fatura</option>
+                        <option value="false">Não · são parcelas/compras conhecidas</option>
+                      </select>
+                      <small>{invoice?.includes_recurring === false ? "A projeção soma as mensalidades do cartão por fora." : "A projeção entende que assinaturas e mensalidades já estão nesse valor."}</small>
+                    </label>
                     <div className="bank-invoice-month-status">
                       <span className={`badge ${paid ? "green" : "gray"}`}>{statusLabel(status)}</span>
                       {paid && <small>Fatura paga não é apagada por campo vazio.</small>}

@@ -60,6 +60,7 @@ export async function saveBankInvoices(formData: FormData) {
     amount: number;
     created_by: string;
     updated_by: string;
+    includes_recurring: boolean;
   }> = [];
   const blankMonths: string[] = [];
 
@@ -74,6 +75,7 @@ export async function saveBankInvoices(formData: FormData) {
         amount,
         created_by: user.id,
         updated_by: user.id,
+        includes_recurring: String(formData.get(`includes_recurring:${month}`) ?? "true") === "true",
       });
     }
   }
