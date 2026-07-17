@@ -31,6 +31,8 @@ export default async function DashboardPage() {
   const supplements = home?.supplements ?? null;
   const fitness = home?.fitness ?? null;
   const bank = home?.bank ?? null;
+  const central = home?.central ?? null;
+  const centralVisible = bootstrap?.feature_flags?.central_enabled !== false && (access.canManageUsers || access.canAccessSupplements || access.canAccessFitness);
 
   return (
     <section className="company-home">
@@ -39,13 +41,27 @@ export default async function DashboardPage() {
       <Image className="company-home-logo" src="/candinho-company-logo.webp" alt="Candinho Company" width={1000} height={343} priority />
       <div className="company-home-heading">
         <h1>Olá, {access.name}.</h1>
-        <p>Escolha uma operação ou acesse as áreas de gestão.</p>
+        <p>Escolha sua operação.</p>
       </div>
 
       <div className="company-home-operations">
+        {centralVisible && (
+          <Link className="company-operation-card central" href="/central">
+            <div className="company-operation-logo-wrap central-logo-wrap">
+              <Image src="/operation-central.png" alt="Candinho Central" width={1000} height={343} />
+              <span className="company-operation-submark">CENTRAL</span>
+            </div>
+            <div className="company-operation-mini-kpis">
+              <span><small>Não lidas</small><strong>{num(central, "unread")}</strong></span>
+              <span><small>Conversas abertas</small><strong>{num(central, "open_conversations")}</strong></span>
+              <span><small>Status</small><strong>Ativo</strong></span>
+            </div>
+          </Link>
+        )}
+
         {access.canAccessSupplements && (
           <Link className="company-operation-card supplements" href="/suplementos">
-            <div className="company-operation-logo-wrap"><Image src="/operation-suplementos.png" alt="Candinho Suplementos" width={709} height={236} /></div>
+            <div className="company-operation-logo-wrap"><Image src="/operation-suplementos.png" alt="Candinho Suplementos" width={1000} height={343} /></div>
             <div className="company-operation-mini-kpis">
               <span><small>Vendas no mês</small><strong>{num(supplements, "current_month_sales")}</strong></span>
               <span><small>Faturamento</small><strong>{formatCurrency(num(supplements, "current_month_revenue"))}</strong></span>
@@ -56,7 +72,7 @@ export default async function DashboardPage() {
 
         {access.canAccessFitness && (
           <Link className="company-operation-card fitness" href="/fitness">
-            <div className="company-operation-logo-wrap"><Image src="/operation-fitness.png" alt="Candinho Fitness" width={709} height={236} /></div>
+            <div className="company-operation-logo-wrap"><Image src="/operation-fitness.png" alt="Candinho Fitness" width={1000} height={343} /></div>
             <div className="company-operation-mini-kpis">
               <span><small>Vendas no mês</small><strong>{num(fitness, "month_sales")}</strong></span>
               <span><small>Faturamento</small><strong>{formatCurrency(num(fitness, "month_revenue"))}</strong></span>
@@ -67,7 +83,7 @@ export default async function DashboardPage() {
 
         {access.canAccessBank && (
           <Link className="company-operation-card bank" href="/bank">
-            <div className="company-operation-logo-wrap"><Image src="/operation-bank.png" alt="Candinho Bank" width={709} height={236} /></div>
+            <div className="company-operation-logo-wrap"><Image src="/operation-bank.png" alt="Candinho Bank" width={1000} height={343} /></div>
             <div className="company-operation-mini-kpis">
               <span><small>Saldo atual</small><strong>{formatCurrency(num(bank, "total_balance"))}</strong></span>
               <span><small>Faturas do mês</small><strong>{formatCurrency(num(bank, "invoices_this_month"))}</strong></span>
@@ -85,7 +101,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      {(!access.active || (!access.canAccessSupplements && !access.canAccessFitness && !access.canAccessBank)) && (
+      {(!access.active || (!centralVisible && !access.canAccessSupplements && !access.canAccessFitness && !access.canAccessBank)) && (
         <p className="operation-access-warning">Seu usuário ainda não possui uma operação liberada.</p>
       )}
     </section>
