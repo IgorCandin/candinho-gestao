@@ -1,11 +1,12 @@
 "use client";
 
-import { Bot, LoaderCircle, Send, TriangleAlert } from "lucide-react";
+import { Bot, LoaderCircle, MessageSquareText, Send, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import type { CentralQuickReply } from "@/lib/central-data";
 
-export function CentralReplyComposer({ conversationId, provider }: { conversationId: string; provider: string }) {
+export function CentralReplyComposer({ conversationId, provider, quickReplies = [] }: { conversationId: string; provider: string; quickReplies?: CentralQuickReply[] }) {
   const router = useRouter();
   const [body, setBody] = useState("");
   const [loading, setLoading] = useState<"send" | "nexus" | null>(null);
@@ -56,6 +57,7 @@ export function CentralReplyComposer({ conversationId, provider }: { conversatio
   const supported = ["whatsapp", "instagram", "facebook"].includes(provider);
 
   return <div className="central-reply-composer">
+    {quickReplies.length > 0 && <div className="central-quick-reply-strip"><span><MessageSquareText size={14}/>Respostas rápidas</span><div>{quickReplies.slice(0, 8).map((reply) => <button type="button" key={reply.id} onClick={() => setBody(reply.body)} title={reply.body}>{reply.title}</button>)}</div></div>}
     <textarea
       value={body}
       onChange={(event) => setBody(event.target.value)}

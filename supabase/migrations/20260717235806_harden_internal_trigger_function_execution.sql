@@ -1,0 +1,15 @@
+revoke execute on function public.handle_new_user() from public,anon,authenticated;
+revoke execute on function public.configure_generic_partner_profile() from public,anon,authenticated;
+revoke execute on function public.central_contacts_auto_link() from public,anon,authenticated;
+revoke execute on function public.apply_inventory_movement() from public,anon,authenticated;
+revoke execute on function public.refresh_sale_totals() from public,anon,authenticated;
+revoke execute on function public.fitness_apply_inventory_movement() from public,anon,authenticated;
+revoke execute on function public.fitness_refresh_sale_totals() from public,anon,authenticated;
+revoke execute on function public.fitness_sync_purchase_order_receipt() from public,anon,authenticated;
+revoke execute on function public.test_lab_apply_inventory_movement() from public,anon,authenticated;
+revoke execute on function public.audit_central_integration_changes() from public,anon,authenticated;
+revoke execute on function public.audit_partner_user_link_changes() from public,anon,authenticated;
+revoke execute on function public.audit_ui_feature_flag_changes() from public,anon,authenticated;
+grant execute on function public.handle_new_user() to service_role;
+grant execute on function public.configure_generic_partner_profile() to service_role;
+grant execute on function public.central_contacts_auto_link() to service_role;

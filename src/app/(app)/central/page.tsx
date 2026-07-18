@@ -1,16 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Bell, Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListTodo, MessageCircleMore, PlugZap, Search, ShieldCheck, UsersRound } from "lucide-react";
+import { Bell, Bot, CalendarDays, CheckCircle2, ImageIcon, Inbox, Link2, ListChecks, ListTodo, MessageCircleMore, MessageSquareText, PlugZap, Search, ShieldCheck, UsersRound } from "lucide-react";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess } from "@/lib/data";
-import { getCentralAgendaSnapshot, getCentralAlertsSnapshot, getCentralDashboardSnapshot, getCentralIntegrationReadiness } from "@/lib/central-data";
+import { getCentralAgendaSnapshot, getCentralAlertsSnapshot, getCentralDailyPriorities, getCentralDashboardSnapshot, getCentralIntegrationReadiness } from "@/lib/central-data";
 
 const providerLabel: Record<string, string> = { whatsapp: "WhatsApp", instagram: "Instagram", facebook: "Facebook" };
 
 export default async function CentralPage() {
   const access = await getCurrentUserAccess();
   if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
-  const [data, agenda, alerts, readiness] = await Promise.all([getCentralDashboardSnapshot(), getCentralAgendaSnapshot("planned", null), getCentralAlertsSnapshot(), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
+  const [data, agenda, alerts, priorities, readiness] = await Promise.all([getCentralDashboardSnapshot(), getCentralAgendaSnapshot("planned", null), getCentralAlertsSnapshot(), getCentralDailyPriorities(), access.canManageUsers ? getCentralIntegrationReadiness() : Promise.resolve(null)]);
   const metaReady = Boolean(readiness?.meta.ready);
   const aiReady = Boolean(readiness?.openai.ready);
 
@@ -19,6 +19,7 @@ export default async function CentralPage() {
     <form className="central-home-search central-home-search-first" action="/central/busca" method="get"><Search size={18}/><input name="q" placeholder="Buscar cliente, produto, parceiro, tarefa ou mídia..."/><button className="button gold compact-button" type="submit">Buscar</button></form>
 
     <section className="stats-grid central-stats-grid">
+      <StatCard href="/central/prioridades" label="Prioridades do dia" value={String(priorities.summary.total)} note="Fila consolidada de ação" icon={ListChecks}/>
       <StatCard href="/central/inbox" label="Mensagens não lidas" value={String(data.unread)} note={`${data.open_conversations} conversa(s) aberta(s)`} icon={Inbox}/>
       <StatCard href="/central/inbox?status=pending" label="Aguardando retorno" value={String(data.pending_conversations)} note="Conversas marcadas como pendentes" icon={MessageCircleMore}/>
       <StatCard href="/central/clientes" label="Contatos unificados" value={String(data.contacts)} note="Meta, cadastro manual e CRM" icon={UsersRound}/>
@@ -30,9 +31,11 @@ export default async function CentralPage() {
     </section>
 
     <section className="central-launch-grid">
-      <Link href="/central/busca" className="central-launch-card primary"><Search size={24}/><span><strong>Busca Global</strong><small>Encontre clientes, produtos, parceiros, tarefas e mídias em uma única pesquisa.</small></span></Link>
+      <Link href="/central/prioridades" className="central-launch-card primary"><ListChecks size={24}/><span><strong>Prioridades do dia</strong><small>Atendimento, retornos, Radar, estoque, parceiros e integrações em uma fila única.</small></span></Link>
+      <Link href="/central/busca" className="central-launch-card"><Search size={24}/><span><strong>Busca Global</strong><small>Encontre clientes, produtos, parceiros, tarefas e mídias em uma única pesquisa.</small></span></Link>
       <Link href="/central/alertas" className="central-launch-card"><Bell size={24}/><span><strong>Alertas</strong><small>Veja o que exige atenção agora em toda a Company.</small></span></Link>
-      <Link href="/central/inbox" className="central-launch-card"><Inbox size={24}/><span><strong>Atendimento</strong><small>Fila única com busca, filtros, status e contexto do cliente.</small></span></Link>
+      <Link href="/central/inbox" className="central-launch-card"><Inbox size={24}/><span><strong>Atendimento</strong><small>Fila única com busca, filtros, responsável, retorno e contexto do cliente.</small></span></Link>
+      {(access.canWriteSupplements || access.canWriteFitness || access.canWriteMarketing || access.role === "admin") && <Link href="/central/respostas" className="central-launch-card"><MessageSquareText size={24}/><span><strong>Respostas rápidas</strong><small>Textos prontos para carregar e revisar antes do envio.</small></span></Link>}
       <Link href="/central/clientes" className="central-launch-card"><UsersRound size={24}/><span><strong>Clientes</strong><small>Cadastre manualmente e una identidades sem apagar as origens.</small></span></Link>
       <Link href="/central/agenda" className="central-launch-card"><CalendarDays size={24}/><span><strong>Agenda</strong><small>Compromissos e tarefas de todas as operações.</small></span></Link>
       <Link href="/central/midia" className="central-launch-card"><ImageIcon size={24}/><span><strong>Mídia</strong><small>Fotos, vídeos e documentos organizados para uso futuro.</small></span></Link>

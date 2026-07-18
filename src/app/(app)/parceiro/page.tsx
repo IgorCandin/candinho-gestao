@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Boxes, CircleDollarSign, Gift, Handshake, LogOut, PackageOpen, Target, TriangleAlert } from "lucide-react";
+import { Boxes, CircleDollarSign, Gift, Handshake, KeyRound, LogOut, PackageOpen, Target, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getPartnerMonthlyHistory, getPartnerPortalDashboard } from "@/lib/central-data";
@@ -46,7 +47,7 @@ export default async function PartnerPortalPage() {
       : "Acompanhe os ciclos junto à Candinho.";
 
   return <>
-    <PageHeader eyebrow="Portal do Parceiro" title={profile.partner_name} description="Acompanhe os números da sua parceria com transparência. Você visualiza apenas os dados ligados ao seu próprio perfil." action={<form action="/auth/signout" method="post"><button className="button ghost" type="submit"><LogOut size={15}/>Sair</button></form>} />
+    <PageHeader eyebrow="Portal do Parceiro" title={profile.partner_name} description="Acompanhe os números da sua parceria com transparência. Você visualiza apenas os dados ligados ao seu próprio perfil." action={<div className="partner-header-actions"><Link className="button ghost" href="/parceiro/seguranca"><KeyRound size={15}/>Segurança</Link><form action="/auth/signout" method="post"><button className="button ghost" type="submit"><LogOut size={15}/>Sair</button></form></div>} />
 
     <section className="partner-portal-hero">
       <article className="partner-portal-contract panel"><div className="panel-body"><span className="partner-portal-icon"><Handshake size={26}/></span><div><small>{isFixedRepasse ? "Condição comercial" : "Regra da parceria"}</small><strong>{conditionValue}</strong><p>{profile.settlement_rule ?? profile.reward_description ?? "Regra de parceria cadastrada pela Candinho."}</p></div></div></article>

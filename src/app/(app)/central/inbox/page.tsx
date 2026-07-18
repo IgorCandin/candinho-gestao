@@ -2,9 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Mail, MessageCircle, Search, UserRound } from "lucide-react";
 import { CentralConversationActions } from "@/components/central-conversation-actions";
+import { CentralConversationAssignment } from "@/components/central-conversation-assignment";
+import { CentralConversationFollowupForm } from "@/components/central-conversation-followup-form";
+import { CentralConversationReadMarker } from "@/components/central-conversation-read-marker";
 import { CentralReplyComposer } from "@/components/central-reply-composer";
 import { PageHeader } from "@/components/page-header";
-import { getCentralConversationDetails, getCentralInboxSnapshot } from "@/lib/central-data";
+import { getCentralConversationDetails, getCentralInboxSnapshot, getCentralQuickReplies, getCentralTeamMembers } from "@/lib/central-data";
 import { getCurrentUserAccess } from "@/lib/data";
 import { formatDateTime } from "@/lib/format";
 
@@ -29,6 +32,8 @@ export default async function CentralInboxPage({ searchParams }: { searchParams:
   });
   const selectedId = params.conversa || items[0]?.conversation_id || null;
   const details = selectedId ? await getCentralConversationDetails(selectedId) : null;
+  const selectedScope = details?.conversation?.operation_scope ?? "company";
+  const [team, quickReplies] = details?.conversation ? await Promise.all([getCentralTeamMembers(selectedScope), getCentralQuickReplies(selectedScope)]) : [[], []];
 
   return <>
     <PageHeader eyebrow="Candinho Central" title="Atendimento" description="WhatsApp, Instagram e Facebook em uma única fila, com contexto do cliente e apoio do Nexus." />
@@ -41,7 +46,7 @@ export default async function CentralInboxPage({ searchParams }: { searchParams:
         <select name="status" defaultValue={params.status ?? ""}><option value="">Todos os status</option><option value="open">Abertas</option><option value="pending">Pendentes</option><option value="closed">Concluídas</option></select>
         <button className="button ghost compact-button" type="submit">Filtrar</button>
       </form>
-      <span>{items.length} de {allItems.length} conversa(s)</span>
+      <span>{items.length} de {allItems.length} conversa(s) · <Link href="/central/respostas">Respostas rápidas</Link></span>
     </div>
 
     <section className="central-inbox-layout">
@@ -65,14 +70,18 @@ export default async function CentralInboxPage({ searchParams }: { searchParams:
 
       <article className="panel central-chat-panel">
         {!details?.conversation ? <div className="empty"><MessageCircle size={28}/><strong>Selecione uma conversa</strong>O histórico e o contexto do cliente aparecerão aqui.</div> : <>
+          <CentralConversationReadMarker conversationId={details.conversation.conversation_id} unreadCount={details.conversation.unread_count}/>
           <div className="central-chat-head">
             <div><strong>{details.conversation.contact_name}</strong><span>{providerMeta[details.conversation.provider]?.label ?? details.conversation.provider} · {scopeLabel[details.conversation.operation_scope] ?? details.conversation.operation_scope} · {details.conversation.status}</span></div>
-            <CentralConversationActions conversationId={details.conversation.conversation_id} status={details.conversation.status}/>
+            <div className="central-chat-head-actions">
+              <CentralConversationAssignment conversationId={details.conversation.conversation_id} currentAssignedTo={details.conversation.assigned_to} team={team}/>
+              <CentralConversationActions conversationId={details.conversation.conversation_id} status={details.conversation.status}/>
+            </div>
           </div>
           <div className="central-chat-body">
             {details.messages.length === 0 ? <div className="empty">Sem mensagens registradas.</div> : details.messages.map((message) => <div className={`central-message ${message.direction}`} key={message.id}><span>{message.body ?? `[${message.message_type}]`}</span><small>{formatDateTime(message.sent_at)}{message.delivery_status ? ` · ${message.delivery_status}` : ""}</small></div>)}
           </div>
-          <CentralReplyComposer conversationId={details.conversation.conversation_id} provider={details.conversation.provider}/>
+          <CentralReplyComposer conversationId={details.conversation.conversation_id} provider={details.conversation.provider} quickReplies={quickReplies}/>
           <div className="central-customer-context central-customer-context-v2">
             <div><small>Contato</small><strong>{details.contact?.display_name ?? details.conversation.contact_name}</strong></div>
             <div><small>Telefone</small><strong>{details.contact?.phone ?? "—"}</strong></div>
@@ -80,7 +89,7 @@ export default async function CentralInboxPage({ searchParams }: { searchParams:
             <div><small>Instagram</small><strong>{details.contact?.instagram_username ? `@${details.contact.instagram_username}` : "—"}</strong></div>
             <div><small>Vínculos</small><strong>{[details.contact?.supplements_customer_id ? "Suplementos" : null, details.contact?.fitness_customer_id ? "Fitness" : null].filter(Boolean).join(" + ") || "Ainda não vinculado"}</strong></div>
             {details.contact?.notes && <div className="central-context-notes"><small>Observação</small><strong>{details.contact.notes}</strong></div>}
-            {details.contact?.id && <div className="central-context-actions"><Link className="button ghost compact-button" href={`/central/clientes/${details.contact.id}`}><UserRound size={14}/>Abrir contato</Link>{details.contact.email && <span><Mail size={13}/>{details.contact.email}</span>}</div>}
+            {details.contact?.id && <div className="central-context-actions"><Link className="button ghost compact-button" href={`/central/clientes/${details.contact.id}`}><UserRound size={14}/>Abrir contato</Link><CentralConversationFollowupForm conversationId={details.conversation.conversation_id}/>{details.contact.email && <span><Mail size={13}/>{details.contact.email}</span>}</div>}
           </div>
         </>}
       </article>

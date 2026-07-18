@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Archive, ArrowLeft, BarChart3, Bell, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
   Handshake, HeartPulse, History, Home, Images, Inbox, Link2, ListTodo, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
-  Search, Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck, Radar,
+  Search, Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck, Radar, MessageSquareText, KeyRound, ListChecks,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
@@ -58,9 +58,11 @@ const bankNav = [
 
 const centralNav = [
   { href: "/central", label: "Visão Geral", icon: HeartPulse },
+  { href: "/central/prioridades", label: "Prioridades", icon: ListChecks },
   { href: "/central/busca", label: "Busca Global", icon: Search },
   { href: "/central/alertas", label: "Alertas", icon: Bell },
   { href: "/central/inbox", label: "Atendimento", icon: Inbox },
+  { href: "/central/respostas", label: "Respostas rápidas", icon: MessageSquareText },
   { href: "/central/clientes", label: "Clientes", icon: UsersRound },
   { href: "/central/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/central/pendencias", label: "Pendências", icon: ListTodo },
@@ -74,7 +76,7 @@ const marketingNav = [
   { href: "/marketing", label: "Visão geral", icon: Megaphone },
 ];
 
-const partnerNav = [{ href: "/parceiro", label: "Meu Painel", icon: Handshake }];
+const partnerNav = [{ href: "/parceiro", label: "Meu Painel", icon: Handshake }, { href: "/parceiro/seguranca", label: "Segurança", icon: KeyRound }];
 const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
 
 type Operation = "hub" | "central" | "supplements" | "fitness" | "bank" | "marketing" | "partner";
@@ -101,7 +103,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const isBank = operation === "bank";
   const isMarketing = operation === "marketing";
   const isSalesProfile = access.role === "sales";
-  const centralVisibleNav = access.canManageUsers ? centralNav : centralNav.filter((item) => item.href !== "/central/governanca");
+  const centralVisibleNav = (access.canWriteSupplements || access.canWriteFitness || access.canWriteMarketing || access.role === "admin" ? centralNav : centralNav.filter((item) => item.href !== "/central/respostas")).filter((item) => access.canManageUsers || item.href !== "/central/governanca");
   const nav = operation === "hub" ? hubNav : isCentral ? centralVisibleNav : isPartner ? partnerNav : isBank ? bankNav : isMarketing ? marketingNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
 
   const mobileShortcuts = isSettings ? [] : isCentral ? [
@@ -113,6 +115,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
     { href: "/central/midia?scope=marketing", label: "Mídia", icon: Images, primary: false },
   ] : isPartner ? [
     { href: "/parceiro", label: "Meu painel", icon: Handshake, primary: true },
+    { href: "/parceiro/seguranca", label: "Segurança", icon: KeyRound, primary: false },
   ] : isBank ? [
     { href: "/bank/atualizar", label: "Atualizar", icon: RefreshCcw, primary: false },
     { href: "/bank", label: "Início", icon: ChartNoAxesCombined, primary: true },

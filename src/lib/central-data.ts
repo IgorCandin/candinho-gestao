@@ -118,7 +118,41 @@ export type CentralConversationDetails = {
   messages: CentralMessage[];
 };
 
+
+export type CentralTeamMember = { id: string; full_name: string | null; email: string | null; role: string };
+
+export type CentralQuickReply = {
+  id: string;
+  operation_scope: string;
+  title: string;
+  body: string;
+  active: boolean;
+  sort_order: number;
+};
+
+export type CentralDailyPriorityTask = {
+  id: string; title: string; category: string; due_at: string; priority: string; status: string; operation_scope: string; central_contact_id: string | null; contact_name: string | null; assigned_name: string | null; sort_rank: number;
+};
+export type CentralDailyPriorityConversation = {
+  conversation_id: string; operation_scope: string; provider: string; contact_name: string; status: string; assigned_to_name: string | null; last_message_at: string | null; unread_count: number; last_message_body: string | null;
+};
+export type CentralDailyPriorityRadar = {
+  customer_id: string; customer_name: string; phone: string | null; city: string | null; last_product_name: string | null; days_to_repurchase: number | null; opportunity_priority: string; opportunity_label: string; recommended_action: string | null; priority_source: string; opportunity_score: number;
+};
+export type CentralDailyPriorityInventory = { attention_type: string; entity_id: string; title: string; status: string; details: Record<string, unknown> | null };
+export type CentralDailyPrioritiesSnapshot = {
+  generated_at: string | null;
+  summary: { tasks: number; conversations: number; radar: number; inventory: number; partner_attention: number; integration_attention: number; total: number };
+  tasks: CentralDailyPriorityTask[];
+  conversations: CentralDailyPriorityConversation[];
+  radar: CentralDailyPriorityRadar[];
+  inventory: CentralDailyPriorityInventory[];
+  partners: PartnerPortalHealthSnapshot;
+  integrations: CentralIntegrationHealth[];
+};
+
 export type CentralIntegrationHealth = {
+  id?: string;
   provider: string;
   operation_scope: string;
   account_external_id?: string | null;
@@ -764,4 +798,56 @@ export async function getCentralContacts(limit = 200): Promise<CentralContact[]>
     .limit(limit);
   if (error) throw error;
   return (data ?? []) as CentralContact[];
+}
+
+
+export async function getCentralTeamMembers(scope: string): Promise<CentralTeamMember[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("central_team_members", { p_scope: scope || "company" });
+  if (error) throw error;
+  return (data ?? []) as CentralTeamMember[];
+}
+
+export async function getCentralQuickReplies(scope: string): Promise<CentralQuickReply[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("central_quick_replies")
+    .select("id,operation_scope,title,body,active,sort_order")
+    .eq("active", true)
+    .in("operation_scope", ["company", scope || "company"])
+    .order("sort_order")
+    .order("title");
+  if (error) throw error;
+  return (data ?? []) as CentralQuickReply[];
+}
+
+export async function getAllCentralQuickReplies(): Promise<CentralQuickReply[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("central_quick_replies")
+    .select("id,operation_scope,title,body,active,sort_order")
+    .order("operation_scope")
+    .order("sort_order")
+    .order("title");
+  if (error) throw error;
+  return (data ?? []) as CentralQuickReply[];
+}
+
+
+export async function getCentralDailyPriorities(): Promise<CentralDailyPrioritiesSnapshot> {
+  const fallback: CentralDailyPrioritiesSnapshot = {
+    generated_at: null,
+    summary: { tasks: 0, conversations: 0, radar: 0, inventory: 0, partner_attention: 0, integration_attention: 0, total: 0 },
+    tasks: [], conversations: [], radar: [], inventory: [],
+    partners: { summary: { ready: 0, attention: 0, total: 0 }, items: [] },
+    integrations: [],
+  };
+  if (!isSupabaseConfigured) return fallback;
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("central_daily_priorities_snapshot");
+  if (error) throw error;
+  return asObject<CentralDailyPrioritiesSnapshot>(data, fallback);
 }
