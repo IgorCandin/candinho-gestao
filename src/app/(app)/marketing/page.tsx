@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { CalendarDays, Images, Megaphone, MessagesSquare, Sparkles } from "lucide-react";
+import { CalendarDays, FileText, Images, Lightbulb, Megaphone, Sparkles, Workflow } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export default async function MarketingPage() {
@@ -8,30 +8,119 @@ export default async function MarketingPage() {
   if (!(access.role === "admin" || access.canAccessMarketing)) redirect("/dashboard");
 
   return <>
-    <section className="marketing-foundation-hero marketing-foundation-hero-clean">
-      <article className="marketing-foundation-brand panel">
-        <div className="marketing-foundation-copy">
-          <span className="marketing-status-pill"><Sparkles size={14}/>Fundação ativa</span>
-          <h2>Operação pronta para receber a próxima definição.</h2>
-          <p>Nenhuma regra de vendas, estoque ou financeiro foi criada por suposição. A base de acesso, identidade e integração com a Central já está preparada.</p>
+    <section className="operation-home-hero operation-home-no-heading">
+      <Link className="operation-home-primary" href="/central/midia?scope=marketing">
+        <Lightbulb size={24}/>
+        <div>
+          <span>Ação principal</span>
+          <strong>Registrar ideia ou anexar material</strong>
+          <small>PDF, imagem, vídeo, referência ou briefing para organizar depois</small>
         </div>
-      </article>
+      </Link>
+
+      <div className="operation-home-kpis">
+        <Link href="/central/midia?scope=marketing">
+          <span>Caixa de ideias</span>
+          <strong>Entrada</strong>
+          <small>Guarde referências sem perder o arquivo original</small>
+        </Link>
+        <Link href="/central/agenda?scope=marketing">
+          <span>Planejamento</span>
+          <strong>Agenda</strong>
+          <small>Transforme ideias aprovadas em tarefas e datas</small>
+        </Link>
+        <Link href="/central/nexus">
+          <span>Organização inteligente</span>
+          <strong>Nexus</strong>
+          <small>Base pronta para resumir e classificar materiais</small>
+        </Link>
+      </div>
     </section>
 
     <section className="central-launch-grid marketing-foundation-links">
-      <Link href="/central/midia?scope=marketing" className="central-launch-card primary"><Images size={24}/><span><strong>Mídia do Marketing</strong><small>Organize fotos, vídeos e materiais com o escopo Marketing.</small></span></Link>
-      <Link href="/central/agenda?scope=marketing" className="central-launch-card"><CalendarDays size={24}/><span><strong>Agenda</strong><small>Planeje tarefas e compromissos ligados à operação.</small></span></Link>
-      <Link href="/central/inbox?scope=marketing" className="central-launch-card"><MessagesSquare size={24}/><span><strong>Atendimento</strong><small>O escopo já está aceito pela Central para futuras integrações.</small></span></Link>
-      <Link href="/central" className="central-launch-card"><Megaphone size={24}/><span><strong>Candinho Central</strong><small>Volte ao centro de comando da Company.</small></span></Link>
+      <Link href="/central/midia?scope=marketing" className="central-launch-card primary">
+        <Images size={24}/>
+        <span>
+          <strong>Ideias e arquivos</strong>
+          <small>Anexe PDFs, imagens, vídeos e referências. O original continua preservado.</small>
+        </span>
+      </Link>
+
+      <Link href="/central/agenda?scope=marketing" className="central-launch-card">
+        <CalendarDays size={24}/>
+        <span>
+          <strong>Calendário de produção</strong>
+          <small>Planeje gravação, edição, publicação e campanhas.</small>
+        </span>
+      </Link>
+
+      <Link href="/central/nexus" className="central-launch-card">
+        <Sparkles size={24}/>
+        <span>
+          <strong>Organizar com Nexus</strong>
+          <small>Use a camada de IA existente para apoiar classificação e resumo dos materiais.</small>
+        </span>
+      </Link>
+
+      <Link href="/central" className="central-launch-card">
+        <Megaphone size={24}/>
+        <span>
+          <strong>Candinho Central</strong>
+          <small>Leve tarefas, clientes e atendimento para o centro de comando.</small>
+        </span>
+      </Link>
     </section>
 
-    <article className="panel marketing-definition-panel">
-      <div className="panel-head"><div><h2>O que ficou propositalmente em aberto</h2><p>Essa etapa prepara a estrutura sem decidir por você como o Marketing deve funcionar.</p></div></div>
-      <div className="panel-body marketing-definition-grid">
-        <div><strong>Projetos e campanhas</strong><span>Aguardando definição do seu fluxo.</span></div>
-        <div><strong>Calendário editorial</strong><span>Pode ser integrado quando você explicar a rotina.</span></div>
-        <div><strong>Métricas e metas</strong><span>Nenhum indicador foi inventado nesta fase.</span></div>
-        <div><strong>Custos e orçamento</strong><span>Sem vínculo financeiro automático até você definir as regras.</span></div>
+    <article className="panel" style={{ marginTop: 18 }}>
+      <div className="panel-head">
+        <div>
+          <h2>Fluxo oficial da Operação Marketing</h2>
+          <p>A estrutura junta a ideia que você explicou com a organização de campanhas que já fazia sentido para a Company.</p>
+        </div>
+        <Workflow size={20}/>
+      </div>
+
+      <div
+        className="panel-body"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))",
+          gap: 10,
+        }}
+      >
+        {[
+          ["1", "Ideia / Material", "Você escreve uma ideia ou anexa PDF, imagem, vídeo e referência."],
+          ["2", "Interpretação", "O material é resumido e organizado sem apagar o arquivo original."],
+          ["3", "Projeto / Roteiro", "A ideia vira uma página estruturada com objetivo, produto, formato e roteiro."],
+          ["4", "Produção", "Status: ideia, planejar, gravar, editar e publicar."],
+          ["5", "Resultado", "Depois entram métricas, leads, vendas e aprendizado da campanha."],
+        ].map(([number, title, description]) => (
+          <div
+            key={number}
+            style={{
+              padding: 14,
+              border: "1px solid var(--line)",
+              borderRadius: 13,
+              background: "rgba(255,255,255,.016)",
+              display: "grid",
+              gap: 6,
+            }}
+          >
+            <span className="badge gold" style={{ width: "fit-content" }}>{number}</span>
+            <strong style={{ fontSize: 12 }}>{title}</strong>
+            <small style={{ color: "var(--muted)", fontSize: 9, lineHeight: 1.5 }}>{description}</small>
+          </div>
+        ))}
+      </div>
+    </article>
+
+    <article className="panel" style={{ marginTop: 18 }}>
+      <div className="panel-head">
+        <div>
+          <h2>Automação inteligente — próxima camada</h2>
+          <p>O fluxo visual já fica definido neste pacote. A criação automática de uma página de roteiro a partir do conteúdo integral de um PDF exige a etapa de extração/processamento do arquivo.</p>
+        </div>
+        <FileText size={20}/>
       </div>
     </article>
   </>;

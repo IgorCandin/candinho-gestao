@@ -43,7 +43,7 @@ const fitnessSalesNav = [
 ];
 
 const bankNav = [
-  { href: "/bank", label: "Visão geral", icon: ChartNoAxesCombined },
+  { href: "/bank", label: "Este mês", icon: ChartNoAxesCombined },
   { href: "/bank/atualizar", label: "Atualização Rápida", icon: RefreshCcw },
   { href: "/bank/entradas", label: "Entradas e Receber", icon: CircleDollarSign },
   { href: "/bank/operacoes", label: "À Receber Operações", icon: ShoppingBag },
@@ -75,9 +75,15 @@ const centralNav = [
 
 const marketingNav = [
   { href: "/marketing", label: "Visão geral", icon: Megaphone },
+  { href: "/central/midia?scope=marketing", label: "Ideias e arquivos", icon: Images },
+  { href: "/central/agenda?scope=marketing", label: "Planejamento", icon: CalendarDays },
 ];
 
-const partnerNav = [{ href: "/parceiro", label: "Meu Painel", icon: Handshake }, { href: "/parceiro/seguranca", label: "Segurança", icon: KeyRound }];
+const partnerNav = [
+  { href: "/parceiro", label: "Meu Painel", icon: Handshake },
+  { href: "/parceiro/seguranca", label: "Segurança", icon: KeyRound },
+];
+
 const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
 
 type Operation = "hub" | "central" | "supplements" | "fitness" | "bank" | "marketing" | "partner";
@@ -86,6 +92,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const pathname = usePathname();
   const router = useRouter();
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
+
   const isHub = pathname === "/dashboard";
   const isSettings = pathname.startsWith("/configuracoes");
 
@@ -104,8 +111,26 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const isBank = operation === "bank";
   const isMarketing = operation === "marketing";
   const isSalesProfile = access.role === "sales";
-  const centralVisibleNav = (access.canWriteSupplements || access.canWriteFitness || access.canWriteMarketing || access.role === "admin" ? centralNav : centralNav.filter((item) => item.href !== "/central/respostas")).filter((item) => access.canManageUsers || !["/central/governanca", "/central/ativacao"].includes(item.href));
-  const nav = operation === "hub" ? hubNav : isCentral ? centralVisibleNav : isPartner ? partnerNav : isBank ? bankNav : isMarketing ? marketingNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
+
+  const centralVisibleNav = (
+    access.canWriteSupplements || access.canWriteFitness || access.canWriteMarketing || access.role === "admin"
+      ? centralNav
+      : centralNav.filter((item) => item.href !== "/central/respostas")
+  ).filter((item) => access.canManageUsers || !["/central/governanca", "/central/ativacao"].includes(item.href));
+
+  const nav = operation === "hub"
+    ? hubNav
+    : isCentral
+      ? centralVisibleNav
+      : isPartner
+        ? partnerNav
+        : isBank
+          ? bankNav
+          : isMarketing
+            ? marketingNav
+            : isFitness
+              ? (isSalesProfile ? fitnessSalesNav : fitnessNav)
+              : (isSalesProfile ? supplementSalesNav : supplementNav);
 
   const mobileShortcuts = isSettings ? [] : isCentral ? [
     { href: "/central/busca", label: "Buscar", icon: Search, primary: true },
@@ -119,7 +144,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
     { href: "/parceiro/seguranca", label: "Segurança", icon: KeyRound, primary: false },
   ] : isBank ? [
     { href: "/bank/atualizar", label: "Atualizar", icon: RefreshCcw, primary: false },
-    { href: "/bank", label: "Início", icon: ChartNoAxesCombined, primary: true },
+    { href: "/bank", label: "Este mês", icon: ChartNoAxesCombined, primary: true },
     { href: "/bank/faturas", label: "Faturas", icon: History, primary: false },
   ] : isFitness ? (isSalesProfile ? [
     { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch, primary: true },
@@ -136,52 +161,194 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
     { href: "/produtos", label: "Produtos", icon: PackageSearch, primary: false },
   ]);
 
-  const showSupplementActions = access.canWriteSupplements && isSupplements && !isSettings;
-  const showFitnessActions = access.canWriteFitness && isFitness && !isSettings;
-  const brand = isBank ? BRAND_ASSETS.bank.complete : isMarketing ? BRAND_ASSETS.marketing.complete : isCentral ? BRAND_ASSETS.central.complete : isFitness ? BRAND_ASSETS.fitness.complete : isSupplements ? BRAND_ASSETS.supplements.complete : BRAND_ASSETS.company.complete;
+  const isOperationHome =
+    pathname === "/suplementos" ||
+    pathname === "/fitness" ||
+    pathname === "/bank" ||
+    pathname === "/marketing";
 
-  useEffect(() => { mobileMenuRef.current?.removeAttribute("open"); }, [pathname]);
-  function closeMobileMenu() { mobileMenuRef.current?.removeAttribute("open"); }
+  const showSupplementActions = access.canWriteSupplements && isSupplements && !isSettings && !isOperationHome;
+  const showFitnessActions = access.canWriteFitness && isFitness && !isSettings && !isOperationHome;
+
+  const brand = isBank
+    ? BRAND_ASSETS.bank.complete
+    : isMarketing
+      ? BRAND_ASSETS.marketing.complete
+      : isCentral
+        ? BRAND_ASSETS.central.complete
+        : isFitness
+          ? BRAND_ASSETS.fitness.complete
+          : isSupplements
+            ? BRAND_ASSETS.supplements.complete
+            : BRAND_ASSETS.company.complete;
+
+  useEffect(() => {
+    mobileMenuRef.current?.removeAttribute("open");
+  }, [pathname]);
+
+  function closeMobileMenu() {
+    mobileMenuRef.current?.removeAttribute("open");
+  }
+
   function goBack() {
-    if (typeof window !== "undefined" && window.history.length > 1) { router.back(); return; }
-    router.push(isSettings ? "/dashboard" : isCentral ? "/central" : isPartner ? "/parceiro" : isMarketing ? "/marketing" : isFitness ? "/fitness" : isBank ? "/bank" : "/suplementos");
-  }
-  function isActive(href: string) {
-    if (["/dashboard", "/central", "/parceiro", "/suplementos", "/fitness", "/bank", "/marketing"].includes(href)) return pathname === href;
-    if (href === "/vendas") return pathname.startsWith("/vendas") || pathname.startsWith("/leads") || pathname.startsWith("/orcamentos");
-    return pathname.startsWith(href);
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      router.back();
+      return;
+    }
+    router.push(
+      isSettings
+        ? "/dashboard"
+        : isCentral
+          ? "/central"
+          : isPartner
+            ? "/parceiro"
+            : isMarketing
+              ? "/marketing"
+              : isFitness
+                ? "/fitness"
+                : isBank
+                  ? "/bank"
+                  : "/suplementos",
+    );
   }
 
-  if (isHub) return <main className="hub-standalone"><div className="content content-hub">{children}</div></main>;
+  function isActive(href: string) {
+    const baseHref = href.split("?")[0];
+    if (["/dashboard", "/central", "/parceiro", "/suplementos", "/fitness", "/bank", "/marketing"].includes(baseHref)) {
+      return pathname === baseHref;
+    }
+    if (baseHref === "/vendas") {
+      return pathname.startsWith("/vendas") || pathname.startsWith("/leads") || pathname.startsWith("/orcamentos");
+    }
+    return pathname.startsWith(baseHref);
+  }
+
+  if (isHub) {
+    return <main className="hub-standalone"><div className="content content-hub">{children}</div></main>;
+  }
 
   return <div className={`app-shell theme-${operation}`}>
-    <aside className="sidebar">
-      <Link href="/dashboard" className="brand brand-logo-link" aria-label={`${brand.alt} — voltar às operações`}><Image className="sidebar-company-logo" src={brand.src} alt={brand.alt} width={brand.width} height={brand.height} priority /></Link>
-      <nav className="nav">{nav.map(({ href, label, icon: Icon }) => <Link className={`nav-link ${isActive(href) ? "primary" : ""}`} href={href} key={href}><Icon size={18} /><span className="nav-label">{label}</span></Link>)}</nav>
-      <div className="sidebar-footer">
-        <div className="sidebar-user"><span>{access.name}</span><small>{access.role === "partner" ? "Perfil Parceiro" : access.role === "sales" ? "Perfil Vendas" : access.email ?? "Acesso local"}</small></div>
-        <p className="sidebar-slogan">{isBank ? "Seu dinheiro, suas decisões, sua visão." : isCentral ? "Atendimento, informação e decisão em um só lugar." : isPartner ? "Sua parceria com transparência." : isMarketing ? "Operação preparada para a próxima fase da Candinho." : "Qualidade que entrega resultado."}</p>
-        <form action="/auth/signout" method="post"><button className="nav-link" style={{ width: "100%", border: 0, background: "transparent" }}><LogOut size={18} /><span className="nav-label">Sair</span></button></form>
+    <aside
+      className="sidebar"
+      style={{
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        minHeight: 0,
+      }}
+    >
+      <Link
+        href="/dashboard"
+        className="brand brand-logo-link"
+        aria-label={`${brand.alt} — voltar às operações`}
+        style={{ flex: "0 0 auto" }}
+      >
+        <Image
+          className="sidebar-company-logo"
+          src={brand.src}
+          alt={brand.alt}
+          width={brand.width}
+          height={brand.height}
+          priority
+        />
+      </Link>
+
+      <nav
+        className="nav"
+        style={{
+          flex: "1 1 auto",
+          minHeight: 0,
+          overflowY: "auto",
+          overflowX: "hidden",
+          paddingRight: 3,
+        }}
+      >
+        {nav.map(({ href, label, icon: Icon }) => (
+          <Link className={`nav-link ${isActive(href) ? "primary" : ""}`} href={href} key={href}>
+            <Icon size={18} />
+            <span className="nav-label">{label}</span>
+          </Link>
+        ))}
+      </nav>
+
+      <div className="sidebar-footer" style={{ flex: "0 0 auto", marginTop: 10 }}>
+        <div className="sidebar-user">
+          <span>{access.name}</span>
+          <small>{access.role === "partner" ? "Perfil Parceiro" : access.role === "sales" ? "Perfil Vendas" : access.email ?? "Acesso local"}</small>
+        </div>
+        <p className="sidebar-slogan">
+          {isBank
+            ? "Um mês de cada vez."
+            : isCentral
+              ? "Atendimento, informação e decisão em um só lugar."
+              : isPartner
+                ? "Sua parceria com transparência."
+                : isMarketing
+                  ? "Ideias organizadas para virar execução."
+                  : "Qualidade que entrega resultado."}
+        </p>
+        <form action="/auth/signout" method="post">
+          <button className="nav-link" style={{ width: "100%", border: 0, background: "transparent" }}>
+            <LogOut size={18} />
+            <span className="nav-label">Sair</span>
+          </button>
+        </form>
       </div>
     </aside>
 
     <header className="mobile-header">
       <button className="mobile-back-button" type="button" onClick={goBack}><ArrowLeft size={22} /></button>
-      <Link href="/dashboard" className="mobile-brand-link"><Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={brand.width} height={brand.height} priority /></Link>
-      <details className="mobile-menu" ref={mobileMenuRef}><summary><Menu size={20} /><span>Menu</span></summary><div className="mobile-menu-panel">
-        {nav.map(({ href, label, icon: Icon }) => <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={href} onClick={closeMobileMenu}><Icon size={18} /><span>{label}</span></Link>)}
-        <form action="/auth/signout" method="post"><button className="mobile-menu-link mobile-signout" type="submit"><LogOut size={18} /><span>Sair</span></button></form>
-      </div></details>
+      <Link href="/dashboard" className="mobile-brand-link">
+        <Image className="mobile-operation-logo" src={brand.src} alt={brand.alt} width={brand.width} height={brand.height} priority />
+      </Link>
+      <details className="mobile-menu" ref={mobileMenuRef}>
+        <summary><Menu size={20} /><span>Menu</span></summary>
+        <div className="mobile-menu-panel">
+          {nav.map(({ href, label, icon: Icon }) => (
+            <Link className={`mobile-menu-link ${isActive(href) ? "primary" : ""}`} href={href} key={href} onClick={closeMobileMenu}>
+              <Icon size={18} /><span>{label}</span>
+            </Link>
+          ))}
+          <form action="/auth/signout" method="post">
+            <button className="mobile-menu-link mobile-signout" type="submit"><LogOut size={18} /><span>Sair</span></button>
+          </form>
+        </div>
+      </details>
     </header>
 
     <main className="main">
-      {(showSupplementActions || showFitnessActions) && <header className="topbar"><div className="topbar-actions">
-        {showSupplementActions && <><Link className="button ghost" href="/leads/novo"><UserRoundPlus size={16} />Novo lead</Link><Link className="button gold" href="/vendas/nova"><CircleDollarSign size={16} />Novo Orçamento</Link></>}
-        {showFitnessActions && <><Link className="button ghost" href="/fitness/pedidos/novo"><Truck size={16} />Novo pedido</Link><Link className="button gold" href="/fitness/vendas/nova"><CircleDollarSign size={16} />Nova venda</Link></>}
-      </div></header>}
+      {(showSupplementActions || showFitnessActions) && (
+        <header className="topbar">
+          <div className="topbar-actions">
+            {showSupplementActions && <>
+              <Link className="button ghost" href="/leads/novo"><UserRoundPlus size={16} />Novo lead</Link>
+              <Link className="button gold" href="/vendas/nova"><CircleDollarSign size={16} />Novo Orçamento</Link>
+            </>}
+            {showFitnessActions && <>
+              <Link className="button ghost" href="/fitness/pedidos/novo"><Truck size={16} />Novo pedido</Link>
+              <Link className="button gold" href="/fitness/vendas/nova"><CircleDollarSign size={16} />Nova venda</Link>
+            </>}
+          </div>
+        </header>
+      )}
       <div className="content">{children}</div>
     </main>
 
-    {mobileShortcuts.length > 0 && <nav className="mobile-nav mobile-action-nav" style={{ gridTemplateColumns: `repeat(${mobileShortcuts.length}, minmax(0, 1fr))` }}>{mobileShortcuts.map(({ href, label, icon: Icon, primary }) => <Link className={`mobile-link mobile-action-link ${primary ? "mobile-action-primary" : ""} ${isActive(href) ? "primary" : ""}`} href={href} key={href}><Icon size={20} /><span>{label}</span></Link>)}</nav>}
+    {mobileShortcuts.length > 0 && (
+      <nav
+        className="mobile-nav mobile-action-nav"
+        style={{ gridTemplateColumns: `repeat(${mobileShortcuts.length}, minmax(0, 1fr))` }}
+      >
+        {mobileShortcuts.map(({ href, label, icon: Icon, primary }) => (
+          <Link
+            className={`mobile-link mobile-action-link ${primary ? "mobile-action-primary" : ""} ${isActive(href) ? "primary" : ""}`}
+            href={href}
+            key={href}
+          >
+            <Icon size={20} /><span>{label}</span>
+          </Link>
+        ))}
+      </nav>
+    )}
   </div>;
 }

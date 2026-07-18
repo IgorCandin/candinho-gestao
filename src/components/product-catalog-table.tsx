@@ -43,16 +43,54 @@ function compare(a: ProductCatalogRow, b: ProductCatalogRow, key: SortKey) {
   return stockLabel(a).label.localeCompare(stockLabel(b).label, "pt-BR");
 }
 
-function HeaderButton({ label, sortKey, currentKey, onSort }: { label: string; sortKey: SortKey; currentKey: SortKey; onSort: (key: SortKey) => void }) {
-  return <button className={currentKey === sortKey ? "active" : ""} type="button" onClick={() => onSort(sortKey)}>{label}<ArrowUpDown size={13} /></button>;
+function HeaderButton({
+  label,
+  sortKey,
+  currentKey,
+  onSort,
+}: {
+  label: string;
+  sortKey: SortKey;
+  currentKey: SortKey;
+  onSort: (key: SortKey) => void;
+}) {
+  return (
+    <button className={currentKey === sortKey ? "active" : ""} type="button" onClick={() => onSort(sortKey)}>
+      {label}<ArrowUpDown size={13} />
+    </button>
+  );
 }
 
 function IncomingTruck({ product }: { product: ProductCatalogRow }) {
   if (!(product.available_quantity > 0 && product.incoming_quantity > 0)) return null;
-  return <span className="product-incoming-truck" title={`${product.incoming_quantity} unidade(s) a caminho`} aria-label={`${product.incoming_quantity} unidade(s) a caminho`}><Truck size={15} /></span>;
+  return (
+    <span
+      className="product-incoming-truck"
+      title={`${product.incoming_quantity} unidade(s) a caminho`}
+      aria-label={`${product.incoming_quantity} unidade(s) a caminho`}
+    >
+      <Truck size={15} />
+    </span>
+  );
 }
 
-export function ProductCatalogTable({ products, categories, salesMode = false }: { products: ProductCatalogRow[]; categories: string[]; salesMode?: boolean }) {
+const galleryMinWidth: Record<number, number> = {
+  1: 132,
+  2: 168,
+  3: 210,
+  4: 258,
+  5: 320,
+};
+
+export function ProductCatalogTable({
+  products,
+  categories,
+  salesMode = false,
+}: {
+  products: ProductCatalogRow[];
+  categories: string[];
+  salesMode?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [status, setStatus] = useState("active");
@@ -69,7 +107,14 @@ export function ProductCatalogTable({ products, categories, salesMode = false }:
       .filter((product) => !normalized || `${product.name} ${product.category} ${product.brand ?? ""}`.toLocaleLowerCase("pt-BR").includes(normalized))
       .filter((product) => category === "all" || product.category === category)
       .filter((product) => status === "all" || (status === "active" ? product.active : !product.active))
-      .filter((product) => stock === "all" || (stock === "available" ? product.available_quantity > 0 : stock === "incoming" ? product.incoming_quantity > 0 : product.available_quantity === 0 && product.incoming_quantity === 0))
+      .filter((product) =>
+        stock === "all" ||
+        (stock === "available"
+          ? product.available_quantity > 0
+          : stock === "incoming"
+            ? product.incoming_quantity > 0
+            : product.available_quantity === 0 && product.incoming_quantity === 0),
+      )
       .sort((a, b) => {
         const value = compare(a, b, sortKey);
         return sortDirection === "asc" ? value : -value;
@@ -77,56 +122,133 @@ export function ProductCatalogTable({ products, categories, salesMode = false }:
   }, [products, query, category, status, stock, sortKey, sortDirection]);
 
   function sort(key: SortKey) {
-    if (key === sortKey) setSortDirection((current) => current === "asc" ? "desc" : "asc");
-    else {
+    if (key === sortKey) {
+      setSortDirection((current) => current === "asc" ? "desc" : "asc");
+    } else {
       setSortKey(key);
       setSortDirection(key === "available" || key === "incoming" || key === "cash" || key === "installment" ? "desc" : "asc");
     }
   }
 
+  const cardMinWidth = galleryMinWidth[galleryZoom] ?? 210;
+
   return (
     <article className="panel product-catalog-panel">
       <div className="product-catalog-toolbar">
-        <label className="product-catalog-search"><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar produto, marca ou categoria" /></label>
-        <select className="select product-filter-select" value={category} onChange={(event) => setCategory(event.target.value)}><option value="all">Todas as categorias</option>{categories.map((item) => <option key={item} value={item}>{item}</option>)}</select>
-        <select className="select product-filter-select" value={stock} onChange={(event) => setStock(event.target.value)}><option value="all">Todos os estoques</option><option value="available">Disponíveis</option><option value="incoming">A caminho</option><option value="empty">Sem disponibilidade</option></select>
-        <select className="select product-filter-select" value={status} onChange={(event) => setStatus(event.target.value)}><option value="active">Ativos</option><option value="inactive">Inativos</option><option value="all">Todos</option></select>
+        <label className="product-catalog-search">
+          <Search size={16} />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar produto, marca ou categoria" />
+        </label>
+
+        <select className="select product-filter-select" value={category} onChange={(event) => setCategory(event.target.value)}>
+          <option value="all">Todas as categorias</option>
+          {categories.map((item) => <option key={item} value={item}>{item}</option>)}
+        </select>
+
+        <select className="select product-filter-select" value={stock} onChange={(event) => setStock(event.target.value)}>
+          <option value="all">Todos os estoques</option>
+          <option value="available">Disponíveis</option>
+          <option value="incoming">A caminho</option>
+          <option value="empty">Sem disponibilidade</option>
+        </select>
+
+        <select className="select product-filter-select" value={status} onChange={(event) => setStatus(event.target.value)}>
+          <option value="active">Ativos</option>
+          <option value="inactive">Inativos</option>
+          <option value="all">Todos</option>
+        </select>
+
         <div className="product-view-toggle" aria-label="Modo de visualização">
-          <button className={viewMode === "deck" ? "active" : ""} type="button" onClick={() => setViewMode("deck")}><Rows3 size={15} />Deck</button>
-          <button className={viewMode === "gallery" ? "active" : ""} type="button" onClick={() => setViewMode("gallery")}><LayoutGrid size={15} />Gallery</button>
+          <button className={viewMode === "deck" ? "active" : ""} type="button" onClick={() => setViewMode("deck")}>
+            <Rows3 size={15} />Deck
+          </button>
+          <button className={viewMode === "gallery" ? "active" : ""} type="button" onClick={() => setViewMode("gallery")}>
+            <LayoutGrid size={15} />Gallery
+          </button>
         </div>
-        {viewMode === "gallery" && <div className="product-gallery-controls">
-          <div className="product-gallery-zoom" title="Tamanho dos cards da galeria">
-            <ZoomOut size={14}/><input aria-label="Tamanho dos cards da galeria" type="range" min="1" max="5" step="1" value={galleryZoom} onChange={(event)=>setGalleryZoom(Number(event.target.value))}/><ZoomIn size={14}/>
+
+        {viewMode === "gallery" && (
+          <div className="product-gallery-controls">
+            <div className="product-gallery-zoom" title="Tamanho real dos cards da galeria">
+              <ZoomOut size={14}/>
+              <input
+                aria-label="Tamanho dos cards da galeria"
+                type="range"
+                min="1"
+                max="5"
+                step="1"
+                value={galleryZoom}
+                onChange={(event)=>setGalleryZoom(Number(event.target.value))}
+              />
+              <ZoomIn size={14}/>
+            </div>
+            <button className={galleryDetails ? "active" : ""} type="button" onClick={()=>setGalleryDetails((current)=>!current)}>
+              {galleryDetails?<Eye size={14}/>:<EyeOff size={14}/>} {galleryDetails?"Completo":"Essencial"}
+            </button>
           </div>
-          <button className={galleryDetails ? "active" : ""} type="button" onClick={()=>setGalleryDetails((current)=>!current)}>{galleryDetails?<Eye size={14}/>:<EyeOff size={14}/>} {galleryDetails?"Completo":"Essencial"}</button>
-        </div>}
+        )}
+
         <span className="product-result-count">{filtered.length} produto{filtered.length === 1 ? "" : "s"}</span>
       </div>
 
-      {salesMode && <div className="sales-profile-note"><strong>Perfil Vendas</strong><span>Consulta somente comercial: preço de venda, disponibilidade e produtos a caminho.</span></div>}
+      {salesMode && (
+        <div className="sales-profile-note">
+          <strong>Perfil Vendas</strong>
+          <span>Consulta somente comercial: preço de venda, disponibilidade e produtos a caminho.</span>
+        </div>
+      )}
+
       <div className="product-commercial-order-note">
         <span>Ordem padrão:</span>
         <strong>Creatina Candinho → disponível → a caminho → zerado → categoria estratégica → mais vendidos</strong>
-        {sortKey !== "commercial" && <button type="button" onClick={() => { setSortKey("commercial"); setSortDirection("asc"); }}>Restaurar ordem comercial</button>}
+        {sortKey !== "commercial" && (
+          <button type="button" onClick={() => { setSortKey("commercial"); setSortDirection("asc"); }}>
+            Restaurar ordem comercial
+          </button>
+        )}
       </div>
 
       {filtered.length === 0 ? (
         <div className="empty"><strong>Nenhum produto encontrado</strong>Altere os filtros ou a busca.</div>
       ) : viewMode === "gallery" ? (
-        <div className={`product-gallery-grid zoom-${galleryZoom} ${galleryDetails ? "show-details" : "essential"}`}>
+        <div
+          className={`product-gallery-grid ${galleryDetails ? "show-details" : "essential"}`}
+          style={{
+            display: "grid",
+            gridTemplateColumns: `repeat(auto-fit, minmax(min(100%, ${cardMinWidth}px), 1fr))`,
+            alignItems: "stretch",
+          }}
+        >
           {filtered.map((product) => {
             const state = stockLabel(product);
             const border = stockBorder(product);
             return (
-              <Link className={`product-gallery-card stock-${border}`} href={salesMode ? "/produtos" : `/produtos/${product.id}`} key={product.id}>
+              <Link
+                className={`product-gallery-card stock-${border}`}
+                href={salesMode ? "/produtos" : `/produtos/${product.id}`}
+                key={product.id}
+                style={{ minWidth: 0 }}
+              >
                 <div className="product-gallery-image">
-                  {product.thumbnail_url || product.image_url ? <img src={product.thumbnail_url ?? product.image_url ?? ""} alt={product.name} loading="lazy" /> : <ImageOff size={28} />}
+                  {product.thumbnail_url || product.image_url
+                    ? <img src={product.thumbnail_url ?? product.image_url ?? ""} alt={product.name} loading="lazy" />
+                    : <ImageOff size={28} />}
                 </div>
                 <div className="product-gallery-copy">
-                  <div className="product-gallery-heading"><strong>{product.name}</strong>{galleryDetails&&<span>{product.category}{product.brand ? ` · ${product.brand}` : ""}</span>}</div>
-                  <div className="product-gallery-stock"><span>Disponível <b>{product.available_quantity}</b></span>{galleryDetails&&<span>A caminho <b>{product.incoming_quantity}</b></span>}</div>
-                  {galleryDetails&&<div className="product-gallery-price"><strong>{formatCurrency(product.sale_price)}</strong><span>{formatCurrency(product.installment_price)} a prazo</span></div>}
+                  <div className="product-gallery-heading">
+                    <strong>{product.name}</strong>
+                    {galleryDetails && <span>{product.category}{product.brand ? ` · ${product.brand}` : ""}</span>}
+                  </div>
+                  <div className="product-gallery-stock">
+                    <span>Disponível <b>{product.available_quantity}</b></span>
+                    {galleryDetails && <span>A caminho <b>{product.incoming_quantity}</b></span>}
+                  </div>
+                  {galleryDetails && (
+                    <div className="product-gallery-price">
+                      <strong>{formatCurrency(product.sale_price)}</strong>
+                      <span>{formatCurrency(product.installment_price)} a prazo</span>
+                    </div>
+                  )}
                   <span className={`badge ${state.tone}`}><span className="dot" />{state.label}</span>
                 </div>
                 <IncomingTruck product={product} />
@@ -137,31 +259,55 @@ export function ProductCatalogTable({ products, categories, salesMode = false }:
       ) : (
         <div className="table-wrap">
           <table className="products-table product-catalog-table">
-            <thead><tr>
-              <th><HeaderButton label="Produto" sortKey="name" currentKey={sortKey} onSort={sort} /></th>
-              <th><HeaderButton label="Disponível" sortKey="available" currentKey={sortKey} onSort={sort} /></th>
-              <th><HeaderButton label="A caminho" sortKey="incoming" currentKey={sortKey} onSort={sort} /></th>
-              <th><HeaderButton label="À vista" sortKey="cash" currentKey={sortKey} onSort={sort} /></th>
-              <th><HeaderButton label="A prazo" sortKey="installment" currentKey={sortKey} onSort={sort} /></th>
-              <th><HeaderButton label="Situação" sortKey="status" currentKey={sortKey} onSort={sort} /></th>
-              <th aria-label="Abrir produto" />
-            </tr></thead>
-            <tbody>{filtered.map((product) => {
-              const state = stockLabel(product);
-              const border = stockBorder(product);
-              return <tr className={`product-deck-row stock-${border}`} key={product.id}>
-                <td><Link className="product-cell product-link" href={salesMode ? "/produtos" : `/produtos/${product.id}`}>
-                  {product.thumbnail_url ? <img className="product-thumb" src={product.thumbnail_url} alt="" loading="lazy" /> : <span className="product-avatar">{product.image_url ? <ImageOff size={17} /> : product.name.slice(0, 2).toUpperCase()}</span>}
-                  <div><div className="cell-main">{product.name}</div><div className="cell-sub">{product.category}{product.brand ? ` · ${product.brand}` : ""}</div></div>
-                </Link></td>
-                <td><strong className={product.available_quantity > 0 ? "positive" : "muted-number"}>{product.available_quantity}</strong>{product.reserved_quantity > 0 && <div className="cell-sub">{product.reserved_quantity} reservada{product.reserved_quantity === 1 ? "" : "s"}</div>}</td>
-                <td><strong className={product.incoming_quantity > 0 ? "incoming-text" : "muted-number"}>{product.incoming_quantity}</strong>{product.awaiting_sales_quantity > 0 && <div className="cell-sub">{product.awaiting_sales_quantity} aguardando</div>}</td>
-                <td className="amount">{formatCurrency(product.sale_price)}</td>
-                <td className="amount">{formatCurrency(product.installment_price)}</td>
-                <td><span className={`badge ${state.tone}`}><span className="dot" />{state.label}</span></td>
-                <td><div className="product-row-actions"><IncomingTruck product={product} />{!salesMode && <Link className="icon-link" href={`/produtos/${product.id}`} aria-label={`Abrir ${product.name}`}><ArrowRight size={18} /></Link>}</div></td>
-              </tr>;
-            })}</tbody>
+            <thead>
+              <tr>
+                <th><HeaderButton label="Produto" sortKey="name" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="Disponível" sortKey="available" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="A caminho" sortKey="incoming" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="À vista" sortKey="cash" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="A prazo" sortKey="installment" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="Situação" sortKey="status" currentKey={sortKey} onSort={sort} /></th>
+                <th aria-label="Abrir produto" />
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((product) => {
+                const state = stockLabel(product);
+                const border = stockBorder(product);
+                return (
+                  <tr className={`product-deck-row stock-${border}`} key={product.id}>
+                    <td>
+                      <Link className="product-cell product-link" href={salesMode ? "/produtos" : `/produtos/${product.id}`}>
+                        {product.thumbnail_url
+                          ? <img className="product-thumb" src={product.thumbnail_url} alt="" loading="lazy" />
+                          : <span className="product-avatar">{product.image_url ? <ImageOff size={17} /> : product.name.slice(0, 2).toUpperCase()}</span>}
+                        <div>
+                          <div className="cell-main">{product.name}</div>
+                          <div className="cell-sub">{product.category}{product.brand ? ` · ${product.brand}` : ""}</div>
+                        </div>
+                      </Link>
+                    </td>
+                    <td>
+                      <strong className={product.available_quantity > 0 ? "positive" : "muted-number"}>{product.available_quantity}</strong>
+                      {product.reserved_quantity > 0 && <div className="cell-sub">{product.reserved_quantity} reservada{product.reserved_quantity === 1 ? "" : "s"}</div>}
+                    </td>
+                    <td>
+                      <strong className={product.incoming_quantity > 0 ? "incoming-text" : "muted-number"}>{product.incoming_quantity}</strong>
+                      {product.awaiting_sales_quantity > 0 && <div className="cell-sub">{product.awaiting_sales_quantity} aguardando</div>}
+                    </td>
+                    <td className="amount">{formatCurrency(product.sale_price)}</td>
+                    <td className="amount">{formatCurrency(product.installment_price)}</td>
+                    <td><span className={`badge ${state.tone}`}><span className="dot" />{state.label}</span></td>
+                    <td>
+                      <div className="product-row-actions">
+                        <IncomingTruck product={product} />
+                        {!salesMode && <Link className="icon-link" href={`/produtos/${product.id}`} aria-label={`Abrir ${product.name}`}><ArrowRight size={18} /></Link>}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
           </table>
         </div>
       )}
