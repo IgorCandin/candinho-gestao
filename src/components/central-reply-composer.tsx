@@ -3,8 +3,21 @@
 import { Bot, LoaderCircle, MessageSquareText, Send, TriangleAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import type { CentralQuickReply } from "@/lib/central-data";
+
+async function postJson<T>(url: string, body: Record<string, unknown>): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  const payload = await response.json().catch(() => ({})) as T & { error?: string };
+  if (!response.ok) {
+    throw new Error(payload?.error || "A operação não pôde ser concluída.");
+  }
+  return payload;
+}
 
 export function CentralReplyComposer({ conversationId, provider, quickReplies = [] }: { conversationId: string; provider: string; quickReplies?: CentralQuickReply[] }) {
   const router = useRouter();
@@ -18,10 +31,10 @@ export function CentralReplyComposer({ conversationId, provider, quickReplies = 
     setMessage(null);
     setWarning(null);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.functions.invoke("central-nexus-suggest", { body: { conversation_id: conversationId } });
-      if (error) throw error;
-      if (data?.error) throw new Error(String(data.error));
+      const data = await postJson<{ suggestion?: { suggested_reply?: string; requires_human?: boolean; reason?: string } }>(
+        "/api/central/nexus-suggest",
+        { conversation_id: conversationId },
+      );
       const suggestion = data?.suggestion;
       if (typeof suggestion?.suggested_reply === "string") setBody(suggestion.suggested_reply);
       if (suggestion?.requires_human) setWarning(`Revisão humana necessária${suggestion?.reason ? `: ${suggestion.reason}` : "."}`);
@@ -40,10 +53,10 @@ export function CentralReplyComposer({ conversationId, provider, quickReplies = 
     setMessage(null);
     setWarning(null);
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.functions.invoke("central-meta-send", { body: { conversation_id: conversationId, body: text } });
-      if (error) throw error;
-      if (data?.error) throw new Error(String(data.error));
+      await postJson<{ sent?: boolean }>("/api/central/meta-send", {
+        conversation_id: conversationId,
+        body: text,
+      });
       setBody("");
       setMessage("Mensagem enviada e registrada no histórico.");
       router.refresh();
