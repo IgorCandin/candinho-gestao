@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Handshake, Link2, UserRound } from "lucide-react";
+import { Link2, UserRound } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getAppBootstrapSnapshot } from "@/lib/central-data";
 import { formatCurrency } from "@/lib/format";
@@ -96,8 +96,7 @@ export default async function DashboardPage() {
       </div>
 
       {access.canManageUsers && (
-        <div className="company-home-admin-row">
-          <Link href="/parceiros/gerencial"><Handshake size={18} /><span><strong>PARCEIROS</strong><small>Gestão, regras e acessos do portal</small></span></Link>
+        <div className="company-home-admin-row company-home-admin-row-two">
           <Link href="/configuracoes"><UserRound size={18} /><span><strong>PERFIL</strong><small>Perfis e permissões da equipe</small></span></Link>
           <Link href="/central/integracoes"><Link2 size={18} /><span><strong>INTEGRAÇÕES</strong><small>Meta, OpenAI e saúde dos canais</small></span></Link>
         </div>

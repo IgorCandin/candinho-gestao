@@ -318,7 +318,7 @@ export async function GET(request: NextRequest) {
   }
 
   const bytes = await pdf.save();
-  return new Response(bytes, {
+  return new Response(Buffer.from(bytes), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": 'inline; filename="catalogo-selecionado-candinho.pdf"',
