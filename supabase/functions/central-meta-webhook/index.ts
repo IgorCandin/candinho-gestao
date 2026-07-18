@@ -79,7 +79,7 @@ function parseMetaPayload(payload: Record<string, any>) {
 }
 
 async function resolveIntegration(supabase: SupabaseClient, provider: string, accountId: string) {
-  const { data } = await supabase.from("central_integrations").select("id,operation_scope").eq("provider", provider).eq("account_external_id", accountId).maybeSingle();
+  const { data } = await supabase.from("central_integrations").select("id,operation_scope,status").eq("provider", provider).eq("account_external_id", accountId).maybeSingle();
   return data ?? null;
 }
 
@@ -87,8 +87,9 @@ async function touchIntegration(supabase: SupabaseClient, provider: string, acco
   await supabase.from("central_integrations").update({ status: "connected", last_sync_at: at, last_error: null, updated_at: at }).eq("provider", provider).eq("account_external_id", accountId);
 }
 
-async function ingestMessage(supabase: SupabaseClient, item: ParsedMessage) {
+async function ingestMessage(supabase: SupabaseClient, item: ParsedMessage): Promise<boolean> {
   const integration = await resolveIntegration(supabase, item.provider, item.accountId);
+  if (integration?.status === "paused") return false;
   const scope = integration?.operation_scope ?? "company";
   const { data: channel, error: channelError } = await supabase.from("central_channels").upsert({ provider: item.provider, operation_scope: scope, account_external_id: item.accountId, active: true, metadata: {} }, { onConflict: "provider,account_external_id" }).select("id").single();
   if (channelError) throw channelError;
@@ -115,6 +116,7 @@ async function ingestMessage(supabase: SupabaseClient, item: ParsedMessage) {
     if (updateError) throw updateError;
   }
   await touchIntegration(supabase, item.provider, item.accountId, item.sentAt);
+  return true;
 }
 
 Deno.serve(async (req: Request) => {
@@ -152,13 +154,18 @@ Deno.serve(async (req: Request) => {
 
   try {
     const parsed = parseMetaPayload(payload);
-    for (const message of parsed.messages) await ingestMessage(supabase, message);
+    let messagesProcessed = 0;
+    let messagesIgnored = 0;
+    for (const message of parsed.messages) {
+      if (await ingestMessage(supabase, message)) messagesProcessed += 1;
+      else messagesIgnored += 1;
+    }
     for (const status of parsed.statuses) {
       await supabase.from("central_messages").update({ delivery_status: status.status, raw_payload: status.raw }).eq("external_message_id", status.externalMessageId).eq("direction", "outbound");
     }
-    const processed = parsed.messages.length + parsed.statuses.length;
+    const processed = messagesProcessed + parsed.statuses.length;
     await supabase.from("central_webhook_events").update({ status: processed ? "processed" : "ignored", processed_at: new Date().toISOString(), error: null }).eq("id", event.id);
-    return json({ received: true, messages_processed: parsed.messages.length, statuses_processed: parsed.statuses.length });
+    return json({ received: true, messages_processed: messagesProcessed, messages_ignored: messagesIgnored, statuses_processed: parsed.statuses.length });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("central-meta-webhook processing error", error);

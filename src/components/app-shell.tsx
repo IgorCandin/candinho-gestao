@@ -7,7 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Archive, ArrowLeft, BarChart3, Bell, Bot, Boxes, Building2, CalendarDays, ChartNoAxesCombined, CircleDollarSign, ContactRound,
   Handshake, HeartPulse, History, Home, Images, Inbox, Link2, ListTodo, LogOut, Menu, PackageSearch, RefreshCcw, ShoppingBag,
-  Search, Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck, Radar, MessageSquareText, KeyRound, ListChecks,
+  Search, Truck, UserRoundPlus, UsersRound, Megaphone, ShieldCheck, Radar, MessageSquareText, KeyRound, ListChecks, Rocket,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
@@ -69,6 +69,7 @@ const centralNav = [
   { href: "/central/midia", label: "Mídia", icon: Images },
   { href: "/central/nexus", label: "Nexus IA", icon: Bot },
   { href: "/central/integracoes", label: "Integrações", icon: Link2 },
+  { href: "/central/ativacao", label: "Ativação V1", icon: Rocket },
   { href: "/central/governanca", label: "Governança", icon: ShieldCheck },
 ];
 
@@ -103,7 +104,7 @@ export function AppShell({ children, access }: { children: React.ReactNode; acce
   const isBank = operation === "bank";
   const isMarketing = operation === "marketing";
   const isSalesProfile = access.role === "sales";
-  const centralVisibleNav = (access.canWriteSupplements || access.canWriteFitness || access.canWriteMarketing || access.role === "admin" ? centralNav : centralNav.filter((item) => item.href !== "/central/respostas")).filter((item) => access.canManageUsers || item.href !== "/central/governanca");
+  const centralVisibleNav = (access.canWriteSupplements || access.canWriteFitness || access.canWriteMarketing || access.role === "admin" ? centralNav : centralNav.filter((item) => item.href !== "/central/respostas")).filter((item) => access.canManageUsers || !["/central/governanca", "/central/ativacao"].includes(item.href));
   const nav = operation === "hub" ? hubNav : isCentral ? centralVisibleNav : isPartner ? partnerNav : isBank ? bankNav : isMarketing ? marketingNav : isFitness ? (isSalesProfile ? fitnessSalesNav : fitnessNav) : (isSalesProfile ? supplementSalesNav : supplementNav);
 
   const mobileShortcuts = isSettings ? [] : isCentral ? [

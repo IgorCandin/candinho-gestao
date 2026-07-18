@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { BellRing, Boxes, CalendarClock, Inbox, Link2, Radar, ShieldAlert, UsersRound } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
+import { RadarFollowupButton } from "@/components/radar-followup-button";
 import { StatCard } from "@/components/stat-card";
 import { getCentralDailyPriorities } from "@/lib/central-data";
 import { getCurrentUserAccess } from "@/lib/data";
@@ -39,7 +40,7 @@ export default async function CentralPrioritiesPage() {
 
       {access.canAccessSupplements && <article className="panel priority-section-card">
         <div className="panel-head"><div><h2>Radar comercial</h2><p>Recompra, retornos e leads priorizados pela lógica do CRM/AppSheet.</p></div><Radar size={20}/></div>
-        <div className="priority-list">{data.radar.length === 0 ? <div className="empty"><Radar size={22}/><strong>Sem oportunidade prioritária</strong>O Radar não encontrou ação imediata.</div> : data.radar.map((item) => <Link className="priority-row" href={`/clientes/${item.customer_id}`} key={item.customer_id}><span><strong>{item.customer_name}</strong><small>{item.opportunity_label}</small><em>{item.last_product_name ?? item.priority_source}</em></span><b>{item.opportunity_priority}</b></Link>)}</div>
+        <div className="priority-list">{data.radar.length === 0 ? <div className="empty"><Radar size={22}/><strong>Sem oportunidade prioritária</strong>O Radar não encontrou ação imediata.</div> : data.radar.map((item) => <div className="priority-row priority-row-action" key={item.customer_id}><Link href={`/clientes/${item.customer_id}`}><span><strong>{item.customer_name}</strong><small>{item.opportunity_label}</small><em>{item.last_product_name ?? item.priority_source}</em></span><b>{item.opportunity_priority}</b></Link><RadarFollowupButton compact customerId={item.customer_id} customerName={item.customer_name} suggestedAction={item.recommended_action}/></div>)}</div>
       </article>}
 
       {access.canAccessSupplements && <article className="panel priority-section-card">

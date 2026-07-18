@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Bot, CheckCircle2, CircleOff, KeyRound, Link2, MessageCircle, Plus, Save, ShieldCheck, Sparkles, TriangleAlert, Webhook } from "lucide-react";
+import { Bot, CheckCircle2, CircleOff, KeyRound, Link2, MessageCircle, Plus, Rocket, Save, ShieldCheck, Sparkles, TriangleAlert, Webhook } from "lucide-react";
 import { CopyTextButton } from "@/components/copy-text-button";
 import { PageHeader } from "@/components/page-header";
 import { getCentralIntegrationHealth, getCentralIntegrationReadiness } from "@/lib/central-data";
@@ -38,6 +38,7 @@ export default async function IntegrationsPage({ searchParams }: Props) {
 
   return <>
     <PageHeader eyebrow="Candinho Central" title="Integrações" description="Cadastre as contas, acompanhe a prontidão das credenciais e conecte WhatsApp, Instagram, Facebook e recursos de IA sem armazenar segredos no banco." />
+    <div className="central-info-banner"><Rocket size={18}/><span><strong>Último passo antes dos testes reais</strong><small>Acompanhe o checklist completo em <a href="/central/ativacao">Ativação V1</a>. Ali você vê exatamente o que ainda falta para Meta, OpenAI e Portal Parceiro.</small></span></div>
 
     {savedProvider && <div className="integration-success-banner"><CheckCircle2 size={18}/><span><strong>{labels[savedProvider] ?? "Conta"} cadastrada.</strong><small>O vínculo foi salvo sem tokens ou senhas. A conta ficará desconectada até a configuração externa da Meta estar concluída.</small></span></div>}
 

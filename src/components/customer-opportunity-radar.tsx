@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search, ShieldAlert } from "lucide-react";
+import { RadarFollowupButton } from "@/components/radar-followup-button";
 import type { CustomerOpportunityRadarRow } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 
@@ -53,7 +54,7 @@ export function CustomerOpportunityRadar({ rows }: { rows: CustomerOpportunityRa
               <td><strong>{row.last_product_name || "Não informado"}</strong><small>Mais comprado: {row.most_purchased_product || "Não informado"}</small></td>
               <td><strong>{row.expected_repurchase_on ? formatDateOnly(row.expected_repurchase_on) : "Não estimada"}</strong><small>{row.days_to_repurchase == null ? "Sem duração cadastrada" : row.days_to_repurchase < 0 ? `${Math.abs(row.days_to_repurchase)} dia(s) após a janela` : `${row.days_to_repurchase} dia(s) para a janela`}</small></td>
               <td><strong>{row.purchase_count} compra(s)</strong><small>{formatCurrency(row.total_spent)} gastos · {row.days_since_last_purchase ?? "—"} dia(s) sem comprar</small></td>
-              <td><span className="radar-action-text">{row.recommended_action}</span></td>
+              <td><span className="radar-action-text">{row.recommended_action}</span><RadarFollowupButton customerId={row.customer_id} customerName={row.customer_name} suggestedAction={row.recommended_action}/></td>
             </tr>)}
             {filtered.length===0&&<tr><td colSpan={7}><div className="empty compact-empty"><strong>Nenhuma oportunidade neste filtro</strong>Ajuste a busca ou os filtros do Radar.</div></td></tr>}
           </tbody>
