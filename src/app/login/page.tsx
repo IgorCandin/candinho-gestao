@@ -13,22 +13,31 @@ export default function LoginPage() {
   ];
 
   return (
-    <main className="login-page login-company-theme">
-      <section className="login-shell">
-        <div className="login-visual">
-          <Image className="login-company-logo" src={company.src} alt={company.alt} width={company.width} height={company.height} priority />
+    <main className="login-page login-company-theme login-page-v2">
+      <section className="login-shell login-shell-v2">
+        <div className="login-visual login-visual-v2">
+          <Image
+            className="login-company-logo"
+            src={company.src}
+            alt={company.alt}
+            width={company.width}
+            height={company.height}
+            priority
+          />
 
-          <div className="login-intro">
+          <div className="login-intro login-intro-v2">
             <h1>A operação da Candinho em um só lugar.</h1>
             <p>Central de atendimento, operações, estoque, parceiros e finanças com regras seguras em uma única plataforma.</p>
           </div>
         </div>
 
-        <div className="login-card">
+        <div className="login-card login-card-v2">
           <h2>Entrar</h2>
           <LoginForm />
+        </div>
 
-          <div className="login-operations login-operations-five" aria-label="Operações da Candinho Company">
+        <div className="login-operations-band" aria-label="Operações da Candinho Company">
+          <div className="login-operations login-operations-five login-operations-prominent">
             {operations.map((operation, index) => (
               <div className="login-operation-segment" key={operation.src}>
                 {index > 0 && <span className="login-operation-divider" aria-hidden="true" />}

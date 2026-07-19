@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Link2, UserRound } from "lucide-react";
+import { Link2, LogOut, UserRound } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getAppBootstrapSnapshot } from "@/lib/central-data";
 import { formatCurrency } from "@/lib/format";
@@ -26,9 +26,7 @@ export default async function DashboardPage() {
   const marketingVisible = bootstrap?.feature_flags?.marketing_enabled !== false && access.canAccessMarketing;
 
   return (
-    <section className="company-home company-home-clean">
-      <form action="/auth/signout" method="post" className="company-home-signout"><button type="submit">Sair</button></form>
-
+    <section className="company-home company-home-clean company-home-selector-v2">
       <div className="company-home-heading company-home-heading-compact">
         <h1>Olá, {access.name}.</h1>
         <p>Escolha sua operação.</p>
@@ -95,12 +93,17 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {access.canManageUsers && (
-        <div className="company-home-admin-row company-home-admin-row-two">
-          <Link href="/configuracoes"><UserRound size={18} /><span><strong>PERFIL</strong><small>Perfis e permissões da equipe</small></span></Link>
-          <Link href="/central/integracoes"><Link2 size={18} /><span><strong>INTEGRAÇÕES</strong><small>Meta, OpenAI e saúde dos canais</small></span></Link>
-        </div>
-      )}
+      <div className="company-home-selector-actions" aria-label="Ações da conta">
+        {access.canManageUsers && (
+          <>
+            <Link className="company-home-selector-action" href="/configuracoes"><UserRound size={16} /><span>Perfil</span></Link>
+            <Link className="company-home-selector-action" href="/central/integracoes"><Link2 size={16} /><span>Integrações</span></Link>
+          </>
+        )}
+        <form action="/auth/signout" method="post">
+          <button className="company-home-selector-action" type="submit"><LogOut size={16} /><span>Sair</span></button>
+        </form>
+      </div>
 
       {(!access.active || (!centralVisible && !access.canAccessSupplements && !access.canAccessFitness && !access.canAccessBank && !access.canAccessMarketing)) && (
         <p className="operation-access-warning">Seu usuário ainda não possui uma operação liberada.</p>
