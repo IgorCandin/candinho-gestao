@@ -148,7 +148,7 @@ export default async function CentralInboxPage({ searchParams }: { searchParams:
             </div>)}
           </div>
 
-          <CentralReplyComposer conversationId={details.conversation.conversation_id} provider={details.conversation.provider} quickReplies={quickReplies}/>
+          <CentralReplyComposer conversationId={details.conversation.conversation_id} provider={details.conversation.provider} operationScope={details.conversation.operation_scope} quickReplies={quickReplies}/>
 
           <div className="central-customer-context central-customer-context-v2">
             <div><small>Contato</small><strong>{details.contact?.display_name ?? details.conversation.contact_name}</strong></div>

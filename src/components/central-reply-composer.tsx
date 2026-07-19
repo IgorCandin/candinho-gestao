@@ -21,7 +21,7 @@ async function postJson<T>(url: string, body: Record<string, unknown>): Promise<
   return payload;
 }
 
-export function CentralReplyComposer({ conversationId, provider, quickReplies = [] }: { conversationId: string; provider: string; quickReplies?: CentralQuickReply[] }) {
+export function CentralReplyComposer({ conversationId, provider, operationScope, quickReplies = [] }: { conversationId: string; provider: string; operationScope: string; quickReplies?: CentralQuickReply[] }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [body, setBody] = useState("");
@@ -66,7 +66,7 @@ export function CentralReplyComposer({ conversationId, provider, quickReplies = 
         const userId = auth.user?.id;
         if (!userId) throw new Error("Sessão expirada.");
 
-        uploadedPath = `outbox/${userId}/${conversationId}/${crypto.randomUUID()}-${safeFilename(file.name)}`;
+        uploadedPath = `${operationScope}/outbox/${userId}/${conversationId}/${crypto.randomUUID()}-${safeFilename(file.name)}`;
         const upload = await supabase.storage.from("central-media").upload(uploadedPath, file, {
           upsert: false,
           contentType: file.type || undefined,
