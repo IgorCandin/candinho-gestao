@@ -13,7 +13,6 @@ function num(source: Record<string, unknown> | null | undefined, key: string) {
 
 export default async function DashboardPage() {
   const [access, bootstrap] = await Promise.all([getCurrentUserAccess(), getAppBootstrapSnapshot()]);
-
   if (access.role === "partner") redirect("/parceiro");
 
   const company = BRAND_ASSETS.company.complete;
@@ -28,14 +27,8 @@ export default async function DashboardPage() {
 
   return (
     <section className="company-home company-home-clean company-home-selector-v2">
-      <div className="company-home-selector-brand" aria-label="Candinho Company">
-        <Image
-          src={company.src}
-          alt={company.alt}
-          width={company.width}
-          height={company.height}
-          priority
-        />
+      <div className="company-home-selector-brand">
+        <Image src={company.src} alt={company.alt} width={company.width} height={company.height} priority />
       </div>
 
       <div className="company-home-heading company-home-heading-compact">
@@ -115,10 +108,6 @@ export default async function DashboardPage() {
           <button className="company-home-selector-action" type="submit"><LogOut size={16} /><span>Sair</span></button>
         </form>
       </div>
-
-      {(!access.active || (!centralVisible && !access.canAccessSupplements && !access.canAccessFitness && !access.canAccessBank && !access.canAccessMarketing)) && (
-        <p className="operation-access-warning">Seu usuário ainda não possui uma operação liberada.</p>
-      )}
     </section>
   );
 }

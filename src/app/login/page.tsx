@@ -24,7 +24,6 @@ export default function LoginPage() {
             height={company.height}
             priority
           />
-
           <div className="login-intro login-intro-v2">
             <h1>A operação da Candinho em um só lugar.</h1>
             <p>Central de atendimento, operações, estoque, parceiros e finanças com regras seguras em uma única plataforma.</p>
@@ -47,7 +46,6 @@ export default function LoginPage() {
               </div>
             ))}
           </div>
-
           <p className="login-slogan">Qualidade que entrega resultado.</p>
         </div>
       </section>

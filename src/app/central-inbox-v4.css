@@ -1,0 +1,146 @@
+.central-inbox-toolbar-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.central-live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.central-live-status.connected { color: #53d98c; background: rgba(83,217,140,.08); }
+.central-live-status.connecting { color: #d8a949; background: rgba(216,169,73,.08); }
+
+.central-label-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.02);
+}
+
+.central-label-control select {
+  border: 0;
+  outline: 0;
+  color: inherit;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 800;
+  max-width: 170px;
+}
+
+.central-label-control select option { color: #111; }
+
+.central-label-badge {
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 5px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 900;
+  letter-spacing: .01em;
+}
+
+.label-novo_lead { color: #72a8ff !important; background: rgba(75,130,220,.12) !important; }
+.label-orcamento { color: #e8c36a !important; background: rgba(220,174,68,.12) !important; }
+.label-aguardando { color: #f4a261 !important; background: rgba(244,162,97,.12) !important; }
+.label-pagamento { color: #c394ff !important; background: rgba(157,106,220,.12) !important; }
+.label-venda { color: #58d88e !important; background: rgba(75,200,125,.12) !important; }
+.label-urgente { color: #ff7676 !important; background: rgba(230,75,75,.13) !important; }
+.label-pos_venda { color: #d9d9d9 !important; background: rgba(255,255,255,.07) !important; }
+.label-parceiro { color: #d7a66a !important; background: rgba(176,120,68,.13) !important; }
+
+.central-attachment-preview {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.025);
+}
+
+.central-attachment-preview > span {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.central-attachment-preview strong {
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.central-attachment-preview small { color: var(--muted); font-size: 10px; }
+
+.central-attachment-preview button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.central-message-media {
+  display: block;
+  margin-bottom: 7px;
+}
+
+.central-message-media img {
+  display: block;
+  width: min(320px, 100%);
+  max-height: 360px;
+  object-fit: contain;
+  border-radius: 10px;
+}
+
+.central-message-media-video {
+  display: block;
+  width: min(360px, 100%);
+  max-height: 360px;
+  margin-bottom: 7px;
+  border-radius: 10px;
+}
+
+.central-message-file {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+@media (max-width: 900px) {
+  .central-chat-head-actions {
+    flex-wrap: wrap;
+  }
+
+  .central-label-control {
+    order: -1;
+  }
+
+  .central-inbox-filter-form select[name="label"] {
+    min-width: 160px;
+  }
+}

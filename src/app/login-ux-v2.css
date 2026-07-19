@@ -1,6 +1,5 @@
-/* Candinho Company · Login e seletor de operações V11.3 */
+/* Candinho Company · Login e seletor de operações V12 */
 
-/* Desktop: duas áreas principais em cima e operações grandes em faixa própria abaixo. */
 @media (min-width: 821px) {
   .login-page-v2 { padding: 28px; }
 
@@ -33,6 +32,7 @@
 
   .login-operations-band {
     grid-area: operations;
+    display: block;
     padding: 22px 44px 18px;
     border-top: 1px solid var(--line);
     background: linear-gradient(180deg, rgba(13,17,24,.98), rgba(8,11,16,.98));
@@ -72,11 +72,11 @@
   }
 }
 
+/* No celular, as marcas das operações somem para não poluir a tela de login. */
 @media (max-width: 820px) {
   .login-shell-v2 { grid-template-columns: 1fr; }
   .login-visual-v2 { min-height: 360px; }
-  .login-operations-band { padding: 0 24px 28px; }
-  .login-operations-prominent { margin-top: 0; }
+  .login-operations-band { display: none !important; }
 }
 
 /* Seletor de operações */
@@ -102,10 +102,7 @@
   opacity: .96;
 }
 
-.company-home-selector-v2 .company-home-heading {
-  text-align: center;
-}
-
+.company-home-selector-v2 .company-home-heading { text-align: center; }
 .company-home-selector-v2 .company-home-operation-groups { flex: 1; }
 
 .company-home-selector-actions {
