@@ -16,6 +16,7 @@ export default async function DashboardPage() {
 
   if (access.role === "partner") redirect("/parceiro");
 
+  const company = BRAND_ASSETS.company.complete;
   const home = bootstrap?.home;
   const supplements = home?.supplements ?? null;
   const fitness = home?.fitness ?? null;
@@ -27,6 +28,16 @@ export default async function DashboardPage() {
 
   return (
     <section className="company-home company-home-clean company-home-selector-v2">
+      <div className="company-home-selector-brand" aria-label="Candinho Company">
+        <Image
+          src={company.src}
+          alt={company.alt}
+          width={company.width}
+          height={company.height}
+          priority
+        />
+      </div>
+
       <div className="company-home-heading company-home-heading-compact">
         <h1>Olá, {access.name}.</h1>
         <p>Escolha sua operação.</p>

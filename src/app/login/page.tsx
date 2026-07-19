@@ -5,8 +5,8 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 export default function LoginPage() {
   const company = BRAND_ASSETS.company.complete;
   const operations = [
-    BRAND_ASSETS.fitness.reduced,
     BRAND_ASSETS.supplements.reduced,
+    BRAND_ASSETS.fitness.reduced,
     BRAND_ASSETS.bank.reduced,
     BRAND_ASSETS.central.reduced,
     BRAND_ASSETS.marketing.reduced,
