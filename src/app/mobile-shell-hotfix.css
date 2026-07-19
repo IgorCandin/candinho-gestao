@@ -1,0 +1,13 @@
+/* Hotfix Mobile UX V12.3
+   A sidebar desktop recebeu display:flex inline para corrigir o scroll no desktop.
+   Em telas móveis isso sobrepõe o display:none do CSS responsivo.
+   O !important abaixo devolve o comportamento mobile correto. */
+@media (max-width: 820px) {
+  .app-shell > .sidebar {
+    display: none !important;
+  }
+
+  .mobile-header {
+    display: flex;
+  }
+}

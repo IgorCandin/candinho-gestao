@@ -23,6 +23,7 @@ export type BankMonthHomeData = {
   overdueTotal: number;
   dueTodayTotal: number;
   monthCommitmentTotal: number;
+  receivableThisMonthTotal: number;
 };
 
 function number(value: unknown) {
@@ -56,12 +57,26 @@ function safeDay(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2, "0")}-${String(Math.max(1, Math.min(day, last))).padStart(2, "0")}`;
 }
 
+function dateInMonth(value: unknown, start: string, nextStart: string) {
+  const date = typeof value === "string" ? value.slice(0, 10) : "";
+  return Boolean(date && date >= start && date < nextStart);
+}
+
 export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
   const supabase = await createClient();
   const today = isoDateInSaoPaulo();
   const { start, nextStart, year, month } = monthBounds(today);
 
-  const [chargesResult, invoicesResult, subscriptionsResult, debtsResult] = await Promise.all([
+  const [
+    chargesResult,
+    invoicesResult,
+    subscriptionsResult,
+    debtsResult,
+    resolutionsResult,
+    bankReceivablesResult,
+    supplementReceivablesResult,
+    fitnessReceivablesResult,
+  ] = await Promise.all([
     supabase
       .from("bank_charges_overview")
       .select("id,title,remaining_amount,effective_status,origin,due_date,charge_type,source_id,card_invoice_id")
@@ -84,16 +99,43 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
       .from("bank_debts")
       .select("id,name,creditor_name,monthly_amount,next_due_date,due_day,origin,status,start_date")
       .eq("status", "active"),
+    supabase
+      .from("bank_month_commitment_resolutions")
+      .select("commitment_key")
+      .eq("reference_month", start)
+      .eq("resolution", "paid"),
+    supabase
+      .from("bank_receivables")
+      .select("amount,received_amount,status,due_date")
+      .gte("due_date", start)
+      .lt("due_date", nextStart)
+      .not("status", "in", "(received,cancelled)"),
+    supabase
+      .from("sales")
+      .select("total_amount,payment_due_at,quoted_at,payment_status,general_status,record_type")
+      .eq("record_type", "sale")
+      .eq("payment_status", "receivable")
+      .neq("general_status", "cancelled"),
+    supabase
+      .from("fitness_sales")
+      .select("total_amount,payment_due_on,quoted_on,payment_status,general_status")
+      .eq("payment_status", "receivable")
+      .neq("general_status", "cancelled"),
   ]);
 
   if (chargesResult.error) throw chargesResult.error;
   if (invoicesResult.error) throw invoicesResult.error;
   if (subscriptionsResult.error) throw subscriptionsResult.error;
   if (debtsResult.error) throw debtsResult.error;
+  if (resolutionsResult.error) throw resolutionsResult.error;
+  if (bankReceivablesResult.error) throw bankReceivablesResult.error;
+  if (supplementReceivablesResult.error) throw supplementReceivablesResult.error;
+  if (fitnessReceivablesResult.error) throw fitnessReceivablesResult.error;
 
   const charges = (chargesResult.data ?? []) as Array<Record<string, unknown>>;
   const sourceIds = new Set(charges.map((row) => String(row.source_id ?? "")).filter(Boolean));
   const invoiceIdsAlreadyCharged = new Set(charges.map((row) => String(row.card_invoice_id ?? "")).filter(Boolean));
+  const resolvedKeys = new Set((resolutionsResult.data ?? []).map((row) => String(row.commitment_key ?? "")));
 
   const commitments: BankMonthCommitment[] = charges
     .map((row) => ({
@@ -176,10 +218,26 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
     new Map(
       commitments
         .filter((item) => item.dueDate >= start && item.dueDate < nextStart)
+        .filter((item) => !resolvedKeys.has(item.id))
         .sort((a, b) => a.dueDate.localeCompare(b.dueDate) || a.title.localeCompare(b.title, "pt-BR"))
         .map((item) => [item.id, item]),
     ).values(),
   );
+
+  // "A receber neste mês" agora conta somente valores realmente em aberto com
+  // vencimento no mês atual. Fontes de renda recorrentes e projeções futuras não entram aqui.
+  const bankReceivablesTotal = (bankReceivablesResult.data ?? []).reduce(
+    (total, row) => total + Math.max(number(row.amount) - number(row.received_amount), 0),
+    0,
+  );
+  const supplementReceivablesTotal = (supplementReceivablesResult.data ?? []).reduce((total, row) => {
+    const effectiveDate = row.payment_due_at ?? row.quoted_at;
+    return dateInMonth(effectiveDate, start, nextStart) ? total + number(row.total_amount) : total;
+  }, 0);
+  const fitnessReceivablesTotal = (fitnessReceivablesResult.data ?? []).reduce((total, row) => {
+    const effectiveDate = row.payment_due_on ?? row.quoted_on;
+    return dateInMonth(effectiveDate, start, nextStart) ? total + number(row.total_amount) : total;
+  }, 0);
 
   const overdue = unique.filter((item) => item.dueDate < today);
   const dueToday = unique.filter((item) => item.dueDate === today);
@@ -202,5 +260,6 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
     overdueTotal: sum(overdue),
     dueTodayTotal: sum(dueToday),
     monthCommitmentTotal: sum(unique),
+    receivableThisMonthTotal: bankReceivablesTotal + supplementReceivablesTotal + fitnessReceivablesTotal,
   };
 }

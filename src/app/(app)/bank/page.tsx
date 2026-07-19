@@ -1,6 +1,8 @@
 import Link from "next/link";
 import {
   AlertTriangle,
+  ArrowDownRight,
+  ArrowUpRight,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
@@ -16,6 +18,7 @@ import { OperationInvestmentPanel } from "@/components/operation-investment-pane
 import { getBankDashboardData } from "@/lib/bank-data";
 import { getBankMonthHomeData, type BankMonthCommitment } from "@/lib/bank-home-data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
+import { markBankCommitmentAsPaid } from "./actions";
 
 function commitmentTone(item: BankMonthCommitment, today: string) {
   if (item.dueDate < today) return "red";
@@ -33,10 +36,14 @@ function CommitmentList({
   rows,
   today,
   emptyMessage,
+  referenceMonth,
+  allowQuickPaid = false,
 }: {
   rows: BankMonthCommitment[];
   today: string;
   emptyMessage: string;
+  referenceMonth: string;
+  allowQuickPaid?: boolean;
 }) {
   if (rows.length === 0) {
     return <div className="bank-empty-state">{emptyMessage}</div>;
@@ -45,12 +52,7 @@ function CommitmentList({
   return (
     <div className="bank-charge-list">
       {rows.map((item) => (
-        <Link
-          className="bank-charge-item"
-          href={item.href}
-          key={item.id}
-          style={{ textDecoration: "none" }}
-        >
+        <div className="bank-charge-item" key={item.id}>
           <div className="bank-charge-date">
             <strong>{formatDateOnly(item.dueDate).slice(0, 5)}</strong>
             <span>{item.origin ?? "Geral"}</span>
@@ -63,8 +65,23 @@ function CommitmentList({
             <strong>{formatCurrency(item.amount)}</strong>
             <span className={`badge ${commitmentTone(item, today)}`}>{commitmentLabel(item, today)}</span>
           </div>
-          <ChevronRight size={16} />
-        </Link>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
+            {allowQuickPaid && (
+              <form action={markBankCommitmentAsPaid}>
+                <input type="hidden" name="commitment_key" value={item.id} />
+                <input type="hidden" name="reference_month" value={referenceMonth} />
+                <button
+                  className="button ghost compact-button"
+                  type="submit"
+                  title="Remove este item da fila deste mês sem alterar automaticamente o saldo das suas contas."
+                >
+                  <CheckCircle2 size={14} />Pago
+                </button>
+              </form>
+            )}
+            <Link className="icon-link" href={item.href} aria-label={`Abrir ${item.title}`}><ChevronRight size={16} /></Link>
+          </div>
+        </div>
       ))}
     </div>
   );
@@ -72,10 +89,18 @@ function CommitmentList({
 
 export default async function BankDashboardPage() {
   const [data, month] = await Promise.all([getBankDashboardData(), getBankMonthHomeData()]);
-  const currentProjection = data.annualProjection[0];
-  const expectedIncome = currentProjection?.totalExpectedIncome ?? data.summary.receivableThisMonth;
+  const expectedIncome = month.receivableThisMonthTotal;
   const projectedEndOfMonth = data.summary.totalBalance + expectedIncome - month.remainingMonthTotal - month.overdueTotal;
   const monthName = month.monthLabel.charAt(0).toUpperCase() + month.monthLabel.slice(1);
+
+  const nextProjection = data.annualProjection.find((item) => item.referenceMonth > month.referenceMonth) ?? null;
+  const nextIncome = nextProjection?.totalExpectedIncome ?? 0;
+  const nextExpenses = nextProjection?.totalCommitments ?? 0;
+  const nextDifference = nextIncome - nextExpenses;
+  const nextMonthName = nextProjection?.referenceMonth
+    ? new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", month: "long", year: "numeric" })
+        .format(new Date(`${nextProjection.referenceMonth}T12:00:00-03:00`))
+    : "próximo mês";
 
   return (
     <section className="bank-dashboard">
@@ -89,12 +114,7 @@ export default async function BankDashboardPage() {
 
       <div
         className="bank-balance-hero"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0,1fr) auto",
-          alignItems: "center",
-          gap: 18,
-        }}
+        style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", alignItems: "center", gap: 18 }}
       >
         <div>
           <span className="bank-balance-kicker">O que precisa de atenção hoje</span>
@@ -124,27 +144,62 @@ export default async function BankDashboardPage() {
         <article className="stat-card">
           <div className="stat-head"><span>A receber neste mês</span><span className="stat-icon"><TrendingUp size={17} /></span></div>
           <div className="stat-value">{formatCurrency(expectedIncome)}</div>
-          <div className="stat-note">Entradas e recebimentos previstos para o mês atual.</div>
+          <div className="stat-note">Somente valores reais em aberto com vencimento neste mês. Projeções e rendas futuras não entram aqui.</div>
         </article>
 
         <article className={`stat-card bank-difference-card ${projectedEndOfMonth < 0 ? "negative" : "positive"}`}>
           <div className="stat-head"><span>Projeção até o fim do mês</span><span className="stat-icon"><CircleDollarSign size={17} /></span></div>
           <div className="stat-value">{formatCurrency(projectedEndOfMonth)}</div>
-          <div className="stat-note">Saldo atual + entradas previstas − compromissos ainda abertos deste mês.</div>
+          <div className="stat-note">Saldo atual + valores realmente a receber − compromissos ainda abertos deste mês.</div>
         </article>
       </div>
+
+      <article className="panel" style={{ marginTop: 18 }}>
+        <div className="panel-head">
+          <div>
+            <h2>Projeção do mês que vem</h2>
+            <p>{nextMonthName.charAt(0).toUpperCase() + nextMonthName.slice(1)} · previsão, não saldo real.</p>
+          </div>
+          <CalendarDays size={20} />
+        </div>
+        <div className="panel-body">
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 12 }}>
+            <div className="stat-card" style={{ minHeight: 118 }}>
+              <div className="stat-head"><span>Entrada prevista</span><span className="stat-icon"><ArrowUpRight size={17} /></span></div>
+              <div className="stat-value" style={{ fontSize: 24 }}>{formatCurrency(nextIncome)}</div>
+              <div className="stat-note">Receitas e valores projetados para o próximo mês.</div>
+            </div>
+            <div className="stat-card" style={{ minHeight: 118 }}>
+              <div className="stat-head"><span>Saída prevista</span><span className="stat-icon"><ArrowDownRight size={17} /></span></div>
+              <div className="stat-value" style={{ fontSize: 24 }}>{formatCurrency(nextExpenses)}</div>
+              <div className="stat-note">Faturas, contas, mensalidades e compromissos projetados.</div>
+            </div>
+            <div className={`stat-card bank-difference-card ${nextDifference < 0 ? "negative" : "positive"}`} style={{ minHeight: 118 }}>
+              <div className="stat-head"><span>Diferença projetada</span><span className="stat-icon"><CircleDollarSign size={17} /></span></div>
+              <div className="stat-value" style={{ fontSize: 24 }}>{formatCurrency(nextDifference)}</div>
+              <div className="stat-note">Entrada prevista − saída prevista.</div>
+            </div>
+          </div>
+        </div>
+      </article>
 
       {month.overdue.length > 0 && (
         <article className="panel" style={{ marginTop: 18, borderColor: "rgba(239,100,100,.35)" }}>
           <div className="panel-head">
             <div>
               <h2>Atrasados deste mês</h2>
-              <p>{formatCurrency(month.overdueTotal)} ainda precisa ser resolvido.</p>
+              <p>{formatCurrency(month.overdueTotal)} ainda aparece como pendente. Se você já pagou, clique em Pago para retirar da fila.</p>
             </div>
             <AlertTriangle size={20} />
           </div>
           <div className="panel-body" style={{ padding: 0 }}>
-            <CommitmentList rows={month.overdue} today={month.today} emptyMessage="Nenhum atraso neste mês." />
+            <CommitmentList
+              rows={month.overdue}
+              today={month.today}
+              referenceMonth={month.referenceMonth}
+              emptyMessage="Nenhum atraso neste mês."
+              allowQuickPaid
+            />
           </div>
         </article>
       )}
@@ -161,6 +216,7 @@ export default async function BankDashboardPage() {
           <CommitmentList
             rows={[...month.dueToday, ...month.upcoming]}
             today={month.today}
+            referenceMonth={month.referenceMonth}
             emptyMessage="Nenhum compromisso pendente até o fim deste mês."
           />
         </div>
