@@ -99,17 +99,23 @@ export function MarketingIdeaUploader({ openByDefault = false }: { openByDefault
 
       setMessage("PDF enviado. O Nexus está interpretando o material e montando a página do roteiro...");
 
-      const processing = await supabase.functions.invoke("marketing-pdf-ingest", {
-        body: { asset_id: asset.data.id },
+      const processingResponse = await fetch("/api/marketing/pdf-ingest", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ asset_id: asset.data.id }),
       });
+      const processing = await processingResponse.json().catch(() => ({})) as {
+        error?: string;
+        project_id?: string;
+      };
 
-      if (processing.error || processing.data?.error) {
+      if (!processingResponse.ok || processing.error) {
         setMessage("A página foi criada, mas a interpretação automática ficou pendente. Ela poderá ser processada novamente na Caixa de ideias.");
         router.push(`/marketing/ideias/${project.data.id}`);
         return;
       }
 
-      const projectId = processing.data?.project_id || project.data.id;
+      const projectId = processing.project_id || project.data.id;
       router.push(`/marketing/ideias/${projectId}`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível registrar a ideia.");

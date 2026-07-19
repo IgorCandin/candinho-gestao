@@ -44,13 +44,16 @@ export function CentralConversationActions({ conversationId, status }: { convers
     setMessage(null);
 
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.functions.invoke("central-delete-conversation", {
-        body: { conversation_id: conversationId },
+      const response = await fetch("/api/central/delete-conversation", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ conversation_id: conversationId }),
       });
+      const data = await response.json().catch(() => ({})) as { error?: string };
 
-      if (error) throw error;
-      if (data?.error) throw new Error(String(data.error));
+      if (!response.ok || data?.error) {
+        throw new Error(data?.error || "Não foi possível excluir a conversa do Inbox.");
+      }
 
       router.push("/central/inbox");
       router.refresh();

@@ -3,7 +3,19 @@
 import { LoaderCircle, Sparkles } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+
+async function processAsset(assetId: string) {
+  const response = await fetch("/api/marketing/pdf-ingest", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ asset_id: assetId }),
+  });
+
+  const payload = await response.json().catch(() => ({})) as { error?: string };
+  if (!response.ok || payload.error) {
+    throw new Error(payload.error || "Falha ao interpretar PDF.");
+  }
+}
 
 export function MarketingPendingProcessor({ assetIds }: { assetIds: string[] }) {
   const router = useRouter();
@@ -16,14 +28,14 @@ export function MarketingPendingProcessor({ assetIds }: { assetIds: string[] }) 
     started.current = true;
 
     void (async () => {
-      const supabase = createClient();
       let errors = 0;
 
       for (let index = 0; index < assetIds.length; index += 1) {
-        const result = await supabase.functions.invoke("marketing-pdf-ingest", {
-          body: { asset_id: assetIds[index] },
-        });
-        if (result.error || result.data?.error) errors += 1;
+        try {
+          await processAsset(assetIds[index]);
+        } catch {
+          errors += 1;
+        }
         setRemaining(assetIds.length - index - 1);
         setFailed(errors);
       }
@@ -36,13 +48,13 @@ export function MarketingPendingProcessor({ assetIds }: { assetIds: string[] }) 
 
   return (
     <div className="bank-success-banner" style={{ marginBottom: 18 }}>
-      {remaining > 0 ? <LoaderCircle className="spin" size={18}/> : <Sparkles size={18}/>}
+      {remaining > 0 ? <LoaderCircle className="spin" size={18}/> : <Sparkles size={18}/>} 
       <div>
-        <strong>{remaining > 0 ? `Nexus interpretando ${remaining} PDF(s)...` : "Processamento concluído."}</strong>
+        <strong>{remaining > 0 ? `Nexus interpretando ${remaining} PDF(s)...` : failed ? "Processamento finalizado com pendências." : "Processamento concluído."}</strong>
         <span>
           {failed > 0
-            ? `${failed} material(is) tiveram erro e continuam disponíveis para nova tentativa.`
-            : "Os PDFs antigos enviados como Marketing estão sendo transformados em páginas de roteiro automaticamente."}
+            ? `${failed} material(is) não puderam ser interpretados nesta tentativa.`
+            : "Os PDFs foram transformados em páginas de roteiro dentro do Marketing."}
         </span>
       </div>
     </div>
