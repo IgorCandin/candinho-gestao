@@ -1,0 +1,7 @@
+/* Candinho Central · Inbox pausado
+   Esconde os atalhos antigos sem precisar manter a interface pesada ativa. */
+
+a[href="/central/inbox"],
+a[href^="/central/inbox?"] {
+  display: none !important;
+}
