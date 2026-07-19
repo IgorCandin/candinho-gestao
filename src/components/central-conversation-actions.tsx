@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCheck, CircleCheckBig, Clock3, LoaderCircle, RotateCcw } from "lucide-react";
+import { CheckCheck, CircleCheckBig, Clock3, LoaderCircle, RotateCcw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -32,14 +32,78 @@ export function CentralConversationActions({ conversationId, status }: { convers
     finally { setLoading(null); }
   }
 
+  async function deleteFromInbox() {
+    const confirmed = window.confirm(
+      "Excluir esta conversa somente da Candinho Central?\n\n" +
+      "Isso remove o histórico salvo no Inbox e os anexos próprios desta conversa, mas NÃO apaga nada do WhatsApp.\n\n" +
+      "Se o contato mandar uma nova mensagem, a conversa aparecerá novamente."
+    );
+    if (!confirmed) return;
+
+    setLoading("delete");
+    setMessage(null);
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke("central-delete-conversation", {
+        body: { conversation_id: conversationId },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(String(data.error));
+
+      router.push("/central/inbox");
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível excluir a conversa do Inbox.");
+    } finally {
+      setLoading(null);
+    }
+  }
+
   const isClosed = status === "closed" || status === "archived";
 
   return <div className="central-conversation-actions">
     <div className="central-conversation-action-buttons">
-      <button type="button" className="button ghost compact-button" onClick={markRead} disabled={Boolean(loading)}>{loading === "read" ? <LoaderCircle className="spin" size={15}/> : <CheckCheck size={15}/>}Marcar lida</button>
-      {!isClosed && <button type="button" className="button ghost compact-button" onClick={() => setStatus(status === "pending" ? "open" : "pending")} disabled={Boolean(loading)}>{loading === "pending" || loading === "open" ? <LoaderCircle className="spin" size={15}/> : <Clock3 size={15}/>} {status === "pending" ? "Reabrir" : "Pendente"}</button>}
-      <button type="button" className="button ghost compact-button" onClick={() => setStatus(isClosed ? "open" : "closed")} disabled={Boolean(loading)}>{loading === "closed" || loading === "open" ? <LoaderCircle className="spin" size={15}/> : isClosed ? <RotateCcw size={15}/> : <CircleCheckBig size={15}/>} {isClosed ? "Reabrir" : "Concluir"}</button>
+      <button type="button" className="button ghost compact-button" onClick={markRead} disabled={Boolean(loading)}>
+        {loading === "read" ? <LoaderCircle className="spin" size={15}/> : <CheckCheck size={15}/>}
+        Marcar lida
+      </button>
+
+      {!isClosed && (
+        <button
+          type="button"
+          className="button ghost compact-button"
+          onClick={() => setStatus(status === "pending" ? "open" : "pending")}
+          disabled={Boolean(loading)}
+        >
+          {loading === "pending" || loading === "open" ? <LoaderCircle className="spin" size={15}/> : <Clock3 size={15}/>}
+          {status === "pending" ? "Reabrir" : "Pendente"}
+        </button>
+      )}
+
+      <button
+        type="button"
+        className="button ghost compact-button"
+        onClick={() => setStatus(isClosed ? "open" : "closed")}
+        disabled={Boolean(loading)}
+      >
+        {loading === "closed" || loading === "open" ? <LoaderCircle className="spin" size={15}/> : isClosed ? <RotateCcw size={15}/> : <CircleCheckBig size={15}/>}
+        {isClosed ? "Reabrir" : "Concluir"}
+      </button>
+
+      <button
+        type="button"
+        className="button ghost compact-button danger"
+        onClick={deleteFromInbox}
+        disabled={Boolean(loading)}
+        title="Apaga somente o histórico local da Candinho Central. Não apaga a conversa no WhatsApp."
+      >
+        {loading === "delete" ? <LoaderCircle className="spin" size={15}/> : <Trash2 size={15}/>}
+        Excluir do Inbox
+      </button>
     </div>
+
     {message && <p className="central-action-message">{message}</p>}
   </div>;
 }

@@ -1,0 +1,89 @@
+/* Candinho Company · Mobile Navigation V3
+   - Menu fica do lado esquerdo no telefone.
+   - Painel abre como gaveta lateral esquerda, seguindo a lógica do desktop.
+   - Nas telas iniciais das operações não existe mais uma barra de cabeçalho inteira:
+     fica somente um botão compacto de Menu no canto esquerdo. */
+
+@media (max-width: 820px) {
+  .mobile-header {
+    justify-content: flex-start;
+  }
+
+  .mobile-header .mobile-menu {
+    order: 1;
+  }
+
+  .mobile-header .mobile-brand-link {
+    order: 2;
+  }
+
+  .mobile-header .mobile-back-button {
+    order: 3;
+    margin-left: auto;
+  }
+
+  .mobile-menu summary {
+    position: relative;
+    z-index: 91;
+  }
+
+  .mobile-menu-panel {
+    position: fixed;
+    top: 62px;
+    left: 0;
+    right: auto;
+    width: min(320px, 86vw);
+    height: calc(100dvh - 62px);
+    max-height: calc(100dvh - 62px);
+    padding: 10px 10px max(18px, env(safe-area-inset-bottom));
+    border-radius: 0 18px 18px 0;
+    border-left: 0;
+    overflow-y: auto;
+    box-shadow: 24px 0 70px rgba(0,0,0,.58);
+  }
+
+  /* Home das operações: sem cabeçalho grande no telefone. */
+  .app-shell:has(.operation-home-hero) .mobile-header,
+  .app-shell:has(.bank-dashboard) .mobile-header {
+    position: fixed;
+    top: max(14px, env(safe-area-inset-top));
+    left: 14px;
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    backdrop-filter: none;
+    z-index: 90;
+  }
+
+  .app-shell:has(.operation-home-hero) .mobile-header .mobile-brand-link,
+  .app-shell:has(.operation-home-hero) .mobile-header .mobile-back-button,
+  .app-shell:has(.bank-dashboard) .mobile-header .mobile-brand-link,
+  .app-shell:has(.bank-dashboard) .mobile-header .mobile-back-button {
+    display: none;
+  }
+
+  .app-shell:has(.operation-home-hero) .mobile-menu summary,
+  .app-shell:has(.bank-dashboard) .mobile-menu summary {
+    min-width: 102px;
+    min-height: 46px;
+    justify-content: center;
+    padding: 0 14px;
+    background: rgba(15,19,27,.96);
+    box-shadow: 0 10px 30px rgba(0,0,0,.32);
+  }
+
+  .app-shell:has(.operation-home-hero) .mobile-menu-panel,
+  .app-shell:has(.bank-dashboard) .mobile-menu-panel {
+    top: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding-top: max(78px, calc(env(safe-area-inset-top) + 64px));
+  }
+
+  .app-shell:has(.operation-home-hero) .content,
+  .app-shell:has(.bank-dashboard) .content {
+    padding-top: 78px;
+  }
+}
