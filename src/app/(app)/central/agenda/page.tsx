@@ -11,6 +11,12 @@ export default async function CentralAgendaPage({ searchParams }: { searchParams
   const access = await getCurrentUserAccess();
   if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const params = await searchParams;
+
+  // Compatibilidade com links antigos do menu da Operação Marketing.
+  if (params.scope === "marketing" && (access.role === "admin" || access.canAccessMarketing)) {
+    redirect("/marketing/planejamento");
+  }
+
   const allowedScopes = ["company", ...(access.canAccessSupplements || access.role === "admin" ? ["supplements"] : []), ...(access.canAccessFitness || access.role === "admin" ? ["fitness"] : []), ...(access.canAccessMarketing || access.role === "admin" ? ["marketing"] : [])];
   const scope = params.scope && allowedScopes.includes(params.scope) ? params.scope : null;
   const status = params.status && ["planned","completed","cancelled"].includes(params.status) ? params.status : null;

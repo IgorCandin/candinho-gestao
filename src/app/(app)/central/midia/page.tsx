@@ -22,6 +22,13 @@ export default async function CentralMediaPage({ searchParams }: { searchParams:
   const access = await getCurrentUserAccess();
   if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
   const params = await searchParams;
+
+  // Compatibilidade com links antigos da sidebar do Marketing:
+  // Marketing não usa mais a Biblioteca Central como tela principal de entrada.
+  if (params.scope === "marketing" && (access.role === "admin" || access.canAccessMarketing)) {
+    redirect("/marketing/ideias");
+  }
+
   const allowedScopes = [access.role === "admin" ? "company" : null, access.canAccessSupplements ? "supplements" : null, access.canAccessFitness ? "fitness" : null, access.canAccessMarketing ? "marketing" : null].filter((item): item is string => Boolean(item));
   const requestedScope = params.scope && allowedScopes.includes(params.scope) ? params.scope : null;
   const requestedKind = ["image", "video", "document"].includes(params.kind ?? "") ? params.kind! : null;
