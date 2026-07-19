@@ -1,0 +1,32 @@
+Candinho Company V25 · Mega Operacional
+Consignação Fitness · Orçamentos/PDFs · Pós-venda consolidado · Nexus IA
+
+LEIA-ME-V25.md
+src/app/(app)/fitness/consignacoes/[id]/page.tsx
+src/app/(app)/fitness/consignacoes/nova/page.tsx
+src/app/(app)/fitness/consignacoes/page.tsx
+src/app/(app)/fitness/estoque/page.tsx
+src/app/(app)/fitness/orcamentos/[id]/page.tsx
+src/app/(app)/fitness/orcamentos/novo/page.tsx
+src/app/(app)/fitness/orcamentos/page.tsx
+src/app/(app)/fitness/page.tsx
+src/app/(app)/fitness/pdfs/page.tsx
+src/app/(app)/pos-venda/[id]/page.tsx
+src/app/(app)/pos-venda/page.tsx
+src/app/(app)/suplementos/page.tsx
+src/app/api/fitness/catalogo/pdf/route.ts
+src/app/api/fitness/orcamentos/[id]/pdf/route.ts
+src/components/fitness-consignment-form.tsx
+src/components/fitness-consignment-settlement-form.tsx
+src/components/fitness-pdf-builder.tsx
+src/components/fitness-quote-convert-form.tsx
+src/components/fitness-quote-form.tsx
+src/components/post-sale-nexus-card.tsx
+supabase/audits/V25_MEGA_OPERATIONAL_AUDIT.md
+supabase/functions/post-sale-nexus-suggest/index.ts
+supabase/migrations/20260719220000_v25_fitness_consignments_quotes.sql
+supabase/migrations/20260719220500_v25_fitness_availability_guards.sql
+supabase/migrations/20260719220700_v25_fitness_quote_discount_sale_parity.sql
+supabase/migrations/20260719221000_v25_post_sale_batches_core.sql
+supabase/migrations/20260719221500_v25_agenda_consolidated_post_sale.sql
+supabase/migrations/20260719222000_v25_post_sale_operational_actions.sql
