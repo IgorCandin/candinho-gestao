@@ -20,6 +20,18 @@ function parseMoney(value: FormDataEntryValue | null) {
   return Math.round(parsed * 100) / 100;
 }
 
+async function requireBankWriteAccess() {
+  const supabase = await createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error("Sessão não encontrada.");
+
+  const { data: canWrite, error: permissionError } = await supabase.rpc("can_write_bank");
+  if (permissionError) throw permissionError;
+  if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
+
+  return supabase;
+}
+
 export async function saveBankBalances(formData: FormData) {
   const balanceDate = String(formData.get("balance_date") ?? "");
   const accountIds = formData.getAll("account_id").map(String);
@@ -29,45 +41,23 @@ export async function saveBankBalances(formData: FormData) {
     throw new Error("Nenhuma conta válida foi encontrada para atualização.");
   }
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser();
-  if (userError || !user) throw new Error("Sessão não encontrada.");
-
-  const { data: canWrite, error: permissionError } = await supabase.rpc("can_write_bank");
-  if (permissionError) throw permissionError;
-  if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
-
   const uniqueIds = [...new Set(accountIds)];
-  const { data: activeAccounts, error: accountsError } = await supabase
-    .from("bank_accounts")
-    .select("id")
-    .eq("is_active", true)
-    .in("id", uniqueIds);
-  if (accountsError) throw accountsError;
-
-  const validIds = new Set((activeAccounts ?? []).map((row) => String(row.id)));
-  if (validIds.size !== uniqueIds.length) throw new Error("Uma ou mais contas não estão mais ativas.");
-
   const rows = uniqueIds.map((accountId) => ({
     account_id: accountId,
-    balance_date: balanceDate,
     balance: parseMoney(formData.get(`balance:${accountId}`)),
-    created_by: user.id,
   }));
 
-  const { error } = await supabase
-    .from("bank_balance_snapshots")
-    .upsert(rows, { onConflict: "account_id,balance_date" });
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_save_balances", {
+    p_balance_date: balanceDate,
+    p_rows: rows,
+  });
   if (error) throw error;
 
   revalidatePath("/bank");
   revalidatePath("/bank/contas");
   redirect(`/bank/contas?salvo=1&data=${encodeURIComponent(balanceDate)}`);
 }
-
 
 export async function createBankAccount(formData: FormData) {
   const name = String(formData.get("name") ?? "").trim();
@@ -80,21 +70,13 @@ export async function createBankAccount(formData: FormData) {
   if (!name) throw new Error("Informe o nome da conta ou carteira.");
   if (!["bank", "cash", "wallet", "saved", "other"].includes(accountType)) throw new Error("Tipo de conta inválido.");
 
-  const supabase = await createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) throw new Error("Sessão não encontrada.");
-  const { data: canWrite, error: permissionError } = await supabase.rpc("can_write_bank");
-  if (permissionError) throw permissionError;
-  if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
-
-  const { error } = await supabase.from("bank_accounts").insert({
-    name,
-    account_type: accountType,
-    origin,
-    notes,
-    display_order: displayOrder,
-    is_active: true,
-    created_by: user.id,
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_create_account", {
+    p_name: name,
+    p_account_type: accountType,
+    p_origin: origin,
+    p_notes: notes,
+    p_display_order: displayOrder,
   });
   if (error) throw error;
 

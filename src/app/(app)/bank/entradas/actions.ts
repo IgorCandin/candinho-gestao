@@ -24,7 +24,7 @@ async function requireBankWriteAccess() {
   const { data: canWrite, error: permissionError } = await supabase.rpc("can_write_bank");
   if (permissionError) throw permissionError;
   if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
-  return { supabase, user };
+  return supabase;
 }
 
 export async function createBankIncomeSource(formData: FormData) {
@@ -48,23 +48,20 @@ export async function createBankIncomeSource(formData: FormData) {
   if (startsOn && !datePattern.test(startsOn)) throw new Error("Data inicial inválida.");
   if (endsOn && !datePattern.test(endsOn)) throw new Error("Data final inválida.");
 
-  const { supabase, user } = await requireBankWriteAccess();
-  const { error } = await supabase.from("bank_income_sources").insert({
-    name,
-    payer_name: payerName,
-    amount,
-    frequency,
-    expected_day: expectedDay,
-    starts_on: startsOn,
-    ends_on: endsOn,
-    category,
-    origin,
-    is_variable: isVariable,
-    include_in_projection: includeInProjection,
-    is_active: true,
-    notes,
-    created_by: user.id,
-    updated_by: user.id,
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_create_income_source", {
+    p_name: name,
+    p_payer_name: payerName,
+    p_amount: amount,
+    p_frequency: frequency,
+    p_expected_day: expectedDay,
+    p_starts_on: startsOn,
+    p_ends_on: endsOn,
+    p_category: category,
+    p_origin: origin,
+    p_is_variable: isVariable,
+    p_include_in_projection: includeInProjection,
+    p_notes: notes,
   });
   if (error) throw error;
 
@@ -79,11 +76,11 @@ export async function toggleBankIncomeSource(formData: FormData) {
   const active = String(formData.get("active") ?? "false") === "true";
   if (!uuidPattern.test(sourceId)) throw new Error("Entrada prevista inválida.");
 
-  const { supabase, user } = await requireBankWriteAccess();
-  const { error } = await supabase
-    .from("bank_income_sources")
-    .update({ is_active: active, updated_by: user.id })
-    .eq("id", sourceId);
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_toggle_income_source", {
+    p_source_id: sourceId,
+    p_active: active,
+  });
   if (error) throw error;
 
   revalidatePath("/bank");
@@ -107,22 +104,17 @@ export async function createBankReceivable(formData: FormData) {
   if (!title) throw new Error("Informe o nome da conta a receber.");
   if (!datePattern.test(dueDate)) throw new Error("Informe uma data de vencimento válida.");
 
-  const { supabase, user } = await requireBankWriteAccess();
-  const { error } = await supabase.from("bank_receivables").insert({
-    title,
-    payer_name: payerName,
-    description,
-    amount,
-    received_amount: 0,
-    due_date: dueDate,
-    status: "pending",
-    category,
-    origin,
-    source_type: incomeSourceId ? "income_source" : "manual",
-    source_id: incomeSourceId,
-    notes,
-    created_by: user.id,
-    updated_by: user.id,
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_create_receivable", {
+    p_title: title,
+    p_payer_name: payerName,
+    p_description: description,
+    p_amount: amount,
+    p_due_date: dueDate,
+    p_category: category,
+    p_origin: origin,
+    p_income_source_id: incomeSourceId,
+    p_notes: notes,
   });
   if (error) throw error;
 
@@ -142,7 +134,7 @@ export async function receiveBankReceivable(formData: FormData) {
   if (!uuidPattern.test(receivableId)) throw new Error("Conta a receber inválida.");
   if (!datePattern.test(receivedOn)) throw new Error("Informe uma data de recebimento válida.");
 
-  const { supabase } = await requireBankWriteAccess();
+  const supabase = await requireBankWriteAccess();
   const { error } = await supabase.rpc("bank_receive_receivable", {
     p_receivable_id: receivableId,
     p_amount: amount,

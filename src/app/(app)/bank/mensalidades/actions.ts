@@ -23,7 +23,7 @@ async function requireBankWriteAccess() {
   const { data: canWrite, error: permissionError } = await supabase.rpc("can_write_bank");
   if (permissionError) throw permissionError;
   if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
-  return { supabase, user };
+  return supabase;
 }
 
 export async function createBankSubscription(formData: FormData) {
@@ -45,7 +45,7 @@ export async function createBankSubscription(formData: FormData) {
   const notes = String(formData.get("notes") ?? "").trim() || null;
 
   if (!name) throw new Error("Informe o nome do plano ou mensalidade.");
-  if (!["monthly", "annual", "weekly", "custom"].includes(billingCycle)) throw new Error("Ciclo de cobrança inválido.");
+  if (!["monthly", "annual", "yearly", "weekly", "custom"].includes(billingCycle)) throw new Error("Ciclo de cobrança inválido.");
   if (billingDay !== null && (!Number.isInteger(billingDay) || billingDay < 1 || billingDay > 31)) throw new Error("Informe um dia de cobrança entre 1 e 31.");
   if (startsOnRaw && !datePattern.test(startsOnRaw)) throw new Error("Data inicial inválida.");
   if (endsOnRaw && !datePattern.test(endsOnRaw)) throw new Error("Data final inválida.");
@@ -57,27 +57,23 @@ export async function createBankSubscription(formData: FormData) {
   if (paymentMethodType === "card" && !cardId) throw new Error("Escolha o cartão onde essa mensalidade é cobrada.");
   if (paymentMethodType === "account" && !accountId) throw new Error("Escolha a conta usada para essa mensalidade.");
 
-  const { supabase, user } = await requireBankWriteAccess();
-
-  const { error } = await supabase.from("bank_subscriptions").insert({
-    name,
-    provider,
-    amount,
-    billing_cycle: billingCycle,
-    billing_day: billingDay,
-    starts_on: startsOnRaw || null,
-    ends_on: endsOnRaw || null,
-    category,
-    origin,
-    payment_method_type: paymentMethodType,
-    card_id: cardId,
-    account_id: accountId,
-    include_in_projection: includeInProjection,
-    projection_mode: projectionMode,
-    is_active: true,
-    notes,
-    created_by: user.id,
-    updated_by: user.id,
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_create_subscription", {
+    p_name: name,
+    p_provider: provider,
+    p_amount: amount,
+    p_billing_cycle: billingCycle,
+    p_billing_day: billingDay,
+    p_starts_on: startsOnRaw || null,
+    p_ends_on: endsOnRaw || null,
+    p_category: category,
+    p_origin: origin,
+    p_payment_method_type: paymentMethodType,
+    p_card_id: cardId,
+    p_account_id: accountId,
+    p_include_in_projection: includeInProjection,
+    p_projection_mode: projectionMode,
+    p_notes: notes,
   });
   if (error) throw error;
 
@@ -92,11 +88,11 @@ export async function toggleBankSubscription(formData: FormData) {
   const active = String(formData.get("active") ?? "false") === "true";
   if (!uuidPattern.test(subscriptionId)) throw new Error("Mensalidade inválida.");
 
-  const { supabase, user } = await requireBankWriteAccess();
-  const { error } = await supabase
-    .from("bank_subscriptions")
-    .update({ is_active: active, updated_by: user.id })
-    .eq("id", subscriptionId);
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_toggle_subscription", {
+    p_subscription_id: subscriptionId,
+    p_active: active,
+  });
   if (error) throw error;
 
   revalidatePath("/bank");

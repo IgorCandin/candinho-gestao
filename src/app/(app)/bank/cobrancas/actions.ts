@@ -36,7 +36,7 @@ async function requireBankWriteAccess() {
   if (permissionError) throw permissionError;
   if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
 
-  return { supabase, user };
+  return supabase;
 }
 
 export async function createBankCharge(formData: FormData) {
@@ -51,23 +51,16 @@ export async function createBankCharge(formData: FormData) {
   if (!title) throw new Error("Informe o nome da cobrança.");
   if (!datePattern.test(dueDate)) throw new Error("Informe uma data de vencimento válida.");
 
-  const { supabase, user } = await requireBankWriteAccess();
-
-  const { error } = await supabase.from("bank_charges").insert({
-    title,
-    description,
-    amount,
-    paid_amount: 0,
-    due_date: dueDate,
-    status: "pending",
-    category,
-    origin,
-    charge_type: "manual",
-    notes,
-    created_by: user.id,
-    updated_by: user.id,
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_create_charge", {
+    p_title: title,
+    p_description: description,
+    p_amount: amount,
+    p_due_date: dueDate,
+    p_category: category,
+    p_origin: origin,
+    p_notes: notes,
   });
-
   if (error) throw error;
 
   revalidatePath("/bank");
@@ -86,7 +79,7 @@ export async function markBankChargePaid(formData: FormData) {
   if (!datePattern.test(paidOn)) throw new Error("Informe uma data de pagamento válida.");
   if (paymentAccountId && !uuidPattern.test(paymentAccountId)) throw new Error("Conta de pagamento inválida.");
 
-  const { supabase } = await requireBankWriteAccess();
+  const supabase = await requireBankWriteAccess();
 
   if (paymentAccountId) {
     const { data: account, error: accountError } = await supabase

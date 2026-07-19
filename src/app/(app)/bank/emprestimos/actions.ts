@@ -40,7 +40,7 @@ async function requireBankWriteAccess() {
   if (permissionError) throw permissionError;
   if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
 
-  return { supabase, user };
+  return supabase;
 }
 
 function revalidateBankDebtPaths() {
@@ -61,31 +61,22 @@ export async function createBankDebt(formData: FormData) {
   const notes = String(formData.get("notes") ?? "").trim() || null;
 
   if (!name) throw new Error("Informe um nome para a dívida.");
-  if (!['loan', 'note'].includes(debtType)) throw new Error("Tipo de dívida inválido.");
+  if (!["loan", "note"].includes(debtType)) throw new Error("Tipo de dívida inválido.");
   if (startDateRaw && !datePattern.test(startDateRaw)) throw new Error("Informe uma data inicial válida.");
   if (nextDueDateRaw && !datePattern.test(nextDueDateRaw)) throw new Error("Informe um próximo vencimento válido.");
 
-  const { supabase, user } = await requireBankWriteAccess();
-  const dueDay = nextDueDateRaw ? Number(nextDueDateRaw.slice(8, 10)) : null;
-
-  const { error } = await supabase.from("bank_debts").insert({
-    name,
-    debt_type: debtType,
-    creditor_name: creditorName,
-    original_amount: originalAmount,
-    monthly_amount: monthlyAmount,
-    total_paid: 0,
-    start_date: startDateRaw || null,
-    next_due_date: nextDueDateRaw || null,
-    due_day: dueDay,
-    interest_free: true,
-    origin,
-    status: "active",
-    notes,
-    created_by: user.id,
-    updated_by: user.id,
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_create_debt", {
+    p_name: name,
+    p_debt_type: debtType,
+    p_creditor_name: creditorName,
+    p_original_amount: originalAmount,
+    p_monthly_amount: monthlyAmount,
+    p_start_date: startDateRaw || null,
+    p_next_due_date: nextDueDateRaw || null,
+    p_origin: origin,
+    p_notes: notes,
   });
-
   if (error) throw error;
 
   revalidateBankDebtPaths();
@@ -104,7 +95,7 @@ export async function payBankDebtInstallment(formData: FormData) {
   if (!datePattern.test(paidOn)) throw new Error("Informe uma data de pagamento válida.");
   if (paymentAccountId && !uuidPattern.test(paymentAccountId)) throw new Error("Conta de pagamento inválida.");
 
-  const { supabase } = await requireBankWriteAccess();
+  const supabase = await requireBankWriteAccess();
 
   if (paymentAccountId) {
     const { data: account, error: accountError } = await supabase
@@ -138,7 +129,7 @@ export async function postponeBankDebtPayment(formData: FormData) {
 
   if (!uuidPattern.test(debtId)) throw new Error("Dívida inválida.");
 
-  const { supabase } = await requireBankWriteAccess();
+  const supabase = await requireBankWriteAccess();
   const { error } = await supabase.rpc("bank_postpone_debt_payment", {
     p_debt_id: debtId,
     p_notes: notes,

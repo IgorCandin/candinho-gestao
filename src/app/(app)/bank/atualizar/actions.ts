@@ -36,31 +36,28 @@ export async function saveBankQuickUpdate(formData: FormData) {
   if (permissionError) throw permissionError;
   if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
 
-  const balanceRows = accountIds.flatMap((accountId) => {
+  const balances = accountIds.flatMap((accountId) => {
     const balance = parseMoney(formData.get(`balance:${accountId}`));
-    return balance === null ? [] : [{ account_id: accountId, balance_date: balanceDate, balance, created_by: user.id }];
+    return balance === null ? [] : [{ account_id: accountId, balance }];
   });
-  if (balanceRows.length > 0) {
-    const { error } = await supabase.from("bank_balance_snapshots").upsert(balanceRows, { onConflict: "account_id,balance_date" });
-    if (error) throw error;
-  }
 
-  const invoiceRows = cardIds.flatMap((cardId) => {
+  const invoices = cardIds.flatMap((cardId) => {
     const amount = parseMoney(formData.get(`invoice:${cardId}`));
     if (amount === null) return [];
     return [{
       card_id: cardId,
-      reference_month: referenceMonth,
       amount,
       includes_recurring: String(formData.get(`invoice_mode:${cardId}`) ?? "total") !== "installments",
-      created_by: user.id,
-      updated_by: user.id,
     }];
   });
-  if (invoiceRows.length > 0) {
-    const { error } = await supabase.from("bank_card_invoices").upsert(invoiceRows, { onConflict: "card_id,reference_month" });
-    if (error) throw error;
-  }
+
+  const { error } = await supabase.rpc("bank_quick_update", {
+    p_balance_date: balanceDate,
+    p_reference_month: referenceMonth,
+    p_balances: balances,
+    p_invoices: invoices,
+  });
+  if (error) throw error;
 
   revalidatePath("/bank");
   revalidatePath("/bank/atualizar");

@@ -28,16 +28,10 @@ export async function markBankCommitmentAsPaid(formData: FormData) {
   if (permissionError) throw permissionError;
   if (!canWrite) throw new Error("Seu usuário não possui permissão para alterar dados da Candinho Bank.");
 
-  const { error } = await supabase
-    .from("bank_month_commitment_resolutions")
-    .upsert({
-      commitment_key: commitmentKey,
-      reference_month: referenceMonth,
-      resolution: "paid",
-      resolved_on: new Date().toISOString().slice(0, 10),
-      created_by: user.id,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "commitment_key,reference_month" });
+  const { error } = await supabase.rpc("bank_mark_commitment_paid", {
+    p_commitment_key: commitmentKey,
+    p_reference_month: referenceMonth,
+  });
 
   if (error) throw error;
 
