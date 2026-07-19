@@ -20,7 +20,6 @@ export default async function DashboardPage() {
   const supplements = home?.supplements ?? null;
   const fitness = home?.fitness ?? null;
   const bank = home?.bank ?? null;
-  const central = home?.central ?? null;
   const marketing = home?.marketing ?? null;
   const centralVisible = bootstrap?.feature_flags?.central_enabled !== false && (access.canManageUsers || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing);
   const marketingVisible = bootstrap?.feature_flags?.marketing_enabled !== false && access.canAccessMarketing;
@@ -88,9 +87,9 @@ export default async function DashboardPage() {
             <Link className="company-operation-card central" href="/central">
               <div className="company-operation-logo-wrap central-logo-wrap"><Image src={BRAND_ASSETS.central.reduced.src} alt={BRAND_ASSETS.central.reduced.alt} width={BRAND_ASSETS.central.reduced.width} height={BRAND_ASSETS.central.reduced.height} /></div>
               <div className="company-operation-mini-kpis">
-                <span><small>Não lidas</small><strong>{num(central, "unread")}</strong></span>
-                <span><small>Conversas abertas</small><strong>{num(central, "open_conversations")}</strong></span>
                 <span><small>Status</small><strong>Ativo</strong></span>
+                <span><small>Foco</small><strong>Prioridades</strong></span>
+                <span><small>Inbox</small><strong>Pausado</strong></span>
               </div>
             </Link>
           )}
