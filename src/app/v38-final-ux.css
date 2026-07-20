@@ -1,35 +1,151 @@
 /* Candinho Company · V38
-   Correção final do menu lateral.
-   Mantém integralmente o UX original da sidebar e corrige somente
-   o posicionamento do botão de abrir/recolher. */
+   Homologação final do shell desktop.
+   Mantém o UX original da sidebar, corrige o controle de recolher
+   e faz o conteúdo responder à largura realmente disponível. */
 
 @media (min-width: 821px) {
   /*
-   * Menu recolhido:
-   * preserva um trilho estreito para o botão, evitando que ele
-   * fique por cima do conteúdo principal.
+   * Menu fechado:
+   * mantém o trilho lateral aprovado para o botão de reabrir.
    */
   .app-shell.sidebar-collapsed {
     grid-template-columns: 48px minmax(0, 1fr);
   }
 
   /*
-   * Menu aberto:
-   * o botão permanece totalmente dentro dos 252px da sidebar.
-   * O UX original do menu (logo, links, usuário, slogan, rodapé,
-   * tamanhos e rolagem) não é alterado.
+   * Quando a sidebar está fechada, o botão continua sozinho
+   * no trilho lateral e não invade o conteúdo.
    */
-  .desktop-sidebar-toggle {
+  .desktop-sidebar-toggle.is-collapsed {
     top: 16px;
-    left: 208px;
-    z-index: 30;
+    bottom: auto;
+    left: 6px;
   }
 
   /*
-   * Menu fechado:
-   * botão centralizado no trilho lateral reservado.
+   * Quando a sidebar está aberta, o mesmo controle é renderizado
+   * dentro do rodapé da sidebar, visualmente ao lado de "Sair".
+   * O restante do menu mantém o layout original.
    */
-  .desktop-sidebar-toggle.is-collapsed {
-    left: 6px;
+  .app-shell > .sidebar .sidebar-footer {
+    position: relative;
+  }
+
+  .app-shell
+    > .sidebar
+    .sidebar-footer
+    .sidebar-inline-toggle {
+    position: absolute;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    z-index: 5;
+    width: 36px;
+    height: 36px;
+  }
+
+  .app-shell
+    > .sidebar
+    .sidebar-footer
+    form {
+    margin-right: 44px;
+  }
+
+  /*
+   * A área principal nunca pode herdar uma largura mínima maior
+   * que o espaço disponível depois que a sidebar abre.
+   */
+  .app-shell > .main {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+    container-type: inline-size;
+    container-name: candinho-main;
+  }
+
+  .app-shell
+    > .main
+    > .content {
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .operation-home-hero,
+  .operation-home-kpis,
+  .operation-home-actions,
+  .executive-dashboard,
+  .executive-kpi-grid,
+  .executive-section-grid,
+  .executive-forecast-grid {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .operation-home-hero > *,
+  .operation-home-kpis > *,
+  .operation-home-actions > *,
+  .executive-kpi-grid > *,
+  .executive-section-grid > *,
+  .executive-forecast-grid > * {
+    min-width: 0;
+  }
+}
+
+/*
+ * Com menu aberto em janela mais estreita, a Home deixa de tentar
+ * manter a ação principal e os KPIs lado a lado. Em vez de cortar
+ * informação, reorganiza os blocos.
+ */
+@container candinho-main (max-width: 920px) {
+  .operation-home-hero {
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+  }
+
+  .operation-home-kpis {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      ) !important;
+  }
+
+  .executive-kpi-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      ) !important;
+  }
+
+  .executive-section-grid {
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+  }
+}
+
+@container candinho-main (max-width: 680px) {
+  .operation-home-kpis {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      ) !important;
+  }
+
+  .executive-kpi-grid,
+  .executive-forecast-grid {
+    grid-template-columns:
+      minmax(0, 1fr) !important;
+  }
+}
+
+@container candinho-main (max-width: 520px) {
+  .operation-home-kpis {
+    grid-template-columns:
+      minmax(0, 1fr) !important;
   }
 }

@@ -5,6 +5,7 @@ import {
   PanelLeftOpen,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
 import {
   useEffect,
   useState,
@@ -25,6 +26,9 @@ export function DesktopSidebarController({
 
   const [hydrated, setHydrated] =
     useState(false);
+
+  const [footerTarget, setFooterTarget] =
+    useState<HTMLElement | null>(null);
 
   useEffect(() => {
     try {
@@ -64,6 +68,28 @@ export function DesktopSidebarController({
       );
   }, [collapsed, pathname]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+
+    const resolveFooter = () => {
+      setFooterTarget(
+        document.querySelector(
+          ".sidebar-footer",
+        ) as HTMLElement | null,
+      );
+    };
+
+    const frame =
+      window.requestAnimationFrame(
+        resolveFooter,
+      );
+
+    return () =>
+      window.cancelAnimationFrame(
+        frame,
+      );
+  }, [hydrated, pathname, collapsed]);
+
   function toggle() {
     setCollapsed((current) => {
       const next = !current;
@@ -80,44 +106,55 @@ export function DesktopSidebarController({
   const hidden =
     pathname === "/dashboard";
 
+  const toggleButton = (
+    inline: boolean,
+  ) => (
+    <button
+      className={`desktop-sidebar-toggle ${
+        collapsed
+          ? "is-collapsed"
+          : ""
+      } ${
+        inline
+          ? "sidebar-inline-toggle"
+          : ""
+      }`}
+      type="button"
+      aria-label={
+        collapsed
+          ? "Abrir menu lateral"
+          : "Fechar menu lateral"
+      }
+      title={
+        collapsed
+          ? "Abrir menu lateral"
+          : "Fechar menu lateral"
+      }
+      aria-pressed={collapsed}
+      onClick={toggle}
+    >
+      {collapsed ? (
+        <PanelLeftOpen size={18} />
+      ) : (
+        <PanelLeftClose size={18} />
+      )}
+    </button>
+  );
+
   return (
     <>
       {children}
 
-      {!hidden && hydrated && (
-        <button
-          className={`desktop-sidebar-toggle ${
-            collapsed
-              ? "is-collapsed"
-              : ""
-          }`}
-          type="button"
-          aria-label={
-            collapsed
-              ? "Abrir menu lateral"
-              : "Fechar menu lateral"
-          }
-          title={
-            collapsed
-              ? "Abrir menu lateral"
-              : "Fechar menu lateral"
-          }
-          aria-pressed={
-            collapsed
-          }
-          onClick={toggle}
-        >
-          {collapsed ? (
-            <PanelLeftOpen
-              size={18}
-            />
-          ) : (
-            <PanelLeftClose
-              size={18}
-            />
-          )}
-        </button>
-      )}
+      {!hidden &&
+        hydrated &&
+        (collapsed
+          ? toggleButton(false)
+          : footerTarget
+            ? createPortal(
+                toggleButton(true),
+                footerTarget,
+              )
+            : null)}
     </>
   );
 }

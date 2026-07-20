@@ -1,0 +1,24 @@
+Candinho Company · V38 · Pacotão 4 de homologação final
+
+Arquivos do pacote:
+- src/components/desktop-sidebar-controller.tsx
+- src/app/v38-final-ux.css
+- src/app/(app)/fitness/page.tsx
+- supabase/migrations/20260720220233_v38_homologacao_final_consistencia_operacional.sql
+- supabase/migrations/20260720220436_v38_pausa_inbox_alertas_consistencia.sql
+
+Correções principais:
+1. Botão de fechar sidebar vai para o rodapé, ao lado de Sair.
+2. Menu fechado mantém o trilho lateral aprovado.
+3. Conteúdo se adapta à largura restante quando a sidebar abre.
+4. Home Fitness conta vendas pendentes distintas, sem duplicar uma venda que esteja para entregar e receber.
+5. Central conta o universo completo das prioridades; listas continuam limitadas a 20 itens por bloco.
+6. Inbox pausado deixa de gerar alerta crítico por mensagens históricas.
+7. Bank usa America/Sao_Paulo para hoje, atraso e registros automáticos de pagamento/recebimento.
+8. Mês comercial da Sala do Dono/Suplementos não vira três horas antes no fechamento do mês.
+
+As duas migrations já foram aplicadas no Supabase de produção.
+Elas estão no pacote apenas para manter o repositório sincronizado com o banco.
+
+Commit sugerido:
+V38 · Pacotão final de homologação — UX, Central, Fitness e consistência de datas

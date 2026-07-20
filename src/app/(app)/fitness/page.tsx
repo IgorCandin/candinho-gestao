@@ -26,7 +26,12 @@ export default async function FitnessHomePage() {
   if (access.role === "sales") redirect("/fitness/produtos");
 
   const supabase = await createClient();
-  const [{ data: pipeline }, { data: returns }] = await Promise.all([
+
+  const [
+    { data: pipeline },
+    { data: returns },
+    { count: pendingSalesCountRaw },
+  ] = await Promise.all([
     supabase
       .from("fitness_commercial_pipeline_summary")
       .select("*")
@@ -35,10 +40,27 @@ export default async function FitnessHomePage() {
     supabase.rpc("returns_center_snapshot", {
       p_operation: "fitness",
     }),
+
+    supabase
+      .from("fitness_sales")
+      .select("id", {
+        count: "exact",
+        head: true,
+      })
+      .neq("general_status", "cancelled")
+      .or(
+        "delivery_status.eq.to_deliver,payment_status.eq.receivable",
+      ),
   ]);
 
   const openConsignments = Number(pipeline?.open_consignments ?? 0);
   const openQuotes = Number(pipeline?.open_quotes ?? 0);
+
+  const pendingSalesCount = Number(
+    pendingSalesCountRaw ??
+      summary.pending_delivery +
+        summary.pending_payment,
+  );
 
   const returnSummary =
     returns &&
@@ -80,7 +102,7 @@ export default async function FitnessHomePage() {
         <div className="operation-home-kpis">
           <Link href="/fitness/vendas">
             <span>Pendências</span>
-            <strong>{summary.pending_delivery + summary.pending_payment}</strong>
+            <strong>{pendingSalesCount}</strong>
             <small>
               {summary.pending_delivery} entregar · {summary.pending_payment} receber
             </small>
