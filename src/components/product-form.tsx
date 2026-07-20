@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Boxes, CircleDollarSign, FileText, ListPlus, LoaderCircle, Plus, Save, ShieldCheck, Trash2 } from "lucide-react";
+import { Boxes, Check, CircleDollarSign, ExternalLink, FileText, Globe2, ListPlus, LoaderCircle, Plus, Save, ShieldCheck, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -46,6 +46,67 @@ type StockLocation = {
   name: string;
   physicalQuantity: number;
 };
+
+
+type ProductEnrichmentSuggestions = {
+  brand: string | null;
+  category: string | null;
+  description: string | null;
+  objective: string | null;
+  ideal_profile: string | null;
+  duration_days: number | null;
+  information: string | null;
+  quick_message: string | null;
+  keywords: string | null;
+  level: string | null;
+};
+
+type ProductEnrichmentPreview = {
+  suggestions: ProductEnrichmentSuggestions;
+  confidence: "alta" | "media" | "baixa";
+  research_note: string | null;
+  sources: string[];
+  saved: boolean;
+};
+
+async function edgeErrorMessage(error: unknown) {
+  const fallback =
+    error instanceof Error
+      ? error.message
+      : "Não foi possível pesquisar o produto.";
+
+  const context =
+    error &&
+    typeof error === "object" &&
+    "context" in error
+      ? (error as { context?: unknown }).context
+      : null;
+
+  if (context instanceof Response) {
+    try {
+      const payload = await context.clone().json();
+
+      if (
+        payload &&
+        typeof payload.error === "string"
+      ) {
+        return payload.error;
+      }
+    } catch {
+      // Mantém a mensagem padrão.
+    }
+  }
+
+  return fallback;
+}
+
+function sourceHost(url: string) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return url;
+  }
+}
 
 function initialDraft(product?: ProductManagementDetails | null): ProductDraft {
   return {
@@ -95,6 +156,10 @@ export function ProductForm({ product, suppliers, categories }: {
   const [allocations, setAllocations] = useState<Record<string, string>>({});
   const [historyPending, setHistoryPending] = useState(0);
 
+  const [enrichmentLoading, setEnrichmentLoading] = useState(false);
+  const [enrichment, setEnrichment] = useState<ProductEnrichmentPreview | null>(null);
+  const [enrichmentFeedback, setEnrichmentFeedback] = useState<string | null>(null);
+
   const isEditing = Boolean(product);
   const cost = numeric(draft.costPrice);
   const sale = numeric(draft.salePrice);
@@ -105,6 +170,25 @@ export function ProductForm({ product, suppliers, categories }: {
     () => [...new Set(categories)].sort((a, b) => a.localeCompare(b, "pt-BR")),
     [categories],
   );
+
+  const enrichmentAvailableCount = useMemo(() => {
+    if (!enrichment) return 0;
+
+    const suggestions = enrichment.suggestions;
+
+    return [
+      !draft.brand.trim() && suggestions.brand,
+      !draft.category.trim() && suggestions.category,
+      !draft.description.trim() && suggestions.description,
+      !draft.objective.trim() && suggestions.objective,
+      !draft.idealProfile.trim() && suggestions.ideal_profile,
+      !draft.durationDays.trim() && suggestions.duration_days,
+      !draft.information.trim() && suggestions.information,
+      !draft.quickMessage.trim() && suggestions.quick_message,
+      !draft.keywords.trim() && suggestions.keywords,
+      !draft.level.trim() && suggestions.level,
+    ].filter(Boolean).length;
+  }, [draft, enrichment]);
 
   useEffect(() => {
     if (!product) {
@@ -196,6 +280,158 @@ export function ProductForm({ product, suppliers, categories }: {
 
   function update<K extends keyof ProductDraft>(key: K, value: ProductDraft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  async function enrichProduct() {
+    setEnrichmentFeedback(null);
+    setEnrichment(null);
+
+    if (draft.name.trim().length < 3) {
+      setEnrichmentFeedback(
+        "Digite primeiro um nome de produto mais completo para o Nexus pesquisar.",
+      );
+      return;
+    }
+
+    setEnrichmentLoading(true);
+
+    try {
+      const { data, error } = await createClient().functions.invoke(
+        "product-nexus-enrich",
+        {
+          body: {
+            name: draft.name.trim(),
+            existing: {
+              brand: nullableText(draft.brand),
+              category: nullableText(draft.category),
+              description: nullableText(draft.description),
+              objective: nullableText(draft.objective),
+              ideal_profile: nullableText(draft.idealProfile),
+              duration_days: draft.durationDays.trim()
+                ? Number(draft.durationDays)
+                : null,
+              information: nullableText(draft.information),
+              quick_message: nullableText(draft.quickMessage),
+              keywords: nullableText(draft.keywords),
+              level: nullableText(draft.level),
+            },
+            categories: categoryOptions,
+          },
+        },
+      );
+
+      if (error) {
+        throw new Error(
+          await edgeErrorMessage(error),
+        );
+      }
+
+      if (data?.error) {
+        throw new Error(String(data.error));
+      }
+
+      setEnrichment({
+        suggestions: {
+          brand: data?.suggestions?.brand ?? null,
+          category: data?.suggestions?.category ?? null,
+          description: data?.suggestions?.description ?? null,
+          objective: data?.suggestions?.objective ?? null,
+          ideal_profile: data?.suggestions?.ideal_profile ?? null,
+          duration_days:
+            Number(data?.suggestions?.duration_days) > 0
+              ? Number(data.suggestions.duration_days)
+              : null,
+          information: data?.suggestions?.information ?? null,
+          quick_message: data?.suggestions?.quick_message ?? null,
+          keywords: data?.suggestions?.keywords ?? null,
+          level: data?.suggestions?.level ?? null,
+        },
+        confidence:
+          data?.confidence === "alta" ||
+          data?.confidence === "media"
+            ? data.confidence
+            : "baixa",
+        research_note:
+          typeof data?.research_note === "string"
+            ? data.research_note
+            : null,
+        sources: Array.isArray(data?.sources)
+          ? data.sources.filter(
+              (value: unknown): value is string =>
+                typeof value === "string",
+            )
+          : [],
+        saved: false,
+      });
+
+      setEnrichmentFeedback(
+        "Pesquisa concluída. Revise o que o Nexus encontrou antes de aplicar.",
+      );
+    } catch (error) {
+      setEnrichmentFeedback(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível pesquisar o produto.",
+      );
+    } finally {
+      setEnrichmentLoading(false);
+    }
+  }
+
+  function applyEnrichment() {
+    if (!enrichment) return;
+
+    const suggestions = enrichment.suggestions;
+
+    setDraft((current) => ({
+      ...current,
+      brand:
+        current.brand.trim()
+          ? current.brand
+          : suggestions.brand ?? current.brand,
+      category:
+        current.category.trim()
+          ? current.category
+          : suggestions.category ?? current.category,
+      description:
+        current.description.trim()
+          ? current.description
+          : suggestions.description ?? current.description,
+      objective:
+        current.objective.trim()
+          ? current.objective
+          : suggestions.objective ?? current.objective,
+      idealProfile:
+        current.idealProfile.trim()
+          ? current.idealProfile
+          : suggestions.ideal_profile ?? current.idealProfile,
+      durationDays:
+        current.durationDays.trim()
+          ? current.durationDays
+          : suggestions.duration_days
+            ? String(suggestions.duration_days)
+            : current.durationDays,
+      information:
+        current.information.trim()
+          ? current.information
+          : suggestions.information ?? current.information,
+      quickMessage:
+        current.quickMessage.trim()
+          ? current.quickMessage
+          : suggestions.quick_message ?? current.quickMessage,
+      keywords:
+        current.keywords.trim()
+          ? current.keywords
+          : suggestions.keywords ?? current.keywords,
+      level:
+        current.level.trim()
+          ? current.level
+          : suggestions.level ?? current.level,
+    }));
+
+    setEnrichmentFeedback(
+      "Informações aplicadas somente nos campos vazios. Nada foi salvo ainda: revise o formulário e clique em Salvar quando estiver de acordo.",
+    );
   }
 
   function enableFlavorMode() {
@@ -342,7 +578,19 @@ export function ProductForm({ product, suppliers, categories }: {
     <form className="product-editor-layout" onSubmit={submit}>
       <div className="product-editor-main">
         <article className="panel">
-          <div className="panel-head"><div><h2>Identificação</h2><p>Nome, categoria e organização do catálogo.</p></div><Boxes size={20} /></div>
+          <div className="panel-head">
+            <div><h2>Identificação</h2><p>Nome, categoria e organização do catálogo.</p></div>
+            <button
+              className="button ghost compact-button"
+              type="button"
+              onClick={enrichProduct}
+              disabled={enrichmentLoading}
+              title="O Nexus pesquisa o produto na internet e sugere apenas campos vazios. Nada é salvo automaticamente."
+            >
+              {enrichmentLoading ? <LoaderCircle className="spin" size={16} /> : <Sparkles size={16} />}
+              {enrichmentLoading ? "Pesquisando" : "Completar informações"}
+            </button>
+          </div>
           <div className="panel-body form-grid-two">
             <label className="field field-span-two"><span>Nome do produto</span><input className="input" required value={draft.name} onChange={(event) => update("name", event.target.value)} placeholder="Ex.: Creatina Candinho 300g" /></label>
             <label className="field"><span>Categoria</span><input className="input" list="product-categories" required value={draft.category} onChange={(event) => update("category", event.target.value)} placeholder="Força, Energia, Saúde..." /><datalist id="product-categories">{categoryOptions.map((category) => <option key={category} value={category} />)}</datalist></label>
@@ -350,6 +598,81 @@ export function ProductForm({ product, suppliers, categories }: {
             <label className="field"><span>SKU / código interno</span><input className="input" value={draft.sku} onChange={(event) => update("sku", event.target.value)} placeholder="Opcional" /></label>
             <label className="field"><span>Fornecedor padrão</span><select className="select" value={draft.supplierId} onChange={(event) => update("supplierId", event.target.value)}><option value="">Sem fornecedor padrão</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label>
           </div>
+
+          {(enrichment || enrichmentFeedback) && (
+            <div className="product-nexus-enrichment">
+              <div className="product-nexus-enrichment-head">
+                <span className="product-nexus-enrichment-icon"><Globe2 size={17} /></span>
+                <div>
+                  <strong>Nexus · Completar informações</strong>
+                  <small>
+                    Pesquisa online para agilizar o cadastro. Preços, estoque, SKU, fornecedor e categoria ABC nunca são preenchidos.
+                  </small>
+                </div>
+                {enrichment && (
+                  <span className={`badge ${enrichment.confidence === "alta" ? "green" : enrichment.confidence === "media" ? "orange" : "gray"}`}>
+                    Confiança {enrichment.confidence}
+                  </span>
+                )}
+              </div>
+
+              {enrichment?.research_note && (
+                <p className="product-nexus-research-note">{enrichment.research_note}</p>
+              )}
+
+              {enrichment && (
+                <div className="product-nexus-enrichment-result">
+                  <div>
+                    <strong>{enrichmentAvailableCount} campo(s) vazio(s) podem ser preenchidos</strong>
+                    <span>O Nexus não sobrescreve o que você já digitou.</span>
+                  </div>
+
+                  <div className="product-nexus-enrichment-actions">
+                    <button
+                      className="button gold compact-button"
+                      type="button"
+                      onClick={applyEnrichment}
+                      disabled={enrichmentAvailableCount === 0}
+                    >
+                      <Check size={15} />
+                      Aplicar nos campos vazios
+                    </button>
+
+                    <button
+                      className="button ghost compact-button"
+                      type="button"
+                      onClick={() => setEnrichment(null)}
+                    >
+                      <X size={15} />
+                      Fechar
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {enrichment?.sources.length ? (
+                <div className="product-nexus-sources">
+                  <span>Fontes consultadas</span>
+                  <div>
+                    {enrichment.sources.slice(0, 5).map((url) => (
+                      <a href={url} target="_blank" rel="noreferrer" key={url}>
+                        {sourceHost(url)}
+                        <ExternalLink size={11} />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {enrichmentFeedback && (
+                <p className="form-help">{enrichmentFeedback}</p>
+              )}
+
+              <small className="product-nexus-save-warning">
+                Nada é salvo automaticamente. Depois de aplicar, revise os campos normalmente e só então use “Salvar alterações” ou “Cadastrar produto”.
+              </small>
+            </div>
+          )}
         </article>
 
         <article className="panel">

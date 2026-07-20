@@ -1,0 +1,14 @@
+Candinho Company V37 · Mega Finalização Operacional
+
+LEIA-ME-V36.md
+LEIA-ME-V37.md
+src/app/(app)/parceiros/page.tsx
+src/app/globals.css
+src/app/v36-partners.css
+src/app/v37-final-operational.css
+src/components/partner-network-summary.tsx
+src/components/product-form.tsx
+src/lib/partner-legacy-history.ts
+supabase/audits/V37_MEGA_FINAL_OPERATIONAL_AUDIT.md
+supabase/functions/product-nexus-enrich/index.ts
+supabase/migrations/20260720162000_v36_partner_legacy_history_rpc.sql
