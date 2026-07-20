@@ -25,7 +25,7 @@ Escopo: Candinho Suplementos (`suppliers`, `purchase_orders`, `purchase_order_it
 
 ## Implementação
 
-A migração `20260720120030_v32_supplier_management_intelligence.sql` adiciona quatro visões somente leitura e com `security_invoker = true`:
+A migração `20260720120208_v32_supplier_management_intelligence.sql` adiciona quatro visões somente leitura e com `security_invoker = true`:
 
 - `supplier_purchase_order_facts`: fatos por pedido, entrega real mensurável e divergências.
 - `supplier_product_purchase_history`: histórico de custo por fornecedor e produto.
