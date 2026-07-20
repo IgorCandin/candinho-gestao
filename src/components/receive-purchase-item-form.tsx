@@ -15,7 +15,7 @@ function todayBrazil() {
   }).format(new Date());
 }
 
-export function ReceivePurchaseItemForm({ item }: { item: SupplierOrderItem }) {
+export function ReceivePurchaseItemForm({ item }: { item: SupplierOrderItem & { flavor_name?: string | null } }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [quantity, setQuantity] = useState(String(item.quantity_pending));
@@ -29,6 +29,7 @@ export function ReceivePurchaseItemForm({ item }: { item: SupplierOrderItem }) {
     event.preventDefault();
     setMessage("");
     setLoading(true);
+
     try {
       const supabase = createClient();
       const { error } = await supabase.rpc("receive_purchase_order_item", {
@@ -39,6 +40,7 @@ export function ReceivePurchaseItemForm({ item }: { item: SupplierOrderItem }) {
         p_notes: notes.trim() || null,
       });
       if (error) throw error;
+
       setOpen(false);
       router.refresh();
     } catch (error) {
@@ -48,18 +50,37 @@ export function ReceivePurchaseItemForm({ item }: { item: SupplierOrderItem }) {
     }
   }
 
-  if (!open) return <button className="button gold" type="button" onClick={() => setOpen(true)}><PackageCheck size={16} />Receber item</button>;
+  if (!open) {
+    return (
+      <button className="button gold" type="button" onClick={() => setOpen(true)}>
+        <PackageCheck size={16} />
+        Receber item
+      </button>
+    );
+  }
 
   return (
     <form className="receive-item-form" onSubmit={submit}>
-      <div className="sale-action-form-head"><div><strong>Receber {item.product_name}</strong><span>Pode receber apenas parte da quantidade pendente.</span></div><button className="icon-button" type="button" aria-label="Fechar" onClick={() => setOpen(false)}><X size={16} /></button></div>
+      <div className="sale-action-form-head">
+        <div>
+          <strong>Receber {item.product_name}{item.flavor_name ? ` · ${item.flavor_name}` : ""}</strong>
+          <span>Pode receber apenas parte da quantidade pendente. O estoque será atualizado no sabor correto.</span>
+        </div>
+        <button className="icon-button" type="button" aria-label="Fechar" onClick={() => setOpen(false)}><X size={16} /></button>
+      </div>
+
       <div className="receive-item-fields">
         <label className="field"><span>Quantidade recebida</span><input className="input" type="number" min="1" max={item.quantity_pending} required value={quantity} onChange={(event) => setQuantity(event.target.value)} /></label>
         <label className="field"><span>Data do recebimento</span><input className="input" type="date" required value={receivedOn} onChange={(event) => setReceivedOn(event.target.value)} /></label>
         <label className="field"><span>Custo unitário final</span><input className="input" type="number" min="0" step="0.01" required value={unitCost} onChange={(event) => setUnitCost(event.target.value)} /></label>
         <label className="field"><span>Observação</span><input className="input" value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="Lote, nota, diferença de custo..." /></label>
       </div>
-      <button className="button gold" type="submit" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16} /> : <PackageCheck size={16} />}{loading ? "Recebendo" : "Confirmar recebimento"}</button>
+
+      <button className="button gold" type="submit" disabled={loading}>
+        {loading ? <LoaderCircle className="spin" size={16} /> : <PackageCheck size={16} />}
+        {loading ? "Recebendo" : "Confirmar recebimento"}
+      </button>
+
       {message && <p className="sale-action-message">{message}</p>}
     </form>
   );

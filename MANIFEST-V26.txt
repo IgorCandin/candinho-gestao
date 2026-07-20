@@ -1,0 +1,26 @@
+Candinho Company V26 · Controle de Sabores — Operação Completa
+Produto opcional por sabor · Estoque · Vendas · Orçamentos · Fornecedores · Histórico
+
+LEIA-ME-V26.md
+src/app/(app)/estoque/[id]/page.tsx
+src/app/(app)/leads/[id]/page.tsx
+src/app/(app)/orcamentos/[id]/page.tsx
+src/app/(app)/pedidos-fornecedor/[id]/page.tsx
+src/app/(app)/produtos/[id]/page.tsx
+src/app/(app)/produtos/sabores/historico/page.tsx
+src/app/(app)/vendas/[id]/page.tsx
+src/app/api/orcamentos/[id]/pdf/route.ts
+src/components/historical-flavor-classifier.tsx
+src/components/inventory-actions.tsx
+src/components/new-lead-form.tsx
+src/components/new-sale-form.tsx
+src/components/new-supplier-order-form.tsx
+src/components/product-form.tsx
+src/components/receive-purchase-item-form.tsx
+src/components/sale-details-view.tsx
+supabase/audits/V26_FLAVOR_OPERATION_AUDIT.md
+supabase/migrations/20260719230000_v26_product_flavor_core.sql
+supabase/migrations/20260719231000_v26_product_flavor_setup_history.sql
+supabase/migrations/20260719232000_v26_flavor_inventory_supplier.sql
+supabase/migrations/20260719233000_v26_flavor_budget_lead.sql
+supabase/migrations/20260719234000_v26_flavor_delivery_cancellation.sql

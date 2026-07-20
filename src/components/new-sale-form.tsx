@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CheckCircle2, CircleDollarSign, FileText, Gift, Layers3, LoaderCircle, PackageCheck, PackagePlus, Percent, Plus, Save, Trash2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CustomerCombobox } from "@/components/customer-combobox";
@@ -13,8 +13,10 @@ const PAYMENT_METHODS = ["Pix", "Dinheiro", "Cartão", "Link de Pagamento", "Pag
 type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 type PaymentMode = "receivable" | "paid" | "combined";
 type SaveMode = "confirmed" | "quote";
-type DraftItem = { key: string; productId: string; quantity: string; unitPrice: string };
+type DraftItem = { key: string; productId: string; flavorId: string; quantity: string; unitPrice: string };
 type SavedBudgetPrompt = { quoteId: string; target: string; mode: SaveMode };
+type FlavorOption = { id: string; productId: string; name: string };
+type FlavorStock = { flavorId: string; locationId: string; physical: number; reserved: number; available: number; incoming: number };
 
 function todayInSaoPaulo() {
   const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
@@ -28,6 +30,7 @@ function addDays(date: string, amount: number) {
 }
 
 function itemKey() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
+
 function priceCondition(price: number, cost: number, standard: number) {
   if (price === cost) return "Custo";
   if (price === standard) return "Preço normal";
@@ -47,11 +50,16 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
   const today = todayInSaoPaulo();
   const defaultLocation = initialQuote?.location_id ?? locations.find((location) => location.code === "CS")?.id ?? locations[0]?.id ?? "";
   const initialPaymentMethod = PAYMENT_METHODS.includes(initialQuote?.payment_method as PaymentMethod) ? initialQuote?.payment_method as PaymentMethod : "Pix";
+
   const [customerId, setCustomerId] = useState(initialQuote?.customer_id ?? "");
   const [locationId, setLocationId] = useState(defaultLocation);
   const [quotedOn, setQuotedOn] = useState(initialQuote?.quoted_on ?? today);
   const [validUntil, setValidUntil] = useState(initialQuote?.valid_until ?? addDays(today, 7));
-  const [items, setItems] = useState<DraftItem[]>(initialQuote?.items.length ? initialQuote.items.map((item) => ({ key: itemKey(), productId: item.product_id, quantity: String(item.quantity), unitPrice: String(item.unit_price) })) : [{ key: itemKey(), productId: "", quantity: "1", unitPrice: "" }]);
+  const [items, setItems] = useState<DraftItem[]>(
+    initialQuote?.items.length
+      ? initialQuote.items.map((item) => ({ key: itemKey(), productId: item.product_id, flavorId: "", quantity: String(item.quantity), unitPrice: String(item.unit_price) }))
+      : [{ key: itemKey(), productId: "", flavorId: "", quantity: "1", unitPrice: "" }],
+  );
   const [discount, setDiscount] = useState(initialQuote ? String(initialQuote.discount_amount) : "0");
   const [giftProductId, setGiftProductId] = useState(initialQuote?.gift_product_id ?? "");
   const [giftQuantity, setGiftQuantity] = useState(initialQuote?.gift_quantity ? String(initialQuote.gift_quantity) : "1");
@@ -73,41 +81,129 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
   const [savedBudgetPrompt, setSavedBudgetPrompt] = useState<SavedBudgetPrompt | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
+  const [flavors, setFlavors] = useState<FlavorOption[]>([]);
+  const [flavorStock, setFlavorStock] = useState<FlavorStock[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFlavors() {
+      const supabase = createClient();
+      const [flavorResult, stockResult, quoteItemsResult] = await Promise.all([
+        supabase.from("product_flavors").select("id,product_id,name").eq("active", true).order("display_order").order("name"),
+        supabase.from("product_flavor_inventory_overview").select("flavor_id,location_id,physical_quantity,reserved_quantity,available_quantity,incoming_quantity"),
+        initialQuote
+          ? supabase.from("sales_quote_items").select("product_id,flavor_id,quantity,unit_price,created_at").eq("quote_id", initialQuote.id).order("created_at")
+          : Promise.resolve({ data: null, error: null }),
+      ]);
+
+      if (cancelled) return;
+      const error = flavorResult.error || stockResult.error || quoteItemsResult.error;
+      if (error) {
+        setMessage(error.message);
+        return;
+      }
+
+      setFlavors((flavorResult.data ?? []).map((row) => ({
+        id: String(row.id),
+        productId: String(row.product_id),
+        name: String(row.name ?? ""),
+      })));
+
+      setFlavorStock((stockResult.data ?? []).map((row) => ({
+        flavorId: String(row.flavor_id),
+        locationId: String(row.location_id),
+        physical: Number(row.physical_quantity ?? 0),
+        reserved: Number(row.reserved_quantity ?? 0),
+        available: Number(row.available_quantity ?? 0),
+        incoming: Number(row.incoming_quantity ?? 0),
+      })));
+
+      if (initialQuote && quoteItemsResult.data?.length) {
+        setItems(quoteItemsResult.data.map((row) => ({
+          key: itemKey(),
+          productId: String(row.product_id),
+          flavorId: typeof row.flavor_id === "string" ? row.flavor_id : "",
+          quantity: String(row.quantity),
+          unitPrice: String(row.unit_price),
+        })));
+      }
+    }
+
+    void loadFlavors();
+    return () => { cancelled = true; };
+  }, [initialQuote]);
+
   const productOptions = useMemo(() => {
     const map = new Map<string, SaleStockOption>();
     stock.forEach((row) => { if (!map.has(row.product_id)) map.set(row.product_id, row); });
     return [...map.values()].sort((a, b) => a.product_name.localeCompare(b.product_name, "pt-BR"));
   }, [stock]);
 
-  function rowFor(productId: string) { return stock.find((row) => row.product_id === productId && row.location_id === locationId) ?? null; }
-  function updateItem(key: string, changes: Partial<DraftItem>) { setItems((current) => current.map((item) => item.key === key ? { ...item, ...changes } : item)); }
+  function rowFor(productId: string) {
+    return stock.find((row) => row.product_id === productId && row.location_id === locationId)
+      ?? stock.find((entry) => entry.product_id === productId)
+      ?? null;
+  }
+
+  function flavorsFor(productId: string) {
+    return flavors.filter((flavor) => flavor.productId === productId);
+  }
+
+  function flavorStockFor(flavorId: string) {
+    return flavorStock.find((row) => row.flavorId === flavorId && row.locationId === locationId) ?? null;
+  }
+
+  function updateItem(key: string, changes: Partial<DraftItem>) {
+    setItems((current) => current.map((item) => item.key === key ? { ...item, ...changes } : item));
+  }
+
   function selectProduct(key: string, productId: string) {
     const row = rowFor(productId) ?? stock.find((entry) => entry.product_id === productId);
-    updateItem(key, { productId, unitPrice: row ? String(row.sale_price) : "" });
+    updateItem(key, { productId, flavorId: "", unitPrice: row ? String(row.sale_price) : "" });
   }
-  function addItem() { setItems((current) => [...current, { key: itemKey(), productId: "", quantity: "1", unitPrice: "" }]); }
-  function removeItem(key: string) { setItems((current) => current.length === 1 ? current : current.filter((item) => item.key !== key)); }
+
+  function addItem() {
+    setItems((current) => [...current, { key: itemKey(), productId: "", flavorId: "", quantity: "1", unitPrice: "" }]);
+  }
+
+  function removeItem(key: string) {
+    setItems((current) => current.length === 1 ? current : current.filter((item) => item.key !== key));
+  }
 
   function addCombo() {
     const combo = combos.find((row) => row.id === comboId);
     if (!combo) return;
+
     let retailTotal = 0;
     setItems((current) => {
       const next = [...current];
+
       for (const component of combo.items) {
         const row = rowFor(component.product_id) ?? stock.find((entry) => entry.product_id === component.product_id);
         const standardPrice = Number(row?.sale_price ?? 0);
         retailTotal += standardPrice * component.quantity;
-        const existing = next.find((item) => item.productId === component.product_id);
+
+        const hasFlavors = flavorsFor(component.product_id).length > 0;
+        const existing = hasFlavors ? null : next.find((item) => item.productId === component.product_id && !item.flavorId);
+
         if (existing) {
           existing.quantity = String((Number(existing.quantity) || 0) + component.quantity);
           if (!existing.unitPrice && row) existing.unitPrice = String(row.sale_price);
         } else {
-          next.push({ key: itemKey(), productId: component.product_id, quantity: String(component.quantity), unitPrice: row ? String(row.sale_price) : "0" });
+          next.push({
+            key: itemKey(),
+            productId: component.product_id,
+            flavorId: "",
+            quantity: String(component.quantity),
+            unitPrice: row ? String(row.sale_price) : "0",
+          });
         }
       }
+
       return next.filter((item, index) => !(index === 0 && !item.productId && next.length > 1));
     });
+
     const comboDiscount = Math.max(retailTotal - combo.sale_price, 0);
     if (comboDiscount > 0) setDiscount((current) => String((Number(current) || 0) + comboDiscount));
     setMessage(`Combo ${combo.name} aplicado ao orçamento${comboDiscount > 0 ? ` com ${formatCurrency(comboDiscount)} de desconto automático` : ""}.`);
@@ -121,10 +217,28 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
 
   function validate() {
     if (!customerId || !locationId) throw new Error("Selecione o cliente e o estoque de origem.");
-    if (items.some((item) => !item.productId || Number(item.quantity) <= 0 || Number(item.unitPrice) < 0)) throw new Error("Revise os produtos, quantidades e preços.");
-    if (new Set(items.map((item) => item.productId)).size !== items.length) throw new Error("O mesmo produto não pode aparecer duas vezes.");
+    if (items.some((item) => !item.productId || Number(item.quantity) <= 0 || Number(item.unitPrice) < 0)) {
+      throw new Error("Revise os produtos, quantidades e preços.");
+    }
+
+    for (const item of items) {
+      const productFlavors = flavorsFor(item.productId);
+      if (productFlavors.length > 0 && !item.flavorId) {
+        const row = rowFor(item.productId);
+        throw new Error(`Selecione o sabor de ${row?.product_name ?? "um dos produtos"}.`);
+      }
+    }
+
+    const compositeKeys = items.map((item) => `${item.productId}:${item.flavorId || "sem-sabor"}`);
+    if (new Set(compositeKeys).size !== compositeKeys.length) {
+      throw new Error("O mesmo produto e sabor não podem aparecer duas vezes.");
+    }
+
     if (discountValue > grossTotal) throw new Error("O desconto não pode ser maior que o subtotal do orçamento.");
     if (giftProductId && Number(giftQuantity) <= 0) throw new Error("Informe uma quantidade válida para o brinde.");
+    if (giftProductId && flavorsFor(giftProductId).length > 0) {
+      throw new Error("Produto com sabores deve ser adicionado como item do orçamento para você escolher o sabor.");
+    }
     if (partnership && !partnerId) throw new Error("Selecione o parceiro deste orçamento.");
   }
 
@@ -142,16 +256,22 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
   async function persist(mode: SaveMode) {
     setLoadingMode(mode);
     setMessage(null);
+
     try {
       validate();
       const supabase = createClient();
-      const { data, error } = await supabase.rpc("create_budget", {
-        p_mode: mode,
+
+      const { data: quoteData, error: quoteError } = await supabase.rpc("save_budget_quote_v2", {
         p_customer_id: customerId,
         p_location_id: locationId,
         p_quoted_on: quotedOn,
         p_valid_until: validUntil,
-        p_items: items.map((item) => ({ product_id: item.productId, quantity: Number(item.quantity), unit_price: Number(item.unitPrice) })),
+        p_items: items.map((item) => ({
+          product_id: item.productId,
+          flavor_id: item.flavorId || null,
+          quantity: Number(item.quantity),
+          unit_price: Number(item.unitPrice),
+        })),
         p_discount_amount: discountValue,
         p_gift_product_id: giftProductId || null,
         p_gift_quantity: giftProductId ? Number(giftQuantity) : 0,
@@ -168,36 +288,28 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
         p_partner_id: partnership ? partnerId : null,
         p_existing_quote_id: initialQuote?.id ?? null,
       });
-      if (error) throw error;
-      const result = Array.isArray(data) ? data[0] : data;
-      const quoteId = String(result?.quote_id ?? "");
-      const saleId = result?.sale_id ? String(result.sale_id) : null;
-      const leadId = result?.lead_id ? String(result.lead_id) : null;
-      if (!quoteId) throw new Error("O orçamento foi salvo, mas não foi possível identificar o PDF.");
 
-      if (mode === "confirmed" && saleId) {
-        if (!delivered && deliveryDueOn) {
-          const { error: deliveryScheduleError } = await supabase.rpc("reschedule_operational_event", {
-            p_source_type: "sale_delivery",
-            p_source_id: saleId,
-            p_due_at: new Date(`${deliveryDueOn}T12:00:00-03:00`).toISOString(),
-          });
-          if (deliveryScheduleError) throw deliveryScheduleError;
-        }
-        if (schedulePostSale && postSaleDueOn) {
-          const { error: postSaleScheduleError } = await supabase.rpc("reschedule_operational_event", {
-            p_source_type: "sale_post_sale",
-            p_source_id: saleId,
-            p_due_at: new Date(`${postSaleDueOn}T12:00:00-03:00`).toISOString(),
-          });
-          if (postSaleScheduleError) throw postSaleScheduleError;
-        }
+      if (quoteError) throw quoteError;
+
+      const saved = Array.isArray(quoteData) ? quoteData[0] : quoteData;
+      const quoteId = String(saved?.quote_id ?? "");
+      const leadId = saved?.lead_id ? String(saved.lead_id) : null;
+      if (!quoteId) throw new Error("O orçamento foi salvo, mas não foi possível identificar o registro.");
+
+      let saleId: string | null = null;
+      if (mode === "confirmed") {
+        const { data: confirmedSaleId, error: confirmError } = await supabase.rpc("confirm_budget_quote_v2", {
+          p_quote_id: quoteId,
+        });
+        if (confirmError) throw confirmError;
+        saleId = String(confirmedSaleId ?? "");
+        if (!saleId) throw new Error("O orçamento foi salvo, mas não foi possível identificar a venda criada.");
       }
 
       setChoiceOpen(false);
       setSavedBudgetPrompt({
         quoteId,
-        target: mode === "confirmed" && saleId ? `/vendas/${saleId}` : leadId ? `/leads/${leadId}` : "/leads",
+        target: saleId ? `/vendas/${saleId}` : leadId ? `/leads/${leadId}` : "/leads",
         mode,
       });
     } catch (error) {
@@ -233,27 +345,50 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
       </article>
 
       <article className="panel">
-        <div className="panel-head"><div><h2>Produtos</h2><p>Monte a proposta com quantidade e valor negociado de cada item.</p></div><button className="button ghost compact-button" type="button" onClick={addItem}><Plus size={16}/>Adicionar produto</button></div>
+        <div className="panel-head"><div><h2>Produtos</h2><p>Monte a proposta com quantidade, sabor e valor negociado de cada item.</p></div><button className="button ghost compact-button" type="button" onClick={addItem}><Plus size={16}/>Adicionar produto</button></div>
         <div className="panel-body sale-form-items">
           {combos.length>0&&<div className="budget-combo-picker"><Layers3 size={18}/><div><strong>Adicionar combo pronto</strong><span>Insere os produtos reais do combo e aplica o desconto comercial automaticamente.</span></div><select className="select" value={comboId} onChange={(event)=>setComboId(event.target.value)}><option value="">Selecione um combo</option>{combos.map((combo)=><option key={combo.id} value={combo.id}>{combo.name} · {formatCurrency(combo.sale_price)}</option>)}</select><button className="button ghost compact-button" type="button" disabled={!comboId} onClick={addCombo}><Plus size={15}/>Aplicar</button></div>}
+
           {items.map((item, index) => {
             const row = rowFor(item.productId);
+            const productFlavors = flavorsFor(item.productId);
+            const selectedFlavor = productFlavors.find((flavor) => flavor.id === item.flavorId) ?? null;
+            const selectedFlavorStock = item.flavorId ? flavorStockFor(item.flavorId) : null;
             const quantity = Number(item.quantity) || 0;
             const unitPrice = Number(item.unitPrice) || 0;
             const condition = row ? priceCondition(unitPrice, row.cost_price, row.sale_price) : null;
+            const displayedAvailable = selectedFlavorStock ? selectedFlavorStock.available : row?.available_quantity ?? 0;
+
             return <div className="sale-form-item" key={item.key}>
               <div className="sale-form-item-head"><strong>Item {index + 1}</strong>{items.length > 1 && <button className="icon-button" type="button" aria-label="Remover produto" onClick={()=>removeItem(item.key)}><Trash2 size={16}/></button>}</div>
               <div className="sale-form-item-grid">
                 <label className="field sale-product-field"><span>Produto</span><select className="select" required value={item.productId} onChange={(event)=>selectProduct(item.key,event.target.value)}><option value="">Selecione o produto</option>{productOptions.map((product)=><option key={product.product_id} value={product.product_id}>{product.product_name}</option>)}</select></label>
+
+                {productFlavors.length > 0 && (
+                  <label className="field">
+                    <span>Sabor</span>
+                    <select className="select" required value={item.flavorId} onChange={(event)=>updateItem(item.key,{flavorId:event.target.value})}>
+                      <option value="">Selecione</option>
+                      {productFlavors.map((flavor) => {
+                        const stockRow = flavorStock.find((stockEntry) => stockEntry.flavorId === flavor.id && stockEntry.locationId === locationId);
+                        return <option key={flavor.id} value={flavor.id}>{flavor.name} · disp. {stockRow?.available ?? 0}</option>;
+                      })}
+                    </select>
+                  </label>
+                )}
+
                 <label className="field"><span>Quantidade</span><input className="input" type="number" min="1" step="1" required value={item.quantity} onChange={(event)=>updateItem(item.key,{quantity:event.target.value})}/></label>
                 <label className="field"><span>Preço de venda</span><input className="input" type="number" min="0" step="0.01" required value={item.unitPrice} onChange={(event)=>updateItem(item.key,{unitPrice:event.target.value})}/></label>
               </div>
+
               {row && <div className="sale-stock-strip">
+                {selectedFlavor && <span>Sabor <strong>{selectedFlavor.name}</strong></span>}
                 <span>Custo <strong>{formatCurrency(row.cost_price)}</strong></span>
                 <span>Preço padrão <strong>{formatCurrency(row.sale_price)}</strong></span>
-                <span>Físico <strong>{row.physical_quantity}</strong></span>
-                <span>Reservado <strong>{row.reserved_quantity}</strong></span>
-                <span>Disponível <strong className={row.available_quantity >= quantity ? "positive" : "warning-text"}>{row.available_quantity}</strong></span>
+                <span>Físico <strong>{selectedFlavorStock?.physical ?? row.physical_quantity}</strong></span>
+                <span>Reservado <strong>{selectedFlavorStock?.reserved ?? row.reserved_quantity}</strong></span>
+                <span>Disponível <strong className={displayedAvailable >= quantity ? "positive" : "warning-text"}>{displayedAvailable}</strong></span>
+                {selectedFlavorStock && <span>A caminho <strong>{selectedFlavorStock.incoming}</strong></span>}
                 <span>Condição <strong>{condition}</strong></span>
                 <span>Subtotal <strong>{formatCurrency(quantity * unitPrice)}</strong></span>
               </div>}
@@ -263,10 +398,10 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
       </article>
 
       <article className="panel">
-        <div className="panel-head"><div><h2>Desconto e brinde</h2><p>O desconto é aplicado no total. O brinde só movimenta estoque quando o orçamento é confirmado.</p></div><Gift size={20}/></div>
+        <div className="panel-head"><div><h2>Desconto e brinde</h2><p>O desconto é aplicado no total. Produto com sabores deve entrar como item para o sabor ser escolhido.</p></div><Gift size={20}/></div>
         <div className="panel-body form-grid-two">
           <label className="field"><span><Percent size={14}/> Desconto total (R$)</span><input className="input" type="number" min="0" max={grossTotal} step="0.01" value={discount} onChange={(event)=>setDiscount(event.target.value)}/><small>Subtotal atual: {formatCurrency(grossTotal)}</small></label>
-          <label className="field"><span><Gift size={14}/> Produto de brinde</span><select className="select" value={giftProductId} onChange={(event)=>{setGiftProductId(event.target.value);if(event.target.value&&!giftQuantity)setGiftQuantity("1");}}><option value="">Sem brinde</option>{productOptions.map((product)=><option key={product.product_id} value={product.product_id}>{product.product_name}</option>)}</select></label>
+          <label className="field"><span><Gift size={14}/> Produto de brinde</span><select className="select" value={giftProductId} onChange={(event)=>{setGiftProductId(event.target.value);if(event.target.value&&!giftQuantity)setGiftQuantity("1");}}><option value="">Sem brinde</option>{productOptions.filter((product)=>flavorsFor(product.product_id).length===0).map((product)=><option key={product.product_id} value={product.product_id}>{product.product_name}</option>)}</select></label>
           {giftProductId && <label className="field"><span>Quantidade do brinde</span><input className="input" type="number" min="1" step="1" value={giftQuantity} onChange={(event)=>setGiftQuantity(event.target.value)}/>{giftRow&&<small>Disponível em {giftRow.location_code}: {giftRow.available_quantity} un.</small>}</label>}
         </div>
       </article>
@@ -293,7 +428,7 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
       <article className="panel">
         <div className="panel-head"><div><h2>Entrega</h2><p>Usado somente se escolher Orçamento confirmado.</p></div></div>
         <div className="panel-body option-stack">
-          <label className={`choice-card ${delivered?"active":""}`}><input type="checkbox" checked={delivered} onChange={(event)=>setDelivered(event.target.checked)}/><span><strong>Já foi entregue</strong><small>Ao confirmar, baixa o estoque dos produtos.</small></span></label>
+          <label className={`choice-card ${delivered?"active":""}`}><input type="checkbox" checked={delivered} onChange={(event)=>setDelivered(event.target.checked)}/><span><strong>Já foi entregue</strong><small>Ao confirmar, baixa o estoque do sabor selecionado.</small></span></label>
           {delivered ? <div className="conditional-fields"><label className="field"><span>Data da entrega</span><input className="input" type="date" required value={deliveredOn} onChange={(event)=>setDeliveredOn(event.target.value)}/></label></div> : <div className="conditional-fields"><label className="field"><span>Entrega prevista</span><input className="input" type="date" value={deliveryDueOn} onChange={(event)=>setDeliveryDueOn(event.target.value)}/><small>Na confirmação, a venda aparecerá na Agenda.</small></label></div>}
         </div>
       </article>
@@ -315,9 +450,22 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
       </article>
 
       <article className="panel sale-form-summary budget-summary">
-        <PackagePlus size={22}/><div><span>Subtotal</span><strong>{formatCurrency(grossTotal)}</strong>{discountValue>0&&<small>Desconto: -{formatCurrency(discountValue)}</small>}<span className="budget-final-label">Total final</span><strong className="budget-final-value">{formatCurrency(finalTotal)}</strong><small>{items.length} {items.length===1?"produto":"produtos"}{giftProductId?" + brinde":""}</small></div>
+        <PackagePlus size={22}/>
+        <div>
+          <span>Subtotal</span><strong>{formatCurrency(grossTotal)}</strong>
+          {discountValue>0&&<small>Desconto: -{formatCurrency(discountValue)}</small>}
+          <span className="budget-final-label">Total final</span>
+          <strong className="budget-final-value">{formatCurrency(finalTotal)}</strong>
+          <small>{items.length} {items.length===1?"item":"itens"}{giftProductId?" + brinde":""}</small>
+        </div>
       </article>
-      <div className="sale-form-actions"><Link className="button ghost" href="/vendas">Cancelar</Link><button className="button gold" type="submit" disabled={Boolean(loadingMode)}>{loadingMode?<LoaderCircle className="spin" size={17}/>:<Save size={17}/>} {loadingMode?"Salvando":"Salvar orçamento"}</button></div>
+
+      <div className="sale-form-actions">
+        <Link className="button ghost" href="/vendas">Cancelar</Link>
+        <button className="button gold" type="submit" disabled={Boolean(loadingMode)}>
+          {loadingMode?<LoaderCircle className="spin" size={17}/>:<Save size={17}/>} {loadingMode?"Salvando":"Salvar orçamento"}
+        </button>
+      </div>
       {message && <p className="form-message standalone-message">{message}</p>}
     </aside>
 
@@ -326,18 +474,18 @@ export function NewSaleForm({ customers, locations, partners, stock, combos, ini
         <button className="budget-choice-close" type="button" aria-label="Fechar" disabled={Boolean(loadingMode)} onClick={()=>setChoiceOpen(false)}><X size={18}/></button>
         <div className="budget-choice-heading"><FileText size={25}/><div><span>Salvar orçamento</span><h2 id="budget-choice-title">O cliente já confirmou?</h2><p>Escolha o destino. O PDF fica disponível nos dois casos.</p></div></div>
         <div className="budget-choice-grid">
-          <button className="budget-choice-card confirmed" type="button" disabled={Boolean(loadingMode)} onClick={()=>persist("confirmed")}><PackageCheck size={25}/><span><strong>Orçamento confirmado</strong><small>Cria a venda normal, aplica desconto, registra o brinde e movimenta o estoque conforme a entrega.</small></span>{loadingMode==="confirmed"&&<LoaderCircle className="spin" size={18}/>}</button>
-          <button className="budget-choice-card quote" type="button" disabled={Boolean(loadingMode)} onClick={()=>persist("quote")}><FileText size={25}/><span><strong>Apenas orçando</strong><small>Não mexe no estoque. Salva cliente + todos os produtos na aba Leads e mantém o PDF disponível.</small></span>{loadingMode==="quote"&&<LoaderCircle className="spin" size={18}/>}</button>
+          <button className="budget-choice-card confirmed" type="button" disabled={Boolean(loadingMode)} onClick={()=>persist("confirmed")}><PackageCheck size={25}/><span><strong>Orçamento confirmado</strong><small>Cria a venda normal, preserva o sabor escolhido e movimenta o estoque correto.</small></span>{loadingMode==="confirmed"&&<LoaderCircle className="spin" size={18}/>}</button>
+          <button className="budget-choice-card quote" type="button" disabled={Boolean(loadingMode)} onClick={()=>persist("quote")}><FileText size={25}/><span><strong>Apenas orçando</strong><small>Não mexe no estoque. Salva cliente, produtos e sabores na aba Leads e mantém o PDF disponível.</small></span>{loadingMode==="quote"&&<LoaderCircle className="spin" size={18}/>}</button>
         </div>
       </section>
     </div>}
 
     {savedBudgetPrompt && <div className="budget-choice-backdrop" role="presentation">
       <section className="budget-choice-modal budget-pdf-prompt" role="dialog" aria-modal="true" aria-labelledby="budget-pdf-title">
-        <div className="budget-choice-heading"><CheckCircle2 size={26}/><div><span>Orçamento salvo</span><h2 id="budget-pdf-title">Abrir o PDF agora?</h2><p>O orçamento foi salvo com sucesso. Você pode abrir o PDF agora ou continuar sem abrir.</p></div></div>
-        <div className="budget-pdf-actions">
-          <button className="button ghost" type="button" onClick={()=>finishSavedBudget(false)}>Agora não</button>
-          <button className="button gold" type="button" onClick={()=>finishSavedBudget(true)}><FileText size={17}/>Abrir PDF</button>
+        <div className="budget-choice-heading"><CheckCircle2 size={26}/><div><span>Orçamento salvo</span><h2 id="budget-pdf-title">Deseja abrir o PDF agora?</h2><p>O registro já foi salvo. Você pode abrir o PDF ou seguir direto para o próximo passo.</p></div></div>
+        <div className="budget-choice-grid">
+          <button className="budget-choice-card confirmed" type="button" onClick={()=>finishSavedBudget(true)}><FileText size={25}/><span><strong>Abrir PDF</strong><small>Abre a proposta em uma nova guia e depois segue para o registro salvo.</small></span></button>
+          <button className="budget-choice-card quote" type="button" onClick={()=>finishSavedBudget(false)}><CheckCircle2 size={25}/><span><strong>Continuar sem PDF</strong><small>Vai direto para a venda ou lead criado.</small></span></button>
         </div>
       </section>
     </div>}
