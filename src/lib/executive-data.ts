@@ -1,5 +1,7 @@
 import { getBankDashboardData } from "@/lib/bank-data";
 import {
+  getCommercialDashboardSummary,
+  getFitnessDashboard,
   getInventoryOverview,
   getPartnersOverview,
 } from "@/lib/data";
@@ -198,46 +200,6 @@ export type ExecutiveSnapshot = {
   }>;
 };
 
-function aggregateSales(
-  rows: Array<
-    Record<
-      string,
-      unknown
-    >
-  >,
-): SaleTotals {
-  return rows.reduce<SaleTotals>(
-    (
-      result,
-      row,
-    ) => ({
-      count:
-        result.count + 1,
-      revenue:
-        result.revenue +
-        number(
-          row.total_amount,
-        ),
-      cost:
-        result.cost +
-        number(
-          row.total_cost,
-        ),
-      profit:
-        result.profit +
-        number(
-          row.total_profit,
-        ),
-    }),
-    {
-      count: 0,
-      revenue: 0,
-      cost: 0,
-      profit: 0,
-    },
-  );
-}
-
 function sumForecast(
   rows: Array<{
     totalExpectedIncome: number;
@@ -278,15 +240,15 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
   const sevenDaysEnd =
     addDays(
       bounds.today,
-      7,
+      6,
     );
 
   const [
     bank,
     inventory,
     partners,
-    supplementSalesResult,
-    fitnessSalesResult,
+    supplementDashboard,
+    fitnessDashboard,
     supplementPaidResult,
     fitnessPaidResult,
     postSaleResult,
@@ -300,69 +262,21 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
     getBankDashboardData(),
     getInventoryOverview(),
     getPartnersOverview(),
+    getCommercialDashboardSummary(),
+    getFitnessDashboard(),
 
     supabase
-      .from("sales")
-      .select(
-        "id,total_amount,total_cost,total_profit",
-      )
-      .eq(
-        "record_type",
-        "sale",
-      )
-      .neq(
-        "general_status",
-        "cancelled",
-      )
-      .gte(
-        "quoted_at",
-        bounds.start,
-      )
-      .lt(
-        "quoted_at",
-        bounds.end,
-      ),
-
-    supabase
-      .from(
-        "fitness_sales",
-      )
-      .select(
-        "id,total_amount,total_cost,total_profit",
-      )
-      .neq(
-        "general_status",
-        "cancelled",
-      )
-      .gte(
-        "quoted_on",
-        bounds.startDate,
-      )
-      .lt(
-        "quoted_on",
-        bounds.endDate,
-      ),
-
-    supabase
-      .from("sales")
+      .from("commercial_sales")
       .select(
         "total_amount,paid_at",
       )
-      .eq(
-        "record_type",
-        "sale",
-      )
-      .neq(
-        "general_status",
-        "cancelled",
-      )
       .gte(
         "paid_at",
-        bounds.start,
+        bounds.startDate,
       )
       .lt(
         "paid_at",
-        bounds.end,
+        bounds.endDate,
       ),
 
     supabase
@@ -489,8 +403,6 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
   ]);
 
   const results = [
-    supplementSalesResult,
-    fitnessSalesResult,
     supplementPaidResult,
     fitnessPaidResult,
     postSaleResult,
@@ -509,31 +421,29 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
     }
   }
 
-  const supplementSales =
-    aggregateSales(
-      (
-        supplementSalesResult.data ??
-        []
-      ) as Array<
-        Record<
-          string,
-          unknown
-        >
-      >,
-    );
+  const supplementSales: SaleTotals = {
+    count:
+      supplementDashboard.current_month_sales,
+    revenue:
+      supplementDashboard.current_month_revenue,
+    cost:
+      supplementDashboard.current_month_revenue -
+      supplementDashboard.current_month_profit,
+    profit:
+      supplementDashboard.current_month_profit,
+  };
 
-  const fitnessSales =
-    aggregateSales(
-      (
-        fitnessSalesResult.data ??
-        []
-      ) as Array<
-        Record<
-          string,
-          unknown
-        >
-      >,
-    );
+  const fitnessSales: SaleTotals = {
+    count:
+      fitnessDashboard.month_sales,
+    revenue:
+      fitnessDashboard.month_revenue,
+    cost:
+      fitnessDashboard.month_revenue -
+      fitnessDashboard.month_profit,
+    profit:
+      fitnessDashboard.month_profit,
+  };
 
   const companySales: SaleTotals =
     {
@@ -699,20 +609,21 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
     ).length;
 
   const lowStock =
-    inventory.filter(
-      (row) =>
-        row.available_quantity >
-          0 &&
-        row.min_stock > 0 &&
-        row.available_quantity <=
-          row.min_stock,
+    inventory.filter((row) =>
+      [
+        "below_minimum",
+        "fully_reserved",
+        "incoming_only",
+      ].includes(
+        row.stock_status,
+      ),
     );
 
   const zeroStock =
     inventory.filter(
       (row) =>
-        row.available_quantity <=
-        0,
+        row.stock_status ===
+        "out_of_stock",
     );
 
   const activePartners =
@@ -784,6 +695,15 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
         (row) =>
           row.referenceMonth >=
           bounds.startDate,
+      )
+      .sort(
+        (
+          a,
+          b,
+        ) =>
+          a.referenceMonth.localeCompare(
+            b.referenceMonth,
+          ),
       )
       .slice(0, 3);
 
@@ -902,9 +822,9 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
     alerts.push({
       tone: "attention",
       title:
-        "Estoque baixo",
+        "Estoque em atenção",
       description:
-        "Produtos já chegaram ao estoque mínimo configurado.",
+        "Produtos abaixo do mínimo, totalmente reservados ou zerados com reposição a caminho.",
       href: "/produtos",
       count:
         lowStock.length,
