@@ -1,0 +1,13 @@
+Candinho Company V33 · Inteligência de Estoque — Suplementos + Fitness
+
+LEIA-ME-V33.md
+src/app/(app)/estoque/inteligencia/page.tsx
+src/app/(app)/fitness/estoque/inteligencia/page.tsx
+src/app/(app)/fitness/page.tsx
+src/app/(app)/suplementos/page.tsx
+src/components/fitness-inventory-intelligence-dashboard.tsx
+src/components/inventory-intelligence-dashboard.tsx
+src/lib/partner-legacy-history.ts
+supabase/audits/V33_INVENTORY_INTELLIGENCE_AUDIT.md
+supabase/migrations/20260720124628_v33_inventory_intelligence.sql
+supabase/migrations/20260720125559_v33_fitness_inventory_intelligence.sql

@@ -187,6 +187,19 @@ export default async function SupplementsHomePage() {
           </div>
         </Link>
 
+        <Link href="/estoque/inteligencia">
+          <BarChart3 size={20} />
+
+          <div>
+            <strong>
+              Inteligência de estoque
+            </strong>
+            <span>
+              Curva ABC, capital parado, excesso e prioridades de ação
+            </span>
+          </div>
+        </Link>
+
         <Link href="/pedidos-fornecedor/planejamento">
           <BrainCircuit size={20} />
 

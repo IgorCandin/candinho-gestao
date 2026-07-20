@@ -129,6 +129,14 @@ export default async function FitnessHomePage() {
           </div>
         </Link>
 
+        <Link href="/fitness/estoque/inteligencia">
+          <BarChart3 size={20} />
+          <div>
+            <strong>Inteligência de estoque</strong>
+            <span>Curva ABC, variações zeradas, excesso e peças em prova</span>
+          </div>
+        </Link>
+
         <Link href="/fitness/orcamentos">
           <FileText size={20} />
           <div>
