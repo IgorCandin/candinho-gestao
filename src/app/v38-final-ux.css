@@ -1,155 +1,35 @@
 /* Candinho Company · V38
-   Homologação final de UX do shell desktop.
-   Corrige sobreposição do botão da sidebar e melhora uso em janelas de baixa altura. */
+   Correção final do menu lateral.
+   Mantém integralmente o UX original da sidebar e corrige somente
+   o posicionamento do botão de abrir/recolher. */
 
 @media (min-width: 821px) {
   /*
-   * Mantém um pequeno trilho quando a sidebar é recolhida.
-   * O botão deixa de flutuar por cima do conteúdo principal.
+   * Menu recolhido:
+   * preserva um trilho estreito para o botão, evitando que ele
+   * fique por cima do conteúdo principal.
    */
   .app-shell.sidebar-collapsed {
     grid-template-columns: 48px minmax(0, 1fr);
   }
 
   /*
-   * Sidebar aberta: botão totalmente dentro dos 252px do menu.
-   * Antes, left:232px + 36px fazia o botão invadir a área principal.
+   * Menu aberto:
+   * o botão permanece totalmente dentro dos 252px da sidebar.
+   * O UX original do menu (logo, links, usuário, slogan, rodapé,
+   * tamanhos e rolagem) não é alterado.
    */
   .desktop-sidebar-toggle {
-    top: 12px;
+    top: 16px;
     left: 208px;
     z-index: 30;
   }
 
   /*
-   * Sidebar fechada: botão fica centralizado no trilho de 48px,
-   * sem cobrir títulos, filtros ou outros controles da página.
+   * Menu fechado:
+   * botão centralizado no trilho lateral reservado.
    */
   .desktop-sidebar-toggle.is-collapsed {
     left: 6px;
-  }
-}
-
-/*
- * Desktop compacto:
- * telas com largura de desktop, mas pouca altura (como janela dividida).
- * Evita que menus longos da Central/Bank pareçam "cortados".
- */
-@media (min-width: 821px) and (max-height: 720px) {
-  .app-shell > .sidebar {
-    padding: 10px 10px 8px !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    scrollbar-gutter: stable;
-  }
-
-  .app-shell > .sidebar > .brand {
-    padding: 2px 5px 8px;
-  }
-
-  .app-shell > .sidebar .sidebar-company-logo {
-    width: auto;
-    max-width: 100%;
-    max-height: 42px;
-    object-fit: contain;
-  }
-
-  /*
-   * No modo compacto a sidebar inteira pode rolar.
-   * O nav deixa de criar uma segunda área de rolagem interna.
-   */
-  .app-shell > .sidebar > .nav {
-    flex: 0 0 auto !important;
-    min-height: auto !important;
-    overflow: visible !important;
-    padding-right: 0 !important;
-    gap: 2px;
-  }
-
-  .app-shell > .sidebar .nav-link {
-    min-height: 30px;
-    padding: 0 9px;
-    gap: 9px;
-    border-radius: 9px;
-    font-size: 12px;
-  }
-
-  .app-shell > .sidebar .nav-link svg {
-    width: 16px;
-    height: 16px;
-    flex: 0 0 auto;
-  }
-
-  /*
-   * Em altura curta prioriza as ações de navegação.
-   * Nome do usuário e slogan continuam disponíveis fora desse modo.
-   */
-  .app-shell > .sidebar .sidebar-footer {
-    margin-top: 7px !important;
-    padding: 6px 4px 0 !important;
-  }
-
-  .app-shell > .sidebar .sidebar-user,
-  .app-shell > .sidebar .sidebar-footer > p {
-    display: none;
-  }
-
-  .app-shell > .sidebar .sidebar-footer .nav-link {
-    min-height: 30px;
-  }
-
-  .desktop-sidebar-toggle {
-    top: 7px;
-    left: 210px;
-    width: 30px;
-    height: 30px;
-    border-radius: 9px;
-  }
-
-  .desktop-sidebar-toggle.is-collapsed {
-    left: 9px;
-  }
-
-  .app-shell > .sidebar::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .app-shell > .sidebar::-webkit-scrollbar-thumb {
-    background: rgba(152, 161, 178, 0.28);
-    border-radius: 999px;
-  }
-
-  .app-shell > .sidebar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-}
-
-/*
- * Alturas muito pequenas: comprime um pouco mais sem alterar o mobile.
- */
-@media (min-width: 821px) and (max-height: 600px) {
-  .app-shell > .sidebar {
-    padding-top: 7px !important;
-  }
-
-  .app-shell > .sidebar > .brand {
-    padding-bottom: 5px;
-  }
-
-  .app-shell > .sidebar .sidebar-company-logo {
-    max-height: 36px;
-  }
-
-  .app-shell > .sidebar .nav-link {
-    min-height: 28px;
-    font-size: 11px;
-  }
-
-  .app-shell > .sidebar .sidebar-footer .nav-link {
-    min-height: 28px;
-  }
-
-  .desktop-sidebar-toggle {
-    top: 5px;
   }
 }
