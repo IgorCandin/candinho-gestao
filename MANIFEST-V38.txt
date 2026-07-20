@@ -1,0 +1,10 @@
+Candinho Company V38 · Gestão Executiva Final
+
+LEIA-ME-V38.md
+src/app/(app)/central/executivo/page.tsx
+src/app/(app)/central/page.tsx
+src/app/(app)/dashboard/page.tsx
+src/app/globals.css
+src/app/v38-executive.css
+src/lib/executive-data.ts
+supabase/audits/V38_EXECUTIVE_FINAL_AUDIT.md

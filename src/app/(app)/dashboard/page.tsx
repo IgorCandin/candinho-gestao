@@ -1,7 +1,12 @@
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Link2, LogOut, UserRound } from "lucide-react";
+import {
+  Crown,
+  Link2,
+  LogOut,
+  UserRound,
+} from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getAppBootstrapSnapshot } from "@/lib/central-data";
 import { formatCurrency } from "@/lib/format";
@@ -179,6 +184,14 @@ export default async function DashboardPage() {
       >
         {access.canManageUsers && (
           <>
+            <Link
+              className="company-home-selector-action executive"
+              href="/central/executivo"
+            >
+              <Crown size={16} />
+              <span>Sala do Dono</span>
+            </Link>
+
             <Link
               className="company-home-selector-action"
               href="/configuracoes"
