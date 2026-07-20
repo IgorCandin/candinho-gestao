@@ -1,0 +1,15 @@
+Candinho Company V30 · Central de Trocas, Devoluções e Garantias
+
+LEIA-ME-V30.md
+src/app/(app)/fitness/page.tsx
+src/app/(app)/suplementos/page.tsx
+src/app/(app)/trocas/[id]/page.tsx
+src/app/(app)/trocas/nova/page.tsx
+src/app/(app)/trocas/page.tsx
+src/components/return-case-actions.tsx
+src/components/return-case-create-form.tsx
+supabase/audits/V30_RETURNS_REVERSE_LOGISTICS_AUDIT.md
+supabase/migrations/20260720040000_v30_returns_center_core.sql
+supabase/migrations/20260720041000_v30_returns_workflow_rpcs.sql
+supabase/migrations/20260720042000_v30_returns_resolution_bank.sql
+supabase/migrations/20260720043000_v30_returns_overview_snapshot.sql

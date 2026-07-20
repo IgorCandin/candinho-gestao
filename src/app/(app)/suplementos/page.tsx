@@ -8,6 +8,7 @@ import {
   MessageSquareText,
   PackageSearch,
   Radar,
+  RotateCcw,
   ShoppingBag,
   UserRoundSearch,
 } from "lucide-react";
@@ -23,23 +24,45 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function SupplementsHomePage() {
   const access = await getCurrentUserAccess();
+
   if (access.role === "sales") {
     redirect("/produtos");
   }
 
-  const [data, investment, radar] =
-    await Promise.all([
-      getDashboard(),
-      getOperationInvestmentSnapshot(),
-      getCustomerOpportunityRadarSummary(),
-    ]);
+  const [data, investment, radar] = await Promise.all([
+    getDashboard(),
+    getOperationInvestmentSnapshot(),
+    getCustomerOpportunityRadarSummary(),
+  ]);
 
   const supabase = await createClient();
 
-  const { data: postSale } = await supabase
-    .from("post_sale_batch_summary")
-    .select("*")
-    .maybeSingle();
+  const [
+    { data: postSale },
+    { data: returns },
+  ] = await Promise.all([
+    supabase
+      .from("post_sale_batch_summary")
+      .select("*")
+      .maybeSingle(),
+
+    supabase.rpc("returns_center_snapshot", {
+      p_operation: "supplements",
+    }),
+  ]);
+
+  const returnSummary =
+    returns &&
+    typeof returns === "object" &&
+    "summary" in returns &&
+    returns.summary &&
+    typeof returns.summary === "object"
+      ? (returns.summary as Record<string, unknown>)
+      : {};
+
+  const openReturns = Number(
+    returnSummary.open_cases ?? 0,
+  );
 
   return (
     <>
@@ -54,9 +77,7 @@ export default async function SupplementsHomePage() {
 
           <div>
             <span>Ação principal</span>
-            <strong>
-              Novo orçamento / venda
-            </strong>
+            <strong>Novo orçamento / venda</strong>
             <small>
               Registrar atendimento e fechar venda
             </small>
@@ -91,6 +112,14 @@ export default async function SupplementsHomePage() {
                 postSale?.today_count ?? 0,
               )}{" "}
               hoje
+            </small>
+          </Link>
+
+          <Link href="/trocas?operacao=supplements">
+            <span>Trocas / devoluções</span>
+            <strong>{openReturns}</strong>
+            <small>
+              Ocorrências de pós-venda abertas
             </small>
           </Link>
 
@@ -140,6 +169,20 @@ export default async function SupplementsHomePage() {
             <span>
               Acompanhamentos consolidados e mensagem gerada
               por IA
+            </span>
+          </div>
+        </Link>
+
+        <Link href="/trocas?operacao=supplements">
+          <RotateCcw size={20} />
+
+          <div>
+            <strong>
+              Trocas e devoluções
+            </strong>
+            <span>
+              Conferência, estoque, garantia e reembolso
+              rastreados
             </span>
           </div>
         </Link>
@@ -222,17 +265,13 @@ export default async function SupplementsHomePage() {
         </Link>
       </section>
 
-      {(data.operational.overdue_payment_count >
-        0 ||
-        data.operational.out_of_stock_products >
-          0) && (
+      {(data.operational.overdue_payment_count > 0 ||
+        data.operational.out_of_stock_products > 0) && (
         <article className="operation-home-alert">
           <AlertTriangle size={18} />
 
           <div>
-            <strong>
-              Atenção hoje
-            </strong>
+            <strong>Atenção hoje</strong>
 
             <span>
               {
