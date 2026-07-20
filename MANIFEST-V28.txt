@@ -1,0 +1,9 @@
+Candinho Company V28 · Planejamento Inteligente de Compras e Reposição
+
+LEIA-ME-V28.md
+src/app/(app)/pedidos-fornecedor/page.tsx
+src/app/(app)/pedidos-fornecedor/planejamento/page.tsx
+src/app/(app)/suplementos/page.tsx
+src/components/purchase-planner.tsx
+supabase/audits/V28_PURCHASE_PLANNING_AUDIT.md
+supabase/migrations/20260720020000_v28_purchase_planning_intelligence.sql
