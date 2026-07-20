@@ -1,0 +1,13 @@
+Candinho Company V35 · CRM Company 360 + Sidebar + Estoque
+
+LEIA-ME-V35.md
+src/app/(app)/clientes/[id]/page.tsx
+src/app/(app)/layout.tsx
+src/app/(app)/produtos/page.tsx
+src/app/globals.css
+src/app/v35-ux.css
+src/components/customer-company-360.tsx
+src/components/desktop-sidebar-controller.tsx
+src/components/product-stock-health-panel.tsx
+supabase/audits/V35_CRM360_SIDEBAR_STOCK_AUDIT.md
+supabase/migrations/20260720151723_v35_customer_company_360.sql
