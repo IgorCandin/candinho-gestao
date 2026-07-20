@@ -113,7 +113,9 @@ export default async function FitnessHomePage() {
           <Link href="/fitness/estoque">
             <span>Estoque em atenção</span>
             <strong>{summary.attention_variants}</strong>
-            <small>{summary.out_of_stock_variants} variação(ões) zerada(s)</small>
+            <small>
+              {summary.out_of_stock_variants} zerada(s) · {summary.low_stock_variants} abaixo do mínimo
+            </small>
           </Link>
         </div>
       </section>
