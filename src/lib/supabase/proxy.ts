@@ -54,7 +54,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
     "/dashboard", "/suplementos", "/fitness", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
-    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs", "/bank", "/central", "/marketing", "/parceiro",
+    "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/fornecedores", "/parceiros", "/painel-cs", "/bank", "/central", "/marketing", "/parceiro",
   ];
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
 
@@ -101,7 +101,7 @@ export async function updateSession(request: NextRequest) {
 
     const supplementPrefixes = [
       "/suplementos", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads", "/clientes", "/movimentacoes",
-      "/pedidos-pendentes", "/pedidos-fornecedor", "/parceiros", "/painel-cs",
+      "/pedidos-pendentes", "/pedidos-fornecedor", "/fornecedores", "/parceiros", "/painel-cs",
     ];
     const isSupplementRoute = supplementPrefixes.some((prefix) => pathname.startsWith(prefix));
     const isFitnessRoute = pathname.startsWith("/fitness");

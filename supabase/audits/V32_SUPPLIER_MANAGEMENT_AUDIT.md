@@ -63,6 +63,7 @@ Os pedidos, o planejador e o detalhe de pedido ganharam acesso direto ao centro 
 - 10 linhas na visão gerencial, 52 pares com preço, 73 linhas de histórico e 6 linhas comparáveis entre fornecedores.
 - Build Next.js de produção concluído, incluindo `/fornecedores` e `/fornecedores/[id]`.
 - ESLint dos arquivos alterados concluído sem erros.
+- Acesso direto sem sessão foi validado e a nova rota incluída no proxy protegido, com redirecionamento para o login em vez de executar consultas anônimas.
 - Advisors do Supabase executados: nenhuma advertência nova de segurança vinculada à V32; índices recém-criados aparecem como ainda não utilizados, comportamento esperado imediatamente após a criação.
 - A automação visual foi preparada, mas o Chrome automatizado encerrou o canal CDP neste ambiente Windows. A rota local respondeu HTTP 200 e a compilação server-side das duas páginas foi validada pelo build.
 
