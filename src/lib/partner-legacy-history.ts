@@ -42,7 +42,7 @@ export async function getPartnerLegacyHistory(
   }
 
   return (data ?? []).map(
-    (row) => ({
+    (row: Record<string, unknown>) => ({
       id: String(
         row.id ?? "",
       ),
