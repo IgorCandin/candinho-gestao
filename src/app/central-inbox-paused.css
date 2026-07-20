@@ -1,7 +1,11 @@
-/* Candinho Central · Inbox pausado
-   Esconde os atalhos antigos sem precisar manter a interface pesada ativa. */
+/* Candinho Central · superfícies pausadas
+   Esconde atalhos que não fazem parte da rotina ativa neste momento. */
 
 a[href="/central/inbox"],
-a[href^="/central/inbox?"] {
+a[href^="/central/inbox?"],
+a[href="/central/integracoes"],
+a[href^="/central/integracoes?"],
+a[href="/central/ativacao"],
+a[href^="/central/ativacao?"] {
   display: none !important;
 }

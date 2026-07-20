@@ -1,49 +1,409 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ContactRound, MessageCircle, Search, UserRoundCheck } from "lucide-react";
-import { CentralContactCreateForm } from "@/components/central-contact-create-form";
+import {
+  ContactRound,
+  Search,
+  ShoppingBag,
+  UserRoundCheck,
+} from "lucide-react";
 import { PageHeader } from "@/components/page-header";
-import { getCentralContacts } from "@/lib/central-data";
 import { getCurrentUserAccess } from "@/lib/data";
+import { createClient } from "@/lib/supabase/server";
+import {
+  formatCurrency,
+  formatDateTime,
+} from "@/lib/format";
 
-export default async function CentralClientsPage({ searchParams }: { searchParams: Promise<{ q?: string; vinculo?: string }> }) {
-  const access = await getCurrentUserAccess();
-  if (!(access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing)) redirect("/dashboard");
-  const params = await searchParams;
-  const contacts = await getCentralContacts(500);
-  const q = (params.q ?? "").trim().toLowerCase();
-  const filtered = contacts.filter((contact) => {
-    const matchesQuery = !q || [contact.display_name, contact.phone, contact.email, contact.instagram_username].some((value) => value?.toLowerCase().includes(q));
-    const linkState = contact.supplements_customer_id || contact.fitness_customer_id ? "linked" : "unlinked";
-    return matchesQuery && (!params.vinculo || params.vinculo === linkState);
+type DirectoryCustomer = {
+  identity_key: string;
+  display_name: string;
+  phone: string | null;
+  city: string | null;
+  operations: string[];
+  supplements_customer_id: string | null;
+  fitness_customer_id: string | null;
+  purchase_count: number;
+  total_spent: number;
+  last_purchase_at: string | null;
+};
+
+export default async function CentralClientsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    q?: string;
+  }>;
+}) {
+  const access =
+    await getCurrentUserAccess();
+
+  if (
+    !(
+      access.role === "admin" ||
+      access.canAccessSupplements ||
+      access.canAccessFitness
+    )
+  ) {
+    redirect("/dashboard");
+  }
+
+  const params =
+    await searchParams;
+
+  const supabase =
+    await createClient();
+
+  const {
+    data,
+    error,
+  } = await supabase.rpc(
+    "central_customer_directory_snapshot",
+    {
+      p_query:
+        params.q?.trim() ||
+        null,
+    },
+  );
+
+  if (error) throw error;
+
+  const source =
+    data &&
+    typeof data === "object"
+      ? (data as Record<
+          string,
+          unknown
+        >)
+      : {};
+
+  const summary =
+    source.summary &&
+    typeof source.summary ===
+      "object"
+      ? (source.summary as Record<
+          string,
+          unknown
+        >)
+      : {};
+
+  const customers = (
+    Array.isArray(
+      source.customers,
+    )
+      ? source.customers
+      : []
+  ).map((value) => {
+    const row =
+      value as Record<
+        string,
+        unknown
+      >;
+
+    return {
+      identity_key: String(
+        row.identity_key ?? "",
+      ),
+      display_name: String(
+        row.display_name ??
+          "Cliente",
+      ),
+      phone:
+        typeof row.phone ===
+        "string"
+          ? row.phone
+          : null,
+      city:
+        typeof row.city ===
+        "string"
+          ? row.city
+          : null,
+      operations: Array.isArray(
+        row.operations,
+      )
+        ? row.operations.map(
+            String,
+          )
+        : [],
+      supplements_customer_id:
+        typeof row.supplements_customer_id ===
+        "string"
+          ? row.supplements_customer_id
+          : null,
+      fitness_customer_id:
+        typeof row.fitness_customer_id ===
+        "string"
+          ? row.fitness_customer_id
+          : null,
+      purchase_count: Number(
+        row.purchase_count ?? 0,
+      ),
+      total_spent: Number(
+        row.total_spent ?? 0,
+      ),
+      last_purchase_at:
+        typeof row.last_purchase_at ===
+        "string"
+          ? row.last_purchase_at
+          : null,
+    } satisfies DirectoryCustomer;
   });
-  const linkedCount = contacts.filter((contact) => contact.supplements_customer_id || contact.fitness_customer_id).length;
-  const scopes = [access.role === "admin" ? "company" : null, access.canAccessSupplements ? "supplements" : null, access.canAccessFitness ? "fitness" : null, access.canAccessMarketing ? "marketing" : null].filter((item): item is string => Boolean(item));
 
-  return <>
-    <PageHeader eyebrow="Candinho Central" title="Clientes unificados" description="Uma identidade por pessoa, ligada às conversas e aos cadastros de Suplementos e Fitness sem apagar os registros de origem." action={<CentralContactCreateForm scopes={scopes}/>}/>
+  return (
+    <>
+      <PageHeader
+        eyebrow="Candinho Central"
+        title="Clientes da Company"
+        description="Aqui aparecem somente pessoas com compras registradas em Suplementos ou Fitness. Contatos aleatórios de WhatsApp não entram mais nesta visão."
+      />
 
-    <section className="central-contact-summary">
-      <div><span>Total</span><strong>{contacts.length}</strong></div>
-      <div><span>Com vínculo</span><strong>{linkedCount}</strong></div>
-      <div><span>Aguardando vínculo</span><strong>{contacts.length - linkedCount}</strong></div>
-    </section>
+      <section className="central-contact-summary">
+        <div>
+          <span>
+            Clientes compradores
+          </span>
+          <strong>
+            {Number(
+              summary.total ?? 0,
+            )}
+          </strong>
+        </div>
 
-    <form className="central-contact-search" method="get">
-      <label><Search size={15}/><input name="q" defaultValue={params.q ?? ""} placeholder="Buscar nome, telefone, e-mail ou Instagram..."/></label>
-      <select name="vinculo" defaultValue={params.vinculo ?? ""}><option value="">Todos os contatos</option><option value="linked">Com vínculo</option><option value="unlinked">Sem vínculo</option></select>
-      <button className="button ghost compact-button" type="submit">Filtrar</button>
-    </form>
+        <div>
+          <span>Suplementos</span>
+          <strong>
+            {Number(
+              summary.supplements ??
+                0,
+            )}
+          </strong>
+        </div>
 
-    <article className="panel central-contact-panel">
-      <div className="panel-head"><div><h2>Contatos do Central</h2><p>Novos contatos entram automaticamente pelos canais ou podem ser cadastrados manualmente.</p></div><strong>{filtered.length}</strong></div>
-      {filtered.length === 0 ? <div className="empty"><ContactRound size={26}/><strong>Nenhum contato encontrado</strong>Cadastre alguém manualmente ou altere os filtros.</div> : <div className="table-wrap"><table className="central-contact-table"><thead><tr><th>Contato</th><th>Espaço</th><th>Canais</th><th>Vínculos</th><th></th></tr></thead><tbody>{filtered.map((contact) => <tr key={contact.id}>
-        <td><div className="central-contact-name"><strong>{contact.display_name}</strong><small>{contact.phone ?? contact.email ?? "Sem contato principal"}</small></div></td>
-        <td><span className="badge">{contact.operation_scope === "company" ? "Company" : contact.operation_scope === "supplements" ? "Suplementos" : contact.operation_scope === "fitness" ? "Fitness" : "Marketing"}</span></td>
-        <td><div className="central-contact-channels">{contact.phone && <span><MessageCircle size={13}/>WhatsApp</span>}{contact.instagram_username && <span><MessageCircle size={13}/>@{contact.instagram_username}</span>}{contact.email && <span>{contact.email}</span>}</div></td>
-        <td><div className="central-contact-links">{contact.supplements_customer_id ? <Link href={`/clientes/${contact.supplements_customer_id}`}><UserRoundCheck size={13}/>Suplementos</Link> : <span>Suplementos: —</span>}{contact.fitness_customer_id ? <span className="central-linked-text"><UserRoundCheck size={13}/>Fitness vinculado</span> : <span>Fitness: —</span>}</div></td>
-        <td><Link className="button ghost compact-button" href={`/central/clientes/${contact.id}`}>Abrir</Link></td>
-      </tr>)}</tbody></table></div>}
-    </article>
-  </>;
+        <div>
+          <span>Fitness</span>
+          <strong>
+            {Number(
+              summary.fitness ?? 0,
+            )}
+          </strong>
+        </div>
+
+        <div>
+          <span>
+            Nas duas operações
+          </span>
+          <strong>
+            {Number(
+              summary.both_operations ??
+                0,
+            )}
+          </strong>
+        </div>
+      </section>
+
+      <form
+        className="central-contact-search"
+        method="get"
+      >
+        <label>
+          <Search size={15} />
+
+          <input
+            name="q"
+            defaultValue={
+              params.q ?? ""
+            }
+            placeholder="Buscar cliente, telefone ou cidade..."
+          />
+        </label>
+
+        <button
+          className="button ghost compact-button"
+          type="submit"
+        >
+          Filtrar
+        </button>
+      </form>
+
+      <article className="panel central-contact-panel">
+        <div className="panel-head">
+          <div>
+            <h2>
+              Base comercial real
+            </h2>
+
+            <p>
+              O vínculo com cada
+              operação é inferido pelas
+              vendas já registradas.
+            </p>
+          </div>
+
+          <strong>
+            {customers.length}
+          </strong>
+        </div>
+
+        {customers.length ===
+        0 ? (
+          <div className="empty">
+            <ContactRound
+              size={28}
+            />
+
+            <strong>
+              Nenhum cliente comprador
+              encontrado
+            </strong>
+
+            Ajuste a busca ou aguarde
+            novas vendas registradas.
+          </div>
+        ) : (
+          <div className="table-wrap">
+            <table className="central-contact-table">
+              <thead>
+                <tr>
+                  <th>Cliente</th>
+                  <th>Operação</th>
+                  <th>Compras</th>
+                  <th>Total comprado</th>
+                  <th>
+                    Última compra
+                  </th>
+                  <th></th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {customers.map(
+                  (customer) => (
+                    <tr
+                      key={
+                        customer.identity_key
+                      }
+                    >
+                      <td>
+                        <div className="central-contact-name">
+                          <strong>
+                            {
+                              customer.display_name
+                            }
+                          </strong>
+
+                          <small>
+                            {[
+                              customer.phone,
+                              customer.city,
+                            ]
+                              .filter(
+                                Boolean,
+                              )
+                              .join(
+                                " · ",
+                              ) ||
+                              "Sem contato principal"}
+                          </small>
+                        </div>
+                      </td>
+
+                      <td>
+                        <div
+                          style={{
+                            display:
+                              "flex",
+                            gap: 6,
+                            flexWrap:
+                              "wrap",
+                          }}
+                        >
+                          {customer.operations.includes(
+                            "supplements",
+                          ) && (
+                            <span className="badge blue">
+                              Suplementos
+                            </span>
+                          )}
+
+                          {customer.operations.includes(
+                            "fitness",
+                          ) && (
+                            <span className="badge purple">
+                              Fitness
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td>
+                        <strong>
+                          {
+                            customer.purchase_count
+                          }
+                        </strong>
+
+                        <small>
+                          compra(s)
+                        </small>
+                      </td>
+
+                      <td>
+                        {formatCurrency(
+                          customer.total_spent,
+                        )}
+                      </td>
+
+                      <td>
+                        {customer.last_purchase_at
+                          ? formatDateTime(
+                              customer.last_purchase_at,
+                            )
+                          : "—"}
+                      </td>
+
+                      <td>
+                        <div
+                          style={{
+                            display:
+                              "flex",
+                            gap: 6,
+                            flexWrap:
+                              "wrap",
+                          }}
+                        >
+                          {customer.supplements_customer_id && (
+                            <Link
+                              className="button ghost compact-button"
+                              href={`/clientes/${customer.supplements_customer_id}`}
+                            >
+                              <UserRoundCheck
+                                size={13}
+                              />
+                              CRM
+                            </Link>
+                          )}
+
+                          {!customer.supplements_customer_id &&
+                            customer.fitness_customer_id && (
+                              <Link
+                                className="button ghost compact-button"
+                                href="/fitness/clientes"
+                              >
+                                <ShoppingBag
+                                  size={13}
+                                />
+                                Fitness
+                              </Link>
+                            )}
+                        </div>
+                      </td>
+                    </tr>
+                  ),
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </article>
+    </>
+  );
 }
