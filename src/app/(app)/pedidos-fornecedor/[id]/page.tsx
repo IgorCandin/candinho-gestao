@@ -46,7 +46,7 @@ export default async function SupplierOrderDetailsPage({ params }: { params: Pro
         eyebrow="Pedido de fornecedor"
         title={order.supplier_name}
         description={`${order.item_count} ${order.item_count === 1 ? "item" : "itens"} · destino ${order.destination_code}`}
-        action={<Link className="button ghost" href="/pedidos-fornecedor"><ArrowLeft size={16} />Voltar aos pedidos</Link>}
+        action={<div className="page-header-actions"><Link className="button ghost" href={`/fornecedores/${order.supplier_id}`}>Ver fornecedor</Link><Link className="button ghost" href="/pedidos-fornecedor"><ArrowLeft size={16} />Voltar aos pedidos</Link></div>}
       />
 
       <section className="supplier-order-detail-layout">

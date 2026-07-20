@@ -521,6 +521,95 @@ export type SupplierOrderDetails = SupplierOrderSummary & {
   items: SupplierOrderItem[];
 };
 
+export type SupplierManagementRow = {
+  id: string;
+  name: string;
+  active: boolean;
+  notes: string | null;
+  lead_time_days: number;
+  target_cover_days: number;
+  minimum_order_amount: number;
+  free_shipping_threshold: number;
+  payment_terms: string | null;
+  freight_notes: string | null;
+  order_count: number;
+  open_order_count: number;
+  received_order_count: number;
+  incoming_units: number;
+  historical_purchase_value: number;
+  purchase_value_365d: number;
+  last_order_on: string | null;
+  last_receipt_on: string | null;
+  promised_delivery_sample: number;
+  late_order_count: number;
+  average_actual_lead_days: number | null;
+  late_rate_pct: number | null;
+  receipt_count: number;
+  cost_divergent_receipt_count: number;
+  closed_quantity_divergence_units: number;
+  divergent_receipt_order_count: number;
+  default_product_count: number;
+  priced_product_count: number;
+  products_with_price_increase: number;
+  products_at_best_recent_price: number;
+  suggested_product_count: number;
+  suggested_units: number;
+  suggested_order_cost: number;
+  purchase_concentration_pct: number;
+  gap_to_minimum_order: number;
+  gap_to_free_shipping: number;
+  operational_score: number | null;
+};
+
+export type SupplierPriceSummary = {
+  supplier_id: string;
+  supplier_name: string;
+  product_id: string;
+  product_name: string;
+  category: string;
+  brand: string | null;
+  purchase_count: number;
+  purchased_units: number;
+  last_purchase_on: string;
+  last_price_paid: number;
+  previous_price_paid: number | null;
+  best_recent_price: number | null;
+  average_recent_price: number | null;
+  last_price_change_pct: number | null;
+  market_best_recent_price: number | null;
+  recent_price_rank: number | null;
+  compared_supplier_count: number;
+};
+
+export type SupplierPurchaseHistory = {
+  purchase_order_item_id: string;
+  purchase_order_id: string;
+  supplier_id: string;
+  supplier_name: string;
+  product_id: string;
+  product_name: string;
+  category: string;
+  brand: string | null;
+  ordered_on: string;
+  expected_on: string | null;
+  status: string;
+  quantity_ordered: number;
+  quantity_received: number;
+  unit_cost: number;
+  line_total: number;
+  last_received_on: string | null;
+  receipt_count: number;
+  cost_divergent_receipt_count: number;
+  has_paid_price_evidence: boolean;
+};
+
+export type SupplierManagementDetails = {
+  supplier: SupplierManagementRow;
+  prices: SupplierPriceSummary[];
+  history: SupplierPurchaseHistory[];
+  orders: SupplierOrderSummary[];
+};
+
 export type PartnerOverview = {
   id: string;
   name: string;
@@ -894,4 +983,3 @@ export type TestLabPurchaseOrderRow = any;
 export type TestLabPurchaseOrderDetails = any;
 export type TestLabPurchaseOrderItem = any;
 /* eslint-enable @typescript-eslint/no-explicit-any */
-

@@ -58,6 +58,10 @@ import type {
   SupplierOrderDetails,
   SupplierOrderItem,
   SupplierWaitingSale,
+  SupplierManagementRow,
+  SupplierPriceSummary,
+  SupplierPurchaseHistory,
+  SupplierManagementDetails,
   PartnerOverview,
   PartnerDetails,
   PartnerSale,
@@ -1952,6 +1956,144 @@ export async function getSupplierOrderDetails(orderId: string): Promise<Supplier
     };
   });
   return { ...normalizeSupplierOrderSummary(summary as Record<string, unknown>), items: normalizedItems };
+}
+
+function nullableNumber(value: unknown) {
+  return value === null || value === undefined ? null : number(value);
+}
+
+function normalizeSupplierManagementRow(row: Record<string, unknown>): SupplierManagementRow {
+  return {
+    id: String(row.id),
+    name: text(row.name, "Fornecedor sem nome"),
+    active: Boolean(row.active),
+    notes: typeof row.notes === "string" ? row.notes : null,
+    lead_time_days: number(row.lead_time_days),
+    target_cover_days: number(row.target_cover_days),
+    minimum_order_amount: number(row.minimum_order_amount),
+    free_shipping_threshold: number(row.free_shipping_threshold),
+    payment_terms: typeof row.payment_terms === "string" ? row.payment_terms : null,
+    freight_notes: typeof row.freight_notes === "string" ? row.freight_notes : null,
+    order_count: number(row.order_count),
+    open_order_count: number(row.open_order_count),
+    received_order_count: number(row.received_order_count),
+    incoming_units: number(row.incoming_units),
+    historical_purchase_value: number(row.historical_purchase_value),
+    purchase_value_365d: number(row.purchase_value_365d),
+    last_order_on: typeof row.last_order_on === "string" ? row.last_order_on : null,
+    last_receipt_on: typeof row.last_receipt_on === "string" ? row.last_receipt_on : null,
+    promised_delivery_sample: number(row.promised_delivery_sample),
+    late_order_count: number(row.late_order_count),
+    average_actual_lead_days: nullableNumber(row.average_actual_lead_days),
+    late_rate_pct: nullableNumber(row.late_rate_pct),
+    receipt_count: number(row.receipt_count),
+    cost_divergent_receipt_count: number(row.cost_divergent_receipt_count),
+    closed_quantity_divergence_units: number(row.closed_quantity_divergence_units),
+    divergent_receipt_order_count: number(row.divergent_receipt_order_count),
+    default_product_count: number(row.default_product_count),
+    priced_product_count: number(row.priced_product_count),
+    products_with_price_increase: number(row.products_with_price_increase),
+    products_at_best_recent_price: number(row.products_at_best_recent_price),
+    suggested_product_count: number(row.suggested_product_count),
+    suggested_units: number(row.suggested_units),
+    suggested_order_cost: number(row.suggested_order_cost),
+    purchase_concentration_pct: number(row.purchase_concentration_pct),
+    gap_to_minimum_order: number(row.gap_to_minimum_order),
+    gap_to_free_shipping: number(row.gap_to_free_shipping),
+    operational_score: nullableNumber(row.operational_score),
+  };
+}
+
+function normalizeSupplierPriceSummary(row: Record<string, unknown>): SupplierPriceSummary {
+  return {
+    supplier_id: String(row.supplier_id),
+    supplier_name: text(row.supplier_name, "Fornecedor sem nome"),
+    product_id: String(row.product_id),
+    product_name: text(row.product_name, "Produto sem nome"),
+    category: text(row.category, "Sem categoria"),
+    brand: typeof row.brand === "string" ? row.brand : null,
+    purchase_count: number(row.purchase_count),
+    purchased_units: number(row.purchased_units),
+    last_purchase_on: String(row.last_purchase_on ?? ""),
+    last_price_paid: number(row.last_price_paid),
+    previous_price_paid: nullableNumber(row.previous_price_paid),
+    best_recent_price: nullableNumber(row.best_recent_price),
+    average_recent_price: nullableNumber(row.average_recent_price),
+    last_price_change_pct: nullableNumber(row.last_price_change_pct),
+    market_best_recent_price: nullableNumber(row.market_best_recent_price),
+    recent_price_rank: nullableNumber(row.recent_price_rank),
+    compared_supplier_count: number(row.compared_supplier_count),
+  };
+}
+
+function normalizeSupplierPurchaseHistory(row: Record<string, unknown>): SupplierPurchaseHistory {
+  return {
+    purchase_order_item_id: String(row.purchase_order_item_id),
+    purchase_order_id: String(row.purchase_order_id),
+    supplier_id: String(row.supplier_id),
+    supplier_name: text(row.supplier_name, "Fornecedor sem nome"),
+    product_id: String(row.product_id),
+    product_name: text(row.product_name, "Produto sem nome"),
+    category: text(row.category, "Sem categoria"),
+    brand: typeof row.brand === "string" ? row.brand : null,
+    ordered_on: String(row.ordered_on ?? ""),
+    expected_on: typeof row.expected_on === "string" ? row.expected_on : null,
+    status: text(row.status, "pending"),
+    quantity_ordered: number(row.quantity_ordered),
+    quantity_received: number(row.quantity_received),
+    unit_cost: number(row.unit_cost),
+    line_total: number(row.line_total),
+    last_received_on: typeof row.last_received_on === "string" ? row.last_received_on : null,
+    receipt_count: number(row.receipt_count),
+    cost_divergent_receipt_count: number(row.cost_divergent_receipt_count),
+    has_paid_price_evidence: Boolean(row.has_paid_price_evidence),
+  };
+}
+
+export async function getSupplierManagementRows(): Promise<SupplierManagementRow[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("supplier_management_overview")
+    .select("*")
+    .order("purchase_value_365d", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeSupplierManagementRow(row as Record<string, unknown>));
+}
+
+export async function getSupplierPriceComparisons(): Promise<SupplierPriceSummary[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("supplier_product_price_summary")
+    .select("*")
+    .gt("compared_supplier_count", 1)
+    .order("product_name")
+    .order("recent_price_rank");
+  if (error) throw error;
+  return (data ?? []).map((row) => normalizeSupplierPriceSummary(row as Record<string, unknown>));
+}
+
+export async function getSupplierManagementDetails(supplierId: string): Promise<SupplierManagementDetails | null> {
+  if (!isSupabaseConfigured) return null;
+  const supabase = await createClient();
+  const [supplierResult, pricesResult, historyResult, ordersResult] = await Promise.all([
+    supabase.from("supplier_management_overview").select("*").eq("id", supplierId).maybeSingle(),
+    supabase.from("supplier_product_price_summary").select("*").eq("supplier_id", supplierId).order("product_name"),
+    supabase.from("supplier_product_purchase_history").select("*").eq("supplier_id", supplierId).order("ordered_on", { ascending: false }),
+    supabase.from("supplier_order_summary").select("*").eq("supplier_id", supplierId).order("ordered_on", { ascending: false }),
+  ]);
+  if (supplierResult.error) throw supplierResult.error;
+  if (pricesResult.error) throw pricesResult.error;
+  if (historyResult.error) throw historyResult.error;
+  if (ordersResult.error) throw ordersResult.error;
+  if (!supplierResult.data) return null;
+  return {
+    supplier: normalizeSupplierManagementRow(supplierResult.data as Record<string, unknown>),
+    prices: (pricesResult.data ?? []).map((row) => normalizeSupplierPriceSummary(row as Record<string, unknown>)),
+    history: (historyResult.data ?? []).map((row) => normalizeSupplierPurchaseHistory(row as Record<string, unknown>)),
+    orders: (ordersResult.data ?? []).map((row) => normalizeSupplierOrderSummary(row as Record<string, unknown>)),
+  };
 }
 
 function normalizePartnerOverview(row: Record<string, unknown>): PartnerOverview {

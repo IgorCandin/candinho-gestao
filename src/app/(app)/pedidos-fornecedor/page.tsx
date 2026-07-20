@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Boxes, BrainCircuit, PackageCheck, Plus, Truck } from "lucide-react";
+import { Boxes, BrainCircuit, Building2, PackageCheck, Plus, Truck } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { SupplierOrdersTable } from "@/components/supplier-orders-table";
@@ -24,6 +24,10 @@ export default async function SupplierOrdersPage() {
         description="Acompanhe o que já foi comprado e use o planejamento inteligente para decidir o próximo pedido."
         action={
           <div className="page-header-actions">
+            <Link className="button ghost" href="/fornecedores">
+              <Building2 size={16} />
+              Fornecedores
+            </Link>
             <Link className="button ghost" href="/pedidos-fornecedor/planejamento">
               <BrainCircuit size={16} />
               Planejar compras

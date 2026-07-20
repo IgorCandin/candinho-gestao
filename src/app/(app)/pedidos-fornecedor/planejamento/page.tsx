@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Building2, Plus } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import {
@@ -261,6 +261,14 @@ export default async function PurchasePlanningPage() {
         description="Veja onde existe risco de ruptura, quanto o estoque ainda cobre e uma sugestão de compra baseada no giro real da operação."
         action={
           <div className="page-header-actions">
+            <Link
+              className="button ghost"
+              href="/fornecedores"
+            >
+              <Building2 size={16} />
+              Fornecedores
+            </Link>
+
             <Link
               className="button gold"
               href="/pedidos-fornecedor/novo"

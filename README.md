@@ -12,6 +12,7 @@ Primeira base do sistema próprio que substituirá o AppSheet da Candinho Suplem
 - vendas e leads;
 - clientes;
 - movimentações imutáveis de estoque;
+- centro gerencial de fornecedores com histórico e comparação real de preços;
 - modo demonstração quando o banco ainda não foi conectado;
 - banco com RLS, auditoria, transferências e estorno idempotente.
 
