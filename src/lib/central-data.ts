@@ -6,7 +6,14 @@ export type FeatureFlags = Record<string, boolean>;
 export type CompanyHomeSummary = {
   user: { id: string; name: string; role: string; is_partner: boolean };
   navigation: Array<{ key: string; href: string; badge?: number; visible: boolean }>;
-  central: { unread: number; open_conversations: number };
+  central: {
+    unread: number;
+    open_conversations: number;
+    inbox_paused?: boolean;
+    configured_integrations?: number;
+    contacts?: number;
+    media_assets?: number;
+  };
   supplements: Record<string, unknown> | null;
   fitness: Record<string, unknown> | null;
   bank: Record<string, unknown> | null;

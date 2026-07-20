@@ -4,7 +4,13 @@ import Link from "next/link";
 import { Link2, LogOut, UserRound } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getAppBootstrapSnapshot } from "@/lib/central-data";
+import { formatCurrency } from "@/lib/format";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
+
+function num(source: unknown, key: string) {
+  if (!source || typeof source !== "object") return 0;
+  return Number((source as Record<string, unknown>)[key] ?? 0);
+}
 
 export default async function DashboardPage() {
   const [access, bootstrap] = await Promise.all([
@@ -15,6 +21,12 @@ export default async function DashboardPage() {
   if (access.role === "partner") redirect("/parceiro");
 
   const company = BRAND_ASSETS.company.complete;
+  const home = bootstrap?.home;
+  const supplements = home?.supplements ?? null;
+  const fitness = home?.fitness ?? null;
+  const bank = home?.bank ?? null;
+  const central = home?.central ?? null;
+  const marketing = home?.marketing ?? null;
   const centralVisible =
     bootstrap?.feature_flags?.central_enabled !== false &&
     (
@@ -61,6 +73,11 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.supplements.reduced.height}
                 />
               </div>
+              <div className="company-operation-mini-kpis">
+                <span><small>Vendas no mês</small><strong>{num(supplements, "current_month_sales")}</strong></span>
+                <span><small>Faturamento no mês</small><strong>{formatCurrency(num(supplements, "current_month_revenue"))}</strong></span>
+                <span><small>Estoque disponível</small><strong>{num(supplements, "available_units")} un.</strong></span>
+              </div>
             </Link>
           )}
 
@@ -78,6 +95,11 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.fitness.reduced.height}
                 />
               </div>
+              <div className="company-operation-mini-kpis">
+                <span><small>Vendas no mês</small><strong>{num(fitness, "month_sales")}</strong></span>
+                <span><small>Faturamento no mês</small><strong>{formatCurrency(num(fitness, "month_revenue"))}</strong></span>
+                <span><small>Estoque disponível</small><strong>{num(fitness, "available_units")} un.</strong></span>
+              </div>
             </Link>
           )}
 
@@ -94,6 +116,11 @@ export default async function DashboardPage() {
                   width={BRAND_ASSETS.marketing.reduced.width}
                   height={BRAND_ASSETS.marketing.reduced.height}
                 />
+              </div>
+              <div className="company-operation-mini-kpis">
+                <span><small>Projetos ativos</small><strong>{num(marketing, "active_projects")}</strong></span>
+                <span><small>Processados</small><strong>{num(marketing, "ready_projects")}</strong></span>
+                <span><small>Publicados</small><strong>{num(marketing, "published_projects")}</strong></span>
               </div>
             </Link>
           )}
@@ -114,6 +141,11 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.bank.reduced.height}
                 />
               </div>
+              <div className="company-operation-mini-kpis">
+                <span><small>Saldo atual</small><strong>{formatCurrency(num(bank, "total_balance"))}</strong></span>
+                <span><small>A receber no mês</small><strong>{formatCurrency(num(bank, "receivable_this_month"))}</strong></span>
+                <span><small>Compromissos no mês</small><strong>{formatCurrency(num(bank, "due_this_month") + num(bank, "invoices_this_month"))}</strong></span>
+              </div>
             </Link>
           )}
 
@@ -130,6 +162,11 @@ export default async function DashboardPage() {
                   width={BRAND_ASSETS.central.reduced.width}
                   height={BRAND_ASSETS.central.reduced.height}
                 />
+              </div>
+              <div className="company-operation-mini-kpis">
+                <span><small>Canais configurados</small><strong>{num(central, "configured_integrations")}</strong></span>
+                <span><small>Contatos</small><strong>{num(central, "contacts")}</strong></span>
+                <span><small>Mídias</small><strong>{num(central, "media_assets")}</strong></span>
               </div>
             </Link>
           )}
