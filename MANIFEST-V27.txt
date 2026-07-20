@@ -1,0 +1,10 @@
+Candinho Company V27 · Estoque Inteligente + Portal do Parceiro 2.0 + Home limpa
+
+LEIA-ME-V27.md
+src/app/(app)/dashboard/page.tsx
+src/app/(app)/estoque/page.tsx
+src/app/(app)/estoque/sabores/page.tsx
+src/app/(app)/parceiro/page.tsx
+src/components/inventory-table.tsx
+supabase/audits/V27_OPERATIONAL_CONSOLIDATION_AUDIT.md
+supabase/migrations/20260720010000_v27_flavor_integrity_and_partner_portal_v2.sql
