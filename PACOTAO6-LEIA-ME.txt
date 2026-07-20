@@ -1,0 +1,27 @@
+Candinho Company · V38 · PACOTÃO 6
+
+Extraia este ZIP diretamente sobre a pasta local `candinho-gestao`
+e confirme a substituição dos arquivos.
+
+Arquivos:
+- src/app/(app)/central/integracoes/page.tsx
+- src/app/(app)/central/prioridades/page.tsx
+- supabase/migrations/20260720225821_v38_homologacao_portal_parceiro_base_comercial.sql
+- supabase/migrations/20260720230345_v38_homologacao_bank_compromissos_resolvidos.sql
+- supabase/audits/V38_PACOTAO6_HOMOLOGACAO.md
+
+IMPORTANTE:
+As duas migrations JÁ FORAM APLICADAS no Supabase de produção.
+Não execute os SQLs manualmente.
+
+Principais correções:
+1. Portal do Parceiro usa data efetiva de entrega para histórico comercial.
+2. Histórico mensal do parceiro respeita America/Sao_Paulo.
+3. Comissão estimada respeita `counts_only_delivered`.
+4. Bank não reprojeta mensalidades já marcadas como pagas no mês.
+5. Bank protege dívidas resolvidas contra dupla projeção.
+6. Link pausado de Integrações da Central encaminha para Governança.
+7. Tela passa a se chamar Prioridades operacionais.
+
+Commit sugerido:
+V38 · Pacotão 6 de homologação — Portal Parceiro, projeções pagas e Central

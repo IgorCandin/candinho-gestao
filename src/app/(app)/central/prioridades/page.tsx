@@ -26,7 +26,7 @@ export default async function CentralPrioritiesPage() {
   return <>
     <PageHeader
       eyebrow="Candinho Central"
-      title="Prioridades do dia"
+      title="Prioridades operacionais"
       description="Uma fila única do que merece atenção agora: tarefas, retornos, Radar, estoque, parceiros e integrações."
     />
 
@@ -35,7 +35,7 @@ export default async function CentralPrioritiesPage() {
       <StatCard href="/clientes/radar" label="Radar" value={String(data.summary.radar)} note="Possíveis clientes priorizados" icon={Radar}/>
       <StatCard href="/estoque/reconciliacao" label="Estoque" value={String(data.summary.inventory)} note="Pontos que exigem conferência" icon={Boxes}/>
       {access.canManageUsers && <StatCard href="/parceiros/gerencial" label="Parceiros" value={String(data.summary.partner_attention)} note="Portais que exigem atenção" icon={UsersRound}/>}
-      {access.canManageUsers && <StatCard href="/central/integracoes" label="Integrações" value={String(data.summary.integration_attention)} note="Canais fora do estado saudável" icon={Link2}/>}
+      {access.canManageUsers && <StatCard href="/central/governanca" label="Integrações" value={String(data.summary.integration_attention)} note="Canais fora do estado saudável" icon={Link2}/>}
     </section>
 
     <section className="central-priority-grid">
@@ -129,7 +129,7 @@ export default async function CentralPrioritiesPage() {
             <BellRing size={20}/>
           </div>
           <div className="panel-body">
-            <Link className="central-priority-cta" href="/central/integracoes">
+            <Link className="central-priority-cta" href="/central/governanca">
               <Link2 size={18}/>
               <span><strong>{data.summary.integration_attention} integração(ões) em atenção</strong><small>Abrir diagnóstico dos canais.</small></span>
             </Link>
