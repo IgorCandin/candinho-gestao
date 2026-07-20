@@ -1,0 +1,32 @@
+Candinho Company · V38 · PACOTÃO 7
+
+PACOTE CONSOLIDADO DE HOMOLOGAÇÃO
+
+Extraia este ZIP diretamente sobre a pasta local `candinho-gestao`
+e confirme a substituição dos arquivos.
+
+ARQUIVOS
+- src/app/(app)/central/integracoes/page.tsx
+- supabase/migrations/20260720232215_v38_pacotao7_central_agenda_marketing_timezone.sql
+- supabase/migrations/20260720232302_v38_pacotao7_parceiros_atribuicao_local_e_data_brasil.sql
+- supabase/migrations/20260720232319_v38_pacotao7_bank_faturas_zero_nao_ocultam_assinaturas.sql
+- supabase/audits/V38_PACOTAO7_HOMOLOGACAO_CONSOLIDADA.md
+
+IMPORTANTE
+As três migrations JÁ FORAM APLICADAS no Supabase de produção.
+NÃO execute os SQLs manualmente.
+Eles estão no ZIP para manter o repositório sincronizado com o banco.
+
+CORREÇÕES
+1. Agenda Central aceita Marketing corretamente.
+2. Agenda usa o dia real do Brasil para hoje/atrasadas/filtros.
+3. Inbox mantém-se pausado, sem reabrir permissões.
+4. Vendas em ponto de parceiro passam a receber partner_id automaticamente.
+5. Backfill corrigiu vendas históricas que estavam somente no local parceiro.
+6. Saúde da rede de parceiros usa America/Sao_Paulo.
+7. Faturas-placeholder de R$ 0 não escondem mais assinaturas do cartão.
+8. R$ 434,40 de estimativa mensal de cartão voltam à projeção atual.
+9. Rota pausada de Integrações não joga usuário comum em Governança sem acesso.
+
+COMMIT SUGERIDO
+V38 · Pacotão 7 de homologação — consistência final de Bank, Central e Parceiros
