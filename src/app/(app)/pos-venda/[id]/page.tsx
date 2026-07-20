@@ -21,6 +21,43 @@ import {
   formatDateTime,
 } from "@/lib/format";
 
+function saleItemProductName(
+  products: unknown,
+) {
+  if (Array.isArray(products)) {
+    const first = products[0];
+
+    if (
+      first &&
+      typeof first === "object" &&
+      "name" in first
+    ) {
+      return String(
+        (first as { name?: unknown })
+          .name ?? "Produto",
+      );
+    }
+
+    return "Produto";
+  }
+
+  if (
+    products &&
+    typeof products === "object" &&
+    "name" in products
+  ) {
+    return String(
+      (
+        products as {
+          name?: unknown;
+        }
+      ).name ?? "Produto",
+    );
+  }
+
+  return "Produto";
+}
+
 export default async function PostSaleDetailPage({
   params,
 }: {
@@ -232,7 +269,9 @@ export default async function PostSaleDetailPage({
                       )
                         .map(
                           (item) =>
-                            `${item.products?.name ?? "Produto"}${
+                            `${saleItemProductName(
+                              item.products,
+                            )}${
                               item.quantity >
                               1
                                 ? ` ×${item.quantity}`
