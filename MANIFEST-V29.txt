@@ -1,0 +1,14 @@
+Candinho Company V29 · Lotes, Validades, FEFO e Rastreabilidade
+
+LEIA-ME-V29.md
+src/app/(app)/estoque/lotes/[id]/page.tsx
+src/app/(app)/estoque/lotes/page.tsx
+src/app/(app)/suplementos/page.tsx
+src/components/lot-inventory-manager.tsx
+src/components/receive-purchase-item-form.tsx
+supabase/audits/V29_LOT_EXPIRY_TRACEABILITY_AUDIT.md
+supabase/migrations/20260720030000_v29_lot_expiry_traceability_core.sql
+supabase/migrations/20260720031000_v29_lot_tracking_configuration.sql
+supabase/migrations/20260720032000_v29_receive_purchase_with_lot.sql
+supabase/migrations/20260720033000_v29_inventory_lot_dashboard_snapshot.sql
+supabase/migrations/20260720034000_v29_harden_internal_lot_trigger.sql
