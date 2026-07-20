@@ -1,36 +1,51 @@
 /* Candinho Company · V38
    Homologação final do shell desktop.
-   Mantém o UX original da sidebar, corrige o controle de recolher
-   e faz o conteúdo responder à largura realmente disponível. */
+
+   Objetivos:
+   - preservar integralmente o UX original da sidebar;
+   - sidebar inteira rolável em janelas baixas, sem esconder ou comprimir itens;
+   - botão aberto no rodapé, ao lado de Sair;
+   - botão fechado no rodapé da faixa lateral;
+   - conteúdo principal limitado à largura realmente disponível. */
 
 @media (min-width: 821px) {
   /*
    * Menu fechado:
-   * mantém o trilho lateral aprovado para o botão de reabrir.
+   * mantém um trilho lateral exclusivo para o botão.
    */
   .app-shell.sidebar-collapsed {
     grid-template-columns: 48px minmax(0, 1fr);
   }
 
   /*
-   * Quando a sidebar está fechada, o botão continua sozinho
-   * no trilho lateral e não invade o conteúdo.
+   * Sidebar aberta:
+   * preserva logo, espaçamentos, usuário, slogan e tamanhos originais.
+   * Em vez de criar uma rolagem interna apenas no nav, a sidebar inteira
+   * passa a rolar naturalmente quando a altura da janela não comportar tudo.
    */
-  .desktop-sidebar-toggle.is-collapsed {
-    top: 16px;
-    bottom: auto;
-    left: 6px;
+  .app-shell > .sidebar {
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    scrollbar-gutter: stable;
+  }
+
+  .app-shell > .sidebar > .nav {
+    flex: 0 0 auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+  }
+
+  .app-shell > .sidebar .sidebar-footer {
+    position: relative;
+    flex: 0 0 auto !important;
+    margin-top: 18px !important;
   }
 
   /*
-   * Quando a sidebar está aberta, o mesmo controle é renderizado
-   * dentro do rodapé da sidebar, visualmente ao lado de "Sair".
-   * O restante do menu mantém o layout original.
+   * Botão com menu aberto:
+   * renderizado dentro do footer via portal, ao lado de Sair.
    */
-  .app-shell > .sidebar .sidebar-footer {
-    position: relative;
-  }
-
   .app-shell
     > .sidebar
     .sidebar-footer
@@ -53,9 +68,25 @@
   }
 
   /*
-   * A área principal nunca pode herdar uma largura mínima maior
-   * que o espaço disponível depois que a sidebar abre.
+   * Botão com menu fechado:
+   * fica embaixo na faixa lateral, conforme aprovado pelo usuário.
    */
+  .desktop-sidebar-toggle.is-collapsed {
+    top: auto !important;
+    right: auto;
+    bottom: 18px !important;
+    left: 6px;
+  }
+
+  /*
+   * Proteções do conteúdo principal.
+   */
+  .app-shell {
+    min-width: 0;
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+
   .app-shell > .main {
     min-width: 0;
     width: 100%;
@@ -92,12 +123,25 @@
   .executive-forecast-grid > * {
     min-width: 0;
   }
+
+  .app-shell > .sidebar::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .app-shell > .sidebar::-webkit-scrollbar-thumb {
+    background: rgba(152, 161, 178, 0.28);
+    border-radius: 999px;
+  }
+
+  .app-shell > .sidebar::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }
 
 /*
- * Com menu aberto em janela mais estreita, a Home deixa de tentar
- * manter a ação principal e os KPIs lado a lado. Em vez de cortar
- * informação, reorganiza os blocos.
+ * O conteúdo reorganiza os cards apenas quando a largura REAL
+ * disponível dentro do main não comportar o layout completo.
+ * Isso não altera o visual da sidebar.
  */
 @container candinho-main (max-width: 920px) {
   .operation-home-hero {

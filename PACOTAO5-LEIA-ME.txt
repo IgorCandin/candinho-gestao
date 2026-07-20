@@ -1,0 +1,24 @@
+Candinho Company · V38 · PACOTÃO 5
+
+Extraia este ZIP diretamente sobre a pasta local `candinho-gestao`
+e confirme a substituição dos arquivos.
+
+Arquivos:
+- src/app/v38-final-ux.css
+- supabase/migrations/20260720222750_v38_homologacao_bank_projecoes_base_comercial.sql
+- supabase/audits/V38_PACOTAO5_HOMOLOGACAO_FINAL.md
+
+A migration JÁ FOI APLICADA no Supabase de produção.
+Não execute manualmente o SQL.
+
+Principais correções:
+1. Sidebar inteira rolável em janelas baixas, preservando o UX original.
+2. Botão do menu fechado movido para baixo.
+3. Botão do menu aberto continua ao lado de Sair.
+4. Projeções do Bank alinhadas ao calendário America/Sao_Paulo.
+5. Lucro projetado de Suplementos usa vendas comerciais entregues.
+6. Igor Candinho e Brinde ficam fora dos recebíveis comerciais do Bank.
+7. Patrimônio, recebíveis e fechamento mensal passam a usar a mesma base comercial.
+
+Commit sugerido:
+V38 · Pacotão 5 de homologação — sidebar final e projeções comerciais do Bank
