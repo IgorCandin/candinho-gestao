@@ -30,6 +30,7 @@ import {
   Menu,
   MessageSquareText,
   PackageSearch,
+  PackageX,
   Radar,
   RefreshCcw,
   Rocket,
@@ -95,6 +96,7 @@ const centralNav = [
   { href: "/central", label: "Visão Geral", icon: HeartPulse },
   { href: "/central/prioridades", label: "Prioridades", icon: ListChecks },
   { href: "/central/promocoes", label: "Promoções", icon: BadgePercent },
+  { href: "/central/rupturas", label: "Rupturas", icon: PackageX },
   { href: "/central/busca", label: "Busca Global", icon: Search },
   { href: "/central/alertas", label: "Alertas", icon: Bell },
   { href: "/central/respostas", label: "Respostas rápidas", icon: MessageSquareText },
@@ -141,6 +143,8 @@ export function AppShell({
   const mobileMenuRef = useRef<HTMLDetailsElement>(null);
 
   const isHub = pathname === "/dashboard";
+  const isPromotionShowcase =
+    pathname === "/promocoes" || pathname.startsWith("/promocoes/");
   const isSettings = pathname.startsWith("/configuracoes");
 
   let operation: Operation = "hub";
@@ -150,7 +154,8 @@ export function AppShell({
   else if (pathname.startsWith("/bank")) operation = "bank";
   else if (pathname.startsWith("/marketing")) operation = "marketing";
   else if (pathname.startsWith("/fitness")) operation = "fitness";
-  else if (!isHub && !isSettings) operation = "supplements";
+  else if (!isHub && !isSettings && !isPromotionShowcase)
+    operation = "supplements";
 
   const isCentral = operation === "central";
   const isPartner = operation === "partner";
@@ -166,6 +171,11 @@ export function AppShell({
     access.canWriteFitness ||
     access.canWriteMarketing;
 
+  const canManageDemandGaps =
+    access.role === "admin" ||
+    access.canWriteSupplements ||
+    access.canWriteFitness;
+
   const centralVisibleNav = (
     access.canWriteSupplements ||
     access.canWriteFitness ||
@@ -180,6 +190,7 @@ export function AppShell({
   ).filter(
     (item) =>
       (canManagePromotions || item.href !== "/central/promocoes") &&
+      (canManageDemandGaps || item.href !== "/central/rupturas") &&
       (access.canManageUsers ||
         !["/central/governanca", "/central/ativacao"].includes(item.href)),
   );
@@ -430,6 +441,14 @@ export function AppShell({
     }
 
     return pathname.startsWith(baseHref);
+  }
+
+  if (isPromotionShowcase) {
+    return (
+      <main className="promotion-showcase-standalone">
+        {children}
+      </main>
+    );
   }
 
   if (isHub) {

@@ -104,7 +104,9 @@ export function DesktopSidebarController({
   }
 
   const hidden =
-    pathname === "/dashboard";
+    pathname === "/dashboard" ||
+    pathname === "/promocoes" ||
+    pathname.startsWith("/promocoes/");
 
   const toggleButton = (
     inline: boolean,

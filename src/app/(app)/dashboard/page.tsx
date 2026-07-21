@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
+  BadgePercent,
   Crown,
   Link2,
   LogOut,
@@ -32,6 +33,7 @@ export default async function DashboardPage() {
   const bank = home?.bank ?? null;
   const central = home?.central ?? null;
   const marketing = home?.marketing ?? null;
+
   const centralVisible =
     bootstrap?.feature_flags?.central_enabled !== false &&
     (
@@ -78,10 +80,20 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.supplements.reduced.height}
                 />
               </div>
+
               <div className="company-operation-mini-kpis">
-                <span><small>Vendas no mês</small><strong>{num(supplements, "current_month_sales")}</strong></span>
-                <span><small>Faturamento no mês</small><strong>{formatCurrency(num(supplements, "current_month_revenue"))}</strong></span>
-                <span><small>Estoque disponível</small><strong>{num(supplements, "available_units")} un.</strong></span>
+                <span>
+                  <small>Vendas no mês</small>
+                  <strong>{num(supplements, "current_month_sales")}</strong>
+                </span>
+                <span>
+                  <small>Faturamento no mês</small>
+                  <strong>{formatCurrency(num(supplements, "current_month_revenue"))}</strong>
+                </span>
+                <span>
+                  <small>Estoque disponível</small>
+                  <strong>{num(supplements, "available_units")} un.</strong>
+                </span>
               </div>
             </Link>
           )}
@@ -100,10 +112,20 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.fitness.reduced.height}
                 />
               </div>
+
               <div className="company-operation-mini-kpis">
-                <span><small>Vendas no mês</small><strong>{num(fitness, "month_sales")}</strong></span>
-                <span><small>Faturamento no mês</small><strong>{formatCurrency(num(fitness, "month_revenue"))}</strong></span>
-                <span><small>Estoque disponível</small><strong>{num(fitness, "available_units")} un.</strong></span>
+                <span>
+                  <small>Vendas no mês</small>
+                  <strong>{num(fitness, "month_sales")}</strong>
+                </span>
+                <span>
+                  <small>Faturamento no mês</small>
+                  <strong>{formatCurrency(num(fitness, "month_revenue"))}</strong>
+                </span>
+                <span>
+                  <small>Estoque disponível</small>
+                  <strong>{num(fitness, "available_units")} un.</strong>
+                </span>
               </div>
             </Link>
           )}
@@ -122,10 +144,20 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.marketing.reduced.height}
                 />
               </div>
+
               <div className="company-operation-mini-kpis">
-                <span><small>Projetos ativos</small><strong>{num(marketing, "active_projects")}</strong></span>
-                <span><small>Processados</small><strong>{num(marketing, "ready_projects")}</strong></span>
-                <span><small>Publicados</small><strong>{num(marketing, "published_projects")}</strong></span>
+                <span>
+                  <small>Projetos ativos</small>
+                  <strong>{num(marketing, "active_projects")}</strong>
+                </span>
+                <span>
+                  <small>Processados</small>
+                  <strong>{num(marketing, "ready_projects")}</strong>
+                </span>
+                <span>
+                  <small>Publicados</small>
+                  <strong>{num(marketing, "published_projects")}</strong>
+                </span>
               </div>
             </Link>
           )}
@@ -146,10 +178,24 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.bank.reduced.height}
                 />
               </div>
+
               <div className="company-operation-mini-kpis">
-                <span><small>Saldo atual</small><strong>{formatCurrency(num(bank, "total_balance"))}</strong></span>
-                <span><small>A receber no mês</small><strong>{formatCurrency(num(bank, "receivable_this_month"))}</strong></span>
-                <span><small>Compromissos no mês</small><strong>{formatCurrency(num(bank, "due_this_month") + num(bank, "invoices_this_month"))}</strong></span>
+                <span>
+                  <small>Saldo atual</small>
+                  <strong>{formatCurrency(num(bank, "total_balance"))}</strong>
+                </span>
+                <span>
+                  <small>A receber no mês</small>
+                  <strong>{formatCurrency(num(bank, "receivable_this_month"))}</strong>
+                </span>
+                <span>
+                  <small>Compromissos no mês</small>
+                  <strong>
+                    {formatCurrency(
+                      num(bank, "due_this_month") + num(bank, "invoices_this_month"),
+                    )}
+                  </strong>
+                </span>
               </div>
             </Link>
           )}
@@ -168,10 +214,20 @@ export default async function DashboardPage() {
                   height={BRAND_ASSETS.central.reduced.height}
                 />
               </div>
+
               <div className="company-operation-mini-kpis">
-                <span><small>Canais configurados</small><strong>{num(central, "configured_integrations")}</strong></span>
-                <span><small>Contatos</small><strong>{num(central, "contacts")}</strong></span>
-                <span><small>Mídias</small><strong>{num(central, "media_assets")}</strong></span>
+                <span>
+                  <small>Canais configurados</small>
+                  <strong>{num(central, "configured_integrations")}</strong>
+                </span>
+                <span>
+                  <small>Contatos</small>
+                  <strong>{num(central, "contacts")}</strong>
+                </span>
+                <span>
+                  <small>Mídias</small>
+                  <strong>{num(central, "media_assets")}</strong>
+                </span>
               </div>
             </Link>
           )}
@@ -190,6 +246,14 @@ export default async function DashboardPage() {
             >
               <Crown size={16} />
               <span>Sala do Dono</span>
+            </Link>
+
+            <Link
+              className="company-home-selector-action promotions"
+              href="/promocoes"
+            >
+              <BadgePercent size={16} />
+              <span>Promoções</span>
             </Link>
 
             <Link

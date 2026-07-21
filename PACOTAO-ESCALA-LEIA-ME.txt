@@ -1,0 +1,43 @@
+Candinho Company · V38 · PACOTÃO ESCALA
+
+PRINCIPAIS ENTREGAS
+
+1. Corrige definitivamente o erro de servidor da Central de Promoções.
+2. Adiciona botão Promoções ao lado de Sala do Dono na tela de operações.
+3. Cria /promocoes como galeria standalone, sem menu lateral.
+4. Divide a vitrine em Suplementos e Fitness.
+5. Clique no produto abre detalhe promocional.
+6. Mantém a gestão completa em Central → Promoções.
+7. Cria Central → Rupturas.
+8. Registra demanda perdida/procura sem estoque.
+9. Agrupa produtos mais procurados para orientar compras e mix.
+10. Nexus pesquisa até 3 imagens na web para você escolher antes de salvar.
+
+BANCO
+A migration JÁ FOI APLICADA:
+20260721010553_v38_promotions_runtime_fix_and_demand_gaps.sql
+
+NÃO execute manualmente novamente.
+
+EDGE FUNCTION
+`rupture-image-search` JÁ FOI PUBLICADA no Supabase.
+
+COMO USAR
+1. Extraia este ZIP por cima de candinho-gestao.
+2. Confirme substituição.
+3. Commit e Push origin.
+4. Aguarde o deploy Vercel.
+5. Teste:
+   - Central → Promoções
+   - Operações → Promoções
+   - Central → Rupturas
+
+COMMIT SUGERIDO
+V38 · Escala operacional — Promoções standalone e Central de Rupturas
+
+PRÓXIMA ETAPA
+Depois desse deploy, a próxima demanda pode ser:
+- Agenda Estratégica;
+- Google Calendar + pós-venda;
+- auditoria integral do ERP para escalabilidade, filtros, buscas, organização,
+  duplicidades e processos que ainda podem ser conectados.
