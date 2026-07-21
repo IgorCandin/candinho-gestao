@@ -1,0 +1,190 @@
+/* V38 · Polimento final de UX e responsividade */
+
+/* Login com seis operações */
+@media (min-width: 821px) {
+  .login-operations-six.login-operations-prominent {
+    grid-template-columns: repeat(11, minmax(0, auto));
+  }
+
+  .login-operations-six .login-operation-logo {
+    min-width: 132px;
+    padding-left: 17px;
+    padding-right: 17px;
+  }
+
+  .login-operations-six .login-operation-logo img {
+    width: min(132px, 100%);
+  }
+
+  .login-operations-six .login-physique-logo img {
+    max-height: 58px;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1120px) {
+  .login-operations-six .login-operation-logo {
+    min-width: 110px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .login-operations-six .login-operation-logo img {
+    width: min(110px, 100%);
+  }
+}
+
+/* Zoom real e previsível das galerias */
+.product-gallery-grid-responsive {
+  display: grid !important;
+  gap: 12px;
+  align-items: stretch;
+}
+
+.product-gallery-grid-responsive.zoom-1 {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+.product-gallery-grid-responsive.zoom-2 {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+
+.product-gallery-grid-responsive.zoom-3 {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.product-gallery-grid-responsive.zoom-4 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.product-gallery-grid-responsive.zoom-5 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.product-gallery-zoom-v2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.product-gallery-zoom-v2 button {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255,255,255,.018);
+  color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.product-gallery-zoom-v2 button:disabled {
+  opacity: .35;
+}
+
+.product-gallery-zoom-v2 input[type="range"] {
+  width: 92px;
+  min-width: 70px;
+}
+
+.product-gallery-zoom-v2 > span {
+  min-width: 26px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 850;
+  text-align: center;
+}
+
+.fitness-gallery-grid .product-gallery-image {
+  min-height: 0;
+}
+
+.fitness-product-deck .product-thumb {
+  flex: 0 0 auto;
+}
+
+/* Textos de Fitness que antes apareciam colados */
+.fitness-readable-label {
+  display: inline-block;
+  line-height: 1.45;
+}
+
+/* Resumo de pedido Fitness: label, valor e frete separados */
+.fitness-summary-card {
+  display: grid !important;
+  gap: 5px;
+  align-content: center;
+}
+
+.fitness-summary-card > span,
+.fitness-summary-card > strong,
+.fitness-summary-card > small {
+  display: block;
+}
+
+.fitness-summary-card > small {
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 1180px) {
+  .product-gallery-grid-responsive.zoom-1 {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  }
+
+  .product-gallery-grid-responsive.zoom-2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .product-gallery-grid-responsive.zoom-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .product-gallery-grid-responsive.zoom-4,
+  .product-gallery-grid-responsive.zoom-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .product-gallery-controls {
+    width: 100%;
+  }
+
+  .product-gallery-zoom-v2 {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .product-gallery-zoom-v2 input[type="range"] {
+    flex: 1;
+    max-width: 220px;
+  }
+
+  .product-gallery-grid-responsive.zoom-1 {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+
+  .product-gallery-grid-responsive.zoom-2,
+  .product-gallery-grid-responsive.zoom-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .product-gallery-grid-responsive.zoom-4,
+  .product-gallery-grid-responsive.zoom-5 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .product-gallery-grid-responsive.zoom-1,
+  .product-gallery-grid-responsive.zoom-2,
+  .product-gallery-grid-responsive.zoom-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .product-gallery-grid-responsive.zoom-4,
+  .product-gallery-grid-responsive.zoom-5 {
+    grid-template-columns: 1fr !important;
+  }
+}

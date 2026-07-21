@@ -1,0 +1,206 @@
+CANDINHO COMPANY · V38
+PACOTÃO DE POLIMENTO FINAL — UX, FITNESS, COMBOS, PARCEIROS E PHYSIQUE
+
+BASE
+Último commit da main:
+b4fab478d924ae88959e4d3b789ca12943d65f66
+V38 · Physique standalone sem sidebar e com identidade própria
+
+==================================================
+ERRO DO ÚLTIMO COMMIT
+==================================================
+
+A Vercel falhou porque existem duas páginas resolvendo para /physique:
+
+src/app/(app)/physique/page.tsx
+src/app/physique/page.tsx
+
+ERRO REAL DO BUILD:
+You cannot have two parallel pages that resolve to the same path.
+Please check /(app)/physique and /physique.
+
+==================================================
+COMO APLICAR ESTE PACOTE
+==================================================
+
+1. Extraia este ZIP por cima da raiz do projeto candinho-gestao.
+
+2. Dê dois cliques em:
+   00_APLICAR_CORRECAO.bat
+
+O script apaga SOMENTE:
+src/app/(app)/physique/page.tsx
+
+A nova rota standalone permanece:
+src/app/physique/page.tsx
+
+Depois disso, faça o commit normalmente.
+
+==================================================
+CORREÇÕES DO PACOTE
+==================================================
+
+1. LOGIN
+- Adiciona a logo reduzida da Physique no conjunto de operações.
+- Ajusta a faixa desktop para seis operações.
+
+2. TELA DE OPERAÇÕES
+Ordem final:
+Vitrine | Sala do Dono | Perfil | Sair
+
+O botão Promoções foi removido porque a própria Vitrine já possui
+a aba Promoções.
+
+3. VITRINE PÚBLICA
+Remove a frase:
+"Somente preço de venda e disponibilidade são exibidos publicamente."
+
+A frase era desnecessária e poderia sugerir margem/custo escondido.
+
+4. COMBOS
+Foram encontrados 4 produtos legados que também já existem corretamente
+na área oficial de Combos:
+
+- Combo Foco Total
+- Combo Lavoura
+- Combo Vitalidade
+- Combo Zero Gordura
+
+Eles foram arquivados no banco:
+active = false
+restricted = true
+
+O histórico NÃO foi apagado.
+
+A tela normal de Produtos também ignora defensivamente produtos legados
+com marca "Combo" ou nome iniciado por "Combo ".
+
+A fonte oficial passa a ser a área de Combos.
+
+A migration deste pacote JÁ FOI APLICADA NO SUPABASE.
+NÃO executar manualmente em produção:
+
+20260722150000_v38_archive_legacy_combo_products.sql
+
+5. ZOOM DA GALERIA
+Corrige o comportamento no PC e no telefone.
+
+Agora o zoom trabalha com quantidade previsível de colunas.
+
+Desktop:
+1 = cards pequenos / mais colunas
+5 = cards grandes / menos colunas
+
+Mobile:
+o mesmo controle se adapta para 1, 2 ou 3 colunas conforme o tamanho escolhido.
+
+Também foram adicionados botões clicáveis de Zoom - e Zoom +,
+além do slider e do indicador 1/5 a 5/5.
+
+Aplicado em:
+- Produtos Suplementos
+- Produtos Fitness
+
+6. PARCEIROS SEM MOVIMENTO
+Agora NÃO entram no alerta:
+- parceiros com settlement_frequency = monthly;
+- pontos/parceiros com can_sell = false.
+
+Isso exclui corretamente pela regra de negócio:
+- Drogaria ItaPharma
+- Mini Mercearia do Batista
+
+Não existe hardcode pelo nome do parceiro.
+
+7. FITNESS · DECK
+O Deck Fitness agora mostra a miniatura do produto igual à operação Suplementos.
+
+8. FITNESS · VENDAS
+Antes:
+Francyelle NascimentoCaparaó
+
+Agora:
+Francyelle Nascimento - Caparaó
+
+9. FITNESS · CLIENTES
+Antes:
+Mariana Centrão@mariananevesesteves
+
+Agora:
+Mariana Centrão - @mariananevesesteves
+
+10. FITNESS · FORNECEDORES
+Antes:
+AliexpressAtivo
+
+Agora:
+Aliexpress - Ativo
+
+11. FITNESS · DETALHE DO PEDIDO
+Antes:
+TotalR$ 0,00R$ 0,00 de frete
+
+Agora:
+Total
+R$ 0,00
+Frete: R$ 0,00
+
+12. CSS
+Nenhum CSS consolidado foi substituído.
+
+Foi criado apenas:
+src/app/v38-polimento-final.css
+
+e importado por último em:
+src/app/globals.css
+
+==================================================
+CHECKLIST RÁPIDO APÓS O COMMIT
+==================================================
+
+1. Vercel deve ficar READY.
+
+2. /physique
+- abre sem sidebar;
+- não existe conflito de rota.
+
+3. /login
+- mostra a logo reduzida da Physique.
+
+4. /dashboard
+- Vitrine | Sala do Dono | Perfil | Sair.
+
+5. /catalogo
+- não mostra a frase removida.
+
+6. /produtos
+- não mostra combos legados na operação normal.
+
+7. /combos
+- continua mostrando os combos oficiais.
+
+8. Gallery de Suplementos
+- testar zoom 1 até 5 no PC e telefone.
+
+9. Gallery de Fitness
+- testar zoom 1 até 5 no PC e telefone.
+
+10. Deck Fitness
+- mostra miniaturas.
+
+11. Parceiros
+- ItaPharma e Batista fora do alerta "sem movimento".
+
+12. Fitness
+- Vendas: Nome - Cidade.
+- Clientes: Nome - Contato.
+- Fornecedores: Nome - Status.
+
+13. Pedido Fitness
+- Total e Frete separados visualmente.
+
+==================================================
+COMMIT SUGERIDO
+==================================================
+
+V38 · Polimento final — corrige Physique, UX Fitness, combos e parceiros

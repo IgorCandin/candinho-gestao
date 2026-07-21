@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  BadgePercent,
   Crown,
   LogOut,
   Store,
@@ -88,7 +87,9 @@ export default async function DashboardPage() {
                 </span>
                 <span>
                   <small>Faturamento no mês</small>
-                  <strong>{formatCurrency(num(supplements, "current_month_revenue"))}</strong>
+                  <strong>
+                    {formatCurrency(num(supplements, "current_month_revenue"))}
+                  </strong>
                 </span>
                 <span>
                   <small>Estoque disponível</small>
@@ -186,13 +187,16 @@ export default async function DashboardPage() {
                 </span>
                 <span>
                   <small>A receber no mês</small>
-                  <strong>{formatCurrency(num(bank, "receivable_this_month"))}</strong>
+                  <strong>
+                    {formatCurrency(num(bank, "receivable_this_month"))}
+                  </strong>
                 </span>
                 <span>
                   <small>Compromissos no mês</small>
                   <strong>
                     {formatCurrency(
-                      num(bank, "due_this_month") + num(bank, "invoices_this_month"),
+                      num(bank, "due_this_month") +
+                        num(bank, "invoices_this_month"),
                     )}
                   </strong>
                 </span>
@@ -285,14 +289,6 @@ export default async function DashboardPage() {
             >
               <Crown size={16} />
               <span>Sala do Dono</span>
-            </Link>
-
-            <Link
-              className="company-home-selector-action promotions"
-              href="/promocoes"
-            >
-              <BadgePercent size={16} />
-              <span>Promoções</span>
             </Link>
 
             <Link

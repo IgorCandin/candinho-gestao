@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { LogIn, ShieldCheck, Store } from "lucide-react";
+import { LogIn, Store } from "lucide-react";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicStorefrontBrowser } from "@/components/public-storefront-browser";
 import { getPublicStorefrontSnapshot } from "@/lib/public-storefront-data";
@@ -30,18 +30,15 @@ export default async function PublicCatalogPage() {
         </div>
 
         <div className="public-storefront-hero">
-          <span><Store size={15} /> Vitrine Candinho</span>
+          <span>
+            <Store size={15} /> Vitrine Candinho
+          </span>
           <h1>Produtos & Promoções</h1>
           <p>
             Consulte o que está disponível agora na Candinho Suplementos e
             Candinho Fitness. Os dados vêm diretamente do estoque e das
             promoções cadastradas no ERP.
           </p>
-
-          <div className="public-storefront-trust">
-            <ShieldCheck size={15} />
-            <span>Somente preço de venda e disponibilidade são exibidos publicamente.</span>
-          </div>
         </div>
       </header>
 

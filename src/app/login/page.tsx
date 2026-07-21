@@ -12,6 +12,7 @@ export default function LoginPage() {
     BRAND_ASSETS.bank.reduced,
     BRAND_ASSETS.central.reduced,
     BRAND_ASSETS.marketing.reduced,
+    BRAND_ASSETS.physique.reduced,
   ];
 
   return (
@@ -28,7 +29,10 @@ export default function LoginPage() {
           />
           <div className="login-intro login-intro-v2">
             <h1>A operação da Candinho em um só lugar.</h1>
-            <p>Central de atendimento, operações, estoque, parceiros e finanças com regras seguras em uma única plataforma.</p>
+            <p>
+              Central de atendimento, operações, estoque, parceiros e finanças
+              com regras seguras em uma única plataforma.
+            </p>
           </div>
         </div>
 
@@ -40,19 +44,36 @@ export default function LoginPage() {
             <span>ou</span>
             <Link className="login-public-storefront-link" href="/catalogo">
               <Store size={17} />
-              <span>Ver Produtos <b>|</b> Promoções</span>
+              <span>
+                Ver Produtos <b>|</b> Promoções
+              </span>
             </Link>
             <small>Consulte produtos disponíveis e preços sem precisar entrar.</small>
           </div>
         </div>
 
         <div className="login-operations-band" aria-label="Operações da Candinho Company">
-          <div className="login-operations login-operations-five login-operations-prominent">
+          <div className="login-operations login-operations-six login-operations-prominent">
             {operations.map((operation, index) => (
               <div className="login-operation-segment" key={operation.src}>
-                {index > 0 && <span className="login-operation-divider" aria-hidden="true" />}
-                <div className={`login-operation-logo ${operation.src.includes("bank") ? "login-bank-logo" : ""}`}>
-                  <Image src={operation.src} alt={operation.alt} width={operation.width} height={operation.height} />
+                {index > 0 && (
+                  <span className="login-operation-divider" aria-hidden="true" />
+                )}
+                <div
+                  className={`login-operation-logo ${
+                    operation.src.includes("bank")
+                      ? "login-bank-logo"
+                      : operation.src.includes("physique")
+                        ? "login-physique-logo"
+                        : ""
+                  }`}
+                >
+                  <Image
+                    src={operation.src}
+                    alt={operation.alt}
+                    width={operation.width}
+                    height={operation.height}
+                  />
                 </div>
               </div>
             ))}
