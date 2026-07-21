@@ -1,0 +1,62 @@
+Candinho Company · V38 · CENTRAL DE PROMOÇÕES
+
+Este pacote adiciona uma nova área funcional dentro da Candinho Central:
+Central → Promoções.
+
+O QUE JÁ ESTÁ PRONTO
+1. Promoções para Suplementos, Fitness ou ambas.
+2. Rascunho, agendada, ativa, encerrada e cancelada.
+3. Tipos:
+   - % de desconto
+   - preço promocional
+   - combo
+   - leve X / pague Y
+   - cupom
+   - cross-sell
+4. Seleção individual e em lote de produtos.
+5. Fitness seleciona por variação (peça/tamanho/cor).
+6. Suplementos exclui curva Z da seleção pública.
+7. Sugestões Nexus baseadas em:
+   - saída 30/90 dias
+   - estoque disponível
+   - estoque parado
+   - excesso
+   - validade em até 60 dias
+   - giro lento
+8. Produto A saudável pode ser sugerido como chamariz/cross-sell SEM desconto.
+9. Desconto sugerido é limitado para preservar aproximadamente 15% de margem bruta.
+10. Resultado final da promoção pode ser registrado:
+    - receita
+    - lucro bruto
+    - unidades
+    - aprendizado final
+
+SEGURANÇA
+- Tabelas com RLS.
+- Apenas usuários autenticados com permissão de escrita em Suplementos,
+  Fitness, Marketing ou Admin podem gerenciar promoções.
+- anon não possui acesso às tabelas nem execução da função de sugestões.
+
+BANCO
+As migrations abaixo JÁ FORAM APLICADAS no Supabase de produção:
+- 20260721001511_v38_central_promotions_center.sql
+- 20260721001543_v38_central_promotions_permissions_hardening.sql
+
+NÃO execute manualmente novamente.
+Os SQLs estão no ZIP apenas para manter o repositório sincronizado.
+
+COMO USAR
+1. Extraia o ZIP por cima da pasta local candinho-gestao.
+2. Confirme substituição dos arquivos existentes.
+3. Abra o GitHub Desktop.
+4. Revise as alterações.
+5. Commit e Push origin.
+6. Aguarde deploy da Vercel.
+7. Abra Central → Promoções.
+
+OBSERVAÇÃO
+As sugestões do Nexus nesta primeira versão são data-driven, baseadas nas regras
+operacionais do banco. Nenhuma campanha é ativada ou publicada automaticamente.
+
+COMMIT SUGERIDO
+V38 · Central de Promoções — gestão mensal, produtos em lote e sugestões Nexus
