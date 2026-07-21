@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   BadgePercent,
+  Crown,
   LogOut,
   Store,
   UserRound,
@@ -235,7 +236,7 @@ export default async function DashboardPage() {
         {access.canManageUsers && (
           <div className="company-home-operations company-home-operations-foundation">
             <Link
-              className="company-operation-card physique physique-foundation-card"
+              className="company-operation-card physique"
               href="/physique"
               aria-label="Abrir fundação Candinho Physique Athletes"
             >
@@ -278,6 +279,14 @@ export default async function DashboardPage() {
 
         {access.canManageUsers && (
           <>
+            <Link
+              className="company-home-selector-action executive"
+              href="/central/executivo"
+            >
+              <Crown size={16} />
+              <span>Sala do Dono</span>
+            </Link>
+
             <Link
               className="company-home-selector-action promotions"
               href="/promocoes"

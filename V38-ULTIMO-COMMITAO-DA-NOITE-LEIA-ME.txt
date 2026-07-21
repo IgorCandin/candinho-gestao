@@ -1,0 +1,92 @@
+CANDINHO COMPANY · V38 · ÚLTIMO COMMITÃO DA NOITE
+
+BASE
+Commit anterior:
+a2ede9446513453c43aa4466593a93a310393f07
+V38 · Fechamento da noite — resgate UX e importação das fotos Fitness do AppSheet
+
+CORREÇÕES DESTE PACOTE
+
+1. SALA DO DONO
+Volta para a tela de escolha de operação.
+
+Ordem final:
+Vitrine | Sala do Dono | Promoções | Perfil | Sair
+
+2. PHYSIQUE ATHLETES
+A informação da operação existia no JSX, mas o card do seletor estava usando
+por engano a classe `physique-foundation-card`, que pertence aos cards internos
+da página Physique.
+
+Essa classe alterava o layout do card da operação e impedia a área inferior
+de KPIs de aparecer corretamente.
+
+Correção:
+`company-operation-card physique physique-foundation-card`
+vira:
+`company-operation-card physique`
+
+Agora devem aparecer:
+- Operação · Em preparação
+- Fichas de treino · Base pronta
+- Anexos · Preparado
+
+A logo reduzida continua no seletor de operações.
+A logo completa continua dentro da operação Physique.
+
+3. FITNESS · FOTOS DO DECK
+O banco já tinha:
+- 62 de 62 variantes com image_url;
+- 25 de 25 produtos com image_url.
+
+O problema encontrado era o view `fitness_stock_overview`, que ainda devolvia
+`fitness_products.image_url` para TODAS as variantes do mesmo produto.
+
+Agora usa:
+`coalesce(fitness_variants.image_url, fitness_products.image_url)`
+
+Assim, cada tamanho/cor/SKU pode usar a foto correta importada do AppSheet.
+
+Validado no banco:
+Macacão Duo Preto, Marrom, Azul e Roxo retornam arquivos diferentes por SKU.
+Blusa Canelada também retorna a imagem específica de cada SKU.
+
+4. FITNESS · ORDEM DOS PRODUTOS
+Os views principais passam a priorizar:
+1. disponível em estoque;
+2. item a caminho;
+3. zerado;
+4. categoria;
+5. nome;
+6. tamanho/cor quando for variante.
+
+Views atualizados:
+- fitness_stock_overview
+- fitness_stock_operational
+- fitness_product_catalog
+- fitness_product_catalog_v2
+
+A migration JÁ FOI APLICADA NO SUPABASE.
+NÃO execute manualmente em produção.
+
+MIGRATION APLICADA
+20260721040124_v38_fitness_deck_images_and_order.sql
+
+ARQUIVOS DO PACOTE
+- src/app/(app)/dashboard/page.tsx
+- supabase/migrations/20260721040124_v38_fitness_deck_images_and_order.sql
+- este README
+
+COMMIT SUGERIDO
+V38 · Último fechamento da noite — Sala do Dono, card Physique e deck Fitness
+
+TESTE DE 2 MINUTOS
+1. /dashboard
+   - Sala do Dono voltou.
+   - Physique mostra os 3 indicadores.
+2. /fitness/produtos ou deck Fitness
+   - disponíveis aparecem antes dos zerados;
+   - fotos aparecem;
+   - variações usam fotos específicas quando existentes.
+
+Depois disso: DORMIR KKKKK.
