@@ -1,0 +1,163 @@
+CANDINHO COMPANY · V38
+PACOTÃO MASTER DIA 2 — ESCALA, CLIENTE, NAVEGAÇÃO E SAÚDE OPERACIONAL
+
+OBJETIVO
+Juntar o máximo de melhorias seguras de escala sem redesenhar telas já aprovadas
+e sem criar várias versões/commits pequenos.
+
+BASE DE PRODUÇÃO
+Commit validado:
+abaa69f5bbbcad2f04e0140efd3892562dfc69a8
+
+Deploy antes deste pacote:
+READY
+
+==================================================
+ENTREGAS
+==================================================
+
+1. FICHA INDIVIDUAL DO CLIENTE MAIS LEVE
+
+Antes:
+- Vendas: carregava histórico global e filtrava em memória.
+- Leads: carregava todos os leads e todos os itens.
+- Pendências: carregava todos os pedidos pendentes.
+
+Agora:
+- vendas por customer_id;
+- leads por customer_id;
+- itens somente dos leads daquele cliente;
+- pedidos pendentes por customer_id.
+
+2. ANTERIOR / PRÓXIMO EM ESCALA
+
+RPC:
+erp_entity_swipe_navigation()
+
+Cobertura:
+- Produtos
+- Clientes
+- Vendas
+- Orçamentos
+- Parceiros
+- Produtos Fitness
+- Clientes Fitness
+- Vendas Fitness
+
+Retorno:
+- previous_id
+- next_id
+
+Não precisa mais enviar listas inteiras de IDs para descobrir dois vizinhos.
+
+3. CAMADA DE DADOS SEGURA
+
+O arquivo gigante src/lib/data.ts NÃO é substituído.
+
+Arquivos:
+- src/lib/data-scaled.ts
+- src/lib/customer-scale-data.ts
+
+O tsconfig redireciona somente o import exato:
+@/lib/data
+
+A camada reexporta tudo do módulo original e troca somente as funções otimizadas.
+
+4. ÍNDICES DE ESCALA
+
+Bloco cliente/navegação:
+- vendas por cliente/tipo/data;
+- itens de venda;
+- clientes;
+- clientes Fitness;
+- produtos Fitness;
+- vendas Fitness;
+- orçamentos.
+
+Bloco operacional:
+- movimentações Fitness por data;
+- movimentações Fitness por variante/data;
+- pedidos Fitness por data;
+- pedidos Fitness por status/data;
+- histórico de estoque por produto/data;
+- mensagens da Central por data;
+- webhooks por data.
+
+5. SAÚDE DE ESCALA
+
+RPC:
+erp_scale_health_snapshot()
+
+Nova rota read-only:
+ /central/executivo/escala
+
+Acesso:
+somente usuário com canManageUsers.
+
+Mostra:
+- vendas;
+- clientes;
+- movimentações;
+- Fitness;
+- mensagens;
+- webhooks;
+- auditoria.
+
+6. UX
+
+Nenhum CSS consolidado foi substituído.
+Nenhuma tela aprovada foi redesenhada.
+
+Depois dos problemas visuais anteriores, este pacote mantém a regra:
+ALTERAÇÃO CIRÚRGICA > REDESIGN GLOBAL.
+
+==================================================
+MIGRATIONS
+==================================================
+
+As DUAS migrations deste pacote JÁ FORAM APLICADAS NO SUPABASE.
+
+NÃO executar manualmente em produção:
+
+20260722090000_v38_customer_scale_and_entity_swipe.sql
+20260722100000_v38_operational_scale_indexes_and_health_snapshot.sql
+
+==================================================
+HOMOLOGAÇÃO
+==================================================
+
+1. Abrir ficha de cliente.
+2. Conferir:
+   - vendas;
+   - leads;
+   - pedidos pendentes;
+   - CRM.
+3. Testar anterior/próximo.
+4. Testar anterior/próximo nas demais entidades.
+5. Abrir:
+   /central/executivo/escala
+6. Confirmar que as telas antigas continuam visualmente iguais.
+
+==================================================
+O QUE NÃO FOI FEITO DE PROPÓSITO
+==================================================
+
+Não cortei históricos para 100 ou 200 registros apenas para parecer mais rápido.
+
+Isso esconderia dados antigos.
+
+As próximas listas que crescerem devem receber paginação server-side real,
+como já fizemos em Vendas e Leads.
+
+Candidatos futuros:
+- movimentações;
+- movimentações Fitness;
+- pedidos de fornecedor;
+- auditoria;
+- mensagens Central.
+
+==================================================
+COMMIT SUGERIDO
+==================================================
+
+V38 · Pacotão master de escala — cliente otimizado, navegação RPC e saúde operacional
