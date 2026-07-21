@@ -1,0 +1,100 @@
+CANDINHO COMPANY · V38
+PACOTÃO MÁXIMO — ORÇAMENTO CONFIRMADO + ESCALA OPERACIONAL
+
+BASE
+Commit antes deste pacote:
+8cd5f8638cc14e0fd0d305e3c207170bb82941ee
+V38 · Pacotão master de escala — cliente otimizado, navegação RPC e saúde operacional
+
+Deploy da base:
+READY
+
+1. BUG CRÍTICO — ORÇAMENTO CONFIRMADO
+Foi reproduzido o erro exato do orçamento #14:
+column reference "quote_id" is ambiguous
+
+O bug acontecia ao editar um orçamento já salvo, exatamente no fluxo:
+Apenas orçando -> Orçamento confirmado.
+
+Corrigido no Supabase.
+
+A confirmação também ficou:
+- idempotente;
+- mais resistente a chamadas repetidas;
+- atômica quando o modo confirmado é identificado.
+
+O orçamento #14 real NÃO foi confirmado durante os testes.
+Foi usado ROLLBACK.
+
+2. MOVIMENTAÇÕES SUPLEMENTOS
+- 50 por página;
+- busca;
+- filtro por tipo;
+- sem esconder histórico.
+
+3. MOVIMENTAÇÕES FITNESS
+- 50 por página;
+- busca por produto/SKU/tamanho/cor/observação;
+- filtros de movimento.
+
+4. PEDIDOS DE FORNECEDOR
+- Pendentes / Histórico;
+- 30 por página;
+- KPIs preservados;
+- ordenação server-side.
+
+5. MIGRATION
+JÁ APLICADA NO SUPABASE.
+NÃO executar manualmente em produção:
+
+20260722113000_v38_budget_confirmation_fix_and_operational_pagination.sql
+
+6. HOMOLOGAÇÃO PRIORITÁRIA
+- abrir orçamento #14;
+- confirmar;
+- conferir venda;
+- conferir reserva/estoque;
+- conferir baixa do brinde;
+- conferir parceria C.T.S. Pâmella Nunes;
+- conferir pós-venda/Agenda;
+- testar Movimentações;
+- testar Movimentações Fitness;
+- testar Pedidos de fornecedor.
+
+7. O QUE FICA PARA ENCERRAR A RODADA V38
+
+A. Homologação do fluxo comercial
+- orçamento -> venda;
+- cancelamento;
+- pagamento;
+- entrega;
+- pós-venda;
+- parceria;
+- brinde.
+
+B. Paginação administrativa conforme necessidade
+- auditoria/logs;
+- mensagens Central;
+- webhooks, caso exista tela de consulta operacional.
+
+C. Pente-fino final de UX
+- zoom 100%;
+- conteúdo cortado;
+- filtros;
+- sem redesenhar telas já aprovadas.
+
+D. Physique
+A fundação está pronta.
+A operação só será inicializada quando decidirmos liberar cadastro,
+edição de ficha e anexos.
+
+E. Fechamento final
+- Vercel READY;
+- logs sem error/fatal;
+- checklist módulo por módulo.
+
+O grosso estrutural da V38 está perto do fechamento.
+O restante é principalmente homologação e acabamento.
+
+COMMIT SUGERIDO
+V38 · Pacotão máximo — corrige orçamento confirmado e pagina históricos operacionais
