@@ -1,0 +1,120 @@
+CANDINHO COMPANY · V38
+PACOTÃO DE FECHAMENTO · COMPLETAR CADASTROS EM LOTE
+
+OBJETIVO
+Fechar a etapa atual sem iniciar a reorganização geral do aplicativo.
+
+NOVA CENTRAL
+/cadastros/completar
+
+Acessos:
+Produtos > Completar cadastros
+Fitness > Produtos > Completar cadastros
+
+A tela calcula as pendências em tempo real e mostra SOMENTE produtos incompletos.
+
+SUPLEMENTOS
+Monitora:
+Nome, Categoria, Marca, SKU, Descrição, Imagem 1, Fornecedor,
+Objetivo, Perfil ideal, Informativo, Mensagem rápida, Palavras-chave e Imagem 2.
+
+Acessórios não são marcados como pendentes de Imagem 2 nutricional.
+
+FITNESS
+Monitora:
+Nome, Categoria, Descrição, Imagem, Variações,
+SKU das variações e Fornecedor das variações.
+
+GERAÇÃO EM LOTE COM IA
+- selecionar vários produtos;
+- gerar sugestões;
+- a tela divide internamente em lotes de até 3 por chamada;
+- revisar os rascunhos;
+- aplicar individualmente ou em lote.
+
+A IA NÃO sobrescreve campos já preenchidos.
+Ao aprovar, somente campos vazios são preenchidos.
+
+PADRONIZAÇÃO
+A IA mostra sugestão de:
+- Nome
+- Marca
+- Categoria
+
+Essas sugestões NÃO são aplicadas automaticamente.
+Servem para a revisão futura de padronização que será feita com calma.
+
+IMAGEM 2
+O botão automático continua dentro de Produtos > Nutrição IA.
+Ele só é liberado depois de uma pesquisa com correspondência segura.
+
+Este pacote deixa isso mais fácil:
+a Central de Completar Cadastros possui o botão
+"Nutrição IA / Gerar Imagem 2"
+em cada suplemento que ainda está sem Imagem 2.
+
+O link abre:
+/produtos/nutricao?produto=ID
+
+Assim a tela mostra somente aquele produto e explica:
+1. Pesquisar com IA
+2. Conferir a fonte
+3. Gerar Imagem 2 quando o botão for liberado
+4. Revisar
+5. Aprovar
+
+SNAPSHOT DA BASE NO MOMENTO DE CRIAÇÃO
+Suplementos:
+68 produtos incompletos
+113 campos pendentes
+65 sem Imagem 2
+44 sem descrição
+
+Fitness:
+25 produtos incompletos
+25 campos pendentes
+todos os 25 estão sem descrição
+
+Esses números são dinâmicos e caem conforme os cadastros são completados.
+
+BANCO
+Nova tabela:
+catalog_completion_drafts
+
+Novas RPCs:
+get_catalog_completion_queue
+save_catalog_completion_draft
+apply_catalog_completion_draft
+discard_catalog_completion_draft
+
+MODELO PADRÃO DA CENTRAL
+gpt-5.6-luna
+
+Opcional:
+OPENAI_CATALOG_COMPLETION_MODEL
+
+STATUS DA MIGRATION
+A migration deste pacote JÁ FOI APLICADA no Supabase de produção.
+NÃO executar manualmente em produção.
+
+TESTE DE FECHAMENTO
+1. Commitar.
+2. Esperar Vercel READY.
+3. Abrir /cadastros/completar.
+4. Conferir contadores.
+5. Selecionar 1 produto Fitness sem descrição.
+6. Gerar sugestão.
+7. Revisar.
+8. Aplicar.
+9. Confirmar que ele saiu da fila se não restar outra pendência.
+10. Na mesma Central, abrir Creatina Growth em Nutrição IA / Gerar Imagem 2.
+11. Pesquisar com IA.
+12. Conferir a fonte.
+13. Gerar Imagem 2.
+14. Revisar.
+
+Se isso funcionar, a etapa fica fechada.
+Se aparecer bug real, fazer no máximo UM pacote corretivo pequeno.
+
+COMMIT SUGERIDO
+V38 · Fechamento — central de cadastros em lote e acesso direto à Imagem 2

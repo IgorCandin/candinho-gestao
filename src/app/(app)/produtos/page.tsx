@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { CheckSquare, Sparkles } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { ProductCatalogTable } from "@/components/product-catalog-table";
@@ -12,12 +12,7 @@ import {
 } from "@/lib/data";
 
 export default async function ProductsPage() {
-  const [
-    access,
-    products,
-    categories,
-    locations,
-  ] = await Promise.all([
+  const [access, products, categories, locations] = await Promise.all([
     getCurrentUserAccess(),
     getProductCatalog(),
     getProductCategories(),
@@ -37,19 +32,22 @@ export default async function ProductsPage() {
             {access.canWriteSupplements && (
               <Link
                 className="button ghost"
-                href="/produtos/nutricao"
+                href="/cadastros/completar?modulo=supplements"
               >
-                <Sparkles
-                  size={16}
-                />
+                <CheckSquare size={16} />
+                Completar cadastros
+              </Link>
+            )}
+
+            {access.canWriteSupplements && (
+              <Link className="button ghost" href="/produtos/nutricao">
+                <Sparkles size={16} />
                 Nutrição IA
               </Link>
             )}
 
             <ProductCatalogActions
-              canWrite={
-                access.canWriteSupplements
-              }
+              canWrite={access.canWriteSupplements}
               products={products}
             />
           </div>
@@ -59,27 +57,15 @@ export default async function ProductsPage() {
       <ProductCatalogTable
         products={products}
         categories={categories}
-        salesMode={
-          access.role ===
-          "sales"
-        }
+        salesMode={access.role === "sales"}
       />
 
-      {access.role ===
-        "sales" && (
+      {access.role === "sales" && (
         <article className="panel sales-location-panel">
           <div className="panel-head">
             <div>
-              <h2>
-                Disponibilidade por
-                filial / parceiro
-              </h2>
-
-              <p>
-                Onde existe estoque
-                livre ou reposição
-                prevista.
-              </p>
+              <h2>Disponibilidade por filial / parceiro</h2>
+              <p>Onde existe estoque livre ou reposição prevista.</p>
             </div>
           </div>
 
@@ -87,18 +73,10 @@ export default async function ProductsPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>
-                    Produto
-                  </th>
-                  <th>
-                    Local
-                  </th>
-                  <th>
-                    Disponível
-                  </th>
-                  <th>
-                    A caminho
-                  </th>
+                  <th>Produto</th>
+                  <th>Local</th>
+                  <th>Disponível</th>
+                  <th>A caminho</th>
                 </tr>
               </thead>
 
@@ -106,50 +84,22 @@ export default async function ProductsPage() {
                 {locations
                   .filter(
                     (row) =>
-                      row.available_quantity >
-                        0 ||
-                      row.incoming_quantity >
-                        0,
+                      row.available_quantity > 0 ||
+                      row.incoming_quantity > 0,
                   )
-                  .map(
-                    (row) => (
-                      <tr
-                        key={`${row.product_id}-${row.location_id}`}
-                      >
-                        <td>
-                          <strong>
-                            {
-                              row.product_name
-                            }
-                          </strong>
-                        </td>
-
-                        <td>
-                          {
-                            row.location_name
-                          }
-
-                          <small className="crm-cell-note">
-                            {
-                              row.location_code
-                            }
-                          </small>
-                        </td>
-
-                        <td>
-                          {
-                            row.available_quantity
-                          }
-                        </td>
-
-                        <td>
-                          {
-                            row.incoming_quantity
-                          }
-                        </td>
-                      </tr>
-                    ),
-                  )}
+                  .map((row) => (
+                    <tr key={`${row.product_id}-${row.location_id}`}>
+                      <td><strong>{row.product_name}</strong></td>
+                      <td>
+                        {row.location_name}
+                        <small className="crm-cell-note">
+                          {row.location_code}
+                        </small>
+                      </td>
+                      <td>{row.available_quantity}</td>
+                      <td>{row.incoming_quantity}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
