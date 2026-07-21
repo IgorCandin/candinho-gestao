@@ -1,0 +1,131 @@
+/* Candinho Company · V38 · Fechamento de homologação
+   Correção definitiva do shell desktop sem alterar o UX visual da sidebar. */
+
+@media (min-width: 821px) {
+  /* Aberto: sidebar ocupa sua coluna real; main começa obrigatoriamente na coluna 2. */
+  .app-shell {
+    grid-template-columns: 252px minmax(0, 1fr) !important;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: clip;
+  }
+
+  /* Fechado: mantém somente o trilho do botão. */
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+  }
+
+  /* A sidebar não rola inteira. Logo e rodapé permanecem sempre visíveis. */
+  .app-shell > .sidebar {
+    height: 100dvh;
+    min-height: 0;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Somente a lista de navegação rola quando faltar altura. */
+  .app-shell > .sidebar > .nav {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding-right: 3px !important;
+    scrollbar-gutter: stable;
+  }
+
+  .app-shell > .sidebar > .nav::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .app-shell > .sidebar > .nav::-webkit-scrollbar-thumb {
+    background: rgba(152, 161, 178, 0.28);
+    border-radius: 999px;
+  }
+
+  .app-shell > .sidebar > .nav::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  /* Rodapé fica preso ao fundo da sidebar e nunca é empurrado para fora. */
+  .app-shell > .sidebar .sidebar-footer {
+    position: relative;
+    flex: 0 0 auto !important;
+    margin-top: 10px !important;
+  }
+
+  .app-shell > .sidebar .sidebar-footer form {
+    margin-right: 44px;
+  }
+
+  .app-shell > .sidebar .sidebar-footer .sidebar-inline-toggle {
+    position: absolute;
+    top: auto;
+    right: 0;
+    bottom: 0;
+    left: auto;
+    z-index: 5;
+    width: 36px;
+    height: 36px;
+  }
+
+  /* A correção que faltava: main não pode ter width:100% competindo com a sidebar. */
+  .app-shell > .main {
+    grid-column: 2 / -1;
+    justify-self: stretch;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+    overflow-x: hidden !important;
+    container-type: inline-size;
+    container-name: candinho-main;
+  }
+
+  .app-shell > .main > .content {
+    min-width: 0;
+    width: auto !important;
+    max-width: 1480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Botão do menu fechado permanece no rodapé do trilho lateral. */
+  .desktop-sidebar-toggle.is-collapsed {
+    top: auto !important;
+    right: auto !important;
+    bottom: 18px !important;
+    left: 6px !important;
+  }
+}
+
+
+@media (min-width: 821px) {
+  .managerial-products-stock-section {
+    margin-top: 22px;
+  }
+
+  .managerial-products-stock-heading {
+    margin-bottom: 14px;
+    padding: 0 2px;
+  }
+
+  .managerial-products-stock-heading > span {
+    color: var(--gold);
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .managerial-products-stock-heading h2 {
+    margin: 6px 0 0;
+    font-size: 20px;
+  }
+
+  .managerial-products-stock-heading p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+}

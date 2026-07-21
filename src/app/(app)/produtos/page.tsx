@@ -2,11 +2,9 @@ import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { ProductCatalogTable } from "@/components/product-catalog-table";
 import { ProductCatalogActions } from "@/components/product-catalog-actions";
-import { ProductStockHealthPanel } from "@/components/product-stock-health-panel";
 import {
   getCurrentUserAccess,
   getInventoryLocationOverview,
-  getInventoryOverview,
   getProductCatalog,
   getProductCategories,
 } from "@/lib/data";
@@ -17,13 +15,11 @@ export default async function ProductsPage() {
     products,
     categories,
     locations,
-    inventory,
   ] = await Promise.all([
     getCurrentUserAccess(),
     getProductCatalog(),
     getProductCategories(),
     getInventoryLocationOverview(),
-    getInventoryOverview(),
   ]);
 
   return (
@@ -43,12 +39,6 @@ export default async function ProductsPage() {
           />
         }
       />
-
-      {access.role !== "sales" && (
-        <ProductStockHealthPanel
-          products={inventory}
-        />
-      )}
 
       <ProductCatalogTable
         products={products}

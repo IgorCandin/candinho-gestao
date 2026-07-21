@@ -1,0 +1,52 @@
+Candinho Company · V38 · FECHAMENTO DA HOMOLOGAÇÃO DE HOJE
+
+Este pacote substitui a ideia de continuar criando Pacotão 8, 9, 10...
+É o fechamento consolidado das correções restantes apontadas pelo Igor.
+
+COMO USAR
+1. Extraia o ZIP sobre a pasta raiz candinho-gestao.
+2. Confirme a substituição dos arquivos.
+3. NÃO execute a migration manualmente: ela JÁ foi aplicada no Supabase.
+4. Commit/push pelo GitHub Desktop.
+5. Aguarde o deploy da Vercel e faça o teste final.
+
+CORREÇÕES
+
+1. CURVA A/B/C/Z
+A = top de vendas: acompanha mínimo e ruptura.
+B = manter estoque: alerta somente quando zerar.
+C = sob encomenda: zerado é normal e não pede compra.
+Z = alternativo/descontinuado/restrito: zerado é normal e não pede compra.
+
+Foguete Não Tem Ré foi alterado de C para Z.
+Thermo One já estava em Z.
+
+Validação no banco após aplicar:
+C: 0 produtos marcados para reposição.
+Z: 0 produtos marcados para reposição.
+
+2. UX SIDEBAR
+- mantém o visual original;
+- conteúdo principal começa obrigatoriamente depois da sidebar;
+- remove width:100% conflitante do main;
+- menu aberto não cobre/corta o conteúdo;
+- somente a lista de links da sidebar rola;
+- usuário, slogan, Sair e botão recolher ficam sempre visíveis no rodapé;
+- menu fechado mantém botão no rodapé do trilho lateral.
+
+3. PRODUTOS ZERADOS / ESTOQUE BAIXO
+- removidos da tela operacional Produtos;
+- passam para o Painel Gerencial de Suplementos;
+- listagem usa a regra oficial A/B/C/Z;
+- C e Z não aparecem como necessidade de compra;
+- B só aparece quando zerado;
+- A aparece no mínimo ou zerado.
+
+MIGRATION
+20260720235500_v38_fechamento_homologacao_curva_estoque_abcz.sql
+
+A migration já foi aplicada no Supabase de produção.
+Ela está incluída somente para manter o repositório sincronizado.
+
+COMMIT SUGERIDO
+V38 · Fechamento da homologação — UX definitivo e reposição A/B/C/Z
