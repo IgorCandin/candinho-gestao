@@ -1,0 +1,137 @@
+CANDINHO COMPANY · V38 · PACOTÃO FINAL DA NOITE
+UX RESGATE + PHYSIQUE + PROMOÇÕES/PDF + IMAGENS FITNESS/APPSHEET
+
+ESTE PACOTE DEVE SER EXTRAÍDO SOBRE A RAIZ DO REPOSITÓRIO candinho-gestao.
+
+BASE LÓGICA
+- Mantém o trabalho já commitado de escala comercial:
+  paginação e busca server-side em Vendas e Leads.
+- Corrige o pacote visual que quebrou Vitrine/Promoções.
+- Preserva o funil em V da tela de operações.
+- Adiciona o maior bloco seguro possível antes de encerrar a noite:
+  importação das fotos legadas da Candinho Fitness.
+
+==================================================
+1. RESGATE UX
+==================================================
+
+Tela de operações:
+- preservar funil em V;
+- Physique usa logo reduzida no seletor;
+- logo completa dentro da operação;
+- botões:
+  Vitrine | Promoções | Perfil | Sair;
+- ajuste de altura para uso em zoom 100%.
+
+Vitrine:
+- CSS completo restaurado;
+- área pública continua sem funções administrativas.
+
+Promoções:
+- tela antiga/showcase restaurada;
+- exportação fica separada em /promocoes/exportar.
+
+PDF:
+- seleção individual;
+- marcar filtrados;
+- A4 premium;
+- seleção mista = Candinho Company;
+- operação isolada = logo da operação.
+
+Physique:
+- fallback seguro enquanto a operação não está inicializada.
+
+==================================================
+2. FOTOS DA GIULIA / APPSHEET -> FITNESS
+==================================================
+
+Planilha analisada:
+- 62 registros de produto/variante.
+
+Vínculos exatos:
+- 62 de 62.
+
+Fotos ausentes:
+- 0.
+
+Arquivos extras/alternativos no ZIP:
+- 12.
+
+Método de vínculo:
+SKU da planilha Produto_ID
+-> fitness_variants.sku
+-> caminho da foto legado
+-> /public/fitness-products/<arquivo>
+
+O pacote inclui:
+- 72 imagens em public/fitness-products;
+- coluna fitness_variants.image_url;
+- vínculo de imagem por SKU;
+- imagem principal em fitness_products.image_url;
+- relatório CSV completo do mapeamento;
+- relatório das imagens extras.
+
+MIGRATION:
+20260721033000_v38_fitness_appsheet_product_images.sql
+
+A migration ainda precisa existir no repositório para paridade.
+Caso já tenha sido aplicada diretamente no Supabase, NÃO rodar de novo manualmente.
+
+==================================================
+3. O QUE JÁ ESTÁ FEITO DA AUDITORIA
+==================================================
+
+- hardening de RPCs internas;
+- índices prioritários;
+- Vendas paginadas;
+- Leads paginados;
+- busca server-side comercial;
+- Google Agenda via Apps Script;
+- Vitrine pública;
+- fundação Physique;
+- Promoções;
+- Rupturas;
+- Agenda Estratégica.
+
+==================================================
+4. O QUE FICA PARA O PRÓXIMO BLOCO, SEM PRESSA HOJE
+==================================================
+
+A) Ficha individual do cliente mais leve:
+- consultas específicas por customer_id;
+- evitar carregar histórico global;
+- pedidos pendentes filtrados no banco.
+
+B) Navegação anterior/próximo:
+- cursor/query;
+- sem carregar todos os IDs.
+
+C) Auditoria geral de UX:
+- revisar telas em zoom 100%;
+- não substituir CSS consolidado por fragmentos;
+- corrigir somente evidência real.
+
+D) Seleção em massa:
+- expandir apenas onde houver ganho operacional;
+- Produtos já possui seleção para catálogo PDF;
+- Promoções/exportação agora segue o mesmo conceito.
+
+==================================================
+5. HOMOLOGAÇÃO DE 5 MINUTOS
+==================================================
+
+Confira:
+1. /dashboard
+2. /catalogo
+3. /promocoes
+4. /physique
+5. /fitness e catálogo Fitness
+
+Na Fitness:
+- produtos devem começar a exibir imagens após deploy + migration;
+- imagens específicas das variantes ficam registradas no banco.
+
+COMMIT SUGERIDO
+V38 · Fechamento da noite — resgate UX e importação das fotos Fitness do AppSheet
+
+BOA NOITE KKKKK.

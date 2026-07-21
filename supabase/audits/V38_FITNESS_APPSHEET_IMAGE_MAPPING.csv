@@ -1,0 +1,63 @@
+﻿sku,produto,categoria,tamanho,cor,foto_origem,arquivo,public_url
+PROD-00001,Macacão Duo 2 em 1 - Preto (M),Macacão,M,Preto,Produtos_Images/PROD-00001.Foto.175647.jpg,PROD-00001.Foto.175647.jpg,/fitness-products/PROD-00001.Foto.175647.jpg
+PROD-00002,Macacão Duo 2 em 1 - Marrom (G),Macacão,G,Marrom,Produtos_Images/PROD-00002.Foto.183200.jpg,PROD-00002.Foto.183200.jpg,/fitness-products/PROD-00002.Foto.183200.jpg
+PROD-00003,Conj. Top + Short Run - Marrom (M),Conjunto,M,Marrom,Produtos_Images/PROD-00003.Foto.175927.jpg,PROD-00003.Foto.175927.jpg,/fitness-products/PROD-00003.Foto.175927.jpg
+PROD-00004,Conj. Top + Short Run - Preto (M),Conjunto,M,Preto,Produtos_Images/PROD-00004.Foto.180639.jpg,PROD-00004.Foto.180639.jpg,/fitness-products/PROD-00004.Foto.180639.jpg
+PROD-00005,Conj. Top + Short Run - Preto (G),Conjunto,G,Preto,Produtos_Images/PROD-00005.Foto.180838.jpg,PROD-00005.Foto.180838.jpg,/fitness-products/PROD-00005.Foto.180838.jpg
+PROD-00006,Macacão Longo Gym - Vermelho (M),Macacão,M,Vermelho,Produtos_Images/PROD-00006.Foto.182608.jpg,PROD-00006.Foto.182608.jpg,/fitness-products/PROD-00006.Foto.182608.jpg
+PROD-00007,Macacão Longo Gym - Preto (G),Macacão,G,Preto,Produtos_Images/PROD-00007.Foto.183656.jpg,PROD-00007.Foto.183656.jpg,/fitness-products/PROD-00007.Foto.183656.jpg
+PROD-00008,Calça Legging - Preto (M),Legging,M,Preto,Produtos_Images/PROD-00008.Foto.182431.jpg,PROD-00008.Foto.182431.jpg,/fitness-products/PROD-00008.Foto.182431.jpg
+PROD-00009,Calça Legging - Preto (G),Legging,G,Preto,Produtos_Images/PROD-00009.Foto.183447.jpg,PROD-00009.Foto.183447.jpg,/fitness-products/PROD-00009.Foto.183447.jpg
+PROD-00010,Calça Legging - Azul (M),Legging,M,Azul,Produtos_Images/PROD-00010.Foto.182600.jpg,PROD-00010.Foto.182600.jpg,/fitness-products/PROD-00010.Foto.182600.jpg
+PROD-00011,Blusa Dry Fit - Preto (G),Camiseta,G,Preto,Produtos_Images/PROD-00011.Foto.183852.jpg,PROD-00011.Foto.183852.jpg,/fitness-products/PROD-00011.Foto.183852.jpg
+PROD-00012,Blusa Dry Fit - Branca (M),Camiseta,M,Branca,Produtos_Images/PROD-00012.Foto.183012.jpg,PROD-00012.Foto.183012.jpg,/fitness-products/PROD-00012.Foto.183012.jpg
+PROD-00013,Meia Florzina,Meia,UNICO,,Produtos_Images/PROD-00013.Foto.015016.jpg,PROD-00013.Foto.015016.jpg,/fitness-products/PROD-00013.Foto.015016.jpg
+PROD-00014,Meia Docinho,Meia,UNICO,,Produtos_Images/PROD-00014.Foto.015025.jpg,PROD-00014.Foto.015025.jpg,/fitness-products/PROD-00014.Foto.015025.jpg
+PROD-00015,Meia Lindinha,Meia,UNICO,,Produtos_Images/PROD-00015.Foto.015032.jpg,PROD-00015.Foto.015032.jpg,/fitness-products/PROD-00015.Foto.015032.jpg
+PROD-00016,Meias Listradas,Meia,UNICO,,Produtos_Images/PROD-00016.Foto.015220.jpg,PROD-00016.Foto.015220.jpg,/fitness-products/PROD-00016.Foto.015220.jpg
+PROD-00017,Meias de Emoções,Meia,UNICO,,Produtos_Images/PROD-00017.Foto.014021.jpg,PROD-00017.Foto.014021.jpg,/fitness-products/PROD-00017.Foto.014021.jpg
+PROD-00018,Blusa Canelada - Azul (M),Camiseta,M,Azul,Produtos_Images/PROD-00018.Foto.013852.jpg,PROD-00018.Foto.013852.jpg,/fitness-products/PROD-00018.Foto.013852.jpg
+PROD-00019,Blusa Canelada - Verde (M),Camiseta,M,Verde,Produtos_Images/PROD-00019.Foto.013837.jpg,PROD-00019.Foto.013837.jpg,/fitness-products/PROD-00019.Foto.013837.jpg
+PROD-00020,Blusa Canelada - Amarelo (M),Camiseta,M,Amarelo,Produtos_Images/PROD-00020.Foto.013953.jpg,PROD-00020.Foto.013953.jpg,/fitness-products/PROD-00020.Foto.013953.jpg
+PROD-00021,Blusa Canelada - Azul (P),Camiseta,P,Branca,Produtos_Images/PROD-00021.Foto.014038.jpg,PROD-00021.Foto.014038.jpg,/fitness-products/PROD-00021.Foto.014038.jpg
+PROD-00022,Blusa Canelada - Verde (P),Camiseta,P,Verde,Produtos_Images/PROD-00022.Foto.014056.jpg,PROD-00022.Foto.014056.jpg,/fitness-products/PROD-00022.Foto.014056.jpg
+PROD-00023,Blusa Canelada - Amarelo (P),Camiseta,P,Amarelo,Produtos_Images/PROD-00023.Foto.014048.jpg,PROD-00023.Foto.014048.jpg,/fitness-products/PROD-00023.Foto.014048.jpg
+PROD-00024,Faixa para Cabelo,Faixa,UNICO,,Produtos_Images/PROD-00024.Foto.113022.jpg,PROD-00024.Foto.113022.jpg,/fitness-products/PROD-00024.Foto.113022.jpg
+PROD-00025,Meias de Emojis,Meia,UNICO,,Produtos_Images/PROD-00025.Foto.233114.jpg,PROD-00025.Foto.233114.jpg,/fitness-products/PROD-00025.Foto.233114.jpg
+PROD-00026,Meias Sport,Meia,UNICO,,Produtos_Images/PROD-00026.Foto.171252.jpg,PROD-00026.Foto.171252.jpg,/fitness-products/PROD-00026.Foto.171252.jpg
+PROD-00027,Meias Unissex - Kit c/2 Pares,Meia,UNICO,,Produtos_Images/PROD-00027.Foto.171345.jpg,PROD-00027.Foto.171345.jpg,/fitness-products/PROD-00027.Foto.171345.jpg
+PROD-00028,Macacão Duo 2 em 1 - Azul (G1),Macacão,G1,Azul,Produtos_Images/PROD-00028.Foto.180421.jpg,PROD-00028.Foto.180421.jpg,/fitness-products/PROD-00028.Foto.180421.jpg
+PROD-00029,Macacão Duo 2 em 1 - Azul (P),Macacão,P,Azul,Produtos_Images/PROD-00029.Foto.180426.jpg,PROD-00029.Foto.180426.jpg,/fitness-products/PROD-00029.Foto.180426.jpg
+PROD-00030,Macacão Duo 2 em 1 - Roxo (P),Macacão,P,Roxo,Produtos_Images/PROD-00030.Foto.180304.jpg,PROD-00030.Foto.180304.jpg,/fitness-products/PROD-00030.Foto.180304.jpg
+PROD-00031,Macacão Duo 2 em 1 - Preto (G),Macacão,G,Preto,Produtos_Images/PROD-00031.Foto.204657.jpg,PROD-00031.Foto.204657.jpg,/fitness-products/PROD-00031.Foto.204657.jpg
+PROD-00032,Macacão Duo 2 em 1 - Marrom (M),Macacão,M,Marrom,Produtos_Images/PROD-00032.Foto.204713.jpg,PROD-00032.Foto.204713.jpg,/fitness-products/PROD-00032.Foto.204713.jpg
+PROD-00033,Macacão Longo Run - Marrom (G),Macacão,G,Marrom,Produtos_Images/PROD-00033.Foto.174456.jpg,PROD-00033.Foto.174456.jpg,/fitness-products/PROD-00033.Foto.174456.jpg
+PROD-00034,Calça Legging Run - Marrom (M),Legging,M,Marrom,Produtos_Images/PROD-00034.Foto.171002.jpg,PROD-00034.Foto.171002.jpg,/fitness-products/PROD-00034.Foto.171002.jpg
+PROD-00035,Calça Legging Empina Bumbum - Preto (G),Legging,G,Preto,Produtos_Images/PROD-00035.Foto.171230.jpg,PROD-00035.Foto.171230.jpg,/fitness-products/PROD-00035.Foto.171230.jpg
+PROD-00036,Calça Legging Empina Bumbum - Cinza (G1),Legging,G1,Cinza,Produtos_Images/PROD-00036.Foto.171239.jpg,PROD-00036.Foto.171239.jpg,/fitness-products/PROD-00036.Foto.171239.jpg
+PROD-00037,Blusa Dry Fit - Preto (M),Camiseta,M,Preto,Produtos_Images/PROD-00011.Foto.183852.jpg,PROD-00011.Foto.183852.jpg,/fitness-products/PROD-00011.Foto.183852.jpg
+PROD-00038,Blusa Dry Fit - 009 (M),Camiseta,M,009,Produtos_Images/PROD-00038.Foto.171534.jpg,PROD-00038.Foto.171534.jpg,/fitness-products/PROD-00038.Foto.171534.jpg
+PROD-00039,Calça Legging - Preto (P),Legging,P,Preto,Produtos_Images/PROD-00008.Foto.182431.jpg,PROD-00008.Foto.182431.jpg,/fitness-products/PROD-00008.Foto.182431.jpg
+PROD-00040,Macacão Longo Run - Marrom (PS),Macacão,PS,Marrom,Produtos_Images/PROD-00040.Foto.173001.jpg,PROD-00040.Foto.173001.jpg,/fitness-products/PROD-00040.Foto.173001.jpg
+PROD-00041,Macacão Curto Run - Azul Marinho (PS),Macacão,PS,Azul Marinho,Produtos_Images/PROD-00041.Foto.175839.jpg,PROD-00041.Foto.175839.jpg,/fitness-products/PROD-00041.Foto.175839.jpg
+PROD-00042,Calça Legging Gym - Preto (PS),Conjunto,PS,Preto,Produtos_Images/PROD-00042.Foto.172620.jpg,PROD-00042.Foto.172620.jpg,/fitness-products/PROD-00042.Foto.172620.jpg
+PROD-00043,Conj. Top + Calça Run - Marrom (PS),Conjunto,PS,Marrom,Produtos_Images/PROD-00043.Foto.175007.jpg,PROD-00043.Foto.175007.jpg,/fitness-products/PROD-00043.Foto.175007.jpg
+PROD-00044,Conj. Top + Calça Run - Preto (PS),Conjunto,PS,Preto,Produtos_Images/PROD-00044.Foto.175001.jpg,PROD-00044.Foto.175001.jpg,/fitness-products/PROD-00044.Foto.175001.jpg
+PROD-00045,Blusa Dry Fit - Branca (PS),Camiseta,PS,Branca,Produtos_Images/PROD-00045.Foto.175222.jpg,PROD-00045.Foto.175222.jpg,/fitness-products/PROD-00045.Foto.175222.jpg
+PROD-00046,Blusa Dry Fit - 010 (PS),Camiseta,PS,010,Produtos_Images/PROD-00046.Foto.175232.jpg,PROD-00046.Foto.175232.jpg,/fitness-products/PROD-00046.Foto.175232.jpg
+PROD_10538,Meia Lindinha (Black),Meia,UNICO,,Produtos_Images/PROD_10538.Foto.191213.jpg,PROD_10538.Foto.191213.jpg,/fitness-products/PROD_10538.Foto.191213.jpg
+PROD_38264,Meia Docinho (Black),Meia,UNICO,,Produtos_Images/PROD_38264.Foto.191144.jpg,PROD_38264.Foto.191144.jpg,/fitness-products/PROD_38264.Foto.191144.jpg
+PROD_21672,Meia Florzinha (Black),Meia,UNICO,,Produtos_Images/PROD_21672.Foto.191157.jpg,PROD_21672.Foto.191157.jpg,/fitness-products/PROD_21672.Foto.191157.jpg
+PROD-00047,Top Run - Preto (G),Top,G,Preto,Produtos_Images/PROD-00047.Foto.114123.jpg,PROD-00047.Foto.114123.jpg,/fitness-products/PROD-00047.Foto.114123.jpg
+PROD-00048,Short Run - Preto (G),Short,G,Preto,Produtos_Images/PROD-00048.Foto.114114.jpg,PROD-00048.Foto.114114.jpg,/fitness-products/PROD-00048.Foto.114114.jpg
+PROD_31401,Blusa Canelada - Branco c/ Verde (G),Camiseta,G,Branco c/ Verde,Produtos_Images/PROD_31401.Foto.154421.jpg,PROD_31401.Foto.154421.jpg,/fitness-products/PROD_31401.Foto.154421.jpg
+PROD_40103,Blusa Canelada - Verde (G),Camiseta,G,Verde,Produtos_Images/PROD_40103.Foto.205349.jpg,PROD_40103.Foto.205349.jpg,/fitness-products/PROD_40103.Foto.205349.jpg
+PROD_62510,Blusa Canelada - Azul (G),Camiseta,G,Azul,Produtos_Images/PROD_62510.Foto.205341.jpg,PROD_62510.Foto.205341.jpg,/fitness-products/PROD_62510.Foto.205341.jpg
+PROD_85458,Short com bolso lateral - Marrom (G),Short,G,Marrom,Produtos_Images/PROD_85458.Foto.001953.jpg,PROD_85458.Foto.001953.jpg,/fitness-products/PROD_85458.Foto.001953.jpg
+PROD_68278,Short com bolso lateral - Azul Marinho (M),Short,M,Azul Marinho,Produtos_Images/PROD_68278.Foto.001947.jpg,PROD_68278.Foto.001947.jpg,/fitness-products/PROD_68278.Foto.001947.jpg
+PROD_35804,Blusa de Tule - Preto (M),Camiseta,M,Preto,Produtos_Images/PROD_35804.Foto.001932.jpg,PROD_35804.Foto.001932.jpg,/fitness-products/PROD_35804.Foto.001932.jpg
+PROD_61018,Short com bolso lateral - Azul Marinho (G),Short,G,Azul Marinho,Produtos_Images/PROD_61018.Foto.001941.jpg,PROD_61018.Foto.001941.jpg,/fitness-products/PROD_61018.Foto.001941.jpg
+PROD_94901,Short com bolso lateral - Preto (M),Short,M,Preto,Produtos_Images/PROD_94901.Foto.002007.jpg,PROD_94901.Foto.002007.jpg,/fitness-products/PROD_94901.Foto.002007.jpg
+PROD_36592,Blusa de Tule - Azul Marinho (M),Camiseta,M,Azul Marinho,Produtos_Images/PROD_36592.Foto.001920.jpg,PROD_36592.Foto.001920.jpg,/fitness-products/PROD_36592.Foto.001920.jpg
+PROD_23381,Short com bolso lateral - Preto (G),Short,G,Preto,Produtos_Images/PROD_23381.Foto.001959.jpg,PROD_23381.Foto.001959.jpg,/fitness-products/PROD_23381.Foto.001959.jpg
+PROD_69395,Blusa de Tule - Branco (M),Camiseta,M,Branco,Produtos_Images/PROD_69395.Foto.001927.jpg,PROD_69395.Foto.001927.jpg,/fitness-products/PROD_69395.Foto.001927.jpg
