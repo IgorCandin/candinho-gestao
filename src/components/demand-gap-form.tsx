@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  ImageSearch,
+  Images,
   LoaderCircle,
   Sparkles,
 } from "lucide-react";
@@ -129,7 +129,7 @@ export function DemandGapForm() {
                   size={16}
                 />
               ) : (
-                <ImageSearch size={16} />
+                <Images size={16} />
               )}
               Nexus: buscar 3 fotos
             </button>

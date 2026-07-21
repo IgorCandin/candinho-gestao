@@ -102,6 +102,7 @@ const centralNav = [
   { href: "/central/respostas", label: "Respostas rápidas", icon: MessageSquareText },
   { href: "/central/clientes", label: "Clientes", icon: UsersRound },
   { href: "/central/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/central/agenda-estrategica", label: "Agenda Estratégica", icon: ListTodo },
   { href: "/central/pendencias", label: "Pendências", icon: ListTodo },
   { href: "/central/midia", label: "Mídia", icon: Images },
   { href: "/central/integracoes", label: "Integrações", icon: Link2 },

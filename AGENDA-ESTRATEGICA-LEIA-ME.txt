@@ -1,0 +1,45 @@
+Candinho Company · V38 · AGENDA ESTRATÉGICA + CORREÇÃO DO DEPLOY
+
+Este pacote resolve o build quebrado do pacote anterior e adiciona a Agenda Estratégica.
+
+CORREÇÃO DO ERRO
+O deploy anterior falhou porque `ImageSearch` não existe na versão instalada do lucide-react.
+O componente de Rupturas agora usa `Images`, que já existe no projeto.
+
+AGENDA ESTRATÉGICA
+Nova área:
+Central → Agenda Estratégica
+
+A agenda contém as 27 tarefas do antigo AppSheet e gera automaticamente um conjunto novo a cada mês.
+Cada mês preserva seu próprio histórico.
+
+FUNÇÕES
+- Semanas 1 a 4
+- Progresso mensal
+- Filtros
+- Concluir
+- Adiar
+- Reabrir
+- Mover de semana
+- Impacto no resultado
+- Observações
+- Nova tarefa manual
+- Atalhos para Radar, Promoções, Estoque, Marketing, Prioridades e Sala do Dono
+
+BANCO
+As 5 migrations deste ZIP JÁ FORAM APLICADAS no Supabase.
+NÃO execute manualmente novamente.
+
+COMO USAR
+1. Extraia o ZIP sobre `candinho-gestao`.
+2. Substitua os arquivos.
+3. Commit e Push origin.
+4. Aguarde o deploy da Vercel.
+5. Teste primeiro Central → Agenda Estratégica.
+6. Depois teste Central → Rupturas e Operações → Promoções, que estavam no commit cujo build falhou.
+
+COMMIT SUGERIDO
+V38 · Agenda Estratégica — rotina mensal e correção final do deploy de Rupturas
+
+PRÓXIMA ETAPA
+Google Calendar + Pós-venda + Agenda Estratégica.

@@ -1,0 +1,295 @@
+/* Candinho Central · Agenda Estratégica */
+
+.strategic-month-toolbar {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: rgba(15,19,27,.82);
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.strategic-month-toolbar > div {
+  min-width: 0;
+  text-align: center;
+}
+
+.strategic-month-toolbar span,
+.strategic-month-toolbar strong {
+  display: block;
+}
+
+.strategic-month-toolbar span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+}
+
+.strategic-month-toolbar strong {
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.strategic-agenda-control-panel {
+  margin-top: 18px;
+}
+
+.strategic-agenda-controls {
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.strategic-agenda-filters {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr)) auto;
+  gap: 8px;
+}
+
+.strategic-new-task > summary {
+  width: fit-content;
+  list-style: none;
+  cursor: pointer;
+}
+
+.strategic-new-task > summary::-webkit-details-marker {
+  display: none;
+}
+
+.strategic-new-task > form {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+}
+
+.strategic-task-wide {
+  grid-column: 1 / -1;
+}
+
+.strategic-task-textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.strategic-agenda-weeks {
+  margin-top: 18px;
+  display: grid;
+  gap: 18px;
+}
+
+.strategic-week-head > div > span {
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .13em;
+}
+
+.strategic-week-head > strong {
+  min-width: 48px;
+  height: 48px;
+  border: 1px solid rgba(217,164,65,.22);
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #edc97f;
+  font-size: 11px;
+}
+
+.strategic-task-list {
+  display: grid;
+}
+
+.strategic-task-card {
+  position: relative;
+  padding: 15px 18px;
+  border-bottom: 1px solid rgba(37,44,57,.72);
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 14px;
+}
+
+.strategic-task-card:last-child {
+  border-bottom: 0;
+}
+
+.strategic-task-card.status-completed {
+  background: rgba(42,171,101,.035);
+}
+
+.strategic-task-card.status-postponed {
+  background: rgba(245,158,11,.03);
+}
+
+.strategic-task-card.priority-extreme::before,
+.strategic-task-card.priority-high::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 3px;
+  border-radius: 999px;
+}
+
+.strategic-task-card.priority-extreme::before {
+  background: #ef6464;
+}
+
+.strategic-task-card.priority-high::before {
+  background: #d9a441;
+}
+
+.strategic-task-main > strong {
+  display: block;
+  margin-top: 7px;
+  font-size: 13px;
+}
+
+.strategic-task-main > p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.strategic-task-main > small {
+  display: block;
+  margin-top: 6px;
+  color: #78e6a3;
+  font-size: 9px;
+}
+
+.strategic-task-main blockquote {
+  margin: 9px 0 0;
+  padding: 9px 11px;
+  border-left: 2px solid rgba(217,164,65,.4);
+  background: rgba(217,164,65,.05);
+  color: #c7cfdb;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.strategic-task-meta,
+.strategic-task-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.strategic-task-meta > span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(148,163,184,.09);
+  color: #aeb6c5;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.strategic-priority.extreme {
+  background: rgba(239,68,68,.14) !important;
+  color: #ff9c9c !important;
+}
+
+.strategic-priority.high {
+  background: rgba(217,164,65,.13) !important;
+  color: #edc97f !important;
+}
+
+.strategic-priority.medium {
+  background: rgba(59,130,246,.12) !important;
+  color: #9bc8ff !important;
+}
+
+.strategic-status.completed {
+  background: rgba(42,171,101,.13) !important;
+  color: #78e6a3 !important;
+}
+
+.strategic-status.postponed {
+  background: rgba(245,158,11,.12) !important;
+  color: #f3c76d !important;
+}
+
+.strategic-task-actions {
+  justify-content: flex-end;
+  align-self: start;
+}
+
+.strategic-task-details {
+  grid-column: 1 / -1;
+  margin-top: 2px;
+}
+
+.strategic-task-details > summary {
+  color: var(--muted);
+  font-size: 9px;
+  cursor: pointer;
+}
+
+.strategic-task-details-grid {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(148,163,184,.16);
+  display: grid;
+  grid-template-columns: minmax(0,1.5fr) minmax(180px,.5fr);
+  gap: 12px;
+}
+
+.strategic-task-notes-form {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 9px;
+}
+
+.strategic-task-notes-form > button {
+  width: fit-content;
+}
+
+.strategic-move-week-form {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .strategic-agenda-filters,
+  .strategic-new-task > form,
+  .strategic-task-details-grid,
+  .strategic-task-notes-form {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .strategic-task-wide {
+    grid-column: auto;
+  }
+
+  .strategic-task-card {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .strategic-task-actions {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 680px) {
+  .strategic-month-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .strategic-month-toolbar > div {
+    grid-column: 1 / -1;
+    grid-row: 1;
+  }
+}
