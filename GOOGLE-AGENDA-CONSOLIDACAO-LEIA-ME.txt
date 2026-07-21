@@ -1,0 +1,68 @@
+Candinho Company · V38 · CONSOLIDAÇÃO GOOGLE AGENDA / APPS SCRIPT
+
+OBJETIVO
+Oficializar a integração que já foi testada em produção e funcionou:
+Candinho → Supabase → Apps Script → Google Agenda.
+
+ESTADO VALIDADO ANTES DE GERAR ESTE PACOTE
+- Último deploy Vercel: READY.
+- Commit em produção:
+  V38 · Google Calendar — pós-venda, Agenda Estratégica e correção final de Promoções
+- Runtime Vercel recente: sem error/fatal.
+- Fila Google Agenda: 34 de 34 registros concluídos.
+- Teste real confirmado pelo Igor:
+  1. pós-vendas apareceram no Google Agenda;
+  2. ao concluir na Candinho, o evento sumiu do Google.
+
+O QUE MUDA NESTE PACOTE
+
+1. Apps Script vira oficialmente o provedor da integração.
+2. A interface deixa de oferecer:
+   - Conectar Google via OAuth;
+   - Reconectar OAuth;
+   - Desconectar OAuth.
+3. O card passa a mostrar:
+   - Apps Script Bridge ativo;
+   - última sincronização;
+   - pendências;
+   - erros;
+   - total processado.
+4. Mantém o botão "Sincronizar agora".
+5. google-calendar-sync no GitHub passa a ser a mesma arquitetura v3 usada em produção.
+6. google-calendar-oauth fica explicitamente LEGADO/DESATIVADO.
+7. Código do Apps Script fica documentado em:
+   docs/integrations/CandinhoCalendarBridge.gs
+8. As migrations aplicadas diretamente no Supabase entram no repositório.
+
+SEGURANÇA
+- CANDINHO_SYNC_SECRET NÃO está neste ZIP.
+- apps_script_secret NÃO está neste ZIP.
+- A migration gera uma chave aleatória em ambientes novos.
+- O segredo real de produção continua somente no Supabase e nas Script Properties do Apps Script.
+- A URL /exec não é considerada segredo.
+
+MIGRATIONS JÁ APLICADAS NO SUPABASE
+NÃO execute manualmente:
+- 20260721020802_v38_google_calendar_apps_script_bridge.sql
+- 20260721020829_v38_google_calendar_apps_script_status_fields.sql
+- 20260721021349_v38_calendar_sync_service_role_post_sale_read.sql
+- 20260721022335_v38_google_calendar_apps_script_consolidation.sql
+
+EDGE FUNCTIONS
+Produção:
+- google-calendar-sync v3 ACTIVE
+- google-calendar-oauth v3 ACTIVE, legado/desativado
+
+COMMIT SUGERIDO
+V38 · Consolida Google Agenda — Apps Script oficial e OAuth legado removido do fluxo
+
+PRÓXIMA ETAPA
+Auditoria integral do ERP para escalabilidade:
+- filtros;
+- pesquisa;
+- paginação;
+- organização;
+- duplicidades;
+- integrações entre módulos;
+- processos manuais automatizáveis;
+- riscos ao crescer de centenas para milhares de registros.
