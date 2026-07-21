@@ -1,4 +1,6 @@
 import Image from "next/image";
+import Link from "next/link";
+import { Store } from "lucide-react";
 import { LoginForm } from "@/components/login-form";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 
@@ -33,6 +35,15 @@ export default function LoginPage() {
         <div className="login-card login-card-v2">
           <h2>Entrar</h2>
           <LoginForm />
+
+          <div className="login-public-storefront">
+            <span>ou</span>
+            <Link className="login-public-storefront-link" href="/catalogo">
+              <Store size={17} />
+              <span>Ver Produtos <b>|</b> Promoções</span>
+            </Link>
+            <small>Consulte produtos disponíveis e preços sem precisar entrar.</small>
+          </div>
         </div>
 
         <div className="login-operations-band" aria-label="Operações da Candinho Company">

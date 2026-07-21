@@ -4,8 +4,10 @@ import Link from "next/link";
 import {
   BadgePercent,
   Crown,
+  Dumbbell,
   Link2,
   LogOut,
+  Store,
   UserRound,
 } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
@@ -232,12 +234,54 @@ export default async function DashboardPage() {
             </Link>
           )}
         </div>
+
+        {access.canManageUsers && (
+          <div className="company-home-operations company-home-operations-foundation">
+            <Link
+              className="company-operation-card physique physique-foundation-card"
+              href="/physique"
+              aria-label="Abrir fundação Candinho Physique Athletes"
+            >
+              <div className="company-operation-logo-wrap physique-logo-wrap">
+                <Image
+                  src={BRAND_ASSETS.physique.reduced.src}
+                  alt={BRAND_ASSETS.physique.reduced.alt}
+                  width={BRAND_ASSETS.physique.reduced.width}
+                  height={BRAND_ASSETS.physique.reduced.height}
+                />
+              </div>
+
+              <div className="company-operation-mini-kpis">
+                <span>
+                  <small>Operação</small>
+                  <strong>Em preparação</strong>
+                </span>
+                <span>
+                  <small>Fichas de treino</small>
+                  <strong>Base pronta</strong>
+                </span>
+                <span>
+                  <small>Anexos</small>
+                  <strong>Preparado</strong>
+                </span>
+              </div>
+            </Link>
+          </div>
+        )}
       </div>
 
       <div
         className="company-home-selector-actions"
         aria-label="Ações da conta"
       >
+        <Link
+          className="company-home-selector-action storefront"
+          href="/catalogo"
+        >
+          <Store size={16} />
+          <span>Vitrine pública</span>
+        </Link>
+
         {access.canManageUsers && (
           <>
             <Link
@@ -254,6 +298,14 @@ export default async function DashboardPage() {
             >
               <BadgePercent size={16} />
               <span>Promoções</span>
+            </Link>
+
+            <Link
+              className="company-home-selector-action physique-shortcut"
+              href="/physique"
+            >
+              <Dumbbell size={16} />
+              <span>Physique</span>
             </Link>
 
             <Link

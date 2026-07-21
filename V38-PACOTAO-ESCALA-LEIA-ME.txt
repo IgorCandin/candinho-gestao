@@ -1,0 +1,146 @@
+CANDINHO COMPANY · V38 · PACOTÃO DE ESCALA, VITRINE PÚBLICA E PHYSIQUE
+
+BASE
+Pacote montado sobre a main:
+8712a705d9e68056c9a54742f9ca3a626b28b2f9
+V38 · Consolida Google Agenda — Apps Script oficial e OAuth legado removido do fluxo
+
+IMPORTANTE
+Este é um pacotão único de evolução da V38.
+Não criar V39/V40 só por causa destas entregas.
+
+O QUE ENTRA
+
+1. AUDITORIA DE ESCALA · BATCH SEGURO
+- Hardening de 9 RPCs/funções internas que não devem aceitar execução anon.
+- Índices prioritários em:
+  Promoções
+  Agenda Estratégica
+  Fitness/consignações
+  Lotes e movimentos de lote
+  Trocas/devoluções
+- Não remove índices existentes.
+- Não altera fluxos comerciais.
+- Não altera dados históricos.
+
+2. VITRINE PÚBLICA
+Nova rota:
+  /catalogo
+
+Acesso:
+- sem login;
+- botão no login: Ver Produtos | Promoções;
+- atalho no dashboard interno.
+
+Origem dos dados:
+  Produtos ERP + Estoque disponível + Central de Promoções
+
+Regras públicas:
+- somente itens disponíveis;
+- Suplementos e Fitness separados em blocos;
+- busca;
+- filtro de operação;
+- filtro de categoria;
+- ordenação por nome/preço;
+- Produtos e Promoções em abas;
+- custo/lucro/fornecedor não aparecem;
+- produtos restritos não aparecem;
+- produtos categoria Z não aparecem;
+- combinações/COMBO de Suplementos não aparecem como produto avulso.
+
+3. CANDINHO PHYSIQUE ATHLETES
+Logos:
+  public/candinho-physique-logo.png
+  public/operation-physique.png
+
+Status:
+  Fundação implantada
+  Operação NÃO inicializada
+  Feature flag physique_enabled = false
+
+Estrutura:
+  Atletas
+  Fichas de treino
+  Dias
+  Exercícios
+  Séries/repetições
+  Descanso
+  Técnicas
+  Orientação de carga
+  Observações
+  Anexos
+  Bucket privado
+
+Integrações preparadas:
+  Atleta → Central de Contatos
+  Atleta → Cliente Suplementos
+  Atleta → Cliente Fitness
+  Physique → Agenda
+  Physique → Agenda Estratégica
+
+Frontend de fundação:
+  /physique
+  /physique/atletas
+  /physique/atletas/[id]
+  /physique/fichas
+  /physique/fichas/[id]
+
+Nesta etapa:
+- leitura da fundação liberada somente para admin/gestão;
+- cadastro operacional ainda não liberado;
+- edição ainda não liberada;
+- upload ainda não liberado;
+- anexos existentes podem ser visualizados por URL assinada.
+
+4. GOOGLE AGENDA
+O pacote NÃO sobrescreve a consolidação do Google Agenda.
+A base usada já contém a integração oficial Apps Script.
+
+MIGRATIONS JÁ APLICADAS NO SUPABASE
+NÃO executar manualmente em produção:
+- 20260721023249_v38_scale_audit_security_hardening_batch_1.sql
+- 20260721024438_v38_public_storefront_and_physique_foundation.sql
+- 20260721025322_v38_scale_and_storefront_hardening_batch_2.sql
+
+COMO INSTALAR NO REPOSITÓRIO LOCAL
+1. Faça backup/commit das alterações locais, se houver.
+2. Extraia este ZIP sobre a raiz de candinho-gestao.
+3. Confirme substituição dos arquivos.
+4. Revise o diff no GitHub Desktop.
+5. NÃO rode as 3 migrations manualmente em produção: já foram aplicadas.
+6. Faça o commit.
+7. Aguarde o deploy da Vercel e homologue.
+
+COMMIT SUGERIDO
+V38 · Pacotão de escala — vitrine pública, Physique foundation e hardening do ERP
+
+HOMOLOGAÇÃO RECOMENDADA
+- /login: botão Ver Produtos | Promoções.
+- /catalogo abre sem login.
+- busca e filtros.
+- blocos Suplementos/Fitness.
+- somente itens disponíveis.
+- categoria Z ausente.
+- nenhum custo/lucro/fornecedor exposto.
+- dashboard: Vitrine pública.
+- dashboard admin: Physique em preparação.
+- /physique: operação não inicializada.
+- /physique/atletas e /physique/fichas sem erro.
+- login/logout normais.
+- Suplementos/Fitness/Bank/Central/Marketing continuam acessíveis.
+- Google Agenda continua sincronizando.
+
+AUDITORIA AINDA EM ANDAMENTO
+Este pacote resolve os achados seguros já confirmados.
+Ainda vale continuar depois, sem criar uma nova "versão" por cada bloco:
+- paginação real de Vendas;
+- paginação real de Leads;
+- consultas de histórico do cliente sem carregar a empresa inteira;
+- navegação anterior/próximo sem carregar todos os IDs;
+- revisão das policies permissivas duplicadas;
+- busca/paginação nos demais módulos conforme volume crescer.
+
+OBSERVAÇÃO DE BUILD
+O pacote foi montado por comparação com a main e validações estruturais de arquivos.
+Não foi executado um npm build local completo porque o repositório inteiro não está montado
+no runtime desta conversa. Homologar o deploy Vercel após o commit.

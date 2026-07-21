@@ -53,7 +53,7 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
-    "/dashboard", "/suplementos", "/fitness", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
+    "/dashboard", "/suplementos", "/fitness", "/physique", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
     "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/fornecedores", "/parceiros", "/painel-cs", "/bank", "/central", "/marketing", "/parceiro",
   ];
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
@@ -105,6 +105,7 @@ export async function updateSession(request: NextRequest) {
     ];
     const isSupplementRoute = supplementPrefixes.some((prefix) => pathname.startsWith(prefix));
     const isFitnessRoute = pathname.startsWith("/fitness");
+    const isPhysiqueRoute = pathname.startsWith("/physique");
     const isBankRoute = pathname.startsWith("/bank");
     const isManagerRoute = pathname.startsWith("/configuracoes");
     const isCentralRoute = pathname.startsWith("/central");
@@ -127,7 +128,14 @@ export async function updateSession(request: NextRequest) {
 
     if (isFitnessRoute && !access.can_access_fitness) {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : access.can_access_bank ? "/bank" : "/dashboard";
+      redirectUrl.pathname = access.can_access_supplements ? "/suplementos" : "/dashboard";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    if (isPhysiqueRoute && !access.can_manage_users) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/dashboard";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
@@ -138,7 +146,6 @@ export async function updateSession(request: NextRequest) {
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }
-
 
     if (isMarketingRoute && !access.can_access_marketing) {
       const redirectUrl = request.nextUrl.clone();
