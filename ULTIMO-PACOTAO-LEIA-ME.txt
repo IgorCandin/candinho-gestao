@@ -1,0 +1,31 @@
+Candinho Company · V38 · ÚLTIMO PACOTÃO DE FECHAMENTO
+
+MOTIVO
+O commit da Central de Promoções chegou ao GitHub, mas o deploy da Vercel falhou no typecheck.
+
+Erro confirmado:
+src/app/(app)/central/promocoes/actions.ts:137
+TypeScript não aceitava um objeto de inserção com formatos diferentes para:
+- suplemento_product_id
+- fitness_variant_id
+
+CORREÇÃO
+1. A criação de promoção a partir de sugestão agora envia sempre o mesmo formato:
+   - supplement_product_id: UUID ou null
+   - fitness_variant_id: UUID ou null
+
+2. A inclusão em lote também usa um único formato de linha para Suplementos e Fitness.
+   Isso previne um segundo erro de inferência do TypeScript no mesmo arquivo.
+
+BANCO
+Nenhuma migration nova.
+As tabelas e permissões da Central de Promoções já estão aplicadas no Supabase.
+
+COMO USAR
+1. Extraia este ZIP sobre candinho-gestao.
+2. Substitua o arquivo existente.
+3. Commit e Push origin.
+4. Aguarde o deploy da Vercel.
+
+COMMIT SUGERIDO
+V38 · Correção final de build — Central de Promoções

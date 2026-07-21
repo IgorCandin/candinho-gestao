@@ -115,22 +115,14 @@ export async function createPromotionFromSuggestion(formData: FormData) {
     );
   }
 
-  const itemPayload =
-    operationScope === "supplements"
-      ? {
-          promotion_id: promotion.id,
-          operation_scope: "supplements",
-          supplement_product_id: entityId,
-          item_role: protectedPrice ? "anchor" : "discounted",
-          discount_pct: protectedPrice ? 0 : discount,
-        }
-      : {
-          promotion_id: promotion.id,
-          operation_scope: "fitness",
-          fitness_variant_id: entityId,
-          item_role: protectedPrice ? "anchor" : "discounted",
-          discount_pct: protectedPrice ? 0 : discount,
-        };
+  const itemPayload = {
+    promotion_id: promotion.id,
+    operation_scope: operationScope,
+    supplement_product_id: operationScope === "supplements" ? entityId : null,
+    fitness_variant_id: operationScope === "fitness" ? entityId : null,
+    item_role: protectedPrice ? "anchor" : "discounted",
+    discount_pct: protectedPrice ? 0 : discount,
+  };
 
   const { error: itemError } = await supabase
     .from("central_promotion_items")
@@ -246,35 +238,32 @@ export async function addPromotionItems(formData: FormData) {
       .map(String),
   );
 
-  const rows: Array<Record<string, unknown>> = [];
-
-  if (promotion.operation_scope !== "fitness") {
-    supplementIds
-      .filter((id) => !existingSupp.has(id))
-      .forEach((id) => {
-        rows.push({
-          promotion_id: promotionId,
-          operation_scope: "supplements",
-          supplement_product_id: id,
-          item_role: "discounted",
-          discount_pct: Number(promotion.default_discount_pct ?? 0),
-        });
-      });
-  }
-
-  if (promotion.operation_scope !== "supplements") {
-    fitnessIds
-      .filter((id) => !existingFit.has(id))
-      .forEach((id) => {
-        rows.push({
-          promotion_id: promotionId,
-          operation_scope: "fitness",
-          fitness_variant_id: id,
-          item_role: "discounted",
-          discount_pct: Number(promotion.default_discount_pct ?? 0),
-        });
-      });
-  }
+  const rows = [
+    ...(promotion.operation_scope !== "fitness"
+      ? supplementIds
+          .filter((id) => !existingSupp.has(id))
+          .map((id) => ({
+            promotion_id: promotionId,
+            operation_scope: "supplements",
+            supplement_product_id: id,
+            fitness_variant_id: null,
+            item_role: "discounted",
+            discount_pct: Number(promotion.default_discount_pct ?? 0),
+          }))
+      : []),
+    ...(promotion.operation_scope !== "supplements"
+      ? fitnessIds
+          .filter((id) => !existingFit.has(id))
+          .map((id) => ({
+            promotion_id: promotionId,
+            operation_scope: "fitness",
+            supplement_product_id: null,
+            fitness_variant_id: id,
+            item_role: "discounted",
+            discount_pct: Number(promotion.default_discount_pct ?? 0),
+          }))
+      : []),
+  ];
 
   if (rows.length > 0) {
     const { error } = await supabase.from("central_promotion_items").insert(rows);
