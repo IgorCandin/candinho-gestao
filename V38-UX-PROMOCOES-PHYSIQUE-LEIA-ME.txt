@@ -1,0 +1,48 @@
+CANDINHO COMPANY · V38
+PACOTÃO — UX, Promoções com PDF e correção da fundação Physique
+
+ENTREGAS DESTE PACOTE
+1. Corrige a rota /physique para não derrubar a página quando a base estrutural
+   ainda não estiver completa. A tela passa a abrir com fallback seguro.
+2. Ajusta o card da operação Physique na tela de operações:
+   - usa a logo completa/square;
+   - melhora o encaixe visual do botão/card.
+3. Reorganiza os botões inferiores da tela de operações:
+   - Vitrine pública em linha separada;
+   - grupo principal na ordem:
+     Sala do Dono | Promoções | Perfil | Sair
+4. Cria /promocoes como área operacional interna para:
+   - visualizar Produtos e Promoções;
+   - filtrar Suplementos/Fitness;
+   - selecionar itens;
+   - gerar PDF por impressão do navegador.
+5. Exportação inteligente:
+   - se a seleção mistura Suplementos + Fitness: usa a marca Candinho Company;
+   - se a seleção estiver isolada em uma operação: usa a marca da operação.
+6. Ajusta UX da vitrine/promoções com barra de seleção e estados visuais.
+
+ARQUIVOS
+- src/lib/physique-data.ts
+- src/app/(app)/dashboard/page.tsx
+- src/app/(app)/promocoes/page.tsx
+- src/components/public-storefront-browser.tsx
+- src/app/login-ux-v2.css
+- src/app/public-storefront.css
+- src/app/physique.css
+
+BANCO
+Nenhuma migration nova neste pacote.
+
+COMMIT SUGERIDO
+V38 · UX final — promoções com PDF, ações da operação em ordem e fallback Physique
+
+HOMOLOGAÇÃO
+1. /dashboard abre.
+2. Card Physique fica visualmente melhor.
+3. Botões do rodapé aparecem nesta lógica:
+   Vitrine pública | Sala do Dono | Promoções | Perfil | Sair
+4. /physique abre sem server error.
+5. /promocoes abre.
+6. Em /promocoes, selecionar itens funciona.
+7. "Gerar PDF" abre a impressão.
+8. Seleção mista usa marca Company; seleção isolada usa a marca da operação.

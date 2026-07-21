@@ -3,12 +3,16 @@
 import { useMemo, useState } from "react";
 import {
   BadgePercent,
+  CheckSquare,
+  Download,
   PackageCheck,
   PackageOpen,
   Search,
   SlidersHorizontal,
+  Square,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
+import { BRAND_ASSETS } from "@/lib/brand-assets";
 import type {
   PublicStorefrontProduct,
   PublicStorefrontPromotion,
@@ -19,26 +23,68 @@ type Operation = "all" | "supplements" | "fitness";
 type ViewMode = "products" | "promotions";
 type SortMode = "name" | "price_asc" | "price_desc";
 
+type SelectableItem =
+  | ({ kind: "product" } & PublicStorefrontProduct)
+  | ({ kind: "promotion" } & PublicStorefrontPromotion);
+
 function text(value: string | null | undefined) {
   return (value ?? "").toLocaleLowerCase("pt-BR");
 }
 
-function ProductPrice({ item }: { item: PublicStorefrontProduct }) {
-  if (Math.abs(item.price_from - item.price_to) < 0.01) {
-    return <strong>{formatCurrency(item.price_from)}</strong>;
-  }
+function selectionId(item: SelectableItem) {
+  return `${item.kind}:${item.operation}:${item.id}`;
+}
 
+function currencyRange(from: number, to: number) {
+  if (Math.abs(from - to) < 0.01) return formatCurrency(from);
+  return `${formatCurrency(from)} — ${formatCurrency(to)}`;
+}
+
+function ProductPrice({ item }: { item: PublicStorefrontProduct }) {
+  return <strong>{currencyRange(item.price_from, item.price_to)}</strong>;
+}
+
+function Selector({
+  active,
+  onToggle,
+}: {
+  active: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <strong>
-      {formatCurrency(item.price_from)} — {formatCurrency(item.price_to)}
-    </strong>
+    <button
+      className={`public-storefront-select-toggle ${active ? "active" : ""}`}
+      type="button"
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        onToggle();
+      }}
+      aria-label={active ? "Remover da seleção" : "Selecionar para PDF"}
+    >
+      {active ? <CheckSquare size={17} /> : <Square size={17} />}
+    </button>
   );
 }
 
-function ProductCard({ item }: { item: PublicStorefrontProduct }) {
+function ProductCard({
+  item,
+  selectable = false,
+  selected = false,
+  onToggle,
+}: {
+  item: PublicStorefrontProduct;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggle?: () => void;
+}) {
   return (
-    <article className="public-storefront-card">
+    <article className={`public-storefront-card ${selected ? "selected" : ""}`}>
       <div className="public-storefront-card-image">
+        {selectable && onToggle && (
+          <Selector active={selected} onToggle={onToggle} />
+        )}
+
         {item.image_url ? (
           <img
             src={item.image_url}
@@ -64,12 +110,26 @@ function ProductCard({ item }: { item: PublicStorefrontProduct }) {
   );
 }
 
-function PromotionCard({ item }: { item: PublicStorefrontPromotion }) {
+function PromotionCard({
+  item,
+  selectable = false,
+  selected = false,
+  onToggle,
+}: {
+  item: PublicStorefrontPromotion;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggle?: () => void;
+}) {
   const hasDiscount = item.promotional_price < item.current_price;
 
   return (
-    <article className="public-storefront-card public-storefront-promotion-card">
+    <article className={`public-storefront-card public-storefront-promotion-card ${selected ? "selected" : ""}`}>
       <div className="public-storefront-card-image">
+        {selectable && onToggle && (
+          <Selector active={selected} onToggle={onToggle} />
+        )}
+
         {item.image_url ? (
           <img
             src={item.image_url}
@@ -106,14 +166,17 @@ function PromotionCard({ item }: { item: PublicStorefrontPromotion }) {
 
 export function PublicStorefrontBrowser({
   snapshot,
+  enableExport = false,
 }: {
   snapshot: PublicStorefrontSnapshot;
+  enableExport?: boolean;
 }) {
   const [view, setView] = useState<ViewMode>("products");
   const [operation, setOperation] = useState<Operation>("all");
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const [sort, setSort] = useState<SortMode>("name");
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
   const categories = useMemo(() => {
     if (operation === "supplements") return snapshot.categories.supplements;
@@ -166,6 +229,24 @@ export function PublicStorefrontBrowser({
     snapshot.promotions.fitness.filter(promotionFilter),
   );
 
+  const allFilteredProducts: SelectableItem[] = [
+    ...supplementProducts.map((item) => ({ ...item, kind: "product" as const })),
+    ...fitnessProducts.map((item) => ({ ...item, kind: "product" as const })),
+  ];
+
+  const allFilteredPromotions: SelectableItem[] = [
+    ...supplementPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
+    ...fitnessPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
+  ];
+
+  const filteredSelectableItems = view === "products"
+    ? allFilteredProducts
+    : allFilteredPromotions;
+
+  const selectedItems = filteredSelectableItems.filter((item) =>
+    selectedIds.includes(selectionId(item)),
+  );
+
   const blocks = view === "products"
     ? [
         { key: "supplements", title: "Suplementos", items: supplementProducts },
@@ -175,6 +256,212 @@ export function PublicStorefrontBrowser({
         { key: "supplements", title: "Suplementos", items: supplementPromotions },
         { key: "fitness", title: "Fitness", items: fitnessPromotions },
       ];
+
+  function toggleItem(item: SelectableItem) {
+    const id = selectionId(item);
+    setSelectedIds((current) =>
+      current.includes(id)
+        ? current.filter((value) => value !== id)
+        : [...current, id],
+    );
+  }
+
+  function selectFiltered() {
+    setSelectedIds((current) => {
+      const merged = new Set(current);
+      for (const item of filteredSelectableItems) {
+        merged.add(selectionId(item));
+      }
+      return Array.from(merged);
+    });
+  }
+
+  function clearSelection() {
+    setSelectedIds([]);
+  }
+
+  function exportSelectedToPdf() {
+    if (selectedItems.length === 0) return;
+
+    const operations = [...new Set(selectedItems.map((item) => item.operation))];
+    const logo = operations.length === 2
+      ? BRAND_ASSETS.company.complete
+      : operations[0] === "fitness"
+        ? BRAND_ASSETS.fitness.complete
+        : BRAND_ASSETS.supplements.complete;
+
+    const title = view === "products" ? "Produtos Selecionados" : "Promoções Selecionadas";
+
+    const rows = selectedItems.map((item) => {
+      const price = item.kind === "product"
+        ? currencyRange(item.price_from, item.price_to)
+        : formatCurrency(item.promotional_price);
+
+      const extra = item.kind === "product"
+        ? `Disponível · ${item.operation === "supplements" ? "Suplementos" : "Fitness"}`
+        : `${item.promotion_name} · ${item.operation === "supplements" ? "Suplementos" : "Fitness"}`;
+
+      const oldPrice = item.kind === "promotion" && item.promotional_price < item.current_price
+        ? `<small>de ${formatCurrency(item.current_price)}</small>`
+        : "";
+
+      return `
+        <article class="export-card">
+          <div class="export-image">
+            ${item.image_url
+              ? `<img src="${item.image_url}" alt="${item.name}" />`
+              : `<div class="export-placeholder">${item.kind === "product" ? "Produto" : "Promoção"}</div>`}
+          </div>
+          <div class="export-copy">
+            <span>${item.category ?? (item.kind === "product" ? "Produto" : "Promoção")}</span>
+            <h3>${item.name}</h3>
+            <p>${extra}</p>
+            ${oldPrice}
+            <strong>${price}</strong>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    const html = `
+      <html lang="pt-BR">
+        <head>
+          <title>${title}</title>
+          <meta charset="utf-8" />
+          <style>
+            body {
+              margin: 0;
+              padding: 28px;
+              background: #0b0f15;
+              color: #f4f7fb;
+              font-family: Arial, Helvetica, sans-serif;
+            }
+            .wrap {
+              max-width: 1120px;
+              margin: 0 auto;
+            }
+            .brand {
+              display: flex;
+              justify-content: center;
+              margin-bottom: 20px;
+            }
+            .brand img {
+              width: min(280px, 100%);
+              max-height: 86px;
+              object-fit: contain;
+            }
+            .hero {
+              margin-bottom: 22px;
+              padding: 18px 20px;
+              border: 1px solid rgba(216,171,65,.24);
+              border-radius: 16px;
+              background: linear-gradient(180deg, rgba(216,171,65,.08), rgba(255,255,255,.02));
+            }
+            .hero span {
+              color: #e6c775;
+              font-size: 12px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: .08em;
+            }
+            .hero h1 {
+              margin: 8px 0 10px;
+              font-size: 40px;
+              line-height: 1;
+            }
+            .hero p {
+              margin: 0;
+              color: #b7c0cc;
+              font-size: 14px;
+              line-height: 1.55;
+            }
+            .grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 16px;
+            }
+            .export-card {
+              overflow: hidden;
+              border: 1px solid #252d3a;
+              border-radius: 18px;
+              background: #121821;
+            }
+            .export-image {
+              aspect-ratio: 1 / 1;
+              background: #fff;
+              display: grid;
+              place-items: center;
+            }
+            .export-image img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            .export-placeholder {
+              color: #556172;
+              font-weight: 700;
+            }
+            .export-copy {
+              padding: 14px;
+            }
+            .export-copy span {
+              color: #9aa6b8;
+              display: block;
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: .08em;
+            }
+            .export-copy h3 {
+              margin: 6px 0 10px;
+              font-size: 18px;
+            }
+            .export-copy p,
+            .export-copy small {
+              display: block;
+              margin: 0 0 8px;
+              color: #b8c2cf;
+              font-size: 12px;
+              line-height: 1.5;
+            }
+            .export-copy strong {
+              color: #f1cf7d;
+              font-size: 22px;
+            }
+            @media print {
+              body { background: #fff; color: #111; padding: 0; }
+              .hero { background: #fff7e6; }
+              .export-card { break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="wrap">
+            <div class="brand">
+              <img src="${logo.src}" alt="${logo.alt}" />
+            </div>
+            <div class="hero">
+              <span>Candinho Company</span>
+              <h1>${title}</h1>
+              <p>Gerado a partir da área interna do ERP. Quando a seleção mistura Suplementos e Fitness, a saída usa a marca Candinho Company; quando isola uma operação, usa a marca correspondente.</p>
+            </div>
+            <section class="grid">${rows}</section>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+      </html>
+    `;
+
+    const popup = window.open("", "_blank", "width=1200,height=900");
+    if (!popup) return;
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
+  }
 
   return (
     <>
@@ -252,6 +539,33 @@ export function PublicStorefrontBrowser({
             </select>
           </label>
         </div>
+
+        {enableExport && (
+          <div className="public-storefront-export-toolbar">
+            <div>
+              <span>Seleção para PDF</span>
+              <strong>{selectedIds.length} item(ns) selecionado(s)</strong>
+            </div>
+
+            <div className="public-storefront-export-actions">
+              <button type="button" onClick={selectFiltered}>
+                Marcar filtrados
+              </button>
+              <button type="button" onClick={clearSelection}>
+                Limpar
+              </button>
+              <button
+                type="button"
+                className="active"
+                onClick={exportSelectedToPdf}
+                disabled={selectedIds.length === 0}
+              >
+                <Download size={16} />
+                Gerar PDF
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       <div className="public-storefront-blocks">
@@ -280,10 +594,22 @@ export function PublicStorefrontBrowser({
                 <div className="public-storefront-grid">
                   {view === "products"
                     ? (block.items as PublicStorefrontProduct[]).map((item) => (
-                        <ProductCard item={item} key={`${item.operation}-${item.id}`} />
+                        <ProductCard
+                          item={item}
+                          key={`${item.operation}-${item.id}`}
+                          selectable={enableExport}
+                          selected={selectedIds.includes(selectionId({ ...item, kind: "product" }))}
+                          onToggle={() => toggleItem({ ...item, kind: "product" })}
+                        />
                       ))
                     : (block.items as PublicStorefrontPromotion[]).map((item) => (
-                        <PromotionCard item={item} key={`${item.operation}-${item.id}`} />
+                        <PromotionCard
+                          item={item}
+                          key={`${item.operation}-${item.id}`}
+                          selectable={enableExport}
+                          selected={selectedIds.includes(selectionId({ ...item, kind: "promotion" }))}
+                          onToggle={() => toggleItem({ ...item, kind: "promotion" })}
+                        />
                       ))}
                 </div>
               )}
