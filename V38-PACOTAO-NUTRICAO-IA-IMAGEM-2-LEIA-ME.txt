@@ -1,0 +1,138 @@
+CANDINHO COMPANY · V38
+PACOTÃO NUTRIÇÃO IA + IMAGEM 2
+
+STATUS
+A MIGRATION DESTE PACOTE JÁ FOI APLICADA NO SUPABASE DE PRODUÇÃO.
+NÃO EXECUTAR MANUALMENTE EM PRODUÇÃO.
+
+VISÃO
+Preparar o ERP para o seguinte fluxo:
+
+Imagem 1
+= foto principal real do produto.
+
+Imagem 2
+= arte padronizada com informação nutricional/ingredientes,
+baseada em fonte oficial e aprovada antes de publicação.
+
+O ERP JÁ POSSUÍA SEGUNDA FOTO
+Este pacote NÃO cria um campo de imagem duplicado.
+Ele reaproveita:
+secondary_image_url
+secondary_thumbnail_url
+
+A antiga "Segunda foto" passa a aparecer como:
+"Imagem 2 · Informação nutricional"
+
+NOVA ÁREA
+Produtos > Nutrição IA
+
+Rota:
+ /produtos/nutricao
+
+Nela é possível:
+- ver produtos pendentes;
+- identificar quais ainda não têm Imagem 2;
+- pesquisar por nome, marca ou SKU;
+- registrar status da pesquisa;
+- registrar nome da fonte;
+- registrar URL oficial;
+- adicionar observações;
+- copiar um prompt padronizado para pesquisa com IA;
+- abrir o produto para enviar/alterar a Imagem 2;
+- aprovar somente quando houver Imagem 2 + URL da fonte oficial.
+
+STATUS
+A pesquisar
+Pesquisando
+Em revisão
+Aprovado
+Não se aplica
+
+REGRA DE APROVAÇÃO
+O banco bloqueia "Aprovado" quando:
+- não existe Imagem 2;
+ou
+- não existe URL da fonte.
+
+Isso reduz o risco de uma arte nutricional sem rastreabilidade.
+
+FONTES
+A prioridade recomendada para a futura pesquisa automática é:
+1. fabricante / marca oficial;
+2. página oficial específica do produto;
+3. material oficial de embalagem;
+4. distribuidor oficial apenas quando a fonte primária não estiver disponível.
+
+Não aprovar dado nutricional baseado apenas em marketplace.
+
+PROMPT IA
+Cada produto possui botão:
+"Copiar prompt IA"
+
+O prompt inclui:
+- nome;
+- marca;
+- SKU;
+- categoria;
+- URL da Imagem 1;
+- exigência de conferir gramatura/versão/sabor;
+- exigência de fonte oficial;
+- regra de não inventar dados;
+- campos nutricionais e ingredientes;
+- instrução de preparar conteúdo para arte 1:1.
+
+FASE ATUAL
+Este pacote entrega o fluxo SEMIAUTOMÁTICO SEGURO.
+
+Próxima evolução deliberada:
+- conectar um agente/serviço de pesquisa;
+- pesquisar automaticamente fontes oficiais;
+- propor os dados;
+- gerar a arte Imagem 2;
+- deixar para revisão humana;
+- somente depois publicar/aprovar.
+
+Isso evita que a automação publique tabela errada por confundir
+versão, sabor, gramatura ou embalagem antiga.
+
+BANCO
+Novos campos:
+nutrition_status
+nutrition_source_name
+nutrition_source_url
+nutrition_source_checked_at
+nutrition_reviewed_at
+nutrition_reviewed_by
+nutrition_notes
+
+Nova view:
+product_nutrition_enrichment_queue
+
+Nova RPC:
+set_product_nutrition_metadata
+
+ARQUIVOS
+supabase/migrations/20260722162000_v38_product_nutrition_enrichment_foundation.sql
+src/app/(app)/produtos/nutricao/page.tsx
+src/components/product-nutrition-workbench.tsx
+src/components/product-image-uploader.tsx
+src/app/(app)/produtos/page.tsx
+src/app/v38-nutrition.css
+src/app/globals.css
+
+TESTE
+1. Abrir /produtos.
+2. Clicar Nutrição IA.
+3. Abrir um produto pendente.
+4. Clicar Copiar prompt IA.
+5. Abrir produto.
+6. Conferir o rótulo "Imagem 2 · Informação nutricional".
+7. Enviar uma Imagem 2 de teste.
+8. Voltar em Nutrição IA.
+9. Inserir fonte oficial.
+10. Alterar status para Aprovado.
+11. Salvar revisão.
+
+COMMIT SUGERIDO
+V38 · Nutrição IA — prepara pesquisa oficial e Imagem 2 dos produtos

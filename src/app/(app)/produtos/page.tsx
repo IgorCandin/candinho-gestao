@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { ProductCatalogTable } from "@/components/product-catalog-table";
@@ -31,12 +33,26 @@ export default async function ProductsPage() {
         title="Produtos"
         description="Consulta rápida de preço, disponibilidade e reposição. Gere um PDF automático ou selecione somente os produtos que o cliente pediu."
         action={
-          <ProductCatalogActions
-            canWrite={
-              access.canWriteSupplements
-            }
-            products={products}
-          />
+          <div className="page-header-action-group">
+            {access.canWriteSupplements && (
+              <Link
+                className="button ghost"
+                href="/produtos/nutricao"
+              >
+                <Sparkles
+                  size={16}
+                />
+                Nutrição IA
+              </Link>
+            )}
+
+            <ProductCatalogActions
+              canWrite={
+                access.canWriteSupplements
+              }
+              products={products}
+            />
+          </div>
         }
       />
 
@@ -44,11 +60,13 @@ export default async function ProductsPage() {
         products={products}
         categories={categories}
         salesMode={
-          access.role === "sales"
+          access.role ===
+          "sales"
         }
       />
 
-      {access.role === "sales" && (
+      {access.role ===
+        "sales" && (
         <article className="panel sales-location-panel">
           <div className="panel-head">
             <div>
@@ -69,10 +87,18 @@ export default async function ProductsPage() {
             <table className="table">
               <thead>
                 <tr>
-                  <th>Produto</th>
-                  <th>Local</th>
-                  <th>Disponível</th>
-                  <th>A caminho</th>
+                  <th>
+                    Produto
+                  </th>
+                  <th>
+                    Local
+                  </th>
+                  <th>
+                    Disponível
+                  </th>
+                  <th>
+                    A caminho
+                  </th>
                 </tr>
               </thead>
 
@@ -85,43 +111,45 @@ export default async function ProductsPage() {
                       row.incoming_quantity >
                         0,
                   )
-                  .map((row) => (
-                    <tr
-                      key={`${row.product_id}-${row.location_id}`}
-                    >
-                      <td>
-                        <strong>
+                  .map(
+                    (row) => (
+                      <tr
+                        key={`${row.product_id}-${row.location_id}`}
+                      >
+                        <td>
+                          <strong>
+                            {
+                              row.product_name
+                            }
+                          </strong>
+                        </td>
+
+                        <td>
                           {
-                            row.product_name
+                            row.location_name
                           }
-                        </strong>
-                      </td>
 
-                      <td>
-                        {
-                          row.location_name
-                        }
+                          <small className="crm-cell-note">
+                            {
+                              row.location_code
+                            }
+                          </small>
+                        </td>
 
-                        <small className="crm-cell-note">
+                        <td>
                           {
-                            row.location_code
+                            row.available_quantity
                           }
-                        </small>
-                      </td>
+                        </td>
 
-                      <td>
-                        {
-                          row.available_quantity
-                        }
-                      </td>
-
-                      <td>
-                        {
-                          row.incoming_quantity
-                        }
-                      </td>
-                    </tr>
-                  ))}
+                        <td>
+                          {
+                            row.incoming_quantity
+                          }
+                        </td>
+                      </tr>
+                    ),
+                  )}
               </tbody>
             </table>
           </div>
