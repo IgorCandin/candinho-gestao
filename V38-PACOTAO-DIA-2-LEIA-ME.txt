@@ -1,0 +1,89 @@
+CANDINHO COMPANY · V38 · PACOTÃO DIA 2
+ESCALA DA FICHA DO CLIENTE + NAVEGAÇÃO ANTERIOR/PRÓXIMO
+
+BASE
+Commit:
+abaa69f5bbbcad2f04e0140efd3892562dfc69a8
+
+Produção antes deste pacote:
+READY na Vercel.
+
+O QUE ESTE PACOTE FAZ
+
+1. FICHA INDIVIDUAL DO CLIENTE MAIS LEVE
+- vendas consultadas por customer_id;
+- leads consultados por customer_id;
+- itens consultados apenas para os leads retornados;
+- pedidos pendentes consultados por customer_id.
+
+A interface atual da ficha não é reescrita.
+
+2. ANTERIOR / PRÓXIMO EM ESCALA
+Substitui a estratégia de carregar todos os IDs por um RPC que devolve
+somente os dois vizinhos.
+
+Cobertura:
+- Produtos
+- Clientes
+- Vendas
+- Orçamentos
+- Parceiros
+- Produtos Fitness
+- Clientes Fitness
+- Vendas Fitness
+
+3. ÍNDICES
+Adicionados índices para:
+- vendas por cliente/tipo/data;
+- sale_items por venda;
+- ordenação de clientes;
+- ordenação de clientes Fitness;
+- ordenação de produtos Fitness;
+- ordenação de vendas Fitness;
+- ordenação de orçamentos.
+
+4. IMPLEMENTAÇÃO SEGURA
+O data.ts original NÃO foi substituído.
+
+Foi criada uma camada:
+src/lib/data-scaled.ts
+
+O tsconfig direciona o import exato @/lib/data para essa camada.
+Ela reexporta todo o módulo original e sobrescreve somente as quatro
+funções otimizadas.
+
+5. MIGRATION
+A migration deste pacote JÁ FOI APLICADA NO SUPABASE.
+
+NÃO execute manualmente em produção:
+20260722090000_v38_customer_scale_and_entity_swipe.sql
+
+COMMIT SUGERIDO
+
+V38 · Dia 2 de escala — ficha do cliente otimizada e navegação sem listas globais
+
+HOMOLOGAÇÃO
+
+1. Abrir um cliente.
+2. Confirmar vendas, leads, pedidos pendentes e CRM.
+3. Usar anterior/próximo na ficha do cliente.
+4. Testar anterior/próximo em:
+   - Produto
+   - Venda
+   - Orçamento
+   - Parceiro
+   - Fitness
+5. Confirmar que criação/edição não mudou.
+
+OBSERVAÇÃO
+
+Este pacote propositalmente NÃO faz um redesign geral.
+Depois dos problemas visuais de ontem, a regra é preservar UX aprovada
+e alterar CSS somente com evidência visual concreta.
+
+PRÓXIMO BLOCO DE ESCALA
+
+- movimentações;
+- pedidos de fornecedor;
+- históricos Fitness;
+- outras telas que ainda carregam centenas de registros de uma vez.
