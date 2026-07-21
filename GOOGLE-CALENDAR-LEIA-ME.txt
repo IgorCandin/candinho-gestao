@@ -1,0 +1,85 @@
+Candinho Company · V38 · GOOGLE CALENDAR + PÓS-VENDA + AGENDA ESTRATÉGICA
+
+O QUE ESTE PACOTE FAZ
+
+1. Pós-venda pendente vira evento no Google Calendar.
+2. Ao concluir o pós-venda na Candinho, o evento é removido automaticamente.
+3. Se a data do pós-venda mudar, o evento é atualizado.
+4. Tarefa da Agenda Estratégica com data vira evento no Google Calendar.
+5. Ao concluir ou adiar a tarefa estratégica, o evento é removido.
+6. Ao reabrir e definir uma data, o evento volta.
+7. Cada tarefa estratégica agora possui campo "Data no Google Calendar".
+8. A Agenda Operacional e a Agenda Estratégica mostram o card de conexão.
+9. Existe botão "Sincronizar agora".
+10. O banco dispara sincronização assíncrona e faz retry automático a cada 15 minutos.
+
+ARQUITETURA
+
+Candinho = fonte oficial.
+Google Calendar = espelho visual/widget.
+
+O Google nunca decide o status da tarefa na primeira versão.
+Você conclui, adia ou reagenda dentro da Candinho.
+A Candinho atualiza o Google.
+
+CONFIGURAÇÃO EXTERNA NECESSÁRIA UMA ÚNICA VEZ
+
+No Google Cloud:
+
+1. Ative a Google Calendar API.
+2. Crie um OAuth Client do tipo "Web application".
+3. Cadastre EXATAMENTE esta URI de redirecionamento:
+
+https://ilboydbakpcfoaexpnhw.supabase.co/functions/v1/google-calendar-oauth
+
+Depois, nos Secrets das Edge Functions do Supabase, cadastre:
+
+GOOGLE_CALENDAR_CLIENT_ID
+GOOGLE_CALENDAR_CLIENT_SECRET
+
+Opcional:
+CANDINHO_APP_URL=https://candinho.duckdns.org
+
+Depois abra:
+Central → Agenda Estratégica
+ou
+Suplementos → Agenda
+
+Clique em:
+Conectar Google
+
+Escolha sua conta Google e autorize.
+
+IMPORTANTE
+
+As 3 migrations deste ZIP JÁ FORAM APLICADAS no Supabase.
+NÃO execute manualmente novamente.
+
+As Edge Functions também JÁ ESTÃO PUBLICADAS:
+- google-calendar-oauth v2
+- google-calendar-sync v2
+
+O cron de retry está ativo:
+*/15 * * * *
+
+Estado atual antes de conectar:
+há registros pendentes na fila aguardando a conexão Google.
+Assim que conectar, a fila é disparada automaticamente.
+
+COMMIT SUGERIDO
+
+V38 · Google Calendar — sincroniza pós-venda e Agenda Estratégica
+
+
+CORREÇÃO DE BUILD INCLUÍDA
+
+O deploy anterior também revelou:
+src/app/(app)/promocoes/[id]/page.tsx
+
+Erro:
+BRAND_ASSETS.company.reduced não existe.
+
+Correção:
+BRAND_ASSETS.company.complete
+
+Portanto este pacote também destrava o build da vitrine standalone de Promoções.

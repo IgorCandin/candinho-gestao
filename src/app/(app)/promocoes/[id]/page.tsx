@@ -31,7 +31,7 @@ export default async function PromotionShowcaseDetailPage({
   const item = await getPromotionShowcaseItem(id);
   if (!item) notFound();
 
-  const company = BRAND_ASSETS.company.reduced;
+  const company = BRAND_ASSETS.company.complete;
   const hasDiscount =
     item.promotional_price < item.current_price;
 

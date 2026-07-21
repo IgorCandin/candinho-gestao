@@ -156,10 +156,46 @@ export async function createStrategicTask(formData: FormData) {
       sort_order: 1000,
       status: "planned",
       notes: optionalText(formData, "notes"),
+      scheduled_on: optionalText(formData, "scheduled_on"),
     });
 
   if (error) {
     throw new Error(`Não foi possível criar a tarefa: ${error.message}`);
+  }
+
+  refreshAgenda();
+}
+
+
+export async function saveStrategicTaskSchedule(
+  formData: FormData,
+) {
+  await assertCanManageStrategicAgenda();
+
+  const id = text(formData, "id");
+  const scheduledOn = optionalText(
+    formData,
+    "scheduled_on",
+  );
+
+  if (!id) {
+    throw new Error("Tarefa inválida.");
+  }
+
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("central_strategic_agenda_items")
+    .update({
+      scheduled_on: scheduledOn,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(
+      `Não foi possível atualizar a data do calendário: ${error.message}`,
+    );
   }
 
   refreshAgenda();

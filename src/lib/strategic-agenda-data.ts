@@ -19,6 +19,7 @@ export type StrategicAgendaItem = {
   impact_note: string | null;
   notes: string | null;
   priority_rank: number;
+  scheduled_on: string | null;
 };
 
 function numberValue(value: unknown) {
@@ -112,6 +113,7 @@ export async function getStrategicAgendaMonth(monthValue?: string) {
     impact_note: row.impact_note ? String(row.impact_note) : null,
     notes: row.notes ? String(row.notes) : null,
     priority_rank: numberValue(row.priority_rank),
+    scheduled_on: row.scheduled_on ? String(row.scheduled_on) : null,
   }));
 
   return {

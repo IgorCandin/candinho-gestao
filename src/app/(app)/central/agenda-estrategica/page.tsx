@@ -8,9 +8,11 @@ import {
   ListChecks,
   ListTodo,
 } from "lucide-react";
+import { GoogleCalendarConnectionCard } from "@/components/google-calendar-connection-card";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess } from "@/lib/data";
+import { getGoogleCalendarStatus } from "@/lib/google-calendar-data";
 import { formatDateTime } from "@/lib/format";
 import {
   getStrategicAgendaMonth,
@@ -21,6 +23,7 @@ import {
   createStrategicTask,
   moveStrategicTaskWeek,
   saveStrategicTaskNotes,
+  saveStrategicTaskSchedule,
   setStrategicTaskStatus,
 } from "./actions";
 
@@ -57,7 +60,10 @@ export default async function StrategicAgendaPage({
   if (!canManage) redirect("/central");
 
   const params = await searchParams;
-  const data = await getStrategicAgendaMonth(params.month);
+  const [data, googleCalendar] = await Promise.all([
+    getStrategicAgendaMonth(params.month),
+    getGoogleCalendarStatus(),
+  ]);
   const allItems = data.items;
 
   const categories = [...new Set(allItems.map((item) => item.category))].sort(
@@ -86,6 +92,10 @@ export default async function StrategicAgendaPage({
         eyebrow="Candinho Central"
         title="Agenda Estratégica"
         description="Sua rotina mensal de crescimento, relacionamento, marketing e operação. O mês é gerado automaticamente a partir das 27 tarefas-base e mantém histórico próprio."
+      />
+
+      <GoogleCalendarConnectionCard
+        status={googleCalendar}
       />
 
       <section className="strategic-month-toolbar">
@@ -205,6 +215,15 @@ export default async function StrategicAgendaPage({
                   <option value="3">Semana 3</option>
                   <option value="4">Semana 4</option>
                 </select>
+              </label>
+
+              <label className="field">
+                <span>Data no Google</span>
+                <input
+                  className="input"
+                  type="date"
+                  name="scheduled_on"
+                />
               </label>
 
               <label className="field">
@@ -351,6 +370,41 @@ export default async function StrategicAgendaPage({
 
                             <button className="button ghost compact-button" type="submit">
                               Salvar anotações
+                            </button>
+                          </form>
+
+                          <form
+                            action={saveStrategicTaskSchedule}
+                            className="strategic-calendar-date-form"
+                          >
+                            <input
+                              type="hidden"
+                              name="id"
+                              value={item.id}
+                            />
+
+                            <label className="field">
+                              <span>Data no Google Calendar</span>
+                              <input
+                                className="input"
+                                type="date"
+                                name="scheduled_on"
+                                defaultValue={
+                                  item.scheduled_on ?? ""
+                                }
+                              />
+                            </label>
+
+                            <small>
+                              Concluiu ou adiou a tarefa? O evento
+                              some automaticamente do Google.
+                            </small>
+
+                            <button
+                              className="button ghost compact-button"
+                              type="submit"
+                            >
+                              Salvar data
                             </button>
                           </form>
 

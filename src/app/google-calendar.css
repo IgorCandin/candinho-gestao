@@ -1,0 +1,122 @@
+/* Candinho Company · Google Calendar */
+
+.google-calendar-card {
+  margin: 0 0 18px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background:
+    radial-gradient(
+      circle at 0 0,
+      rgba(66, 133, 244, 0.1),
+      transparent 20rem
+    ),
+    rgba(15, 19, 27, 0.86);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.google-calendar-card.connected {
+  border-color: rgba(42, 171, 101, 0.22);
+}
+
+.google-calendar-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: rgba(66, 133, 244, 0.12);
+  color: #9bc8ff;
+}
+
+.google-calendar-card-copy > span {
+  color: #9bc8ff;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.google-calendar-card-copy h2 {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+
+.google-calendar-card-copy > p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.google-calendar-card-meta {
+  margin-top: 8px;
+  display: flex;
+  gap: 10px 16px;
+  flex-wrap: wrap;
+}
+
+.google-calendar-card-meta small {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.google-calendar-card-meta strong {
+  color: var(--text);
+}
+
+.google-calendar-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.google-calendar-error,
+.google-calendar-message {
+  margin-top: 8px !important;
+  padding: 8px 10px;
+  border-radius: 10px;
+  font-size: 9px !important;
+}
+
+.google-calendar-error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ff9a9a !important;
+}
+
+.google-calendar-message {
+  background: rgba(42, 171, 101, 0.09);
+  color: #8ee9b0 !important;
+}
+
+.strategic-calendar-date-form {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+
+.strategic-calendar-date-form > small {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+@media (max-width: 900px) {
+  .google-calendar-card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .google-calendar-card-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .strategic-task-details-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
