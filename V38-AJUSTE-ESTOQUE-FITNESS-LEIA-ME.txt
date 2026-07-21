@@ -1,0 +1,53 @@
+CANDINHO COMPANY · V38
+AJUSTE ESTOQUE FITNESS — MINIATURAS + ORDEM APPSHEET
+
+OBJETIVO
+Corrigir:
+ /fitness/estoque
+
+1. MINIATURA
+A coluna Produto agora mostra:
+- miniatura;
+- nome;
+- categoria.
+
+O banco e getFitnessStock() já forneciam image_url.
+A página apenas não renderizava.
+
+2. ORDEM APPSHEET FITNESS
+Ordem-base da antiga planilha/AppSheet:
+
+1. Legging
+2. Short
+3. Top
+4. Camiseta
+5. Conjunto
+6. Acessório
+
+Categorias que surgiram depois foram encaixadas mantendo a lógica:
+
+6. Macacão
+7. Meia
+8. Faixa
+9. Acessório
+
+3. VARIAÇÕES
+Dentro da categoria:
+- produtos ficam juntos;
+- nome do produto;
+- disponível antes de a caminho e zerado;
+- PP → P → M → G → GG → XG → Único;
+- cor alfabética.
+
+4. CONVERSÃO
+O formulário de conversão recebe a mesma lista ordenada.
+
+BANCO
+Nenhuma migration.
+Nenhum dado alterado.
+
+ARQUIVO
+src/app/(app)/fitness/estoque/page.tsx
+
+COMMIT SUGERIDO
+V38 · Estoque Fitness — miniaturas e ordem visual do AppSheet
