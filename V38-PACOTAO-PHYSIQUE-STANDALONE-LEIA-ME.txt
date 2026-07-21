@@ -1,0 +1,26 @@
+V38 · PACOTÃO PHYSIQUE STANDALONE
+
+OBJETIVO
+- Transformar /physique em uma tela standalone, sem menu lateral.
+- Aplicar identidade visual própria da Physique Athletes.
+- Adicionar ações finais: Operações | Sair.
+- Manter a Physique como a única operação sem sidebar.
+
+IMPORTANTE
+1) EXTRAIA OS ARQUIVOS SOBRE O PROJETO.
+2) APAGUE MANUALMENTE O ARQUIVO ANTIGO ABAIXO PARA EVITAR CONFLITO DE ROTA:
+   src/app/(app)/physique/page.tsx
+
+ARQUIVOS DO PACOTE
+- src/app/physique/page.tsx
+- src/app/physique.css
+
+O QUE MUDA
+- /physique deixa de usar o layout com sidebar do grupo (app).
+- A tela passa a ser única, limpa e centralizada.
+- O rodapé de ação fica com: Operações | Sair.
+- O dashboard continua exibindo a logo reduzida da Physique na seleção de operações.
+- Dentro da operação, a tela usa a logo completa.
+
+COMMIT SUGERIDO
+V38 · Physique standalone sem sidebar e com identidade própria
