@@ -1,0 +1,116 @@
+/* V38 · Escala comercial: busca e paginação server-side */
+
+.commercial-scale-toolbar {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.commercial-scale-toolbar-leads {
+  align-items: stretch;
+}
+
+.commercial-search-form {
+  min-width: min(100%, 520px);
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.commercial-search-form label {
+  min-height: 40px;
+  flex: 1;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.015);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.commercial-search-form input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 11px;
+}
+
+.commercial-month-filter {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.commercial-month-filter select {
+  min-height: 40px;
+  padding: 0 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #0c1016;
+  color: var(--text);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.commercial-pagination {
+  margin-top: 14px;
+  padding: 12px 0 2px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.commercial-pagination > span {
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.commercial-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.commercial-pagination > div > b {
+  min-width: 58px;
+  color: var(--muted);
+  text-align: center;
+  font-size: 9px;
+}
+
+.commercial-pagination .disabled {
+  opacity: .38;
+  pointer-events: none;
+}
+
+@media (max-width: 640px) {
+  .commercial-search-form,
+  .commercial-month-filter {
+    width: 100%;
+  }
+
+  .commercial-month-filter select {
+    flex: 1;
+  }
+
+  .commercial-pagination {
+    justify-content: center;
+    text-align: center;
+  }
+
+  .commercial-pagination > span {
+    width: 100%;
+  }
+}

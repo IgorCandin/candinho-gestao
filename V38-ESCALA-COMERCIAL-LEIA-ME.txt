@@ -1,0 +1,63 @@
+CANDINHO COMPANY · V38 · ESCALA COMERCIAL — VENDAS E LEADS
+
+Base esperada:
+c8b9f9c95a01f6a9e27c94c9dcb81705c913663b
+V38 · Pacotão de escala — vitrine pública, Physique foundation e hardening do ERP
+
+ESTADO REAL ANTES DA MUDANÇA
+- sales_history: 283 registros
+- leads_history: 42 registros
+- customers: 158 registros
+
+PROBLEMA CORRIGIDO
+Antes:
+- Vendas buscava até 500 registros de uma vez.
+- Leads carregava todo o histórico de leads e depois todos os itens relacionados.
+- Agrupamento era feito totalmente em memória.
+
+Agora:
+- Vendas usa paginação server-side.
+- 30 vendas por página.
+- Busca por cliente, produto ou local.
+- Contagem total vem do banco.
+- Leads usa paginação server-side.
+- 30 leads por página antes da expansão visual por produto.
+- Busca por cliente, produto, cidade ou telefone.
+- Filtro por mês.
+- Itens de sale_items são buscados somente para os leads da página atual.
+
+ARQUIVOS NOVOS
+- src/lib/commercial-scale-data.ts
+- src/components/commercial-pagination.tsx
+- src/components/commercial-search-form.tsx
+- src/app/commercial-scale.css
+
+ARQUIVOS ALTERADOS
+- src/app/(app)/vendas/page.tsx
+- src/app/(app)/leads/page.tsx
+- src/app/globals.css
+
+BANCO
+Nenhuma migration nova é necessária neste pacote.
+
+PRÓXIMO BLOCO DA AUDITORIA
+Ficha individual do cliente:
+- substituir getCustomerSales que hoje carrega histórico global e filtra em memória;
+- substituir getCustomerLeads que hoje carrega histórico global e filtra em memória;
+- substituir getCustomerPendingOrders que hoje carrega todos os pedidos e filtra em memória;
+- revisar swipe anterior/próximo para não buscar todos os IDs.
+
+COMMIT SUGERIDO
+V38 · Escala comercial — paginação e busca server-side em Vendas e Leads
+
+HOMOLOGAÇÃO
+1. /vendas abre.
+2. Busca funciona.
+3. Próxima/Anterior preservam busca.
+4. /leads abre.
+5. Busca funciona.
+6. Filtro por mês funciona.
+7. Paginação preserva busca e mês.
+8. Abrir uma venda continua funcionando.
+9. Abrir um lead continua funcionando.
+10. Nenhum fluxo de cadastro foi alterado.
