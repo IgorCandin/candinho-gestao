@@ -1,0 +1,45 @@
+CANDINHO COMPANY · V38
+CORREÇÃO DEFINITIVA DO BUILD DA PHYSIQUE
+
+ERRO CONFIRMADO NA VERCEL:
+./src/app/physique
+You cannot have two parallel pages that resolve to the same path.
+Please check /(app)/physique and /physique.
+
+O commit que falhou:
+93b5a954e55003f377b123e65d40e1921bcb93a1
+V38 · Polimento final — corrige Physique, UX Fitness, combos e parceiros
+
+CAUSA:
+O arquivo antigo continua rastreado no GitHub:
+src/app/(app)/physique/page.tsx
+
+E a nova página standalone também existe:
+src/app/physique/page.tsx
+
+As duas viram a URL /physique no Next.js.
+
+CORREÇÃO:
+Precisamos REMOVER do Git:
+src/app/(app)/physique/page.tsx
+
+E PRESERVAR:
+src/app/physique/page.tsx
+
+PASSO A PASSO:
+1. Extraia este ZIP NA RAIZ da pasta candinho-gestao.
+2. Dê dois cliques em:
+   00_CORRIGIR_BUILD_PHYSIQUE.cmd
+3. O script usa:
+   git rm -f -- "src/app/(app)/physique/page.tsx"
+4. Abra o GitHub Desktop.
+5. CONFIRA que aparece a exclusão de:
+   src/app/(app)/physique/page.tsx
+6. Faça o commit.
+
+COMMIT SUGERIDO:
+V38 · Correção definitiva do build — remove rota duplicada da Physique
+
+IMPORTANTE:
+Não precisa reaplicar o pacotão anterior.
+Este corretivo serve apenas para registrar a exclusão que não entrou no último commit.
