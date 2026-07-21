@@ -6,6 +6,7 @@ import {
   MessageSquareText,
   PackageOpen,
   RefreshCcw,
+  ShieldCheck,
   ShoppingBag,
   Users,
   Webhook,
@@ -85,6 +86,16 @@ export default async function ScaleHealthPage() {
                 size={16}
               />
               Sala do Dono
+            </Link>
+
+            <Link
+              className="button ghost"
+              href="/central/executivo/integridade"
+            >
+              <ShieldCheck
+                size={16}
+              />
+              Integridade comercial
             </Link>
           </div>
         }
@@ -189,6 +200,15 @@ export default async function ScaleHealthPage() {
             </span>
             <strong>
               Aplicados
+            </strong>
+          </div>
+
+          <div className="sale-detail-line">
+            <span>
+              Integridade comercial
+            </span>
+            <strong>
+              Auditoria automática disponível
             </strong>
           </div>
 

@@ -1,0 +1,205 @@
+CANDINHO COMPANY · V38
+PACOTÃO DE FECHAMENTO — HOMOLOGAÇÃO, INTEGRIDADE E GOVERNANÇA
+
+BASE
+c610eea73c51d2c9c27c194c23a8e6d6ee2ddc1c
+V38 · Pacotão máximo — corrige orçamento confirmado e pagina históricos operacionais
+
+PRODUÇÃO DA BASE
+READY na Vercel.
+Nenhum runtime error/fatal encontrado no deploy consultado.
+
+==================================================
+1. HOMOLOGAÇÃO COMERCIAL REAL — 8/8
+==================================================
+
+Tudo executado com ROLLBACK.
+
+Nenhum dado de teste ficou no banco.
+
+APROVADO:
+1. Apenas orçando.
+2. Editar o orçamento e confirmar.
+3. Parceria + reserva + brinde.
+4. Pagamento.
+5. Entrega + baixa de estoque.
+6. Pós-venda.
+7. Cancelamento antes da entrega.
+8. Cancelamento depois da entrega.
+
+O fluxo que havia falhado para o orçamento #14 foi reproduzido
+e passou após a correção.
+
+==================================================
+2. NOVA ÁREA — INTEGRIDADE COMERCIAL
+==================================================
+
+Rota:
+ /central/executivo/integridade
+
+Somente Sala do Dono / canManageUsers.
+
+Audita automaticamente:
+- orçamento x venda;
+- venda sem itens;
+- reservas após cancelamento;
+- entrega x baixa;
+- totais;
+- custos;
+- lucro;
+- pagamento;
+- estoque;
+- sabores;
+- Fitness;
+- parceiros;
+- pós-venda;
+- Google Calendar.
+
+ESTADO ATUAL VALIDADO:
+Status: SAUDÁVEL
+Críticos: 0
+Atenção: 0
+
+==================================================
+3. GOVERNANÇA PAGINADA
+==================================================
+
+Antes:
+getCentralGovernanceSnapshotV2(200)
+carregava até 200 registros em uma página.
+
+Agora:
+- 30 eventos por página;
+- total real contado no servidor;
+- navegação Anterior / Próxima.
+
+Estado atual:
+501 eventos
+17 páginas
+
+==================================================
+4. SPAM DE AUDITORIA DA INTEGRAÇÃO
+==================================================
+
+Identificado problema real:
+
+O WhatsApp atualizava dados internos de sincronização e cada UPDATE
+gerava uma linha nova no histórico, mesmo sem mudança relevante.
+
+Corrigido.
+
+Agora a auditoria só registra alterações reais em:
+- provider;
+- escopo;
+- ID da conta;
+- nome da conta;
+- status;
+- erro.
+
+NÃO apagamos os 501 eventos antigos.
+
+==================================================
+5. CENTRAL DE MENSAGENS
+==================================================
+
+Auditado:
+429 mensagens totais.
+Maior conversa: 133 mensagens.
+Conversas > 200: zero.
+
+Decisão:
+não adicionar paginação agora.
+
+O limite atual ainda comporta 100% das conversas reais e não existe
+gargalo concreto nessa tela hoje.
+
+==================================================
+6. HISTÓRICO FINANCEIRO LEGADO
+==================================================
+
+270 vendas antigas recebidas não possuem sale_payment_entries.
+
+Isso não é bug atual.
+
+São registros anteriores ao controle novo por lançamentos e, por isso,
+a nova Integridade Comercial mostra esse número apenas como informação.
+
+Recebimentos NOVOS sem lançamento:
+ZERO.
+
+==================================================
+7. MIGRATIONS
+==================================================
+
+JÁ APLICADAS NO SUPABASE.
+
+NÃO executar manualmente em produção:
+
+20260722123000_v38_commercial_integrity_and_governance_pagination.sql
+20260722123500_v38_governance_audit_noise_guard.sql
+
+==================================================
+8. HOMOLOGAÇÃO APÓS O COMMIT
+==================================================
+
+1. Abrir:
+   /central/executivo/integridade
+
+Esperado:
+- Saúde comercial: Saudável
+- Inconsistências críticas: 0
+
+2. Abrir:
+   /central/executivo/escala
+
+Esperado:
+- botão Integridade comercial.
+
+3. Abrir:
+   /central/governanca
+
+Esperado:
+- 30 eventos por página;
+- paginação;
+- total real do histórico.
+
+4. Fazer teste manual do orçamento #14.
+
+Esperado:
+- editar;
+- confirmar;
+- criar venda;
+- preservar parceiro;
+- baixar brinde;
+- reservar produto.
+
+==================================================
+9. O QUE FICA DEPOIS DESTE PACOTE
+==================================================
+
+O GROSSO DA RODADA V38 ESTÁ PRATICAMENTE FECHADO.
+
+Restante:
+
+A. Homologação visual manual
+- zoom 100%;
+- mobile/desktop;
+- páginas que você encontrar visualmente estranhas.
+
+B. Erros encontrados durante uso real
+- corrigir somente evidência concreta.
+
+C. Physique
+- fundação pronta;
+- operação segue propositalmente não inicializada;
+- ficha/anexos entram quando você decidir iniciar a operação.
+
+D. Evoluções futuras
+- mensagens Central quando alguma conversa ultrapassar ~200 mensagens;
+- outras paginações quando o volume real justificar.
+
+==================================================
+COMMIT SUGERIDO
+==================================================
+
+V38 · Fechamento da homologação — integridade comercial e governança em escala
