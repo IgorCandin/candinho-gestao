@@ -1,0 +1,110 @@
+CANDINHO COMPANY · V38 · PACOTÃO RESGATE UX FINAL DA NOITE
+
+POR QUE ESTE PACOTE EXISTE
+O pacote anterior substituiu arquivos CSS completos por trechos parciais.
+Isso removeu estilos já consolidados e deixou Dashboard, Vitrine e Promoções
+com aparência quebrada.
+
+ESTRATÉGIA DESTE PACOTE
+- Restaurar os arquivos CSS COMPLETOS da última base visual saudável.
+- Acrescentar somente os novos ajustes ao final.
+- Não redesenhar o que já estava aprovado.
+- Preservar o funil em V da tela de operações.
+
+CORREÇÕES
+
+1. TELA DE OPERAÇÕES
+Mantém o funil em V.
+Physique usa a LOGO REDUZIDA no seletor.
+As imagens Physique foram apenas recortadas no espaço transparente,
+sem alterar desenho, cor ou identidade.
+
+Botões inferiores:
+Vitrine | Promoções | Perfil | Sair
+
+Sala do Dono deixa de ocupar o rodapé da tela de escolha de operação.
+
+2. PHYSIQUE
+No seletor: logo reduzida.
+Dentro da operação: continua usando a logo completa.
+A leitura inicial ganha fallback seguro para a fundação não derrubar a página
+enquanto a operação ainda está marcada como não inicializada.
+
+3. PROMOÇÕES
+Restaura a tela antiga de Promoções, que estava visualmente aprovada.
+Não usa mais a tela nova que substituiu o showcase.
+
+Adiciona somente:
+Selecionar produtos e gerar PDF → /promocoes/exportar
+
+4. VITRINE
+Restaura o CSS completo da Vitrine.
+A rota /catalogo volta ao padrão visual original.
+A vitrine pública continua SEM ferramentas administrativas.
+
+5. PDF PREMIUM
+A área /promocoes/exportar permite:
+- Produtos ou Promoções;
+- filtros;
+- busca;
+- seleção individual;
+- seleção em massa dos itens filtrados;
+- PDF via impressão do navegador.
+
+Identidade do PDF:
+- Suplementos + Fitness juntos = Candinho Company;
+- somente Suplementos = Candinho Suplementos;
+- somente Fitness = Candinho Fitness.
+
+Layout:
+- A4 retrato;
+- visual branco/preto/dourado;
+- 2 cards por linha;
+- imagens grandes;
+- preço destacado;
+- evita quebrar card entre páginas.
+
+6. SELEÇÃO EM MASSA
+Produtos já possui fluxo próprio de "Selecionar produtos" para catálogo PDF.
+Este pacote padroniza a mesma ideia na exportação de Produtos/Promoções,
+sem substituir o fluxo existente da tela Produtos.
+
+7. FIT 100% / SEM ZOOM OUT
+Incluído ajuste para telas desktop com menor altura:
+- logo Company menor;
+- espaçamento vertical reduzido;
+- rodapé de ações mais compacto.
+
+O objetivo é manter a tela de operações utilizável em zoom 100%.
+
+O QUE NÃO FOI ALTERADO NESTE PACOTE
+- fluxo de vendas;
+- estoque;
+- Bank;
+- Central;
+- Google Agenda;
+- cadastro de produtos;
+- RLS;
+- migrations;
+- dados do banco.
+
+PENDÊNCIA DE ESCALA PARA AMANHÃ
+A ficha individual do cliente ainda merece a otimização de consultas específicas
+por customer_id e a navegação anterior/próximo por cursor.
+
+Não entrou neste pacote porque exigiria substituir arquivos centrais grandes
+no fim da homologação visual. A decisão foi priorizar segurança e não estragar
+o que já está funcionando.
+
+PARA ENCERRAR HOJE
+1. Extrair sobre candinho-gestao.
+2. Commit.
+3. Conferir:
+   /dashboard
+   /catalogo
+   /promocoes
+   /physique
+4. Se as quatro telas estiverem boas, pode encerrar a noite.
+
+COMMIT SUGERIDO
+V38 · Resgate UX final — restaura Vitrine e Promoções, corrige Physique e PDF A4

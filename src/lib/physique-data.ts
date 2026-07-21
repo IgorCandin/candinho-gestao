@@ -114,17 +114,17 @@ function plan(row: Record<string, unknown>): PhysiqueTrainingPlan {
   };
 }
 
-const EMPTY_SNAPSHOT = {
-  enabled: false,
-  athletes: [] as PhysiqueAthlete[],
-  athleteCount: 0,
-  trainingPlanCount: 0,
-  activeTrainingPlanCount: 0,
-  attachmentCount: 0,
-};
-
 export async function getPhysiqueFoundationSnapshot() {
   const supabase = await createClient();
+
+  const empty = {
+    enabled: false,
+    athletes: [] as PhysiqueAthlete[],
+    athleteCount: 0,
+    trainingPlanCount: 0,
+    activeTrainingPlanCount: 0,
+    attachmentCount: 0,
+  };
 
   try {
     const [flagResult, athletesResult, plansResult, attachmentsResult] = await Promise.all([
@@ -135,10 +135,12 @@ export async function getPhysiqueFoundationSnapshot() {
     ]);
 
     if (athletesResult.error || plansResult.error || attachmentsResult.error) {
-      return EMPTY_SNAPSHOT;
+      return empty;
     }
 
-    const athletes = (athletesResult.data ?? []).map((row) => athlete(row as Record<string, unknown>));
+    const athletes = (athletesResult.data ?? []).map((row) =>
+      athlete(row as Record<string, unknown>)
+    );
     const plans = plansResult.data ?? [];
 
     return {
@@ -150,172 +152,149 @@ export async function getPhysiqueFoundationSnapshot() {
       attachmentCount: attachmentsResult.count ?? 0,
     };
   } catch {
-    return EMPTY_SNAPSHOT;
+    return empty;
   }
 }
 
 export async function getPhysiqueAthletes() {
   const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("physique_athlete_overview")
+    .select("*")
+    .order("display_name");
 
-  try {
-    const { data, error } = await supabase
-      .from("physique_athlete_overview")
-      .select("*")
-      .order("display_name");
-
-    if (error) return [];
-    return (data ?? []).map((row) => athlete(row as Record<string, unknown>));
-  } catch {
-    return [];
-  }
+  if (error) throw error;
+  return (data ?? []).map((row) => athlete(row as Record<string, unknown>));
 }
 
 export async function getPhysiqueAthleteDetails(id: string) {
   const supabase = await createClient();
+  const [{ data: athleteRow, error: athleteError }, { data: planRows, error: planError }] = await Promise.all([
+    supabase.from("physique_athlete_overview").select("*").eq("id", id).maybeSingle(),
+    supabase.from("physique_training_plans").select("*").eq("athlete_id", id).order("created_at", { ascending: false }),
+  ]);
 
-  try {
-    const [
-      { data: athleteRow, error: athleteError },
-      { data: planRows, error: planError },
-    ] = await Promise.all([
-      supabase.from("physique_athlete_overview").select("*").eq("id", id).maybeSingle(),
-      supabase.from("physique_training_plans").select("*").eq("athlete_id", id).order("created_at", { ascending: false }),
-    ]);
+  if (athleteError) throw athleteError;
+  if (planError) throw planError;
+  if (!athleteRow) return null;
 
-    if (athleteError || planError || !athleteRow) return null;
-
-    return {
-      athlete: athlete(athleteRow as Record<string, unknown>),
-      plans: (planRows ?? []).map((row) => plan(row as Record<string, unknown>)),
-    };
-  } catch {
-    return null;
-  }
+  return {
+    athlete: athlete(athleteRow as Record<string, unknown>),
+    plans: (planRows ?? []).map((row) => plan(row as Record<string, unknown>)),
+  };
 }
 
 export async function getPhysiqueTrainingPlans() {
   const supabase = await createClient();
 
-  try {
-    const [
-      { data: planRows, error: planError },
-      { data: athleteRows, error: athleteError },
-    ] = await Promise.all([
-      supabase.from("physique_training_plans").select("*").order("created_at", { ascending: false }),
-      supabase.from("physique_athlete_overview").select("id,display_name"),
-    ]);
+  const [{ data: planRows, error: planError }, { data: athleteRows, error: athleteError }] = await Promise.all([
+    supabase.from("physique_training_plans").select("*").order("created_at", { ascending: false }),
+    supabase.from("physique_athlete_overview").select("id,display_name"),
+  ]);
 
-    if (planError || athleteError) return [];
+  if (planError) throw planError;
+  if (athleteError) throw athleteError;
 
-    const athleteNames = new Map(
-      (athleteRows ?? []).map((row) => [String(row.id), String(row.display_name ?? "Atleta")]),
-    );
+  const athleteNames = new Map(
+    (athleteRows ?? []).map((row) => [String(row.id), String(row.display_name ?? "Atleta")]),
+  );
 
-    return (planRows ?? []).map((row) => ({
-      ...plan(row as Record<string, unknown>),
-      athlete_name: athleteNames.get(String(row.athlete_id)) ?? "Atleta",
-    }));
-  } catch {
-    return [];
-  }
+  return (planRows ?? []).map((row) => ({
+    ...plan(row as Record<string, unknown>),
+    athlete_name: athleteNames.get(String(row.athlete_id)) ?? "Atleta",
+  }));
 }
 
 export async function getPhysiqueTrainingPlanDetails(id: string) {
   const supabase = await createClient();
 
-  try {
-    const { data: planRow, error: planError } = await supabase
-      .from("physique_training_plans")
+  const { data: planRow, error: planError } = await supabase
+    .from("physique_training_plans")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (planError) throw planError;
+  if (!planRow) return null;
+
+  const [{ data: athleteRow, error: athleteError }, { data: dayRows, error: dayError }, { data: attachmentRows, error: attachmentError }] = await Promise.all([
+    supabase.from("physique_athlete_overview").select("*").eq("id", planRow.athlete_id).maybeSingle(),
+    supabase.from("physique_training_days").select("*").eq("plan_id", id).order("day_order"),
+    supabase.from("physique_training_attachments").select("*").eq("plan_id", id).order("created_at", { ascending: false }),
+  ]);
+
+  if (athleteError) throw athleteError;
+  if (dayError) throw dayError;
+  if (attachmentError) throw attachmentError;
+
+  const days: PhysiqueTrainingDay[] = (dayRows ?? []).map((row) => ({
+    id: String(row.id),
+    plan_id: String(row.plan_id),
+    day_order: n(row.day_order),
+    day_label: String(row.day_label ?? "Treino"),
+    focus: typeof row.focus === "string" ? row.focus : null,
+    notes: typeof row.notes === "string" ? row.notes : null,
+  }));
+
+  const dayIds = days.map((day) => day.id);
+  let exerciseRows: Record<string, unknown>[] = [];
+
+  if (dayIds.length > 0) {
+    const { data, error } = await supabase
+      .from("physique_training_exercises")
       .select("*")
-      .eq("id", id)
-      .maybeSingle();
+      .in("day_id", dayIds)
+      .order("exercise_order");
 
-    if (planError || !planRow) return null;
+    if (error) throw error;
+    exerciseRows = (data ?? []) as Record<string, unknown>[];
+  }
 
-    const [
-      { data: athleteRow, error: athleteError },
-      { data: dayRows, error: dayError },
-      { data: attachmentRows, error: attachmentError },
-    ] = await Promise.all([
-      supabase.from("physique_athlete_overview").select("*").eq("id", planRow.athlete_id).maybeSingle(),
-      supabase.from("physique_training_days").select("*").eq("plan_id", id).order("day_order"),
-      supabase.from("physique_training_attachments").select("*").eq("plan_id", id).order("created_at", { ascending: false }),
-    ]);
+  const exercises: PhysiqueTrainingExercise[] = exerciseRows.map((row) => ({
+    id: String(row.id),
+    day_id: String(row.day_id),
+    exercise_order: n(row.exercise_order),
+    exercise_name: String(row.exercise_name ?? "Exercício"),
+    sets_text: typeof row.sets_text === "string" ? row.sets_text : null,
+    reps_text: typeof row.reps_text === "string" ? row.reps_text : null,
+    rest_seconds: row.rest_seconds == null ? null : n(row.rest_seconds),
+    technique: typeof row.technique === "string" ? row.technique : null,
+    load_guidance: typeof row.load_guidance === "string" ? row.load_guidance : null,
+    notes: typeof row.notes === "string" ? row.notes : null,
+  }));
 
-    if (dayError || attachmentError || athleteError) return null;
+  const attachments: PhysiqueAttachment[] = [];
 
-    const days: PhysiqueTrainingDay[] = (dayRows ?? []).map((row) => ({
+  for (const row of attachmentRows ?? []) {
+    const fileUrl = String(row.file_url ?? "");
+    let signedUrl: string | null = null;
+
+    if (/^https?:\/\//i.test(fileUrl)) {
+      signedUrl = fileUrl;
+    } else if (fileUrl) {
+      const { data } = await supabase.storage
+        .from("physique-training-files")
+        .createSignedUrl(fileUrl, 60 * 60);
+      signedUrl = data?.signedUrl ?? null;
+    }
+
+    attachments.push({
       id: String(row.id),
       plan_id: String(row.plan_id),
-      day_order: n(row.day_order),
-      day_label: String(row.day_label ?? "Treino"),
-      focus: typeof row.focus === "string" ? row.focus : null,
-      notes: typeof row.notes === "string" ? row.notes : null,
-    }));
-
-    const dayIds = days.map((day) => day.id);
-    let exerciseRows: Record<string, unknown>[] = [];
-
-    if (dayIds.length > 0) {
-      const { data, error } = await supabase
-        .from("physique_training_exercises")
-        .select("*")
-        .in("day_id", dayIds)
-        .order("exercise_order");
-
-      if (!error) {
-        exerciseRows = (data ?? []) as Record<string, unknown>[];
-      }
-    }
-
-    const exercises: PhysiqueTrainingExercise[] = exerciseRows.map((row) => ({
-      id: String(row.id),
-      day_id: String(row.day_id),
-      exercise_order: n(row.exercise_order),
-      exercise_name: String(row.exercise_name ?? "Exercício"),
-      sets_text: typeof row.sets_text === "string" ? row.sets_text : null,
-      reps_text: typeof row.reps_text === "string" ? row.reps_text : null,
-      rest_seconds: row.rest_seconds == null ? null : n(row.rest_seconds),
-      technique: typeof row.technique === "string" ? row.technique : null,
-      load_guidance: typeof row.load_guidance === "string" ? row.load_guidance : null,
-      notes: typeof row.notes === "string" ? row.notes : null,
-    }));
-
-    const attachments: PhysiqueAttachment[] = [];
-
-    for (const row of attachmentRows ?? []) {
-      const fileUrl = String(row.file_url ?? "");
-      let signedUrl: string | null = null;
-
-      if (/^https?:\/\//i.test(fileUrl)) {
-        signedUrl = fileUrl;
-      } else if (fileUrl) {
-        const { data } = await supabase.storage
-          .from("physique-training-files")
-          .createSignedUrl(fileUrl, 60 * 60);
-        signedUrl = data?.signedUrl ?? null;
-      }
-
-      attachments.push({
-        id: String(row.id),
-        plan_id: String(row.plan_id),
-        file_name: String(row.file_name ?? "Arquivo"),
-        file_url: fileUrl,
-        mime_type: typeof row.mime_type === "string" ? row.mime_type : null,
-        file_size_bytes: row.file_size_bytes == null ? null : n(row.file_size_bytes),
-        created_at: String(row.created_at ?? ""),
-        signed_url: signedUrl,
-      });
-    }
-
-    return {
-      plan: plan(planRow as Record<string, unknown>),
-      athlete: athleteRow ? athlete(athleteRow as Record<string, unknown>) : null,
-      days,
-      exercises,
-      attachments,
-    };
-  } catch {
-    return null;
+      file_name: String(row.file_name ?? "Arquivo"),
+      file_url: fileUrl,
+      mime_type: typeof row.mime_type === "string" ? row.mime_type : null,
+      file_size_bytes: row.file_size_bytes == null ? null : n(row.file_size_bytes),
+      created_at: String(row.created_at ?? ""),
+      signed_url: signedUrl,
+    });
   }
+
+  return {
+    plan: plan(planRow as Record<string, unknown>),
+    athlete: athleteRow ? athlete(athleteRow as Record<string, unknown>) : null,
+    days,
+    exercises,
+    attachments,
+  };
 }

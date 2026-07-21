@@ -35,54 +35,75 @@ function selectionId(item: SelectableItem) {
   return `${item.kind}:${item.operation}:${item.id}`;
 }
 
-function currencyRange(from: number, to: number) {
-  if (Math.abs(from - to) < 0.01) return formatCurrency(from);
-  return `${formatCurrency(from)} — ${formatCurrency(to)}`;
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function absoluteUrl(value: string | null) {
+  if (!value) return "";
+  try {
+    return new URL(value, window.location.origin).href;
+  } catch {
+    return "";
+  }
 }
 
 function ProductPrice({ item }: { item: PublicStorefrontProduct }) {
-  return <strong>{currencyRange(item.price_from, item.price_to)}</strong>;
+  if (Math.abs(item.price_from - item.price_to) < 0.01) {
+    return <strong>{formatCurrency(item.price_from)}</strong>;
+  }
+
+  return (
+    <strong>
+      {formatCurrency(item.price_from)} — {formatCurrency(item.price_to)}
+    </strong>
+  );
 }
 
-function Selector({
-  active,
+function SelectButton({
+  selected,
   onToggle,
 }: {
-  active: boolean;
+  selected: boolean;
   onToggle: () => void;
 }) {
   return (
     <button
-      className={`public-storefront-select-toggle ${active ? "active" : ""}`}
+      className={`public-storefront-select-toggle ${selected ? "active" : ""}`}
       type="button"
       onClick={(event) => {
         event.preventDefault();
         event.stopPropagation();
         onToggle();
       }}
-      aria-label={active ? "Remover da seleção" : "Selecionar para PDF"}
+      aria-label={selected ? "Remover da seleção" : "Selecionar para PDF"}
     >
-      {active ? <CheckSquare size={17} /> : <Square size={17} />}
+      {selected ? <CheckSquare size={17} /> : <Square size={17} />}
     </button>
   );
 }
 
 function ProductCard({
   item,
-  selectable = false,
-  selected = false,
+  selectable,
+  selected,
   onToggle,
 }: {
   item: PublicStorefrontProduct;
-  selectable?: boolean;
-  selected?: boolean;
-  onToggle?: () => void;
+  selectable: boolean;
+  selected: boolean;
+  onToggle: () => void;
 }) {
   return (
     <article className={`public-storefront-card ${selected ? "selected" : ""}`}>
       <div className="public-storefront-card-image">
-        {selectable && onToggle && (
-          <Selector active={selected} onToggle={onToggle} />
+        {selectable && (
+          <SelectButton selected={selected} onToggle={onToggle} />
         )}
 
         {item.image_url ? (
@@ -95,6 +116,7 @@ function ProductCard({
         ) : (
           <PackageOpen size={38} />
         )}
+
         <span className="public-storefront-available">
           <PackageCheck size={13} />
           Disponível
@@ -112,22 +134,22 @@ function ProductCard({
 
 function PromotionCard({
   item,
-  selectable = false,
-  selected = false,
+  selectable,
+  selected,
   onToggle,
 }: {
   item: PublicStorefrontPromotion;
-  selectable?: boolean;
-  selected?: boolean;
-  onToggle?: () => void;
+  selectable: boolean;
+  selected: boolean;
+  onToggle: () => void;
 }) {
   const hasDiscount = item.promotional_price < item.current_price;
 
   return (
     <article className={`public-storefront-card public-storefront-promotion-card ${selected ? "selected" : ""}`}>
       <div className="public-storefront-card-image">
-        {selectable && onToggle && (
-          <Selector active={selected} onToggle={onToggle} />
+        {selectable && (
+          <SelectButton selected={selected} onToggle={onToggle} />
         )}
 
         {item.image_url ? (
@@ -181,6 +203,7 @@ export function PublicStorefrontBrowser({
   const categories = useMemo(() => {
     if (operation === "supplements") return snapshot.categories.supplements;
     if (operation === "fitness") return snapshot.categories.fitness;
+
     return [...new Set([
       ...snapshot.categories.supplements,
       ...snapshot.categories.fitness,
@@ -216,250 +239,323 @@ export function PublicStorefrontBrowser({
       return a.name.localeCompare(b.name, "pt-BR");
     });
 
-  const supplementProducts = sortProducts(
-    snapshot.products.supplements.filter(productFilter),
-  );
-  const fitnessProducts = sortProducts(
-    snapshot.products.fitness.filter(productFilter),
-  );
-  const supplementPromotions = sortPromotions(
-    snapshot.promotions.supplements.filter(promotionFilter),
-  );
-  const fitnessPromotions = sortPromotions(
-    snapshot.promotions.fitness.filter(promotionFilter),
-  );
+  const supplementProducts = sortProducts(snapshot.products.supplements.filter(productFilter));
+  const fitnessProducts = sortProducts(snapshot.products.fitness.filter(productFilter));
+  const supplementPromotions = sortPromotions(snapshot.promotions.supplements.filter(promotionFilter));
+  const fitnessPromotions = sortPromotions(snapshot.promotions.fitness.filter(promotionFilter));
 
-  const allFilteredProducts: SelectableItem[] = [
-    ...supplementProducts.map((item) => ({ ...item, kind: "product" as const })),
-    ...fitnessProducts.map((item) => ({ ...item, kind: "product" as const })),
-  ];
+  const visibleItems: SelectableItem[] =
+    view === "products"
+      ? [
+          ...supplementProducts.map((item) => ({ ...item, kind: "product" as const })),
+          ...fitnessProducts.map((item) => ({ ...item, kind: "product" as const })),
+        ]
+      : [
+          ...supplementPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
+          ...fitnessPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
+        ];
 
-  const allFilteredPromotions: SelectableItem[] = [
-    ...supplementPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
-    ...fitnessPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
-  ];
-
-  const filteredSelectableItems = view === "products"
-    ? allFilteredProducts
-    : allFilteredPromotions;
-
-  const selectedItems = filteredSelectableItems.filter((item) =>
+  const selectedItems = visibleItems.filter((item) =>
     selectedIds.includes(selectionId(item)),
   );
 
-  const blocks = view === "products"
-    ? [
-        { key: "supplements", title: "Suplementos", items: supplementProducts },
-        { key: "fitness", title: "Fitness", items: fitnessProducts },
-      ]
-    : [
-        { key: "supplements", title: "Suplementos", items: supplementPromotions },
-        { key: "fitness", title: "Fitness", items: fitnessPromotions },
-      ];
+  const blocks =
+    view === "products"
+      ? [
+          { key: "supplements", title: "Suplementos", items: supplementProducts },
+          { key: "fitness", title: "Fitness", items: fitnessProducts },
+        ]
+      : [
+          { key: "supplements", title: "Suplementos", items: supplementPromotions },
+          { key: "fitness", title: "Fitness", items: fitnessPromotions },
+        ];
 
   function toggleItem(item: SelectableItem) {
-    const id = selectionId(item);
+    const key = selectionId(item);
     setSelectedIds((current) =>
-      current.includes(id)
-        ? current.filter((value) => value !== id)
-        : [...current, id],
+      current.includes(key)
+        ? current.filter((value) => value !== key)
+        : [...current, key],
     );
   }
 
-  function selectFiltered() {
+  function selectVisible() {
     setSelectedIds((current) => {
-      const merged = new Set(current);
-      for (const item of filteredSelectableItems) {
-        merged.add(selectionId(item));
-      }
-      return Array.from(merged);
+      const next = new Set(current);
+      visibleItems.forEach((item) => next.add(selectionId(item)));
+      return [...next];
     });
   }
 
-  function clearSelection() {
-    setSelectedIds([]);
-  }
-
-  function exportSelectedToPdf() {
+  function exportPdf() {
     if (selectedItems.length === 0) return;
 
-    const operations = [...new Set(selectedItems.map((item) => item.operation))];
-    const logo = operations.length === 2
-      ? BRAND_ASSETS.company.complete
-      : operations[0] === "fitness"
-        ? BRAND_ASSETS.fitness.complete
-        : BRAND_ASSETS.supplements.complete;
+    const selectedOperations = [...new Set(selectedItems.map((item) => item.operation))];
+    const logo =
+      selectedOperations.length > 1
+        ? BRAND_ASSETS.company.complete
+        : selectedOperations[0] === "fitness"
+          ? BRAND_ASSETS.fitness.complete
+          : BRAND_ASSETS.supplements.complete;
 
-    const title = view === "products" ? "Produtos Selecionados" : "Promoções Selecionadas";
+    const logoUrl = absoluteUrl(logo.src);
+    const documentTitle =
+      view === "promotions"
+        ? "Promoções Selecionadas"
+        : "Produtos Selecionados";
 
-    const rows = selectedItems.map((item) => {
-      const price = item.kind === "product"
-        ? currencyRange(item.price_from, item.price_to)
-        : formatCurrency(item.promotional_price);
+    const rows = selectedItems
+      .map((item) => {
+        const image = absoluteUrl(item.image_url);
+        const operationLabel =
+          item.operation === "fitness" ? "Candinho Fitness" : "Candinho Suplementos";
 
-      const extra = item.kind === "product"
-        ? `Disponível · ${item.operation === "supplements" ? "Suplementos" : "Fitness"}`
-        : `${item.promotion_name} · ${item.operation === "supplements" ? "Suplementos" : "Fitness"}`;
+        const price =
+          item.kind === "product"
+            ? Math.abs(item.price_from - item.price_to) < 0.01
+              ? formatCurrency(item.price_from)
+              : `${formatCurrency(item.price_from)} — ${formatCurrency(item.price_to)}`
+            : formatCurrency(item.promotional_price);
 
-      const oldPrice = item.kind === "promotion" && item.promotional_price < item.current_price
-        ? `<small>de ${formatCurrency(item.current_price)}</small>`
-        : "";
+        const oldPrice =
+          item.kind === "promotion" &&
+          item.promotional_price < item.current_price
+            ? `<span class="old-price">${escapeHtml(formatCurrency(item.current_price))}</span>`
+            : "";
 
-      return `
-        <article class="export-card">
-          <div class="export-image">
-            ${item.image_url
-              ? `<img src="${item.image_url}" alt="${item.name}" />`
-              : `<div class="export-placeholder">${item.kind === "product" ? "Produto" : "Promoção"}</div>`}
-          </div>
-          <div class="export-copy">
-            <span>${item.category ?? (item.kind === "product" ? "Produto" : "Promoção")}</span>
-            <h3>${item.name}</h3>
-            <p>${extra}</p>
-            ${oldPrice}
-            <strong>${price}</strong>
-          </div>
-        </article>
-      `;
-    }).join("");
+        const campaign =
+          item.kind === "promotion"
+            ? `<p>${escapeHtml(item.promotion_name)}</p>`
+            : `<p>Disponível para venda</p>`;
 
-    const html = `
+        return `
+          <article class="card">
+            <div class="photo">
+              ${image
+                ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(item.name)}">`
+                : `<div class="placeholder">CANDINHO</div>`}
+            </div>
+            <div class="copy">
+              <span class="operation">${escapeHtml(operationLabel)}</span>
+              <h2>${escapeHtml(item.name)}</h2>
+              <span class="category">${escapeHtml(item.category ?? "Produto")}</span>
+              ${campaign}
+              <div class="price">${oldPrice}<strong>${escapeHtml(price)}</strong></div>
+            </div>
+          </article>
+        `;
+      })
+      .join("");
+
+    const popup = window.open("", "_blank", "width=1100,height=900");
+    if (!popup) return;
+
+    popup.document.write(`
+      <!doctype html>
       <html lang="pt-BR">
         <head>
-          <title>${title}</title>
-          <meta charset="utf-8" />
+          <meta charset="utf-8">
+          <title>${escapeHtml(documentTitle)}</title>
           <style>
+            @page { size: A4 portrait; margin: 10mm; }
+
+            * { box-sizing: border-box; }
+
             body {
               margin: 0;
-              padding: 28px;
-              background: #0b0f15;
-              color: #f4f7fb;
+              background: #f4f2ed;
+              color: #111;
               font-family: Arial, Helvetica, sans-serif;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
             }
-            .wrap {
-              max-width: 1120px;
+
+            .sheet {
+              max-width: 190mm;
               margin: 0 auto;
             }
-            .brand {
+
+            .header {
+              padding: 5mm 0 6mm;
+              border-bottom: 1.5px solid #c49b3d;
               display: flex;
-              justify-content: center;
-              margin-bottom: 20px;
+              align-items: center;
+              justify-content: space-between;
+              gap: 8mm;
             }
-            .brand img {
-              width: min(280px, 100%);
-              max-height: 86px;
+
+            .header img {
+              width: 62mm;
+              max-height: 20mm;
               object-fit: contain;
+              object-position: left center;
             }
-            .hero {
-              margin-bottom: 22px;
-              padding: 18px 20px;
-              border: 1px solid rgba(216,171,65,.24);
-              border-radius: 16px;
-              background: linear-gradient(180deg, rgba(216,171,65,.08), rgba(255,255,255,.02));
+
+            .header-copy {
+              text-align: right;
             }
-            .hero span {
-              color: #e6c775;
-              font-size: 12px;
-              font-weight: 700;
+
+            .header-copy span {
+              color: #9b7528;
+              display: block;
+              font-size: 8pt;
+              font-weight: 800;
+              letter-spacing: .12em;
               text-transform: uppercase;
-              letter-spacing: .08em;
             }
-            .hero h1 {
-              margin: 8px 0 10px;
-              font-size: 40px;
+
+            .header-copy h1 {
+              margin: 2mm 0 0;
+              font-size: 20pt;
               line-height: 1;
             }
-            .hero p {
-              margin: 0;
-              color: #b7c0cc;
-              font-size: 14px;
-              line-height: 1.55;
+
+            .intro {
+              padding: 5mm 0 4mm;
+              color: #555;
+              font-size: 9pt;
+              line-height: 1.5;
             }
+
             .grid {
               display: grid;
               grid-template-columns: repeat(2, minmax(0, 1fr));
-              gap: 16px;
+              gap: 4mm;
             }
-            .export-card {
-              overflow: hidden;
-              border: 1px solid #252d3a;
-              border-radius: 18px;
-              background: #121821;
-            }
-            .export-image {
-              aspect-ratio: 1 / 1;
+
+            .card {
+              min-height: 57mm;
+              padding: 3.2mm;
+              border: 1px solid #ded9cf;
+              border-radius: 4mm;
               background: #fff;
               display: grid;
-              place-items: center;
+              grid-template-columns: 45mm minmax(0, 1fr);
+              gap: 4mm;
+              break-inside: avoid;
+              page-break-inside: avoid;
+              box-shadow: 0 1mm 4mm rgba(0,0,0,.04);
             }
-            .export-image img {
+
+            .photo {
+              width: 45mm;
+              height: 45mm;
+              border-radius: 3mm;
+              background: #f7f7f7;
+              display: grid;
+              place-items: center;
+              overflow: hidden;
+            }
+
+            .photo img {
               width: 100%;
               height: 100%;
               object-fit: contain;
             }
-            .export-placeholder {
-              color: #556172;
-              font-weight: 700;
-            }
-            .export-copy {
-              padding: 14px;
-            }
-            .export-copy span {
-              color: #9aa6b8;
-              display: block;
-              font-size: 11px;
-              font-weight: 700;
-              text-transform: uppercase;
+
+            .placeholder {
+              color: #aaa;
+              font-size: 8pt;
+              font-weight: 900;
               letter-spacing: .08em;
             }
-            .export-copy h3 {
-              margin: 6px 0 10px;
-              font-size: 18px;
+
+            .copy {
+              min-width: 0;
+              align-self: center;
             }
-            .export-copy p,
-            .export-copy small {
+
+            .operation {
+              color: #a47c2d;
               display: block;
-              margin: 0 0 8px;
-              color: #b8c2cf;
-              font-size: 12px;
-              line-height: 1.5;
+              font-size: 6.8pt;
+              font-weight: 900;
+              letter-spacing: .08em;
+              text-transform: uppercase;
             }
-            .export-copy strong {
-              color: #f1cf7d;
-              font-size: 22px;
+
+            .copy h2 {
+              margin: 1.5mm 0 1mm;
+              font-size: 12pt;
+              line-height: 1.15;
             }
+
+            .category,
+            .copy p {
+              color: #777;
+              display: block;
+              margin: 0 0 1.5mm;
+              font-size: 7.3pt;
+              line-height: 1.35;
+            }
+
+            .price {
+              margin-top: 2mm;
+              display: flex;
+              align-items: baseline;
+              gap: 2mm;
+              flex-wrap: wrap;
+            }
+
+            .old-price {
+              color: #888;
+              font-size: 7.5pt;
+              text-decoration: line-through;
+            }
+
+            .price strong {
+              color: #8a641d;
+              font-size: 13.5pt;
+            }
+
+            .footer {
+              margin-top: 5mm;
+              padding-top: 3mm;
+              border-top: 1px solid #ddd6c8;
+              color: #777;
+              display: flex;
+              justify-content: space-between;
+              gap: 8mm;
+              font-size: 7pt;
+            }
+
             @media print {
-              body { background: #fff; color: #111; padding: 0; }
-              .hero { background: #fff7e6; }
-              .export-card { break-inside: avoid; }
+              body { background: #fff; }
+              .card { box-shadow: none; }
             }
           </style>
         </head>
         <body>
-          <div class="wrap">
-            <div class="brand">
-              <img src="${logo.src}" alt="${logo.alt}" />
-            </div>
-            <div class="hero">
-              <span>Candinho Company</span>
-              <h1>${title}</h1>
-              <p>Gerado a partir da área interna do ERP. Quando a seleção mistura Suplementos e Fitness, a saída usa a marca Candinho Company; quando isola uma operação, usa a marca correspondente.</p>
-            </div>
+          <main class="sheet">
+            <header class="header">
+              <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(logo.alt)}">
+              <div class="header-copy">
+                <span>Qualidade que entrega resultado.</span>
+                <h1>${escapeHtml(documentTitle)}</h1>
+              </div>
+            </header>
+
+            <p class="intro">
+              Seleção preparada pela Candinho. Consulte disponibilidade no momento do pedido.
+            </p>
+
             <section class="grid">${rows}</section>
-          </div>
+
+            <footer class="footer">
+              <span>Candinho Company</span>
+              <span>Gerado pelo ERP Candinho</span>
+            </footer>
+          </main>
+
           <script>
-            window.onload = function() {
-              window.print();
+            window.onload = function () {
+              setTimeout(function () { window.print(); }, 250);
             };
           </script>
         </body>
       </html>
-    `;
+    `);
 
-    const popup = window.open("", "_blank", "width=1200,height=900");
-    if (!popup) return;
-    popup.document.open();
-    popup.document.write(html);
     popup.document.close();
   }
 
@@ -470,15 +566,22 @@ export function PublicStorefrontBrowser({
           <button
             className={view === "products" ? "active" : ""}
             type="button"
-            onClick={() => setView("products")}
+            onClick={() => {
+              setView("products");
+              setSelectedIds([]);
+            }}
           >
             <PackageCheck size={16} />
             Produtos
           </button>
+
           <button
             className={view === "promotions" ? "active" : ""}
             type="button"
-            onClick={() => setView("promotions")}
+            onClick={() => {
+              setView("promotions");
+              setSelectedIds([]);
+            }}
           >
             <BadgePercent size={16} />
             Promoções
@@ -523,7 +626,9 @@ export function PublicStorefrontBrowser({
             >
               <option value="all">Todas as categorias</option>
               {categories.map((item) => (
-                <option value={item} key={item}>{item}</option>
+                <option value={item} key={item}>
+                  {item}
+                </option>
               ))}
             </select>
           </label>
@@ -543,25 +648,25 @@ export function PublicStorefrontBrowser({
         {enableExport && (
           <div className="public-storefront-export-toolbar">
             <div>
-              <span>Seleção para PDF</span>
+              <span>Seleção em massa</span>
               <strong>{selectedIds.length} item(ns) selecionado(s)</strong>
             </div>
 
             <div className="public-storefront-export-actions">
-              <button type="button" onClick={selectFiltered}>
+              <button type="button" onClick={selectVisible}>
                 Marcar filtrados
               </button>
-              <button type="button" onClick={clearSelection}>
+              <button type="button" onClick={() => setSelectedIds([])}>
                 Limpar
               </button>
               <button
+                className="primary"
                 type="button"
-                className="active"
-                onClick={exportSelectedToPdf}
-                disabled={selectedIds.length === 0}
+                disabled={selectedItems.length === 0}
+                onClick={exportPdf}
               >
-                <Download size={16} />
-                Gerar PDF
+                <Download size={15} />
+                Gerar PDF A4
               </button>
             </div>
           </div>
@@ -593,24 +698,30 @@ export function PublicStorefrontBrowser({
               ) : (
                 <div className="public-storefront-grid">
                   {view === "products"
-                    ? (block.items as PublicStorefrontProduct[]).map((item) => (
-                        <ProductCard
-                          item={item}
-                          key={`${item.operation}-${item.id}`}
-                          selectable={enableExport}
-                          selected={selectedIds.includes(selectionId({ ...item, kind: "product" }))}
-                          onToggle={() => toggleItem({ ...item, kind: "product" })}
-                        />
-                      ))
-                    : (block.items as PublicStorefrontPromotion[]).map((item) => (
-                        <PromotionCard
-                          item={item}
-                          key={`${item.operation}-${item.id}`}
-                          selectable={enableExport}
-                          selected={selectedIds.includes(selectionId({ ...item, kind: "promotion" }))}
-                          onToggle={() => toggleItem({ ...item, kind: "promotion" })}
-                        />
-                      ))}
+                    ? (block.items as PublicStorefrontProduct[]).map((item) => {
+                        const selectable = { ...item, kind: "product" as const };
+                        return (
+                          <ProductCard
+                            item={item}
+                            key={`${item.operation}-${item.id}`}
+                            selectable={enableExport}
+                            selected={selectedIds.includes(selectionId(selectable))}
+                            onToggle={() => toggleItem(selectable)}
+                          />
+                        );
+                      })
+                    : (block.items as PublicStorefrontPromotion[]).map((item) => {
+                        const selectable = { ...item, kind: "promotion" as const };
+                        return (
+                          <PromotionCard
+                            item={item}
+                            key={`${item.operation}-${item.id}`}
+                            selectable={enableExport}
+                            selected={selectedIds.includes(selectionId(selectable))}
+                            onToggle={() => toggleItem(selectable)}
+                          />
+                        );
+                      })}
                 </div>
               )}
             </section>

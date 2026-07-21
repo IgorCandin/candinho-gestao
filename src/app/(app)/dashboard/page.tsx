@@ -3,7 +3,6 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   BadgePercent,
-  Crown,
   LogOut,
   Store,
   UserRound,
@@ -242,10 +241,10 @@ export default async function DashboardPage() {
             >
               <div className="company-operation-logo-wrap physique-logo-wrap">
                 <Image
-                  src={BRAND_ASSETS.physique.complete.src}
-                  alt={BRAND_ASSETS.physique.complete.alt}
-                  width={BRAND_ASSETS.physique.complete.width}
-                  height={BRAND_ASSETS.physique.complete.height}
+                  src={BRAND_ASSETS.physique.reduced.src}
+                  alt={BRAND_ASSETS.physique.reduced.alt}
+                  width={BRAND_ASSETS.physique.reduced.width}
+                  height={BRAND_ASSETS.physique.reduced.height}
                 />
               </div>
 
@@ -269,52 +268,40 @@ export default async function DashboardPage() {
       </div>
 
       <div className="company-home-selector-actions" aria-label="Ações da conta">
-        <div className="company-home-selector-actions-secondary">
-          <Link
-            className="company-home-selector-action storefront"
-            href="/catalogo"
-          >
-            <Store size={16} />
-            <span>Vitrine pública</span>
-          </Link>
-        </div>
+        <Link
+          className="company-home-selector-action storefront"
+          href="/catalogo"
+        >
+          <Store size={16} />
+          <span>Vitrine</span>
+        </Link>
 
-        <div className="company-home-selector-actions-main">
-          {access.canManageUsers && (
-            <>
-              <Link
-                className="company-home-selector-action executive"
-                href="/central/executivo"
-              >
-                <Crown size={16} />
-                <span>Sala do Dono</span>
-              </Link>
+        {access.canManageUsers && (
+          <>
+            <Link
+              className="company-home-selector-action promotions"
+              href="/promocoes"
+            >
+              <BadgePercent size={16} />
+              <span>Promoções</span>
+            </Link>
 
-              <Link
-                className="company-home-selector-action promotions"
-                href="/promocoes"
-              >
-                <BadgePercent size={16} />
-                <span>Promoções</span>
-              </Link>
+            <Link
+              className="company-home-selector-action"
+              href="/configuracoes"
+            >
+              <UserRound size={16} />
+              <span>Perfil</span>
+            </Link>
+          </>
+        )}
 
-              <Link
-                className="company-home-selector-action"
-                href="/configuracoes"
-              >
-                <UserRound size={16} />
-                <span>Perfil</span>
-              </Link>
-            </>
-          )}
-
-          <form action="/auth/signout" method="post">
-            <button className="company-home-selector-action" type="submit">
-              <LogOut size={16} />
-              <span>Sair</span>
-            </button>
-          </form>
-        </div>
+        <form action="/auth/signout" method="post">
+          <button className="company-home-selector-action" type="submit">
+            <LogOut size={16} />
+            <span>Sair</span>
+          </button>
+        </form>
       </div>
     </section>
   );
