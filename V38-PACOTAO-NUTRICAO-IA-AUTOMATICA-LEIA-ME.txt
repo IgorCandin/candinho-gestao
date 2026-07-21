@@ -1,0 +1,129 @@
+CANDINHO COMPANY · V38
+PACOTÃO NUTRIÇÃO IA AUTOMÁTICA + GERADOR DA IMAGEM 2
+
+STATUS DO BANCO
+A migration deste pacote JÁ FOI APLICADA no Supabase de produção.
+NÃO executar manualmente em produção.
+
+PRÉ-REQUISITO
+OPENAI_API_KEY configurada na Vercel em Production + Preview.
+Após adicionar/alterar a chave, é necessário novo deployment/redeploy.
+
+O QUE MUDA
+A área Produtos > Nutrição IA passa a ter dois fluxos automáticos por produto:
+
+1. PESQUISAR COM IA
+- usa o nome do produto;
+- usa o SKU;
+- usa o campo marca/origem como pista, mas não confia cegamente nele;
+- envia a Imagem 1 como referência visual quando existe;
+- usa OpenAI Responses API;
+- usa pesquisa web;
+- bloqueia marketplaces comuns na pesquisa;
+- exige saída estruturada;
+- procura fonte oficial da marca/fabricante/documento oficial;
+- identifica se a correspondência é exata, provável, ambígua ou não encontrada;
+- registra confiança de 0 a 100;
+- extrai porção, rendimento, nutrientes/ativos, ingredientes, alergênicos, uso e alertas;
+- salva as fontes consultadas no banco para rastreabilidade;
+- NÃO aprova automaticamente.
+
+2. GERAR IMAGEM 2
+A Imagem 2 NÃO é desenhada por um modelo de geração de imagens.
+Ela é renderizada deterministicamente pelo backend usando Sharp.
+
+Motivo:
+um gerador de imagens pode escrever números e textos errados.
+Neste fluxo, a IA pesquisa/extrai os dados e o sistema monta a arte usando os valores
+estruturados salvos no banco.
+
+A arte é:
+- PNG 1080x1080;
+- identidade escura da Candinho com dourado;
+- produto e marca confirmados;
+- tabela dos principais nutrientes/ativos;
+- porção;
+- ingredientes;
+- alergênicos;
+- fonte oficial/domínio;
+- aviso para conferir o rótulo físico.
+
+Também é criada miniatura WEBP automática.
+A imagem e a miniatura são salvas no bucket product-images e vinculadas ao slot secondary.
+
+TRAVAS DE SEGURANÇA
+O botão Gerar Imagem 2 só funciona quando:
+- a pesquisa marcou correspondência exact ou probable;
+- a fonte foi classificada como oficial;
+- existe URL da fonte;
+- existem nutrientes/ativos extraídos;
+- o payload da pesquisa autorizou a geração.
+
+Se a IA encontrar versões conflitantes, sabores/gramaturas ambíguos ou não conseguir
+confirmar uma fonte oficial, a Imagem 2 fica bloqueada para revisão humana.
+
+APROVAÇÃO
+Mesmo depois da Imagem 2 ser gerada, o status fica Em revisão.
+A aprovação final continua manual usando Salvar revisão.
+A trava já existente exige Imagem 2 + URL da fonte antes de permitir Aprovado.
+
+MODELO
+Padrão:
+gpt-5.6-terra
+
+Opcionalmente pode ser alterado por variável de ambiente:
+OPENAI_NUTRITION_MODEL
+
+Não é necessário criar essa variável para o funcionamento normal.
+
+NOVOS CAMPOS
+nutrition_ai_payload
+nutrition_ai_sources
+nutrition_ai_model
+nutrition_ai_response_id
+nutrition_ai_researched_at
+nutrition_match_status
+nutrition_match_confidence
+nutrition_variant_warning
+nutrition_image_generated_at
+
+NOVAS RPCS
+save_product_nutrition_ai_research
+mark_product_nutrition_image_generated
+
+NOVAS ROTAS
+POST /api/produtos/nutricao/pesquisar
+POST /api/produtos/nutricao/gerar-imagem
+
+ARQUIVOS DO PACOTE
+supabase/migrations/20260722170000_v38_nutrition_ai_automatic_research_and_image.sql
+src/app/api/produtos/nutricao/pesquisar/route.ts
+src/app/api/produtos/nutricao/gerar-imagem/route.ts
+src/components/product-nutrition-workbench.tsx
+src/app/v38-nutrition-ai.css
+src/app/globals.css
+
+TESTE RECOMENDADO
+Começar por UM produto conhecido, por exemplo Creatina Growth.
+
+1. Abrir Produtos > Nutrição IA.
+2. Localizar Creatina Growth.
+3. Clicar Pesquisar com IA.
+4. Conferir nome/marca identificados, correspondência, confiança, porção, dados e fonte oficial.
+5. Abrir a fonte oficial pelo botão.
+6. Conferir manualmente os dados.
+7. Clicar Gerar Imagem 2.
+8. Abrir o produto e visualizar a Imagem 2.
+9. Somente depois alterar para Aprovado e salvar revisão.
+
+IMPORTANTE
+Não rodar a fila inteira de uma vez neste primeiro teste.
+Primeiro homologar 1 a 3 produtos conhecidos.
+Depois criamos processamento em lote com limite de custo e concorrência.
+
+MIGRATION
+20260722170000_v38_nutrition_ai_automatic_research_and_image.sql
+Já aplicada em produção.
+
+COMMIT SUGERIDO
+V38 · Nutrição IA automática — pesquisa oficial e gera Imagem 2 com revisão humana

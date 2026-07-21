@@ -3,17 +3,17 @@
 
 import Link from "next/link";
 import {
+  AlertTriangle,
   CheckCircle2,
   Clipboard,
   ExternalLink,
   ImageOff,
+  ImagePlus,
+  LoaderCircle,
   Search,
   Sparkles,
 } from "lucide-react";
-import {
-  useMemo,
-  useState,
-} from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -23,6 +23,45 @@ type NutritionStatus =
   | "review"
   | "approved"
   | "not_applicable";
+
+type NutritionFact = {
+  label: string;
+  amount: string;
+  daily_value: string;
+};
+
+type NutritionResearch = {
+  confirmed_product_name: string;
+  confirmed_brand: string;
+  variant_details: string;
+  product_match_status:
+    | "exact"
+    | "probable"
+    | "ambiguous"
+    | "not_found";
+  confidence: number;
+  source_classification:
+    | "official_brand"
+    | "official_manufacturer"
+    | "official_document"
+    | "retailer"
+    | "marketplace"
+    | "other"
+    | "not_found";
+  source_name: string;
+  source_title: string;
+  source_url: string;
+  serving_size: string;
+  servings_per_container: string;
+  nutrition_facts: NutritionFact[];
+  ingredients: string;
+  allergens: string;
+  usage: string;
+  warnings: string;
+  variant_warning: string;
+  research_notes: string;
+  can_generate_image: boolean;
+};
 
 type NutritionRow = {
   id: string;
@@ -43,146 +82,299 @@ type NutritionRow = {
   nutrition_notes: string | null;
   priority_rank: number;
   research_query: string;
+  nutrition_ai_payload: NutritionResearch | null;
+  nutrition_ai_model: string | null;
+  nutrition_ai_researched_at: string | null;
+  nutrition_match_status: string | null;
+  nutrition_match_confidence: number | null;
+  nutrition_variant_warning: string | null;
+  nutrition_image_generated_at: string | null;
 };
 
 const STATUS_OPTIONS: Array<{
   value: NutritionStatus;
   label: string;
 }> = [
-  {
-    value: "pending",
-    label: "A pesquisar",
-  },
-  {
-    value: "researching",
-    label: "Pesquisando",
-  },
-  {
-    value: "review",
-    label: "Em revisão",
-  },
-  {
-    value: "approved",
-    label: "Aprovado",
-  },
-  {
-    value: "not_applicable",
-    label: "Não se aplica",
-  },
+  { value: "pending", label: "A pesquisar" },
+  { value: "researching", label: "Pesquisando" },
+  { value: "review", label: "Em revisão" },
+  { value: "approved", label: "Aprovado" },
+  { value: "not_applicable", label: "Não se aplica" },
 ];
 
-function statusLabel(
-  value: NutritionStatus,
-) {
+function statusLabel(value: NutritionStatus) {
   return (
-    STATUS_OPTIONS.find(
-      (item) =>
-        item.value === value,
-    )?.label ?? value
+    STATUS_OPTIONS.find((item) => item.value === value)?.label ??
+    value
   );
 }
 
-function buildResearchPrompt(
-  row: NutritionRow,
-) {
+function matchLabel(value?: string | null) {
+  if (value === "exact") return "Correspondência exata";
+  if (value === "probable") return "Correspondência provável";
+  if (value === "ambiguous") return "Produto/versão ambígua";
+  if (value === "not_found") return "Fonte exata não encontrada";
+  return "Ainda não pesquisado";
+}
+
+function sourceLabel(value?: string | null) {
+  if (value === "official_brand") return "Marca oficial";
+  if (value === "official_manufacturer")
+    return "Fabricante oficial";
+  if (value === "official_document") return "Documento oficial";
+  if (value === "retailer") return "Varejista";
+  if (value === "marketplace") return "Marketplace";
+  if (value === "not_found") return "Não encontrada";
+  return "Outra fonte";
+}
+
+function buildResearchPrompt(row: NutritionRow) {
   return [
     "Pesquise a informação nutricional oficial e atual deste produto.",
     "",
     `Produto: ${row.name}`,
-    `Marca cadastrada: ${row.brand ?? "não informada"}`,
+    `Marca/origem cadastrada: ${row.brand ?? "não informada"}`,
     `SKU interno Candinho: ${row.sku ?? "sem SKU"}`,
     `Categoria: ${row.category}`,
     row.image_url
       ? `Imagem principal de referência: ${row.image_url}`
       : "Imagem principal: não cadastrada",
     "",
-    "REGRAS:",
-    "1. Priorize o site oficial da marca/fabricante.",
-    "2. Confirme que gramatura, versão, apresentação e sabor correspondem ao produto e à imagem principal.",
-    "3. Não invente valores ausentes.",
-    "4. Extraia, quando existirem: porção, porções por embalagem, valor energético, carboidratos, açúcares, proteínas, gorduras, fibras, sódio, vitaminas/minerais e outros ativos declarados.",
-    "5. Registre ingredientes, alergênicos e modo de uso quando a fonte oficial trouxer essas informações.",
-    "6. Informe a URL oficial usada como fonte e a data da consulta.",
-    "7. Caso existam versões diferentes do mesmo produto, sinalize a divergência antes de gerar a arte.",
-    "",
-    "Depois da conferência, prepare o conteúdo para uma arte quadrada 1:1 da Candinho, limpa e legível, destinada à Imagem 2 do produto. A arte deve reproduzir os dados da fonte oficial sem alterar valores nutricionais.",
+    "Priorize site oficial da marca/fabricante. Confirme versão, gramatura, sabor e apresentação. Não use marketplace como fonte principal e não invente valores ausentes.",
   ].join("\n");
 }
 
-function ProductNutritionCard({
-  row,
+function ResearchPreview({
+  research,
 }: {
-  row: NutritionRow;
+  research: NutritionResearch;
 }) {
+  return (
+    <div className="nutrition-ai-preview">
+      <div className="nutrition-ai-preview-head">
+        <div>
+          <span>Resultado da pesquisa</span>
+          <strong>
+            {research.confirmed_product_name ||
+              "Produto não confirmado"}
+          </strong>
+          <small>
+            {research.confirmed_brand || "Marca não confirmada"}
+          </small>
+        </div>
+
+        <div
+          className={`nutrition-ai-confidence ${research.product_match_status}`}
+        >
+          <strong>{research.confidence}%</strong>
+          <span>
+            {matchLabel(research.product_match_status)}
+          </span>
+        </div>
+      </div>
+
+      <div className="nutrition-ai-chips">
+        <span>
+          {sourceLabel(research.source_classification)}
+        </span>
+        {research.serving_size && (
+          <span>Porção: {research.serving_size}</span>
+        )}
+        {research.servings_per_container && (
+          <span>{research.servings_per_container}</span>
+        )}
+      </div>
+
+      {(research.variant_warning ||
+        research.research_notes) && (
+        <div className="nutrition-ai-warning">
+          <AlertTriangle size={16} />
+          <div>
+            {research.variant_warning && (
+              <strong>{research.variant_warning}</strong>
+            )}
+            {research.research_notes && (
+              <p>{research.research_notes}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {research.nutrition_facts.length > 0 && (
+        <div className="nutrition-ai-facts">
+          {research.nutrition_facts
+            .slice(0, 8)
+            .map((fact, index) => (
+              <div key={`${fact.label}-${index}`}>
+                <span>{fact.label}</span>
+                <strong>{fact.amount}</strong>
+                <small>{fact.daily_value}</small>
+              </div>
+            ))}
+        </div>
+      )}
+
+      {(research.ingredients || research.allergens) && (
+        <div className="nutrition-ai-copy">
+          {research.ingredients && (
+            <p>
+              <strong>Ingredientes:</strong>{" "}
+              {research.ingredients}
+            </p>
+          )}
+
+          {research.allergens && (
+            <p>
+              <strong>Alergênicos:</strong>{" "}
+              {research.allergens}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ProductNutritionCard({ row }: { row: NutritionRow }) {
   const router = useRouter();
-
-  const [status, setStatus] =
-    useState<NutritionStatus>(
-      row.nutrition_status,
-    );
-
-  const [
-    sourceName,
-    setSourceName,
-  ] = useState(
-    row.nutrition_source_name ??
-      "",
+  const [status, setStatus] = useState<NutritionStatus>(
+    row.nutrition_status,
   );
-
-  const [
-    sourceUrl,
-    setSourceUrl,
-  ] = useState(
-    row.nutrition_source_url ??
-      "",
+  const [sourceName, setSourceName] = useState(
+    row.nutrition_source_name ?? "",
   );
-
-  const [notes, setNotes] =
-    useState(
-      row.nutrition_notes ?? "",
+  const [sourceUrl, setSourceUrl] = useState(
+    row.nutrition_source_url ?? "",
+  );
+  const [notes, setNotes] = useState(
+    row.nutrition_notes ?? "",
+  );
+  const [research, setResearch] =
+    useState<NutritionResearch | null>(
+      row.nutrition_ai_payload ?? null,
     );
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [message, setMessage] =
-    useState<string | null>(
-      null,
-    );
+  const [hasImage, setHasImage] = useState(
+    Boolean(row.secondary_image_url),
+  );
+  const [researchLoading, setResearchLoading] = useState(false);
+  const [imageLoading, setImageLoading] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
   async function copyPrompt() {
-    await navigator.clipboard.writeText(
-      buildResearchPrompt(row),
-    );
-
-    setMessage(
-      "Prompt de pesquisa copiado.",
-    );
+    await navigator.clipboard.writeText(buildResearchPrompt(row));
+    setMessage("Prompt de pesquisa copiado.");
   }
 
-  async function save() {
-    setLoading(true);
+  async function researchWithAi() {
+    setResearchLoading(true);
+    setMessage(null);
+    setStatus("researching");
+
+    try {
+      const response = await fetch(
+        "/api/produtos/nutricao/pesquisar",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: row.id }),
+        },
+      );
+
+      const payload = (await response.json()) as {
+        error?: string;
+        research?: NutritionResearch;
+      };
+
+      if (!response.ok || !payload.research) {
+        throw new Error(
+          payload.error || "A pesquisa não retornou dados.",
+        );
+      }
+
+      setResearch(payload.research);
+      setSourceName(payload.research.source_name || "");
+      setSourceUrl(payload.research.source_url || "");
+      setStatus("review");
+      setMessage(
+        payload.research.can_generate_image
+          ? "Pesquisa concluída. Revise os dados e gere a Imagem 2."
+          : "Pesquisa concluída, mas a correspondência precisa de revisão antes de gerar a Imagem 2.",
+      );
+      router.refresh();
+    } catch (error) {
+      setStatus(row.nutrition_status);
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível pesquisar com IA.",
+      );
+    } finally {
+      setResearchLoading(false);
+    }
+  }
+
+  async function generateImage() {
+    setImageLoading(true);
     setMessage(null);
 
     try {
-      const supabase =
-        createClient();
+      const response = await fetch(
+        "/api/produtos/nutricao/gerar-imagem",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: row.id }),
+        },
+      );
 
-      const { error } =
-        await supabase.rpc(
-          "set_product_nutrition_metadata",
-          {
-            p_product_id: row.id,
-            p_status: status,
-            p_source_name:
-              sourceName ||
-              null,
-            p_source_url:
-              sourceUrl || null,
-            p_notes:
-              notes || null,
-          },
+      const payload = (await response.json()) as {
+        error?: string;
+        warning?: string | null;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error || "Não foi possível gerar a Imagem 2.",
         );
+      }
+
+      setHasImage(true);
+      setStatus("review");
+      setMessage(
+        payload.warning
+          ? `Imagem 2 gerada. Aviso: ${payload.warning}`
+          : "Imagem 2 gerada e salva no produto. Revise antes de aprovar.",
+      );
+      router.refresh();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível gerar a Imagem 2.",
+      );
+    } finally {
+      setImageLoading(false);
+    }
+  }
+
+  async function save() {
+    setSaveLoading(true);
+    setMessage(null);
+
+    try {
+      const supabase = createClient();
+
+      const { error } = await supabase.rpc(
+        "set_product_nutrition_metadata",
+        {
+          p_product_id: row.id,
+          p_status: status,
+          p_source_name: sourceName || null,
+          p_source_url: sourceUrl || null,
+          p_notes: notes || null,
+        },
+      );
 
       if (error) throw error;
 
@@ -191,7 +383,6 @@ function ProductNutritionCard({
           ? "Informação nutricional aprovada."
           : "Revisão salva.",
       );
-
       router.refresh();
     } catch (error) {
       setMessage(
@@ -200,115 +391,120 @@ function ProductNutritionCard({
           : "Não foi possível salvar.",
       );
     } finally {
-      setLoading(false);
+      setSaveLoading(false);
     }
   }
 
-  const image =
-    row.thumbnail_url ??
-    row.image_url;
+  const image = row.thumbnail_url ?? row.image_url;
+  const canGenerate = Boolean(research?.can_generate_image);
 
   return (
     <article className="nutrition-workbench-card">
       <div className="nutrition-workbench-product">
         <div className="nutrition-workbench-thumb">
           {image ? (
-            <img
-              src={image}
-              alt=""
-              loading="lazy"
-            />
+            <img src={image} alt="" loading="lazy" />
           ) : (
-            <ImageOff
-              size={26}
-            />
+            <ImageOff size={26} />
           )}
         </div>
 
         <div>
           <span>
-            {row.sku ??
-              "Sem SKU"}{" "}
-            · {row.category}
+            {row.sku ?? "Sem SKU"} · {row.category}
           </span>
-
-          <h2>
-            {row.name}
-          </h2>
-
-          <p>
-            {row.brand ??
-              "Marca não informada"}
-          </p>
+          <h2>{row.name}</h2>
+          <p>{row.brand ?? "Marca/origem não informada"}</p>
         </div>
       </div>
 
       <div className="nutrition-workbench-status-line">
-        <span
-          className={`nutrition-state ${status}`}
-        >
-          {statusLabel(
-            status,
-          )}
+        <span className={`nutrition-state ${status}`}>
+          {statusLabel(status)}
         </span>
-
         <span>
           Imagem 2:{" "}
-          <strong>
-            {row.secondary_image_url
-              ? "pronta"
-              : "pendente"}
-          </strong>
+          <strong>{hasImage ? "pronta" : "pendente"}</strong>
         </span>
+        {research && (
+          <span>
+            IA:{" "}
+            <strong>
+              {matchLabel(research.product_match_status)}
+            </strong>
+          </span>
+        )}
       </div>
+
+      <div className="nutrition-ai-primary-actions">
+        <button
+          className="button gold"
+          type="button"
+          disabled={
+            researchLoading || status === "not_applicable"
+          }
+          onClick={() => void researchWithAi()}
+        >
+          {researchLoading ? (
+            <LoaderCircle className="spin" size={16} />
+          ) : (
+            <Sparkles size={16} />
+          )}
+          {researchLoading
+            ? "Pesquisando fonte oficial..."
+            : research
+              ? "Pesquisar novamente com IA"
+              : "Pesquisar com IA"}
+        </button>
+
+        <button
+          className="button ghost"
+          type="button"
+          disabled={imageLoading || !canGenerate}
+          onClick={() => void generateImage()}
+          title={
+            !canGenerate
+              ? "A pesquisa precisa encontrar uma correspondência segura em fonte oficial."
+              : undefined
+          }
+        >
+          {imageLoading ? (
+            <LoaderCircle className="spin" size={16} />
+          ) : (
+            <ImagePlus size={16} />
+          )}
+          {imageLoading
+            ? "Gerando Imagem 2..."
+            : hasImage
+              ? "Regenerar Imagem 2"
+              : "Gerar Imagem 2"}
+        </button>
+      </div>
+
+      {research && <ResearchPreview research={research} />}
 
       <div className="nutrition-workbench-fields">
         <label>
           Status
           <select
             value={status}
-            onChange={(
-              event,
-            ) =>
-              setStatus(
-                event.target
-                  .value as NutritionStatus,
-              )
+            onChange={(event) =>
+              setStatus(event.target.value as NutritionStatus)
             }
           >
-            {STATUS_OPTIONS.map(
-              (option) => (
-                <option
-                  key={
-                    option.value
-                  }
-                  value={
-                    option.value
-                  }
-                >
-                  {
-                    option.label
-                  }
-                </option>
-              ),
-            )}
+            {STATUS_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
         </label>
 
         <label>
           Nome da fonte
           <input
-            value={
-              sourceName
-            }
-            onChange={(
-              event,
-            ) =>
-              setSourceName(
-                event.target
-                  .value,
-              )
-            }
+            value={sourceName}
+            onChange={(event) => setSourceName(event.target.value)}
             placeholder="Ex.: Growth Supplements"
           />
         </label>
@@ -317,15 +513,8 @@ function ProductNutritionCard({
           URL oficial da fonte
           <input
             value={sourceUrl}
-            onChange={(
-              event,
-            ) =>
-              setSourceUrl(
-                event.target
-                  .value,
-              )
-            }
-            placeholder="Cole a página oficial usada na conferência"
+            onChange={(event) => setSourceUrl(event.target.value)}
+            placeholder="Página oficial usada na conferência"
           />
         </label>
 
@@ -333,16 +522,9 @@ function ProductNutritionCard({
           Observações da revisão
           <textarea
             value={notes}
-            onChange={(
-              event,
-            ) =>
-              setNotes(
-                event.target
-                  .value,
-              )
-            }
+            onChange={(event) => setNotes(event.target.value)}
             rows={3}
-            placeholder="Ex.: conferir sabor/gramatura antes de aprovar"
+            placeholder="Ex.: conferi o rótulo físico e a gramatura"
           />
         </label>
       </div>
@@ -351,24 +533,18 @@ function ProductNutritionCard({
         <button
           className="button ghost"
           type="button"
-          onClick={() =>
-            void copyPrompt()
-          }
+          onClick={() => void copyPrompt()}
         >
-          <Clipboard
-            size={15}
-          />
-          Copiar prompt IA
+          <Clipboard size={15} />
+          Copiar prompt manual
         </button>
 
         <Link
           className="button ghost"
           href={`/produtos/${row.id}`}
         >
-          <Sparkles
-            size={15}
-          />
-          Abrir Imagem 2
+          <ImagePlus size={15} />
+          Abrir produto / Imagem 2
         </Link>
 
         {sourceUrl && (
@@ -378,27 +554,19 @@ function ProductNutritionCard({
             target="_blank"
             rel="noreferrer"
           >
-            <ExternalLink
-              size={15}
-            />
-            Abrir fonte
+            <ExternalLink size={15} />
+            Abrir fonte oficial
           </a>
         )}
 
         <button
           className="button gold"
           type="button"
-          disabled={loading}
-          onClick={() =>
-            void save()
-          }
+          disabled={saveLoading}
+          onClick={() => void save()}
         >
-          <CheckCircle2
-            size={15}
-          />
-          {loading
-            ? "Salvando..."
-            : "Salvar revisão"}
+          <CheckCircle2 size={15} />
+          {saveLoading ? "Salvando..." : "Salvar revisão"}
         </button>
       </div>
 
@@ -416,106 +584,67 @@ export function ProductNutritionWorkbench({
 }: {
   initialRows: NutritionRow[];
 }) {
-  const [query, setQuery] =
-    useState("");
-
+  const [query, setQuery] = useState("");
   const [filter, setFilter] =
-    useState<
-      NutritionStatus | "all"
-    >("all");
+    useState<NutritionStatus | "all">("all");
 
-  const filtered =
-    useMemo(() => {
-      const normalized =
-        query
-          .trim()
-          .toLocaleLowerCase(
-            "pt-BR",
-          );
+  const filtered = useMemo(() => {
+    const normalized = query
+      .trim()
+      .toLocaleLowerCase("pt-BR");
 
-      return initialRows.filter(
-        (row) => {
-          const matchesQuery =
-            !normalized ||
-            `${row.name} ${row.brand ?? ""} ${row.sku ?? ""}`
-              .toLocaleLowerCase(
-                "pt-BR",
-              )
-              .includes(
-                normalized,
-              );
+    return initialRows.filter((row) => {
+      const matchesQuery =
+        !normalized ||
+        `${row.name} ${row.brand ?? ""} ${row.sku ?? ""}`
+          .toLocaleLowerCase("pt-BR")
+          .includes(normalized);
 
-          const matchesStatus =
-            filter === "all" ||
-            row.nutrition_status ===
-              filter;
+      const matchesStatus =
+        filter === "all" || row.nutrition_status === filter;
 
-          return (
-            matchesQuery &&
-            matchesStatus
-          );
-        },
-      );
-    }, [
-      initialRows,
-      query,
-      filter,
-    ]);
+      return matchesQuery && matchesStatus;
+    });
+  }, [initialRows, query, filter]);
 
-  const pending =
-    initialRows.filter(
-      (row) =>
-        row.nutrition_status ===
-          "pending" ||
-        row.nutrition_status ===
-          "researching" ||
-        row.nutrition_status ===
-          "review",
-    ).length;
+  const pending = initialRows.filter((row) =>
+    ["pending", "researching", "review"].includes(
+      row.nutrition_status,
+    ),
+  ).length;
 
-  const approved =
-    initialRows.filter(
-      (row) =>
-        row.nutrition_status ===
-        "approved",
-    ).length;
+  const approved = initialRows.filter(
+    (row) => row.nutrition_status === "approved",
+  ).length;
 
-  const missingImage =
-    initialRows.filter(
-      (row) =>
-        !row.secondary_image_url &&
-        row.nutrition_status !==
-          "not_applicable",
-    ).length;
+  const missingImage = initialRows.filter(
+    (row) =>
+      !row.secondary_image_url &&
+      row.nutrition_status !== "not_applicable",
+  ).length;
+
+  const researched = initialRows.filter((row) =>
+    Boolean(row.nutrition_ai_researched_at),
+  ).length;
 
   return (
     <section className="nutrition-workbench">
-      <div className="nutrition-workbench-kpis">
+      <div className="nutrition-workbench-kpis nutrition-workbench-kpis-four">
         <article>
-          <span>
-            Pendentes
-          </span>
-          <strong>
-            {pending}
-          </strong>
+          <span>Pendentes</span>
+          <strong>{pending}</strong>
         </article>
-
         <article>
-          <span>
-            Sem Imagem 2
-          </span>
-          <strong>
-            {missingImage}
-          </strong>
+          <span>Pesquisados pela IA</span>
+          <strong>{researched}</strong>
         </article>
-
         <article>
-          <span>
-            Aprovados
-          </span>
-          <strong>
-            {approved}
-          </strong>
+          <span>Sem Imagem 2</span>
+          <strong>{missingImage}</strong>
+        </article>
+        <article>
+          <span>Aprovados</span>
+          <strong>{approved}</strong>
         </article>
       </div>
 
@@ -524,67 +653,47 @@ export function ProductNutritionWorkbench({
           <Search size={15} />
           <input
             value={query}
-            onChange={(
-              event,
-            ) =>
-              setQuery(
-                event.target
-                  .value,
-              )
-            }
+            onChange={(event) => setQuery(event.target.value)}
             placeholder="Buscar produto, marca ou SKU..."
           />
         </label>
 
         <select
           value={filter}
-          onChange={(
-            event,
-          ) =>
+          onChange={(event) =>
             setFilter(
-              event.target
-                .value as
-                | NutritionStatus
-                | "all",
+              event.target.value as NutritionStatus | "all",
             )
           }
         >
-          <option value="all">
-            Todos os status
-          </option>
-
-          {STATUS_OPTIONS.map(
-            (option) => (
-              <option
-                key={
-                  option.value
-                }
-                value={
-                  option.value
-                }
-              >
-                {
-                  option.label
-                }
-              </option>
-            ),
-          )}
+          <option value="all">Todos os status</option>
+          {STATUS_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
         </select>
 
-        <span>
-          {filtered.length} produto(s)
-        </span>
+        <span>{filtered.length} produto(s)</span>
+      </div>
+
+      <div className="nutrition-ai-info-banner">
+        <Sparkles size={18} />
+        <div>
+          <strong>Fluxo automático com revisão humana</strong>
+          <p>
+            A IA usa nome + Imagem 1 para identificar o produto e
+            pesquisar uma fonte oficial. A Imagem 2 só é liberada
+            quando a correspondência é segura; a aprovação continua
+            manual.
+          </p>
+        </div>
       </div>
 
       <div className="nutrition-workbench-list">
-        {filtered.map(
-          (row) => (
-            <ProductNutritionCard
-              key={row.id}
-              row={row}
-            />
-          ),
-        )}
+        {filtered.map((row) => (
+          <ProductNutritionCard key={row.id} row={row} />
+        ))}
       </div>
     </section>
   );
