@@ -1,0 +1,66 @@
+CANDINHO COMPANY · PACOTÃO OPERACIONAL PÓS-V38
+SEM NOVA VERSÃO NUMERADA · SEM COMMIT AUTOMÁTICO
+
+OBJETIVO
+- Transformar /suplementos em uma Home orientada à pergunta “O que eu preciso fazer hoje?”.
+- Simplificar o menu principal sem apagar nenhuma rota ou função existente.
+- Corrigir o fluxo “Nexus · Completar informações” para usar a API interna com fallback, evitando depender diretamente da Edge Function que vinha retornando 429.
+- Deixar o fluxo de Sabores mais explícito: cadastrar sabores -> distribuir estoque -> salvar.
+- Tornar Parceiros mais operacional e deixar o acesso do Portal Parceiro fácil de encontrar/configurar.
+- Inicializar a Physique de forma controlada: atletas, avaliações, evolução por fotos, PDF de avaliação com leitura do Nexus, ficha de treino em PDF com leitura estruturada pelo Nexus e anexos privados.
+
+COMO APLICAR
+1. Faça seu backup da pasta atual (você já planejou isso).
+2. Extraia TODO o conteúdo deste ZIP na RAIZ da pasta candinho-gestao, substituindo os arquivos quando solicitado.
+3. Dê dois cliques em 00_APLICAR_PACOTE.cmd.
+   - O script NÃO faz commit.
+   - Ele apenas ajusta dois arquivos grandes (app-shell e product-form), remove as rotas antigas da Physique que herdavam o menu do ERP e acrescenta CSS.
+4. Abra o GitHub Desktop e revise todas as alterações.
+5. Rode localmente:
+   npm run build
+   npm run lint
+6. Teste os fluxos reais antes do commit.
+
+BANCO / SUPABASE
+O arquivo de migration incluído é:
+supabase/migrations/20260722172303_physique_operational_start.sql
+
+Nesta sessão o Nexus aplicou a migration aditiva diretamente no Supabase de produção e criou o cadastro inicial do Igor Candinho no Physique, ligado ao CRM/Central existentes. O arquivo permanece no repositório para manter o histórico do schema alinhado.
+
+Também foi publicado em produção o hotfix da Edge Function product-nexus-enrich (versão 2), com retentativa para 429/erros transitórios e fallback sem pesquisa web. O código correspondente está incluído em supabase/functions/product-nexus-enrich/index.ts para manter o repositório alinhado.
+
+TESTES PRIORITÁRIOS
+1. /suplementos
+   - Home “Hoje”.
+   - Agenda/ações aparecem.
+   - Links de leads, orçamentos, pendências, CRM, estoque e compras funcionam.
+2. Produto > Editar/Novo
+   - “Completar informações” não deve mais chamar product-nexus-enrich diretamente.
+   - Testar um produto real e confirmar fallback caso a pesquisa online limite.
+   - Sabores: conferir etapas e validação de distribuição.
+3. /parceiros
+   - Conferir bloco Portal do Parceiro.
+   - Abrir “Acessos do portal”.
+   - Testar o acesso de uma parceira no celular com conta de parceiro.
+4. /physique
+   - Deve abrir standalone, sem sidebar de Suplementos.
+   - Seu cadastro “Igor Candinho” deve aparecer em Atletas.
+   - Criar avaliação, anexar PDF e fotos.
+   - Usar “Ler PDF com Nexus”, revisar e salvar.
+   - Importar uma ficha de treino PDF e conferir dias/exercícios antes de salvar.
+
+ROLLBACK DE CÓDIGO
+Use o backup da pasta que você criou antes deste pacote ou descarte as alterações no GitHub Desktop antes de commitar.
+
+IMPORTANTE
+- Nenhuma função antiga foi removida do domínio: Agenda, Radar e Movimentações continuam existindo; apenas saem do menu principal de Suplementos e permanecem acessíveis pelos fluxos/atalhos.
+- O Painel Gerencial continua separado da Home operacional.
+- A leitura por Nexus nunca salva automaticamente: primeiro interpreta, depois você revisa, depois salva.
+
+
+VALIDAÇÃO DESTA SESSÃO
+- Migration Physique confirmada em produção.
+- Feature flag Physique ativa.
+- Cadastro Igor Candinho criado sem duplicar cliente/contato.
+- Edge Function product-nexus-enrich versão 2 confirmada como ACTIVE.
+- Arquivos TypeScript/TSX novos passaram por verificação de parsing isolada; não foi possível executar o build/lint completo sem uma cópia integral do repositório e node_modules neste ambiente. Por isso, npm run build e npm run lint continuam obrigatórios antes do commit.

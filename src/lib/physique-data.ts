@@ -31,6 +31,9 @@ export type PhysiqueTrainingPlan = {
   ends_on: string | null;
   coach_name: string | null;
   notes: string | null;
+  ai_model: string | null;
+  ai_imported_at: string | null;
+  ai_payload: Record<string, unknown>;
   created_at: string;
   updated_at: string;
   athlete_name?: string | null;
@@ -69,9 +72,59 @@ export type PhysiqueAttachment = {
   signed_url: string | null;
 };
 
+export type PhysiqueAssessment = {
+  id: string;
+  athlete_id: string;
+  assessed_on: string;
+  source_type: string;
+  weight_kg: number | null;
+  height_cm: number | null;
+  body_fat_pct: number | null;
+  chest_cm: number | null;
+  waist_cm: number | null;
+  abdomen_cm: number | null;
+  hips_cm: number | null;
+  arm_left_cm: number | null;
+  arm_right_cm: number | null;
+  thigh_left_cm: number | null;
+  thigh_right_cm: number | null;
+  calf_left_cm: number | null;
+  calf_right_cm: number | null;
+  notes: string | null;
+  ai_status: string;
+  ai_model: string | null;
+  ai_payload: Record<string, unknown>;
+  ai_interpreted_at: string | null;
+  created_at: string;
+};
+
+export type PhysiqueAssessmentAttachment = {
+  id: string;
+  assessment_id: string;
+  attachment_type: string;
+  file_name: string;
+  file_url: string;
+  mime_type: string | null;
+  file_size_bytes: number | null;
+  created_at: string;
+  signed_url: string | null;
+};
+
 function n(value: unknown) {
   const parsed = Number(value ?? 0);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function nullableNumber(value: unknown) {
+  if (value === null || value === undefined || value === "") return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function jsonObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : {};
 }
 
 function athlete(row: Record<string, unknown>): PhysiqueAthlete {
@@ -108,48 +161,84 @@ function plan(row: Record<string, unknown>): PhysiqueTrainingPlan {
     ends_on: typeof row.ends_on === "string" ? row.ends_on : null,
     coach_name: typeof row.coach_name === "string" ? row.coach_name : null,
     notes: typeof row.notes === "string" ? row.notes : null,
+    ai_model: typeof row.ai_model === "string" ? row.ai_model : null,
+    ai_imported_at: typeof row.ai_imported_at === "string" ? row.ai_imported_at : null,
+    ai_payload: jsonObject(row.ai_payload),
     created_at: String(row.created_at ?? ""),
     updated_at: String(row.updated_at ?? ""),
     athlete_name: typeof row.athlete_name === "string" ? row.athlete_name : null,
   };
 }
 
+function assessment(row: Record<string, unknown>): PhysiqueAssessment {
+  return {
+    id: String(row.id),
+    athlete_id: String(row.athlete_id),
+    assessed_on: String(row.assessed_on ?? ""),
+    source_type: String(row.source_type ?? "manual"),
+    weight_kg: nullableNumber(row.weight_kg),
+    height_cm: nullableNumber(row.height_cm),
+    body_fat_pct: nullableNumber(row.body_fat_pct),
+    chest_cm: nullableNumber(row.chest_cm),
+    waist_cm: nullableNumber(row.waist_cm),
+    abdomen_cm: nullableNumber(row.abdomen_cm),
+    hips_cm: nullableNumber(row.hips_cm),
+    arm_left_cm: nullableNumber(row.arm_left_cm),
+    arm_right_cm: nullableNumber(row.arm_right_cm),
+    thigh_left_cm: nullableNumber(row.thigh_left_cm),
+    thigh_right_cm: nullableNumber(row.thigh_right_cm),
+    calf_left_cm: nullableNumber(row.calf_left_cm),
+    calf_right_cm: nullableNumber(row.calf_right_cm),
+    notes: typeof row.notes === "string" ? row.notes : null,
+    ai_status: String(row.ai_status ?? "not_requested"),
+    ai_model: typeof row.ai_model === "string" ? row.ai_model : null,
+    ai_payload: jsonObject(row.ai_payload),
+    ai_interpreted_at: typeof row.ai_interpreted_at === "string" ? row.ai_interpreted_at : null,
+    created_at: String(row.created_at ?? ""),
+  };
+}
+
+async function signedUrl(fileUrl: string) {
+  if (!fileUrl) return null;
+  if (/^https?:\/\//i.test(fileUrl)) return fileUrl;
+  const supabase = await createClient();
+  const { data } = await supabase.storage.from("physique-training-files").createSignedUrl(fileUrl, 60 * 60);
+  return data?.signedUrl ?? null;
+}
+
 export async function getPhysiqueFoundationSnapshot() {
   const supabase = await createClient();
-
   const empty = {
     enabled: false,
     athletes: [] as PhysiqueAthlete[],
     athleteCount: 0,
     trainingPlanCount: 0,
     activeTrainingPlanCount: 0,
+    assessmentCount: 0,
     attachmentCount: 0,
   };
 
   try {
-    const [flagResult, athletesResult, plansResult, attachmentsResult] = await Promise.all([
+    const [flagResult, athletesResult, plansResult, assessmentsResult, trainingAttachmentsResult, assessmentAttachmentsResult] = await Promise.all([
       supabase.from("ui_feature_flags").select("enabled").eq("key", "physique_enabled").maybeSingle(),
       supabase.from("physique_athlete_overview").select("*").order("display_name"),
       supabase.from("physique_training_plans").select("id,status"),
+      supabase.from("physique_assessments").select("id", { count: "exact", head: true }),
       supabase.from("physique_training_attachments").select("id", { count: "exact", head: true }),
+      supabase.from("physique_assessment_attachments").select("id", { count: "exact", head: true }),
     ]);
 
-    if (athletesResult.error || plansResult.error || attachmentsResult.error) {
-      return empty;
-    }
-
-    const athletes = (athletesResult.data ?? []).map((row) =>
-      athlete(row as Record<string, unknown>)
-    );
+    if (athletesResult.error || plansResult.error) return empty;
+    const athletes = (athletesResult.data ?? []).map((row) => athlete(row as Record<string, unknown>));
     const plans = plansResult.data ?? [];
-
     return {
       enabled: flagResult.data?.enabled === true,
       athletes,
       athleteCount: athletes.length,
       trainingPlanCount: plans.length,
       activeTrainingPlanCount: plans.filter((item) => item.status === "active").length,
-      attachmentCount: attachmentsResult.count ?? 0,
+      assessmentCount: assessmentsResult.count ?? 0,
+      attachmentCount: (trainingAttachmentsResult.count ?? 0) + (assessmentAttachmentsResult.count ?? 0),
     };
   } catch {
     return empty;
@@ -158,102 +247,98 @@ export async function getPhysiqueFoundationSnapshot() {
 
 export async function getPhysiqueAthletes() {
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("physique_athlete_overview")
-    .select("*")
-    .order("display_name");
-
+  const { data, error } = await supabase.from("physique_athlete_overview").select("*").order("display_name");
   if (error) throw error;
   return (data ?? []).map((row) => athlete(row as Record<string, unknown>));
 }
 
 export async function getPhysiqueAthleteDetails(id: string) {
   const supabase = await createClient();
-  const [{ data: athleteRow, error: athleteError }, { data: planRows, error: planError }] = await Promise.all([
+  const [athleteResult, plansResult, assessmentsResult] = await Promise.all([
     supabase.from("physique_athlete_overview").select("*").eq("id", id).maybeSingle(),
     supabase.from("physique_training_plans").select("*").eq("athlete_id", id).order("created_at", { ascending: false }),
+    supabase.from("physique_assessments").select("*").eq("athlete_id", id).order("assessed_on", { ascending: false }).order("created_at", { ascending: false }),
   ]);
 
-  if (athleteError) throw athleteError;
-  if (planError) throw planError;
-  if (!athleteRow) return null;
+  if (athleteResult.error) throw athleteResult.error;
+  if (plansResult.error) throw plansResult.error;
+  if (assessmentsResult.error) throw assessmentsResult.error;
+  if (!athleteResult.data) return null;
+
+  const assessments = (assessmentsResult.data ?? []).map((row) => assessment(row as Record<string, unknown>));
+  const assessmentIds = assessments.map((item) => item.id);
+  let attachmentRows: Record<string, unknown>[] = [];
+  if (assessmentIds.length > 0) {
+    const result = await supabase.from("physique_assessment_attachments").select("*").in("assessment_id", assessmentIds).order("created_at", { ascending: false });
+    if (result.error) throw result.error;
+    attachmentRows = (result.data ?? []) as Record<string, unknown>[];
+  }
+
+  const assessmentAttachments: PhysiqueAssessmentAttachment[] = [];
+  for (const row of attachmentRows) {
+    const fileUrl = String(row.file_url ?? "");
+    assessmentAttachments.push({
+      id: String(row.id),
+      assessment_id: String(row.assessment_id),
+      attachment_type: String(row.attachment_type ?? "other"),
+      file_name: String(row.file_name ?? "Arquivo"),
+      file_url: fileUrl,
+      mime_type: typeof row.mime_type === "string" ? row.mime_type : null,
+      file_size_bytes: row.file_size_bytes == null ? null : n(row.file_size_bytes),
+      created_at: String(row.created_at ?? ""),
+      signed_url: await signedUrl(fileUrl),
+    });
+  }
 
   return {
-    athlete: athlete(athleteRow as Record<string, unknown>),
-    plans: (planRows ?? []).map((row) => plan(row as Record<string, unknown>)),
+    athlete: athlete(athleteResult.data as Record<string, unknown>),
+    plans: (plansResult.data ?? []).map((row) => plan(row as Record<string, unknown>)),
+    assessments,
+    assessmentAttachments,
   };
 }
 
 export async function getPhysiqueTrainingPlans() {
   const supabase = await createClient();
-
-  const [{ data: planRows, error: planError }, { data: athleteRows, error: athleteError }] = await Promise.all([
+  const [planResult, athleteResult] = await Promise.all([
     supabase.from("physique_training_plans").select("*").order("created_at", { ascending: false }),
     supabase.from("physique_athlete_overview").select("id,display_name"),
   ]);
-
-  if (planError) throw planError;
-  if (athleteError) throw athleteError;
-
-  const athleteNames = new Map(
-    (athleteRows ?? []).map((row) => [String(row.id), String(row.display_name ?? "Atleta")]),
-  );
-
-  return (planRows ?? []).map((row) => ({
-    ...plan(row as Record<string, unknown>),
-    athlete_name: athleteNames.get(String(row.athlete_id)) ?? "Atleta",
-  }));
+  if (planResult.error) throw planResult.error;
+  if (athleteResult.error) throw athleteResult.error;
+  const names = new Map((athleteResult.data ?? []).map((row) => [String(row.id), String(row.display_name ?? "Atleta")]));
+  return (planResult.data ?? []).map((row) => ({ ...plan(row as Record<string, unknown>), athlete_name: names.get(String(row.athlete_id)) ?? "Atleta" }));
 }
 
 export async function getPhysiqueTrainingPlanDetails(id: string) {
   const supabase = await createClient();
+  const planResult = await supabase.from("physique_training_plans").select("*").eq("id", id).maybeSingle();
+  if (planResult.error) throw planResult.error;
+  if (!planResult.data) return null;
 
-  const { data: planRow, error: planError } = await supabase
-    .from("physique_training_plans")
-    .select("*")
-    .eq("id", id)
-    .maybeSingle();
-
-  if (planError) throw planError;
-  if (!planRow) return null;
-
-  const [{ data: athleteRow, error: athleteError }, { data: dayRows, error: dayError }, { data: attachmentRows, error: attachmentError }] = await Promise.all([
-    supabase.from("physique_athlete_overview").select("*").eq("id", planRow.athlete_id).maybeSingle(),
+  const [athleteResult, dayResult, attachmentResult] = await Promise.all([
+    supabase.from("physique_athlete_overview").select("*").eq("id", planResult.data.athlete_id).maybeSingle(),
     supabase.from("physique_training_days").select("*").eq("plan_id", id).order("day_order"),
     supabase.from("physique_training_attachments").select("*").eq("plan_id", id).order("created_at", { ascending: false }),
   ]);
+  if (athleteResult.error) throw athleteResult.error;
+  if (dayResult.error) throw dayResult.error;
+  if (attachmentResult.error) throw attachmentResult.error;
 
-  if (athleteError) throw athleteError;
-  if (dayError) throw dayError;
-  if (attachmentError) throw attachmentError;
-
-  const days: PhysiqueTrainingDay[] = (dayRows ?? []).map((row) => ({
-    id: String(row.id),
-    plan_id: String(row.plan_id),
-    day_order: n(row.day_order),
-    day_label: String(row.day_label ?? "Treino"),
-    focus: typeof row.focus === "string" ? row.focus : null,
+  const days: PhysiqueTrainingDay[] = (dayResult.data ?? []).map((row) => ({
+    id: String(row.id), plan_id: String(row.plan_id), day_order: n(row.day_order),
+    day_label: String(row.day_label ?? "Treino"), focus: typeof row.focus === "string" ? row.focus : null,
     notes: typeof row.notes === "string" ? row.notes : null,
   }));
-
   const dayIds = days.map((day) => day.id);
   let exerciseRows: Record<string, unknown>[] = [];
-
   if (dayIds.length > 0) {
-    const { data, error } = await supabase
-      .from("physique_training_exercises")
-      .select("*")
-      .in("day_id", dayIds)
-      .order("exercise_order");
-
-    if (error) throw error;
-    exerciseRows = (data ?? []) as Record<string, unknown>[];
+    const result = await supabase.from("physique_training_exercises").select("*").in("day_id", dayIds).order("exercise_order");
+    if (result.error) throw result.error;
+    exerciseRows = (result.data ?? []) as Record<string, unknown>[];
   }
-
   const exercises: PhysiqueTrainingExercise[] = exerciseRows.map((row) => ({
-    id: String(row.id),
-    day_id: String(row.day_id),
-    exercise_order: n(row.exercise_order),
+    id: String(row.id), day_id: String(row.day_id), exercise_order: n(row.exercise_order),
     exercise_name: String(row.exercise_name ?? "Exercício"),
     sets_text: typeof row.sets_text === "string" ? row.sets_text : null,
     reps_text: typeof row.reps_text === "string" ? row.reps_text : null,
@@ -264,35 +349,19 @@ export async function getPhysiqueTrainingPlanDetails(id: string) {
   }));
 
   const attachments: PhysiqueAttachment[] = [];
-
-  for (const row of attachmentRows ?? []) {
+  for (const row of attachmentResult.data ?? []) {
     const fileUrl = String(row.file_url ?? "");
-    let signedUrl: string | null = null;
-
-    if (/^https?:\/\//i.test(fileUrl)) {
-      signedUrl = fileUrl;
-    } else if (fileUrl) {
-      const { data } = await supabase.storage
-        .from("physique-training-files")
-        .createSignedUrl(fileUrl, 60 * 60);
-      signedUrl = data?.signedUrl ?? null;
-    }
-
     attachments.push({
-      id: String(row.id),
-      plan_id: String(row.plan_id),
-      file_name: String(row.file_name ?? "Arquivo"),
-      file_url: fileUrl,
+      id: String(row.id), plan_id: String(row.plan_id), file_name: String(row.file_name ?? "Arquivo"), file_url: fileUrl,
       mime_type: typeof row.mime_type === "string" ? row.mime_type : null,
       file_size_bytes: row.file_size_bytes == null ? null : n(row.file_size_bytes),
-      created_at: String(row.created_at ?? ""),
-      signed_url: signedUrl,
+      created_at: String(row.created_at ?? ""), signed_url: await signedUrl(fileUrl),
     });
   }
 
   return {
-    plan: plan(planRow as Record<string, unknown>),
-    athlete: athleteRow ? athlete(athleteRow as Record<string, unknown>) : null,
+    plan: plan(planResult.data as Record<string, unknown>),
+    athlete: athleteResult.data ? athlete(athleteResult.data as Record<string, unknown>) : null,
     days,
     exercises,
     attachments,

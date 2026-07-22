@@ -1,0 +1,54 @@
+"use client";
+
+import { LoaderCircle, Save, UserRoundPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
+import { createClient } from "@/lib/supabase/client";
+
+export function PhysiqueAthleteForm() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [draft, setDraft] = useState({
+    display_name: "", phone: "", email: "", instagram_username: "",
+    primary_goal: "", notes: "", status: "active",
+  });
+
+  async function submit(event: FormEvent) {
+    event.preventDefault();
+    setLoading(true); setMessage(null);
+    try {
+      if (!draft.display_name.trim()) throw new Error("Informe o nome do atleta.");
+      const supabase = createClient();
+      const { data, error } = await supabase.from("physique_athletes").insert({
+        display_name: draft.display_name.trim(),
+        phone: draft.phone.trim() || null,
+        email: draft.email.trim() || null,
+        instagram_username: draft.instagram_username.trim() || null,
+        primary_goal: draft.primary_goal.trim() || null,
+        notes: draft.notes.trim() || null,
+        status: draft.status,
+      }).select("id").single();
+      if (error) throw error;
+      router.push(`/physique/atletas/${data.id}`);
+      router.refresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível cadastrar o atleta.");
+    } finally { setLoading(false); }
+  }
+
+  return <form className="physique-form" onSubmit={submit}>
+    <div className="physique-form-heading"><UserRoundPlus size={20}/><div><strong>Novo atleta</strong><span>Cadastro enxuto para iniciar o acompanhamento.</span></div></div>
+    <div className="physique-form-grid two">
+      <label className="field"><span>Nome</span><input className="input" required value={draft.display_name} onChange={(e)=>setDraft({...draft,display_name:e.target.value})}/></label>
+      <label className="field"><span>Status</span><select className="select" value={draft.status} onChange={(e)=>setDraft({...draft,status:e.target.value})}><option value="active">Ativo</option><option value="prospect">Prospect</option><option value="paused">Pausado</option><option value="inactive">Inativo</option></select></label>
+      <label className="field"><span>Telefone</span><input className="input" value={draft.phone} onChange={(e)=>setDraft({...draft,phone:e.target.value})}/></label>
+      <label className="field"><span>E-mail</span><input className="input" type="email" value={draft.email} onChange={(e)=>setDraft({...draft,email:e.target.value})}/></label>
+      <label className="field"><span>Instagram</span><input className="input" value={draft.instagram_username} onChange={(e)=>setDraft({...draft,instagram_username:e.target.value})}/></label>
+      <label className="field"><span>Objetivo principal</span><input className="input" value={draft.primary_goal} onChange={(e)=>setDraft({...draft,primary_goal:e.target.value})} placeholder="Ex.: hipertrofia e melhora de simetria"/></label>
+    </div>
+    <label className="field"><span>Observações</span><textarea className="textarea" rows={3} value={draft.notes} onChange={(e)=>setDraft({...draft,notes:e.target.value})}/></label>
+    {message && <p className="form-error visible">{message}</p>}
+    <button className="physique-action-button secondary" type="submit" disabled={loading}>{loading?<LoaderCircle className="spin" size={16}/>:<Save size={16}/>} {loading?"Salvando":"Cadastrar atleta"}</button>
+  </form>;
+}
