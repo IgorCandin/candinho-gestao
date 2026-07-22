@@ -31,7 +31,6 @@ import {
   MessageSquareText,
   PackageSearch,
   PackageX,
-  Radar,
   RefreshCcw,
   Rocket,
   Search,
@@ -45,16 +44,13 @@ import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 
 const supplementNav = [
-  { href: "/suplementos", label: "Início", icon: Home },
-  { href: "/suplementos/painel", label: "Painel Gerencial", icon: BarChart3 },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/suplementos", label: "Hoje", icon: Home },
   { href: "/vendas", label: "Comercial", icon: ShoppingBag },
+  { href: "/clientes", label: "CRM e relacionamento", icon: ContactRound },
+  { href: "/estoque", label: "Estoque e compras", icon: Boxes },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
-  { href: "/estoque", label: "Estoque", icon: Boxes },
-  { href: "/clientes", label: "CRM", icon: ContactRound },
-  { href: "/clientes/radar", label: "Radar", icon: Radar },
   { href: "/parceiros", label: "Parceiros", icon: Handshake },
-  { href: "/movimentacoes", label: "Movimentações", icon: History },
+  { href: "/suplementos/painel", label: "Gestão", icon: BarChart3 },
 ];
 
 const supplementSalesNav = [
@@ -437,7 +433,25 @@ export function AppShell({
       return (
         pathname.startsWith("/vendas") ||
         pathname.startsWith("/leads") ||
-        pathname.startsWith("/orcamentos")
+        pathname.startsWith("/orcamentos") ||
+        pathname.startsWith("/pedidos-pendentes")
+      );
+    }
+
+    if (baseHref === "/clientes") {
+      return (
+        pathname.startsWith("/clientes") ||
+        pathname.startsWith("/pos-venda") ||
+        pathname === "/agenda"
+      );
+    }
+
+    if (baseHref === "/estoque") {
+      return (
+        pathname.startsWith("/estoque") ||
+        pathname.startsWith("/movimentacoes") ||
+        pathname.startsWith("/pedidos-fornecedor") ||
+        pathname.startsWith("/fornecedores")
       );
     }
 
