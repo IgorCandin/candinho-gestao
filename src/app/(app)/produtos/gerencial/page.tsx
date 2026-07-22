@@ -23,47 +23,51 @@ import {
 } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-const IGNORED_QUALITY_FIELDS = new Set([
+const TOTAL_RAW_QUALITY_FIELDS = 15;
+
+const ALWAYS_IGNORED_QUALITY_FIELDS = new Set([
   "Estoque mínimo",
   "Estoque ideal",
 ]);
 
+function isAccessoryCategory(category: string) {
+  return category.toLocaleLowerCase("pt-BR").includes("acess");
+}
+
 export default async function ProductManagementPage() {
   const supabase = await createClient();
 
-  const [
-    access,
-    products,
-    rawQuality,
-    intelligenceResult,
-  ] = await Promise.all([
-    getCurrentUserAccess(),
-    getProductCatalog(),
-    getProductDataQuality(),
-    supabase
-      .from("product_sales_category_intelligence")
-      .select("*")
-      .order("units_90d", {
-        ascending: false,
-      })
-      .order("units_30d", {
-        ascending: false,
-      })
-      .order("product_name", {
-        ascending: true,
-      }),
-  ]);
+  const [access, products, rawQuality, intelligenceResult] =
+    await Promise.all([
+      getCurrentUserAccess(),
+      getProductCatalog(),
+      getProductDataQuality(),
+      supabase
+        .from("product_sales_category_intelligence")
+        .select("*")
+        .order("units_90d", { ascending: false })
+        .order("units_30d", { ascending: false })
+        .order("product_name", { ascending: true }),
+    ]);
 
   if (intelligenceResult.error) {
     throw intelligenceResult.error;
   }
 
   const quality = rawQuality.map((row) => {
+    const ignoredFields = new Set(ALWAYS_IGNORED_QUALITY_FIELDS);
+
+    if (isAccessoryCategory(row.category)) {
+      ignoredFields.add("Marca");
+      ignoredFields.add("Duração/doses");
+    }
+
     const missingFields = row.missing_fields.filter(
-      (field) => !IGNORED_QUALITY_FIELDS.has(field),
+      (field) => !ignoredFields.has(field),
     );
 
-    const totalRelevantFields = 13;
+    const totalRelevantFields =
+      TOTAL_RAW_QUALITY_FIELDS - ignoredFields.size;
 
     return {
       ...row,
@@ -112,7 +116,7 @@ export default async function ProductManagementPage() {
       <PageHeader
         eyebrow="Produtos"
         title="Área Gerencial"
-        description="Qualidade dos cadastros e atualização da curva de giro. Estoque mínimo e ideal não contam mais como pendência cadastral."
+        description="Qualidade dos cadastros e atualização da curva de giro. Estoque mínimo/ideal não contam como pendência; acessórios genéricos também não exigem Marca nem Duração/doses."
         action={
           <Link className="button ghost" href="/produtos">
             <ArrowLeft size={16} />
@@ -158,7 +162,7 @@ export default async function ProductManagementPage() {
           href="/produtos/gerencial"
           label="Cadastros incompletos"
           value={String(incomplete)}
-          note="Sem contar estoque mínimo/ideal"
+          note="Considera somente campos aplicáveis"
           icon={TriangleAlert}
         />
 
@@ -184,9 +188,9 @@ export default async function ProductManagementPage() {
           <div>
             <h2>Cadastros para revisar</h2>
             <p>
-              Marcas que eram nomes de fornecedores foram corrigidas ou
-              limpas. Os casos realmente ambíguos ficam aqui para você
-              abrir o produto e usar “Completar informações” individualmente.
+              Abra o produto e use “Completar informações” individualmente.
+              Para acessórios genéricos, Marca e Duração/doses são tratados
+              como campos não aplicáveis e não reduzem a qualidade do cadastro.
             </p>
           </div>
         </div>

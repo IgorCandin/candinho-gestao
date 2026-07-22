@@ -1,0 +1,98 @@
+CANDINHO COMPANY · V38
+ENCERRAMENTO FINAL · NEXUS INDIVIDUAL + ACESSÓRIOS + ATALHO ESC
+
+OBJETIVO
+Fechar a V38 com os últimos ajustes realmente úteis antes de iniciar a revisão geral do app em um novo chat.
+
+1. ACESSÓRIOS GENÉRICOS
+Na Área Gerencial de Produtos:
+- Marca NÃO conta como pendência para categoria Acessórios.
+- Duração/doses NÃO conta como pendência para categoria Acessórios.
+- Estoque mínimo e Estoque ideal continuam fora da qualidade cadastral.
+
+Os quatro acessórios ativos já estão corretamente com Marca NULL e Duração NULL no banco:
+- Amassador e Porta-Comprimidos
+- Chaveiro Mini Scoop
+- Coqueteleira
+- Porta-Comprimidos Semanal
+
+2. COMPLETAR INFORMAÇÕES INDIVIDUAL
+O formulário continua exatamente com o botão individual já existente.
+Não volta preenchimento em lote.
+
+Correção de arquitetura:
+ANTES
+ProductForm -> Supabase Edge Function product-nexus-enrich
+A função dependia de OPENAI_API_KEY no ambiente do Supabase.
+
+AGORA
+ProductForm -> interceptação transparente no createClient -> /api/produtos/completar na Vercel
+A rota usa a OPENAI_API_KEY já configurada na Vercel.
+
+O ProductForm não precisa ser refeito nem duplicado.
+
+Novo comportamento:
+- pesquisa web primeiro;
+- prioriza fonte oficial;
+- usa a foto principal do produto quando a edição já possui foto;
+- se a pesquisa não encontrar dados suficientes, faz fallback descritivo seguro;
+- o fallback ainda pode sugerir Descrição, Objetivo, Perfil ideal, Informativo, Mensagem rápida, Palavras-chave e Nível;
+- não inventa Marca quando não há evidência;
+- não inventa Duração/doses quando não há evidência;
+- não inventa composição, concentração ou dose;
+- não sobrescreve campos já preenchidos;
+- nada é salvo automaticamente: continua sendo necessário aplicar e depois salvar o produto.
+
+Para Acessórios:
+- o Nexus devolve Marca vazia;
+- o Nexus devolve Duração/doses vazia.
+
+3. ATALHO ESC NO COMPUTADOR
+Novo componente global DesktopEscapeBack.
+
+Comportamento:
+- funciona somente em dispositivos com ponteiro fino (PC/mouse);
+- ESC volta para a tela anterior;
+- no Dashboard não faz nada;
+- se existir um menu <details> aberto, o primeiro ESC fecha o menu em vez de navegar;
+- se houver modal/dialog aberto, deixa o modal tratar o ESC;
+- se o foco estiver em input, textarea, select ou conteúdo editável, ESC NÃO navega para trás.
+
+Assim o atalho não atrapalha enquanto você está digitando.
+
+4. AJUSTES FINAIS DE PADRÃO DOS PRODUTOS
+Já aplicados em produção:
+- Creatina 120 Cápsulas | Health Labs
+- Whey 100% 900g | Dark Lab
+- Whey 100% 900g | FTW
+- Massive Mass 2,5kg - Hipercalórico | FTW
+- Carnificina Pré-Treino: categoria corrigida de Massa para Energia
+
+A migration incluída é idempotente e serve para manter o repositório documentado.
+
+ARQUIVOS
+src/lib/supabase/client.ts
+src/app/api/produtos/completar/route.ts
+src/components/desktop-escape-back.tsx
+src/app/(app)/layout.tsx
+src/app/(app)/produtos/gerencial/page.tsx
+supabase/migrations/20260722235900_v38_final_product_pattern_cleanup.sql
+
+TESTE FINAL
+1. Commitar o pacote.
+2. Esperar Vercel READY.
+3. Abrir um acessório na Área Gerencial:
+   - não deve cobrar Marca;
+   - não deve cobrar Duração/doses.
+4. Abrir um suplemento com campos vazios > Editar produto.
+5. Clicar Completar informações.
+6. Confirmar que aparecem sugestões.
+7. Em produto pouco conhecido, confirmar que o fallback ainda traz textos comerciais seguros mesmo sem fonte suficiente.
+8. Confirmar que Marca/Duração continuam vazias quando não puderem ser verificadas.
+9. No PC, abrir uma ficha de produto e pressionar ESC fora dos campos:
+   - deve voltar.
+10. Com cursor dentro de um input/textarea, pressionar ESC:
+   - não deve sair da página.
+
+COMMIT SUGERIDO
+V38 · Encerramento final — melhora Nexus individual, acessórios e atalho ESC
