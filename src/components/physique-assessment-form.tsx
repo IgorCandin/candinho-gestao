@@ -10,13 +10,15 @@ type Draft = {
   waist_cm:string; abdomen_cm:string; hips_cm:string; arm_left_cm:string; arm_right_cm:string;
   thigh_left_cm:string; thigh_right_cm:string; calf_left_cm:string; calf_right_cm:string; notes:string;
 };
+
+type MetricKey = Exclude<keyof Draft, "assessed_on" | "notes">;
 type NexusAssessment = Record<Exclude<keyof Draft,"notes">,number|string|null> & {summary:string;model:string};
 
 function localToday(){return new Intl.DateTimeFormat("en-CA",{timeZone:"America/Sao_Paulo"}).format(new Date());}
 function numberOrNull(value:string){if(!value.trim())return null;const n=Number(value.replace(",","."));return Number.isFinite(n)?n:null;}
 function safeFileName(name:string){return name.normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]+/g,"-").replace(/-+/g,"-").toLowerCase();}
 
-const metricFields:[keyof Draft,string,string][]=[
+const metricFields:[MetricKey,string,string][]=[
   ["weight_kg","Peso","kg"],["height_cm","Altura","cm"],["body_fat_pct","Gordura corporal","%"],
   ["chest_cm","Peitoral","cm"],["waist_cm","Cintura","cm"],["abdomen_cm","Abdômen","cm"],["hips_cm","Quadril","cm"],
   ["arm_left_cm","Braço esquerdo","cm"],["arm_right_cm","Braço direito","cm"],["thigh_left_cm","Coxa esquerda","cm"],
