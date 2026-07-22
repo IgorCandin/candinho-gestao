@@ -12,10 +12,12 @@ import {
   LoaderCircle,
   Search,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { renderNutritionCardToBlobs } from "@/lib/nutrition-image-client";
 
 type NutritionStatus =
   | "pending"
@@ -103,10 +105,7 @@ const STATUS_OPTIONS: Array<{
 ];
 
 function statusLabel(value: NutritionStatus) {
-  return (
-    STATUS_OPTIONS.find((item) => item.value === value)?.label ??
-    value
-  );
+  return STATUS_OPTIONS.find((item) => item.value === value)?.label ?? value;
 }
 
 function matchLabel(value?: string | null) {
@@ -119,8 +118,7 @@ function matchLabel(value?: string | null) {
 
 function sourceLabel(value?: string | null) {
   if (value === "official_brand") return "Marca oficial";
-  if (value === "official_manufacturer")
-    return "Fabricante oficial";
+  if (value === "official_manufacturer") return "Fabricante oficial";
   if (value === "official_document") return "Documento oficial";
   if (value === "retailer") return "Varejista";
   if (value === "marketplace") return "Marketplace";
@@ -144,6 +142,17 @@ function buildResearchPrompt(row: NutritionRow) {
   ].join("\n");
 }
 
+function storagePath(url: string | null) {
+  if (!url) return null;
+
+  const marker = "/storage/v1/object/public/product-images/";
+  const index = url.indexOf(marker);
+
+  return index >= 0
+    ? decodeURIComponent(url.slice(index + marker.length))
+    : null;
+}
+
 function ResearchPreview({
   research,
 }: {
@@ -155,28 +164,21 @@ function ResearchPreview({
         <div>
           <span>Resultado da pesquisa</span>
           <strong>
-            {research.confirmed_product_name ||
-              "Produto não confirmado"}
+            {research.confirmed_product_name || "Produto não confirmado"}
           </strong>
-          <small>
-            {research.confirmed_brand || "Marca não confirmada"}
-          </small>
+          <small>{research.confirmed_brand || "Marca não confirmada"}</small>
         </div>
 
         <div
           className={`nutrition-ai-confidence ${research.product_match_status}`}
         >
           <strong>{research.confidence}%</strong>
-          <span>
-            {matchLabel(research.product_match_status)}
-          </span>
+          <span>{matchLabel(research.product_match_status)}</span>
         </div>
       </div>
 
       <div className="nutrition-ai-chips">
-        <span>
-          {sourceLabel(research.source_classification)}
-        </span>
+        <span>{sourceLabel(research.source_classification)}</span>
         {research.serving_size && (
           <span>Porção: {research.serving_size}</span>
         )}
@@ -185,32 +187,27 @@ function ResearchPreview({
         )}
       </div>
 
-      {(research.variant_warning ||
-        research.research_notes) && (
+      {(research.variant_warning || research.research_notes) && (
         <div className="nutrition-ai-warning">
           <AlertTriangle size={16} />
           <div>
             {research.variant_warning && (
               <strong>{research.variant_warning}</strong>
             )}
-            {research.research_notes && (
-              <p>{research.research_notes}</p>
-            )}
+            {research.research_notes && <p>{research.research_notes}</p>}
           </div>
         </div>
       )}
 
       {research.nutrition_facts.length > 0 && (
         <div className="nutrition-ai-facts">
-          {research.nutrition_facts
-            .slice(0, 8)
-            .map((fact, index) => (
-              <div key={`${fact.label}-${index}`}>
-                <span>{fact.label}</span>
-                <strong>{fact.amount}</strong>
-                <small>{fact.daily_value}</small>
-              </div>
-            ))}
+          {research.nutrition_facts.slice(0, 8).map((fact, index) => (
+            <div key={`${fact.label}-${index}`}>
+              <span>{fact.label}</span>
+              <strong>{fact.amount}</strong>
+              <small>{fact.daily_value}</small>
+            </div>
+          ))}
         </div>
       )}
 
@@ -218,15 +215,12 @@ function ResearchPreview({
         <div className="nutrition-ai-copy">
           {research.ingredients && (
             <p>
-              <strong>Ingredientes:</strong>{" "}
-              {research.ingredients}
+              <strong>Ingredientes:</strong> {research.ingredients}
             </p>
           )}
-
           {research.allergens && (
             <p>
-              <strong>Alergênicos:</strong>{" "}
-              {research.allergens}
+              <strong>Alergênicos:</strong> {research.allergens}
             </p>
           )}
         </div>
@@ -237,6 +231,7 @@ function ResearchPreview({
 
 function ProductNutritionCard({ row }: { row: NutritionRow }) {
   const router = useRouter();
+
   const [status, setStatus] = useState<NutritionStatus>(
     row.nutrition_status,
   );
@@ -246,20 +241,38 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
   const [sourceUrl, setSourceUrl] = useState(
     row.nutrition_source_url ?? "",
   );
-  const [notes, setNotes] = useState(
-    row.nutrition_notes ?? "",
+  const [notes, setNotes] = useState(row.nutrition_notes ?? "");
+  const [research, setResearch] = useState<NutritionResearch | null>(
+    row.nutrition_ai_payload ?? null,
   );
-  const [research, setResearch] =
-    useState<NutritionResearch | null>(
-      row.nutrition_ai_payload ?? null,
-    );
   const [hasImage, setHasImage] = useState(
     Boolean(row.secondary_image_url),
   );
+  const [currentSecondaryImage, setCurrentSecondaryImage] = useState(
+    row.secondary_image_url,
+  );
+  const [currentSecondaryThumbnail, setCurrentSecondaryThumbnail] = useState(
+    row.secondary_thumbnail_url,
+  );
+
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFullBlob, setPreviewFullBlob] = useState<Blob | null>(null);
+  const [previewThumbBlob, setPreviewThumbBlob] = useState<Blob | null>(null);
+
   const [researchLoading, setResearchLoading] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+
+  function clearPreview() {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    setPreviewUrl(null);
+    setPreviewFullBlob(null);
+    setPreviewThumbBlob(null);
+  }
 
   async function copyPrompt() {
     await navigator.clipboard.writeText(buildResearchPrompt(row));
@@ -270,16 +283,14 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
     setResearchLoading(true);
     setMessage(null);
     setStatus("researching");
+    clearPreview();
 
     try {
-      const response = await fetch(
-        "/api/produtos/nutricao/pesquisar",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: row.id }),
-        },
-      );
+      const response = await fetch("/api/produtos/nutricao/pesquisar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId: row.id }),
+      });
 
       const payload = (await response.json()) as {
         error?: string;
@@ -296,11 +307,13 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
       setSourceName(payload.research.source_name || "");
       setSourceUrl(payload.research.source_url || "");
       setStatus("review");
+
       setMessage(
         payload.research.can_generate_image
-          ? "Pesquisa concluída. Revise os dados e gere a Imagem 2."
+          ? "Pesquisa concluída. Gere a prévia da Imagem 2, confira e só depois salve."
           : "Pesquisa concluída, mas a correspondência precisa de revisão antes de gerar a Imagem 2.",
       );
+
       router.refresh();
     } catch (error) {
       setStatus(row.nutrition_status);
@@ -314,44 +327,138 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
     }
   }
 
-  async function generateImage() {
+  async function generatePreview() {
+    if (!research) {
+      setMessage("Pesquise o produto com IA antes de gerar a Imagem 2.");
+      return;
+    }
+
     setImageLoading(true);
     setMessage(null);
 
     try {
-      const response = await fetch(
-        "/api/produtos/nutricao/gerar-imagem",
+      const rendered = await renderNutritionCardToBlobs(row.name, research);
+
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+
+      const nextUrl = URL.createObjectURL(rendered.full);
+
+      setPreviewFullBlob(rendered.full);
+      setPreviewThumbBlob(rendered.thumbnail);
+      setPreviewUrl(nextUrl);
+      setMessage(
+        "Prévia gerada no navegador. Confira os textos e números antes de salvar como Imagem 2.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível gerar a prévia da Imagem 2.",
+      );
+    } finally {
+      setImageLoading(false);
+    }
+  }
+
+  async function saveGeneratedImage() {
+    if (!previewFullBlob || !previewThumbBlob) {
+      setMessage("Gere e confira a prévia antes de salvar a Imagem 2.");
+      return;
+    }
+
+    setImageLoading(true);
+    setMessage(null);
+
+    const supabase = createClient();
+    const token = crypto.randomUUID();
+
+    const fullPath = `${row.id}/secondary-browser-${token}.png`;
+    const thumbPath = `${row.id}/secondary-browser-${token}-thumb.webp`;
+
+    try {
+      const { error: fullError } = await supabase.storage
+        .from("product-images")
+        .upload(fullPath, previewFullBlob, {
+          contentType: "image/png",
+          upsert: false,
+        });
+
+      if (fullError) throw fullError;
+
+      const { error: thumbError } = await supabase.storage
+        .from("product-images")
+        .upload(thumbPath, previewThumbBlob, {
+          contentType: "image/webp",
+          upsert: false,
+        });
+
+      if (thumbError) {
+        await supabase.storage.from("product-images").remove([fullPath]);
+        throw thumbError;
+      }
+
+      const fullUrl = supabase.storage
+        .from("product-images")
+        .getPublicUrl(fullPath).data.publicUrl;
+
+      const thumbUrl = supabase.storage
+        .from("product-images")
+        .getPublicUrl(thumbPath).data.publicUrl;
+
+      const { error: imageSaveError } = await supabase.rpc(
+        "set_product_image",
         {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId: row.id }),
+          p_product_id: row.id,
+          p_slot: "secondary",
+          p_image_url: fullUrl,
+          p_thumbnail_url: thumbUrl,
         },
       );
 
-      const payload = (await response.json()) as {
-        error?: string;
-        warning?: string | null;
-      };
+      if (imageSaveError) {
+        await supabase.storage
+          .from("product-images")
+          .remove([fullPath, thumbPath]);
 
-      if (!response.ok) {
-        throw new Error(
-          payload.error || "Não foi possível gerar a Imagem 2.",
-        );
+        throw imageSaveError;
       }
 
+      const oldPaths = [
+        storagePath(currentSecondaryImage),
+        storagePath(currentSecondaryThumbnail),
+      ].filter((value): value is string => Boolean(value));
+
+      if (oldPaths.length > 0) {
+        await supabase.storage.from("product-images").remove(oldPaths);
+      }
+
+      const { error: markError } = await supabase.rpc(
+        "mark_product_nutrition_image_generated",
+        {
+          p_product_id: row.id,
+        },
+      );
+
+      setCurrentSecondaryImage(fullUrl);
+      setCurrentSecondaryThumbnail(thumbUrl);
       setHasImage(true);
       setStatus("review");
+      clearPreview();
+
       setMessage(
-        payload.warning
-          ? `Imagem 2 gerada. Aviso: ${payload.warning}`
-          : "Imagem 2 gerada e salva no produto. Revise antes de aprovar.",
+        markError
+          ? `Imagem 2 salva. Aviso: ${markError.message}`
+          : "Imagem 2 salva corretamente. Revise o produto antes de aprovar.",
       );
+
       router.refresh();
     } catch (error) {
       setMessage(
         error instanceof Error
           ? error.message
-          : "Não foi possível gerar a Imagem 2.",
+          : "Não foi possível salvar a Imagem 2.",
       );
     } finally {
       setImageLoading(false);
@@ -383,6 +490,7 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
           ? "Informação nutricional aprovada."
           : "Revisão salva.",
       );
+
       router.refresh();
     } catch (error) {
       setMessage(
@@ -422,16 +530,14 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
         <span className={`nutrition-state ${status}`}>
           {statusLabel(status)}
         </span>
+
         <span>
-          Imagem 2:{" "}
-          <strong>{hasImage ? "pronta" : "pendente"}</strong>
+          Imagem 2: <strong>{hasImage ? "pronta" : "pendente"}</strong>
         </span>
+
         {research && (
           <span>
-            IA:{" "}
-            <strong>
-              {matchLabel(research.product_match_status)}
-            </strong>
+            IA: <strong>{matchLabel(research.product_match_status)}</strong>
           </span>
         )}
       </div>
@@ -440,9 +546,7 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
         <button
           className="button gold"
           type="button"
-          disabled={
-            researchLoading || status === "not_applicable"
-          }
+          disabled={researchLoading || status === "not_applicable"}
           onClick={() => void researchWithAi()}
         >
           {researchLoading ? (
@@ -450,6 +554,7 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
           ) : (
             <Sparkles size={16} />
           )}
+
           {researchLoading
             ? "Pesquisando fonte oficial..."
             : research
@@ -461,7 +566,7 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
           className="button ghost"
           type="button"
           disabled={imageLoading || !canGenerate}
-          onClick={() => void generateImage()}
+          onClick={() => void generatePreview()}
           title={
             !canGenerate
               ? "A pesquisa precisa encontrar uma correspondência segura em fonte oficial."
@@ -473,15 +578,60 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
           ) : (
             <ImagePlus size={16} />
           )}
+
           {imageLoading
-            ? "Gerando Imagem 2..."
-            : hasImage
-              ? "Regenerar Imagem 2"
-              : "Gerar Imagem 2"}
+            ? "Gerando prévia..."
+            : previewUrl
+              ? "Regenerar prévia"
+              : "Pré-visualizar Imagem 2"}
         </button>
       </div>
 
       {research && <ResearchPreview research={research} />}
+
+      {previewUrl && (
+        <div className="nutrition-image-preview-panel">
+          <div className="nutrition-image-preview-head">
+            <div>
+              <span>Prévia da Imagem 2</span>
+              <strong>Confira antes de substituir a imagem atual</strong>
+            </div>
+            <small>
+              Gerada localmente no navegador · não foi salva ainda
+            </small>
+          </div>
+
+          <div className="nutrition-image-preview-frame">
+            <img src={previewUrl} alt={`Prévia nutricional de ${row.name}`} />
+          </div>
+
+          <div className="nutrition-image-preview-actions">
+            <button
+              className="button gold"
+              type="button"
+              disabled={imageLoading}
+              onClick={() => void saveGeneratedImage()}
+            >
+              {imageLoading ? (
+                <LoaderCircle className="spin" size={15} />
+              ) : (
+                <CheckCircle2 size={15} />
+              )}
+              Salvar como Imagem 2
+            </button>
+
+            <button
+              className="button ghost"
+              type="button"
+              disabled={imageLoading}
+              onClick={clearPreview}
+            >
+              <Trash2 size={15} />
+              Descartar prévia
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="nutrition-workbench-fields">
         <label>
@@ -539,10 +689,7 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
           Copiar prompt manual
         </button>
 
-        <Link
-          className="button ghost"
-          href={`/produtos/${row.id}`}
-        >
+        <Link className="button ghost" href={`/produtos/${row.id}`}>
           <ImagePlus size={15} />
           Abrir produto / Imagem 2
         </Link>
@@ -571,9 +718,7 @@ function ProductNutritionCard({ row }: { row: NutritionRow }) {
       </div>
 
       {message && (
-        <p className="nutrition-workbench-message">
-          {message}
-        </p>
+        <p className="nutrition-workbench-message">{message}</p>
       )}
     </article>
   );
@@ -634,14 +779,17 @@ export function ProductNutritionWorkbench({
           <span>Pendentes</span>
           <strong>{pending}</strong>
         </article>
+
         <article>
           <span>Pesquisados pela IA</span>
           <strong>{researched}</strong>
         </article>
+
         <article>
           <span>Sem Imagem 2</span>
           <strong>{missingImage}</strong>
         </article>
+
         <article>
           <span>Aprovados</span>
           <strong>{approved}</strong>
@@ -661,9 +809,7 @@ export function ProductNutritionWorkbench({
         <select
           value={filter}
           onChange={(event) =>
-            setFilter(
-              event.target.value as NutritionStatus | "all",
-            )
+            setFilter(event.target.value as NutritionStatus | "all")
           }
         >
           <option value="all">Todos os status</option>
@@ -682,10 +828,9 @@ export function ProductNutritionWorkbench({
         <div>
           <strong>Fluxo automático com revisão humana</strong>
           <p>
-            A IA usa nome + Imagem 1 para identificar o produto e
-            pesquisar uma fonte oficial. A Imagem 2 só é liberada
-            quando a correspondência é segura; a aprovação continua
-            manual.
+            A IA pesquisa os dados oficiais. A arte é pré-visualizada no
+            seu navegador e só substitui a Imagem 2 depois que você clicar
+            em Salvar como Imagem 2.
           </p>
         </div>
       </div>

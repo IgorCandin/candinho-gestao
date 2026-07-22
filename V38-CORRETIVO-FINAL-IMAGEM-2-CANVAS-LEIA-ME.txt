@@ -1,0 +1,73 @@
+CANDINHO COMPANY · V38
+CORRETIVO FINAL · IMAGEM 2 VIA CANVAS DO NAVEGADOR
+
+BUG OBSERVADO
+A pesquisa da Nutrição IA funcionava corretamente, mas a Imagem 2 gerada
+no servidor aparecia com textos transformados em quadrados/glyphs inválidos.
+
+CAUSA
+O renderer antigo gerava um SVG com elementos <text> e entregava esse SVG
+ao Sharp no ambiente serverless da Vercel.
+
+A renderização de texto do Sharp/libvips depende das fontes disponíveis
+no ambiente do servidor. Em ambiente serverless, essa disponibilidade não
+é confiável. O resultado observado foi uma imagem estruturalmente correta,
+mas com os caracteres quebrados.
+
+CORREÇÃO
+A geração visual deixa de depender das fontes do servidor.
+
+NOVO FLUXO
+1. A OpenAI continua pesquisando e estruturando os dados no backend.
+2. O botão passa a ser "Pré-visualizar Imagem 2".
+3. O navegador desenha a arte em Canvas 1080x1080.
+4. A fonte é renderizada pelo próprio navegador do usuário.
+5. A prévia aparece dentro do card.
+6. Nada é salvo automaticamente.
+7. O usuário confere os textos e números.
+8. Só depois clica "Salvar como Imagem 2".
+9. O PNG 1080x1080 e a miniatura WEBP são enviados ao bucket product-images.
+10. A RPC set_product_image vincula a nova arte ao slot secondary.
+11. A imagem anterior só é removida depois que a nova foi salva com sucesso.
+
+VANTAGENS
+- elimina dependência de fontes da Vercel;
+- evita os quadradinhos observados na imagem;
+- permite conferir a arte antes de substituir a Imagem 2;
+- permite regenerar a prévia sem refazer a pesquisa da IA;
+- mantém a pesquisa oficial já salva;
+- não precisa de nova migration;
+- não adiciona nova dependência npm.
+
+ARQUIVOS
+src/lib/nutrition-image-client.ts
+src/components/product-nutrition-workbench.tsx
+src/app/v38-nutrition-image-preview.css
+src/app/globals.css
+
+BANCO
+Nenhuma migration nova neste corretivo.
+
+ROTA ANTIGA
+/api/produtos/nutricao/gerar-imagem continua no projeto por compatibilidade,
+mas a interface nova não usa mais essa rota para renderizar a arte.
+
+TESTE
+1. Commitar o pacote.
+2. Esperar o deployment ficar READY.
+3. Abrir Produtos > Nutrição IA.
+4. Usar um produto cuja pesquisa já esteja pronta.
+5. Clicar "Pré-visualizar Imagem 2".
+6. Conferir se todos os textos aparecem normalmente.
+7. Conferir nutrientes, quantidades e %VD.
+8. Clicar "Salvar como Imagem 2".
+9. Abrir a ficha do produto.
+10. Confirmar que a Imagem 2 foi substituída pela nova arte.
+11. Somente depois aprovar a revisão nutricional.
+
+IMPORTANTE
+A pesquisa não precisa ser refeita para corrigir uma imagem antiga bugada.
+Basta abrir o produto pesquisado e gerar uma nova prévia.
+
+COMMIT SUGERIDO
+V38 · Correção final — Imagem 2 com preview e renderização segura no navegador
