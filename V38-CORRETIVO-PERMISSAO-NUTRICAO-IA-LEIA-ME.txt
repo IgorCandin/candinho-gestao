@@ -1,0 +1,22 @@
+CANDINHO COMPANY · V38
+CORRETIVO · PERMISSÃO DA FILA NUTRIÇÃO IA
+
+BUG
+A rota /produtos/nutricao carregava com erro de servidor.
+
+CAUSA CONFIRMADA NOS LOGS DA VERCEL
+permission denied for view product_nutrition_enrichment_queue
+Código PostgreSQL: 42501
+
+CORREÇÃO
+Concede SELECT na view public.product_nutrition_enrichment_queue
+para authenticated e service_role.
+
+STATUS
+A correção JÁ FOI APLICADA no Supabase de produção.
+NÃO executar manualmente em produção.
+
+Este pacote serve para manter o histórico de migrations do repositório alinhado com o banco.
+
+COMMIT SUGERIDO
+V38 · Correção — restaura acesso à fila da Nutrição IA
