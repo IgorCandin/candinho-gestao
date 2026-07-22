@@ -1,6 +1,0 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
-import { PageHeader } from "@/components/page-header";
-import { getFitnessPurchaseOrders } from "@/lib/data";
-import { formatCurrency, formatDateOnly } from "@/lib/format";
-export default async function Page(){const orders=await getFitnessPurchaseOrders();return <><PageHeader eyebrow="Candinho Fitness · Compras" title="Pedidos" description="Reposições, recebimentos parciais e mercadorias a caminho." action={<Link className="button gold" href="/fitness/pedidos/novo"><Plus size={16}/>Novo pedido</Link>}/><article className="panel"><div className="table-wrap"><table><thead><tr><th>Fornecedor</th><th>Produtos</th><th>Data</th><th>Recebido</th><th>Pendente</th><th>Frete</th><th>Total</th><th>Status</th></tr></thead><tbody>{orders.map((o)=><tr key={o.id}><td><Link className="table-link" href={`/fitness/pedidos/${o.id}`}>{o.supplier_name}</Link></td><td>{o.product_summary}</td><td>{formatDateOnly(o.ordered_on)}</td><td>{o.received_units}</td><td>{o.pending_units}</td><td>{formatCurrency(o.freight)}</td><td>{formatCurrency(o.grand_total)}</td><td>{o.status}</td></tr>)}{orders.length===0&&<tr><td colSpan={8}>Nenhum pedido registrado.</td></tr>}</tbody></table></div></article></>}
