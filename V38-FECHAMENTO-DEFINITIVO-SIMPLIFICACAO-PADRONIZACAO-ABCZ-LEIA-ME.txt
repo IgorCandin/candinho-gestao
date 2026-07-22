@@ -1,0 +1,215 @@
+CANDINHO COMPANY · V38
+PACOTÃO FINAL · SIMPLIFICAÇÃO + PADRONIZAÇÃO + GIRO INTELIGENTE A/B/C/Z
+
+OBJETIVO
+Encerrar a etapa removendo funções que não ficaram práticas e mantendo somente o fluxo útil no dia a dia.
+
+REMOVIDO DA INTERFACE
+- segunda imagem do produto;
+- upload de Imagem 2;
+- Nutrição IA;
+- pesquisa nutricional dedicada;
+- geração automática de imagem nutricional;
+- preenchimento de cadastros em lote;
+- atalhos para Completar cadastros em lote;
+- atalhos para Nutrição IA.
+
+ROTAS ANTIGAS
+/produtos/nutricao
+/cadastros/completar
+
+Agora redirecionam para:
+/produtos/gerencial
+
+APIS ANTIGAS
+As APIs de Nutrição IA e preenchimento em lote passam a responder 410 (recurso removido).
+
+PREENCHIMENTO QUE CONTINUA
+O botão "Completar informações" dentro da edição individual do produto continua funcionando.
+
+Fluxo:
+Produtos > abrir produto > Editar produto > Completar informações
+
+Nada é aplicado automaticamente.
+O Nexus sugere e o usuário revisa antes de salvar.
+
+PADRONIZAÇÃO DO BANCO
+A migration deste pacote JÁ FOI APLICADA no Supabase de produção.
+
+Fornecedor:
+NÃO foi alterado.
+
+Marca:
+- nenhum produto ativo ficou com Shopee, Mercado Livre, TikTok Shop, Whatsapp ou Toron como marca;
+- marcas inequívocas foram corrigidas;
+- quando a marca não pôde ser confirmada com segurança pelo cadastro atual, o campo foi limpo;
+- esses casos ficam como pendência para revisão individual.
+
+Após a padronização inicial:
+27 produtos ativos ficaram com marca para revisar individualmente.
+
+Exemplos corrigidos:
+Basic Whey 1kg
+Marca: Growth Supplements
+Fornecedor: Mercado Livre
+
+Creatina Monohidratada 300g
+Marca: Candinho Suplementos
+Fornecedor: Toron
+
+Whey Protein 1kg
+Marca: Soldiers Nutrition
+Fornecedor: TikTok Shop
+
+Regra de nome:
+- nome do produto limpo;
+- marca fica no campo Marca;
+- quando dois produtos ficariam com o mesmo nome e a base exige nome único, usa-se "Nome - Marca" somente para diferenciar.
+
+Exemplo:
+Creatina 120 Cápsulas - Dark Lab
+Creatina 120 Cápsulas - Health Labs
+Creatina 120 Cápsulas - Integralmédica
+
+QUALIDADE CADASTRAL
+Estoque mínimo e Estoque ideal NÃO contam mais como campo faltante.
+
+Motivo:
+0 pode ser exatamente a configuração correta de uma categoria B, C ou Z.
+
+A qualidade cadastral fica focada em dados de produto:
+- foto principal;
+- marca;
+- SKU;
+- fornecedor;
+- descrição;
+- objetivo;
+- perfil ideal;
+- duração/doses;
+- informações;
+- mensagem rápida;
+- palavras-chave;
+- preço de custo;
+- preço de venda.
+
+GIRO INTELIGENTE
+Nova seção em:
+Produtos > Área Gerencial
+
+Botão:
+Atualizar categorias
+
+A classificação NÃO roda escondida.
+O painel mostra:
+- categoria atual;
+- categoria sugerida;
+- vendas em 30 dias;
+- vendas em 90 dias;
+- estoque atual;
+- motivo da sugestão;
+- política de reposição.
+
+REGRAS
+A
+Alto giro.
+Entra em A quando:
+- vende 2 ou mais unidades nos últimos 30 dias; OU
+- vende 5 ou mais unidades nos últimos 90 dias.
+
+Política:
+- manter estoque;
+- alerta de reposição quando restar 1 unidade;
+- estoque ideal mínimo passa a 2 para permitir pedir antes da ruptura;
+- configurações maiores já existentes de produtos estratégicos são preservadas.
+
+B
+Giro regular.
+Entra em B quando:
+- vende 2 ou mais unidades nos últimos 90 dias; OU
+- tem pelo menos 4 vendas históricas e vendeu nos últimos 180 dias.
+
+Política:
+- pode zerar;
+- alerta somente quando chegar a 0;
+- estoque mínimo 0;
+- estoque ideal 1.
+
+C
+Baixo giro / sob encomenda.
+
+Política:
+- pode zerar;
+- não gera urgência automática;
+- estoque mínimo 0;
+- estoque ideal 0.
+
+Z
+Especial, restrito, alternativo ou fora da reposição comum.
+
+Política:
+- não gera alerta automático;
+- não é alterado pelo botão de giro inteligente.
+
+RESTRITOS
+Produtos marcados como restricted são mantidos em Z.
+
+IMPORTANTE
+A atualização das categorias ainda NÃO foi disparada automaticamente.
+O banco apenas está preparado.
+
+Depois do deploy:
+1. Abra Produtos > Área Gerencial.
+2. Revise as mudanças sugeridas.
+3. Clique "Atualizar categorias" quando estiver de acordo.
+
+STATUS DO BANCO
+A migration:
+20260722233000_v38_simplify_catalog_standardize_products_and_smart_abcz.sql
+
+JÁ FOI APLICADA no Supabase de produção.
+
+NÃO executar manualmente em produção.
+
+ARQUIVOS PRINCIPAIS
+src/components/product-image-uploader.tsx
+src/app/(app)/produtos/[id]/page.tsx
+src/app/(app)/produtos/page.tsx
+src/app/(app)/fitness/produtos/page.tsx
+src/app/(app)/produtos/gerencial/page.tsx
+src/components/product-sales-category-intelligence.tsx
+src/app/(app)/produtos/nutricao/page.tsx
+src/app/(app)/cadastros/completar/page.tsx
+src/app/api/produtos/nutricao/pesquisar/route.ts
+src/app/api/produtos/nutricao/gerar-imagem/route.ts
+src/app/api/cadastros/completar/gerar/route.ts
+src/app/v38-smart-abcz.css
+src/app/globals.css
+supabase/migrations/20260722233000_v38_simplify_catalog_standardize_products_and_smart_abcz.sql
+
+TESTE FINAL
+1. Commitar este pacote.
+2. Esperar Vercel READY.
+3. Abrir um produto:
+   - deve existir somente Foto principal.
+   - não deve existir Imagem 2.
+4. Abrir Produtos:
+   - não deve existir Nutrição IA.
+   - não deve existir Completar cadastros em lote.
+5. Abrir Fitness > Produtos:
+   - não deve existir Completar cadastros em lote.
+6. Abrir Produtos > Área Gerencial:
+   - estoque mínimo/ideal não aparecem como pendência.
+   - deve aparecer Giro inteligente A/B/C/Z.
+7. Revisar a tabela de sugestões.
+8. Clicar Atualizar categorias.
+9. Conferir Estoque/Pedidos:
+   - A alerta com 1 unidade.
+   - B alerta somente zerado.
+   - C não gera urgência.
+   - Z não gera urgência.
+10. Abrir um produto sem Marca:
+   - Editar produto.
+   - usar Completar informações individualmente.
+
+COMMIT SUGERIDO
+V38 · Fechamento definitivo — simplifica produtos, padroniza cadastro e ativa giro inteligente ABCZ

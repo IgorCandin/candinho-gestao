@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   Boxes,
-  CheckSquare,
   PackageCheck,
   PackagePlus,
   Plus,
@@ -36,24 +35,14 @@ export default async function Page() {
         description={
           salesMode
             ? "Consulta comercial de preço, estoque e reposição prevista."
-            : "Modelos, tamanhos, cores e disponibilidade com a mesma lógica visual da Candinho Suplementos."
+            : "Modelos, tamanhos, cores e disponibilidade. O cadastro é completado individualmente na edição de cada produto."
         }
         action={
           !salesMode && access.canWriteFitness ? (
-            <div className="page-header-action-group">
-              <Link
-                className="button ghost"
-                href="/cadastros/completar?modulo=fitness"
-              >
-                <CheckSquare size={16} />
-                Completar cadastros
-              </Link>
-
-              <Link className="button gold" href="/fitness/produtos/novo">
-                <Plus size={16} />
-                Novo produto
-              </Link>
-            </div>
+            <Link className="button gold" href="/fitness/produtos/novo">
+              <Plus size={16} />
+              Novo produto
+            </Link>
           ) : null
         }
       />

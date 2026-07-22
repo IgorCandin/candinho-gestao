@@ -1,5 +1,3 @@
-import Link from "next/link";
-import { CheckSquare, Sparkles } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { ProductCatalogTable } from "@/components/product-catalog-table";
@@ -26,31 +24,12 @@ export default async function ProductsPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Produtos"
-        description="Consulta rápida de preço, disponibilidade e reposição. Gere um PDF automático ou selecione somente os produtos que o cliente pediu."
+        description="Consulta rápida de preço, disponibilidade e reposição. O preenchimento assistido continua disponível individualmente ao editar cada produto."
         action={
-          <div className="page-header-action-group">
-            {access.canWriteSupplements && (
-              <Link
-                className="button ghost"
-                href="/cadastros/completar?modulo=supplements"
-              >
-                <CheckSquare size={16} />
-                Completar cadastros
-              </Link>
-            )}
-
-            {access.canWriteSupplements && (
-              <Link className="button ghost" href="/produtos/nutricao">
-                <Sparkles size={16} />
-                Nutrição IA
-              </Link>
-            )}
-
-            <ProductCatalogActions
-              canWrite={access.canWriteSupplements}
-              products={products}
-            />
-          </div>
+          <ProductCatalogActions
+            canWrite={access.canWriteSupplements}
+            products={products}
+          />
         }
       />
 
@@ -79,7 +58,6 @@ export default async function ProductsPage() {
                   <th>A caminho</th>
                 </tr>
               </thead>
-
               <tbody>
                 {locations
                   .filter(

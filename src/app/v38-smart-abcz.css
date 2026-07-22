@@ -1,0 +1,145 @@
+.smart-abcz-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.smart-abcz-head {
+  align-items: flex-start;
+}
+
+.smart-abcz-policy-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  padding: 0 14px;
+}
+
+.smart-abcz-policy-grid > div {
+  display: grid;
+  gap: 3px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .018);
+}
+
+.smart-abcz-policy-grid strong {
+  color: var(--gold);
+  font-size: 19px;
+}
+
+.smart-abcz-policy-grid span {
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.smart-abcz-policy-grid small {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.smart-abcz-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 0 14px;
+}
+
+.smart-abcz-summary > span {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.smart-abcz-summary strong {
+  color: var(--text);
+}
+
+.smart-abcz-message {
+  margin: 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(217, 164, 65, .25);
+  border-radius: 10px;
+  background: rgba(217, 164, 65, .055);
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.smart-abcz-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 27px;
+  height: 27px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.smart-abcz-badge.curve-A {
+  color: #57d8b8;
+  border-color: rgba(87, 216, 184, .28);
+  background: rgba(87, 216, 184, .06);
+}
+
+.smart-abcz-badge.curve-B {
+  color: #e6aa4a;
+  border-color: rgba(230, 170, 74, .28);
+  background: rgba(230, 170, 74, .06);
+}
+
+.smart-abcz-badge.curve-C {
+  color: #a8adb7;
+}
+
+.smart-abcz-badge.curve-Z {
+  color: #d37c86;
+  border-color: rgba(211, 124, 134, .25);
+  background: rgba(211, 124, 134, .05);
+}
+
+.smart-abcz-change {
+  margin-left: 5px;
+  vertical-align: middle;
+}
+
+.smart-abcz-change.up {
+  color: #57d8b8;
+}
+
+.smart-abcz-change.down {
+  color: #e6aa4a;
+}
+
+.smart-abcz-reason {
+  display: block;
+  max-width: 420px;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.product-quality-note {
+  margin-top: 4px;
+}
+
+@media (max-width: 880px) {
+  .smart-abcz-policy-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .smart-abcz-policy-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .smart-abcz-head .button {
+    width: 100%;
+  }
+}
