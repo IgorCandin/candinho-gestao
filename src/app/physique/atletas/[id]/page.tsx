@@ -1,3 +1,107 @@
-import Link from "next/link";import { notFound } from "next/navigation";import { Activity,ArrowLeft,Dumbbell,ExternalLink,FileText,Link2,Plus,UserRound } from "lucide-react";import { PhysiqueAssessmentForm } from "@/components/physique-assessment-form";import { PhysiqueAthleteImportHub } from "@/components/physique-athlete-import-hub";import { formatDateOnly } from "@/lib/format";import { getPhysiqueAthleteDetails } from "@/lib/physique-data";
-function metric(value:number|null,unit:string){return value==null?"—":`${value.toLocaleString("pt-BR",{maximumFractionDigits:2})}${unit}`}
-export default async function PhysiqueAthleteDetailsPage({params}:{params:Promise<{id:string}>}){const{id}=await params;const details=await getPhysiqueAthleteDetails(id);if(!details)notFound();const{athlete,plans,assessments,assessmentAttachments}=details;return <section className="physique-page"><header className="physique-subpage-header"><Link href="/physique/atletas"><ArrowLeft size={16}/> Atletas</Link><div><span>{athlete.status}</span><h1>{athlete.display_name}</h1><p>{athlete.primary_goal??"Objetivo ainda não informado."}</p></div><Link className="physique-action-button secondary" href={`/physique/fichas/nova?atleta=${athlete.id}`}><Plus size={15}/> Nova ficha</Link></header><div className="physique-profile-grid"><article className="physique-panel"><UserRound size={19}/><h2>Perfil</h2><dl><div><dt>Telefone</dt><dd>{athlete.phone??"—"}</dd></div><div><dt>E-mail</dt><dd>{athlete.email??"—"}</dd></div><div><dt>Instagram</dt><dd>{athlete.instagram_username??"—"}</dd></div><div><dt>Objetivo</dt><dd>{athlete.primary_goal??"—"}</dd></div></dl></article><article className="physique-panel"><Link2 size={19}/><h2>Vínculos no ERP</h2><div className="physique-linked-actions vertical"><Link href="/central/clientes">Abrir Central de Clientes <ExternalLink size={13}/></Link>{athlete.supplements_customer_id&&<Link href={`/clientes/${athlete.supplements_customer_id}`}>{athlete.supplements_customer_name??"Cliente Suplementos"} <ExternalLink size={13}/></Link>}{athlete.fitness_customer_id&&<Link href={`/fitness/clientes/${athlete.fitness_customer_id}`}>{athlete.fitness_customer_name??"Cliente Fitness"} <ExternalLink size={13}/></Link>}</div></article></div><article className="physique-panel"><div className="physique-panel-title"><div><span>Dossiê do atleta</span><h2>Importar arquivos e contexto</h2></div><FileText size={19}/></div><PhysiqueAthleteImportHub athleteId={athlete.id} athleteName={athlete.display_name}/></article><article className="physique-panel"><div className="physique-panel-title"><div><span>Registrar</span><h2>Avaliação e evolução</h2></div><Activity size={19}/></div><PhysiqueAssessmentForm athleteId={athlete.id}/></article><article className="physique-panel"><div className="physique-panel-title"><div><span>Histórico</span><h2>Evolução</h2></div><b>{assessments.length}</b></div>{assessments.length===0?<div className="physique-empty compact"><Activity size={23}/><strong>Nenhuma avaliação registrada</strong></div>:<div className="physique-assessment-list">{assessments.map((item)=>{const files=assessmentAttachments.filter((file)=>file.assessment_id===item.id);const photos=files.filter((file)=>["front","side","back"].includes(file.attachment_type));const pdf=files.find((file)=>file.attachment_type==="assessment_pdf");return <article key={item.id} className="physique-assessment-card"><header><div><small>{formatDateOnly(item.assessed_on)} · {item.source_type}</small><strong>{metric(item.weight_kg," kg")} · {metric(item.body_fat_pct,"% gordura")}</strong></div>{item.ai_status==="reviewed"&&<span className="badge green">Nexus revisado</span>}</header><div className="physique-measure-grid"><span>Peito <b>{metric(item.chest_cm," cm")}</b></span><span>Cintura <b>{metric(item.waist_cm," cm")}</b></span><span>Abdômen <b>{metric(item.abdomen_cm," cm")}</b></span><span>Braços <b>{metric(item.arm_left_cm," cm")} / {metric(item.arm_right_cm," cm")}</b></span><span>Coxas <b>{metric(item.thigh_left_cm," cm")} / {metric(item.thigh_right_cm," cm")}</b></span><span>Panturrilhas <b>{metric(item.calf_left_cm," cm")} / {metric(item.calf_right_cm," cm")}</b></span></div>{item.notes&&<p>{item.notes}</p>}{photos.length>0&&<div className="physique-evolution-photos">{photos.map((photo)=><a href={photo.signed_url??"#"} target="_blank" rel="noreferrer" key={photo.id}>{photo.signed_url?/* eslint-disable-next-line @next/next/no-img-element */<img src={photo.signed_url} alt={`${athlete.display_name} · ${photo.attachment_type}`}/>:null}<span>{photo.attachment_type==="front"?"Frente":photo.attachment_type==="side"?"Lado":"Costas"}</span></a>)}</div>}{pdf?.signed_url&&<a className="physique-file-link" href={pdf.signed_url} target="_blank" rel="noreferrer"><FileText size={14}/> Abrir PDF da avaliação</a>}</article>})}</div>}</article><article className="physique-panel"><div className="physique-panel-title"><div><span>Histórico</span><h2>Fichas de treino</h2></div><b>{plans.length}</b></div>{plans.length===0?<div className="physique-empty compact"><Dumbbell size={23}/><strong>Nenhuma ficha criada</strong><Link className="physique-action-button secondary" href={`/physique/fichas/nova?atleta=${athlete.id}`}>Importar primeira ficha</Link></div>:<div className="physique-plan-list">{plans.map((plan)=><Link href={`/physique/fichas/${plan.id}`} key={plan.id}><div><small>{plan.status} · {plan.source_type}</small><strong>{plan.title}</strong><span>{plan.goal??"Sem objetivo descrito"}</span></div><ExternalLink size={15}/></Link>)}</div>}</article></section>}
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Activity, ArrowLeft, Dumbbell, ExternalLink, FileText, Link2, Plus, Trophy, UserRound } from "lucide-react";
+import { PhysiqueAssessmentForm } from "@/components/physique-assessment-form";
+import { PhysiqueAthleteImportHub } from "@/components/physique-athlete-import-hub";
+import { PhysiqueSponsorshipPanel } from "@/components/physique-sponsorship-panel";
+import { formatDateOnly } from "@/lib/format";
+import { getPhysiqueAthleteDetails } from "@/lib/physique-data";
+
+function metric(value: number | null, unit: string) {
+  return value == null ? "—" : `${value.toLocaleString("pt-BR", { maximumFractionDigits: 2 })}${unit}`;
+}
+
+export default async function PhysiqueAthleteDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const details = await getPhysiqueAthleteDetails(id);
+  if (!details) notFound();
+  const { athlete, plans, assessments, assessmentAttachments } = details;
+
+  return (
+    <section className="physique-page">
+      <header className="physique-subpage-header">
+        <Link href="/physique/atletas"><ArrowLeft size={16} /> Atletas</Link>
+        <div><span>{athlete.status}</span><h1>{athlete.display_name}</h1><p>{athlete.primary_goal ?? "Objetivo ainda não informado."}</p></div>
+        <Link className="physique-action-button secondary" href={`/physique/fichas/nova?atleta=${athlete.id}`}><Plus size={15} /> Nova ficha</Link>
+      </header>
+
+      <div className="physique-profile-grid">
+        <article className="physique-panel">
+          <UserRound size={19} /><h2>Perfil</h2>
+          <dl>
+            <div><dt>Telefone</dt><dd>{athlete.phone ?? "—"}</dd></div>
+            <div><dt>E-mail</dt><dd>{athlete.email ?? "—"}</dd></div>
+            <div><dt>Instagram</dt><dd>{athlete.instagram_username ?? "—"}</dd></div>
+            <div><dt>Objetivo</dt><dd>{athlete.primary_goal ?? "—"}</dd></div>
+          </dl>
+        </article>
+        <article className="physique-panel">
+          <Link2 size={19} /><h2>Vínculos no ERP</h2>
+          <div className="physique-linked-actions vertical">
+            <Link href="/central/clientes">Abrir Central de Clientes <ExternalLink size={13} /></Link>
+            {athlete.supplements_customer_id && <Link href={`/clientes/${athlete.supplements_customer_id}`}>{athlete.supplements_customer_name ?? "Cliente Suplementos"} <ExternalLink size={13} /></Link>}
+            {athlete.fitness_customer_id && <Link href={`/fitness/clientes/${athlete.fitness_customer_id}`}>{athlete.fitness_customer_name ?? "Cliente Fitness"} <ExternalLink size={13} /></Link>}
+          </div>
+        </article>
+      </div>
+
+      <article className="physique-panel">
+        <div className="physique-panel-title"><div><span>Patrocínio</span><h2>Apoio e eventos</h2></div><Trophy size={19} /></div>
+        <PhysiqueSponsorshipPanel athleteId={athlete.id} athleteName={athlete.display_name} />
+      </article>
+
+      <article className="physique-panel">
+        <div className="physique-panel-title"><div><span>Dossiê do atleta</span><h2>Importar arquivos e contexto</h2></div><FileText size={19} /></div>
+        <PhysiqueAthleteImportHub athleteId={athlete.id} athleteName={athlete.display_name} />
+      </article>
+
+      <article className="physique-panel">
+        <div className="physique-panel-title"><div><span>Registrar</span><h2>Avaliação e evolução</h2></div><Activity size={19} /></div>
+        <PhysiqueAssessmentForm athleteId={athlete.id} />
+      </article>
+
+      <article className="physique-panel">
+        <div className="physique-panel-title"><div><span>Histórico</span><h2>Evolução</h2></div><b>{assessments.length}</b></div>
+        {assessments.length === 0 ? (
+          <div className="physique-empty compact"><Activity size={23} /><strong>Nenhuma avaliação registrada</strong></div>
+        ) : (
+          <div className="physique-assessment-list">
+            {assessments.map((item) => {
+              const files = assessmentAttachments.filter((file) => file.assessment_id === item.id);
+              const photos = files.filter((file) => ["front", "side", "back"].includes(file.attachment_type));
+              const pdf = files.find((file) => file.attachment_type === "assessment_pdf");
+              return (
+                <article key={item.id} className="physique-assessment-card">
+                  <header>
+                    <div><small>{formatDateOnly(item.assessed_on)} · {item.source_type}</small><strong>{metric(item.weight_kg, " kg")} · {metric(item.body_fat_pct, "% gordura")}</strong></div>
+                    {item.ai_status === "reviewed" && <span className="badge green">Nexus revisado</span>}
+                  </header>
+                  <div className="physique-measure-grid">
+                    <span>Peito <b>{metric(item.chest_cm, " cm")}</b></span>
+                    <span>Cintura <b>{metric(item.waist_cm, " cm")}</b></span>
+                    <span>Abdômen <b>{metric(item.abdomen_cm, " cm")}</b></span>
+                    <span>Braços <b>{metric(item.arm_left_cm, " cm")} / {metric(item.arm_right_cm, " cm")}</b></span>
+                    <span>Coxas <b>{metric(item.thigh_left_cm, " cm")} / {metric(item.thigh_right_cm, " cm")}</b></span>
+                    <span>Panturrilhas <b>{metric(item.calf_left_cm, " cm")} / {metric(item.calf_right_cm, " cm")}</b></span>
+                  </div>
+                  {item.notes && <p>{item.notes}</p>}
+                  {photos.length > 0 && <div className="physique-evolution-photos">{photos.map((photo) => <a href={photo.signed_url ?? "#"} target="_blank" rel="noreferrer" key={photo.id}>{photo.signed_url ? /* eslint-disable-next-line @next/next/no-img-element */ <img src={photo.signed_url} alt={`${athlete.display_name} · ${photo.attachment_type}`} /> : null}<span>{photo.attachment_type === "front" ? "Frente" : photo.attachment_type === "side" ? "Lado" : "Costas"}</span></a>)}</div>}
+                  {pdf?.signed_url && <a className="physique-file-link" href={pdf.signed_url} target="_blank" rel="noreferrer"><FileText size={14} /> Abrir PDF da avaliação</a>}
+                </article>
+              );
+            })}
+          </div>
+        )}
+      </article>
+
+      <article className="physique-panel">
+        <div className="physique-panel-title"><div><span>Histórico</span><h2>Fichas de treino</h2></div><b>{plans.length}</b></div>
+        {plans.length === 0 ? (
+          <div className="physique-empty compact"><Dumbbell size={23} /><strong>Nenhuma ficha criada</strong><Link className="physique-action-button secondary" href={`/physique/fichas/nova?atleta=${athlete.id}`}>Importar primeira ficha</Link></div>
+        ) : (
+          <div className="physique-plan-list">{plans.map((plan) => <Link href={`/physique/fichas/${plan.id}`} key={plan.id}><div><small>{plan.status} · {plan.source_type}</small><strong>{plan.title}</strong><span>{plan.goal ?? "Sem objetivo descrito"}</span></div><ExternalLink size={15} /></Link>)}</div>
+        )}
+      </article>
+    </section>
+  );
+}

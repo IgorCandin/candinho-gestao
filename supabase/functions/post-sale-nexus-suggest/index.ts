@@ -37,6 +37,55 @@ async function sleep(ms: number) {
   await new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function parseOpenAIError(raw: string) {
+  let message = raw.slice(0, 500);
+  let code = "";
+  try {
+    const parsed = JSON.parse(raw);
+    message = parsed?.error?.message ?? message;
+    code = parsed?.error?.code ?? "";
+  } catch {
+    // Mantém o trecho bruto apenas para classificação interna.
+  }
+  return { message, code };
+}
+
+function friendlyOpenAIError(status: number, raw: string) {
+  const detail = parseOpenAIError(raw);
+  const quota = detail.code === "insufficient_quota"
+    || /exceeded your current quota|current quota|billing|current plan|insufficient quota/i.test(detail.message);
+
+  if (status === 429 && quota) {
+    return {
+      status: 503,
+      code: "AI_QUOTA",
+      error: "O Nexus está temporariamente indisponível porque a cota da inteligência artificial foi atingida. Regularize o faturamento da API OpenAI e tente novamente.",
+    };
+  }
+
+  if (status === 429) {
+    return {
+      status: 503,
+      code: "AI_BUSY",
+      error: "O Nexus recebeu muitas solicitações agora. Aguarde um instante e tente novamente.",
+    };
+  }
+
+  if (status === 401 || status === 403) {
+    return {
+      status: 503,
+      code: "AI_AUTH",
+      error: "A integração do Nexus com a OpenAI precisa ser revisada pelo administrador.",
+    };
+  }
+
+  return {
+    status: 502,
+    code: "AI_UNAVAILABLE",
+    error: "O Nexus está temporariamente indisponível. Tente novamente em alguns instantes.",
+  };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return reply({ error: "Método não permitido" }, 405);
@@ -137,10 +186,10 @@ ${userContext ?? "Nenhum contexto adicional informado."}
 CONTEXTO REAL DO CLIENTE E DAS COMPRAS:
 ${JSON.stringify(context)}`;
 
-  try {
-    let aiResponse: Response | null = null;
-    let raw = "";
+  let aiResponse: Response | null = null;
+  let raw = "";
 
+  try {
     for (let attempt = 0; attempt < 3; attempt += 1) {
       aiResponse = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
@@ -153,14 +202,18 @@ ${JSON.stringify(context)}`;
       raw = await aiResponse.text();
 
       if (aiResponse.ok) break;
-      if (![429, 500, 502, 503, 504].includes(aiResponse.status) || attempt === 2) break;
+      const detail = parseOpenAIError(raw);
+      const isQuota = aiResponse.status === 429
+        && (detail.code === "insufficient_quota"
+          || /exceeded your current quota|current quota|billing|current plan|insufficient quota/i.test(detail.message));
+      if (isQuota || ![429, 500, 502, 503, 504].includes(aiResponse.status) || attempt === 2) break;
       await sleep(700 * (attempt + 1));
     }
 
     if (!aiResponse || !aiResponse.ok) {
-      let detail = raw.slice(0, 500);
-      try { detail = JSON.parse(raw)?.error?.message ?? detail; } catch { /* mantém trecho */ }
-      throw new Error(`OpenAI ${aiResponse?.status ?? 500}: ${detail}`);
+      const friendly = friendlyOpenAIError(aiResponse?.status ?? 500, raw);
+      console.error("post-sale OpenAI", aiResponse?.status ?? 500, parseOpenAIError(raw).code);
+      return reply({ error: friendly.error, code: friendly.code }, friendly.status);
     }
 
     const parsedResponse = JSON.parse(raw);
@@ -185,7 +238,6 @@ ${JSON.stringify(context)}`;
     const saveRpc = business === "fitness"
       ? "fitness_post_sale_nexus_save_result"
       : "post_sale_nexus_save_result";
-
     const saveArgs = business === "fitness"
       ? { p_customer_id: body.customer_id, p_message: message, p_metadata: metadata }
       : { p_batch_id: body.batch_id, p_message: message, p_metadata: metadata };
@@ -197,6 +249,9 @@ ${JSON.stringify(context)}`;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Falha ao gerar mensagem de pós-venda";
     console.error("post-sale generation", message);
-    return reply({ error: message, code: "GENERATION_FAILED" }, 500);
+    return reply({
+      error: "Não foi possível gerar a mensagem do Nexus agora. Tente novamente em alguns instantes.",
+      code: "GENERATION_FAILED",
+    }, 500);
   }
 });

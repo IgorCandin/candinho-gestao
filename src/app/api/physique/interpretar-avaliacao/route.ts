@@ -60,11 +60,18 @@ function normalizeAssessment(data: JsonRecord) {
 }
 
 async function responseJson(response: Response): Promise<JsonRecord> {
-  try {
-    return (await response.json()) as JsonRecord;
-  } catch {
-    return {};
-  }
+  try { return (await response.json()) as JsonRecord; } catch { return {}; }
+}
+
+function openAIError(status: number, raw: JsonRecord) {
+  const apiError = raw.error && typeof raw.error === "object" ? raw.error as JsonRecord : null;
+  const detail = typeof apiError?.message === "string" ? apiError.message : "";
+  const code = typeof apiError?.code === "string" ? apiError.code : "";
+  const quota = code === "insufficient_quota" || /quota|billing|current plan|exceeded your current quota/i.test(detail);
+  if (status === 429 && quota) return { quota: true, message: "O Nexus está temporariamente indisponível porque a cota da inteligência artificial foi atingida. Regularize o faturamento da API OpenAI e tente novamente." };
+  if (status === 429) return { quota: false, message: "O Nexus recebeu muitas solicitações agora. Aguarde um instante e tente novamente." };
+  if (status === 401 || status === 403) return { quota: false, message: "A integração do Nexus com a OpenAI precisa ser revisada pelo administrador." };
+  return { quota: false, message: `Nexus temporariamente indisponível (${status}).` };
 }
 
 async function callOpenAI(apiKey: string, file: File) {
@@ -113,20 +120,14 @@ async function callOpenAI(apiKey: string, file: File) {
       const text = outputText(raw);
       if (!text) throw new Error("O Nexus não retornou dados estruturados da avaliação.");
       let parsed: JsonRecord;
-      try {
-        parsed = JSON.parse(text) as JsonRecord;
-      } catch {
-        throw new Error("O Nexus retornou uma avaliação em formato inválido.");
-      }
+      try { parsed = JSON.parse(text) as JsonRecord; }
+      catch { throw new Error("O Nexus retornou uma avaliação em formato inválido."); }
       return { data: normalizeAssessment(parsed), model };
     }
 
-    const apiError = raw.error && typeof raw.error === "object" ? raw.error as JsonRecord : null;
-    lastMessage = typeof apiError?.message === "string"
-      ? apiError.message
-      : `Nexus indisponível (${response.status}).`;
-
-    if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 1) break;
+    const friendly = openAIError(response.status, raw);
+    lastMessage = friendly.message;
+    if (friendly.quota || ![429, 500, 502, 503, 504].includes(response.status) || attempt === 1) break;
     await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
   }
 
@@ -137,47 +138,26 @@ export async function POST(request: Request) {
   try {
     const access = await getCurrentUserAccess();
     if (!access.canManageUsers && access.role !== "admin") {
-      return NextResponse.json(
-        { error: "Sem permissão para interpretar avaliações da Physique." },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Sem permissão para interpretar avaliações da Physique." }, { status: 403 });
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: "OPENAI_API_KEY não está disponível neste deployment." },
-        { status: 503 },
-      );
-    }
+    if (!apiKey) return NextResponse.json({ error: "A integração do Nexus com a OpenAI ainda não está configurada." }, { status: 503 });
 
     const form = await request.formData();
     const file = form.get("file");
-    if (!(file instanceof File)) {
-      return NextResponse.json({ error: "Envie um arquivo PDF." }, { status: 400 });
-    }
-    if (file.size === 0) {
-      return NextResponse.json({ error: "O PDF enviado está vazio." }, { status: 400 });
-    }
+    if (!(file instanceof File)) return NextResponse.json({ error: "Envie um arquivo PDF." }, { status: 400 });
+    if (file.size === 0) return NextResponse.json({ error: "O PDF enviado está vazio." }, { status: 400 });
     if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) {
-      return NextResponse.json(
-        { error: "A leitura do Nexus aceita PDF nesta etapa." },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "A leitura do Nexus aceita PDF nesta etapa." }, { status: 400 });
     }
     if (file.size > 4 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "O PDF deve ter no máximo 4 MB para leitura pelo Nexus." },
-        { status: 413 },
-      );
+      return NextResponse.json({ error: "O PDF deve ter no máximo 4 MB para leitura pelo Nexus." }, { status: 413 });
     }
 
     const result = await callOpenAI(apiKey, file);
     return NextResponse.json({ ...result.data, model: result.model, saved: false });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Não foi possível interpretar a avaliação." },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Não foi possível interpretar a avaliação." }, { status: 500 });
   }
 }
