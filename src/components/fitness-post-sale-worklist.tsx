@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CalendarClock, CheckCircle2, ChevronRight, MessageSquareText } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 
 type Row = {
@@ -25,6 +26,7 @@ type Row = {
 type Filter = "action" | "upcoming" | "all";
 
 export function FitnessPostSaleWorklist({ rows }: { rows: Row[] }) {
+  const router = useRouter();
   const [filter, setFilter] = useState<Filter>("action");
 
   const counts = useMemo(() => ({
@@ -62,9 +64,27 @@ export function FitnessPostSaleWorklist({ rows }: { rows: Row[] }) {
       ) : (
         <div className="post-sale-card-list">
           {filtered.map((row) => (
-            <Link className="post-sale-card-v2" href={`/fitness/pos-venda/${row.customer_id}`} key={row.customer_id}>
+            <article
+              className="post-sale-card-v2 clickable-data-row"
+              key={row.customer_id}
+              role="link"
+              tabIndex={0}
+              onClick={() => router.push(`/fitness/pos-venda/${row.customer_id}`)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  router.push(`/fitness/pos-venda/${row.customer_id}`);
+                }
+              }}
+            >
               <div>
-                <strong>{row.customer_name}</strong>
+                <Link
+                  className="table-link"
+                  href={`/fitness/clientes/${row.customer_id}`}
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <strong>{row.customer_name}</strong>
+                </Link>
                 <span>{row.product_summary}</span>
                 <small>{row.customer_phone ?? row.instagram ?? row.city ?? "Sem contato cadastrado"}</small>
               </div>
@@ -90,7 +110,7 @@ export function FitnessPostSaleWorklist({ rows }: { rows: Row[] }) {
                 {row.ai_last_message && <span className="badge green">Nexus pronto</span>}
                 <ChevronRight size={16}/>
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       )}
