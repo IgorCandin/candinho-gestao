@@ -1,43 +1,54 @@
-"use client";
+import { RotateCcw, Trash2, UserX } from "lucide-react";
 
-import { LoaderCircle, RotateCcw, Trash2, UserX } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+export function QuoteStatusActions({
+  quoteId,
+  status,
+}: {
+  quoteId: string;
+  status: string;
+}) {
+  if (status === "confirmed") return null;
 
-export function QuoteStatusActions({ quoteId, status }: { quoteId: string; status: string }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const actionUrl = `/api/orcamentos/${quoteId}/status`;
 
-  async function changeStatus(nextStatus: "quoted" | "lost" | "cancelled") {
-    const question = nextStatus === "quoted"
-      ? "Reabrir este orçamento e devolver o lead para Cotação?"
-      : nextStatus === "lost"
-        ? "Marcar este orçamento como perdido? Nenhum estoque será alterado."
-        : "Cancelar este orçamento? Nenhum estoque será alterado.";
-    if (!window.confirm(question)) return;
-    setLoading(nextStatus);
-    setMessage(null);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.rpc("update_budget_status", { p_quote_id: quoteId, p_status: nextStatus });
-      if (error) throw error;
-      setMessage(nextStatus === "quoted" ? "Orçamento reaberto." : nextStatus === "lost" ? "Orçamento marcado como perdido." : "Orçamento cancelado.");
-      router.refresh();
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível atualizar o orçamento.");
-    } finally {
-      setLoading(null);
-    }
+  if (status !== "quoted") {
+    return (
+      <div className="quote-status-actions">
+        <form action={actionUrl} method="post">
+          <input type="hidden" name="status" value="quoted" />
+          <button className="button ghost" type="submit">
+            <RotateCcw size={16} />
+            Reabrir orçamento
+          </button>
+        </form>
+        <span className="form-help">
+          Reabrir devolve o orçamento para o fluxo comercial. Nenhum estoque é movimentado.
+        </span>
+      </div>
+    );
   }
 
-  if (status === "confirmed") return null;
-  return <div className="quote-status-actions">
-    {status === "quoted" ? <>
-      <button className="button ghost" type="button" disabled={Boolean(loading)} onClick={()=>changeStatus("lost")}>{loading==="lost"?<LoaderCircle className="spin" size={16}/>:<UserX size={16}/>}Marcar como perdido</button>
-      <button className="button danger" type="button" disabled={Boolean(loading)} onClick={()=>changeStatus("cancelled")}>{loading==="cancelled"?<LoaderCircle className="spin" size={16}/>:<Trash2 size={16}/>}Cancelar orçamento</button>
-    </> : <button className="button ghost" type="button" disabled={Boolean(loading)} onClick={()=>changeStatus("quoted")}>{loading==="quoted"?<LoaderCircle className="spin" size={16}/>:<RotateCcw size={16}/>}Reabrir orçamento</button>}
-    {message&&<span className="quote-action-message">{message}</span>}
-  </div>;
+  return (
+    <div className="quote-status-actions">
+      <form action={actionUrl} method="post">
+        <input type="hidden" name="status" value="lost" />
+        <button className="button ghost" type="submit">
+          <UserX size={16} />
+          Marcar como perdido
+        </button>
+      </form>
+
+      <form action={actionUrl} method="post">
+        <input type="hidden" name="status" value="cancelled" />
+        <button className="button danger" type="submit">
+          <Trash2 size={16} />
+          Cancelar orçamento
+        </button>
+      </form>
+
+      <span className="form-help">
+        As duas ações encerram apenas a cotação e não movimentam estoque. O orçamento pode ser reaberto depois.
+      </span>
+    </div>
+  );
 }

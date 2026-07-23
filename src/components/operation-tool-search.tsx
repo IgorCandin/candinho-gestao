@@ -139,6 +139,7 @@ function SearchBox({
     <div
       style={{
         width: "100%",
+        minWidth: 0,
         boxSizing: "border-box",
         padding: mobile ? "8px 10px 10px" : "0 6px 10px 0",
         position: "relative",
@@ -166,6 +167,7 @@ function SearchBox({
             display: "block",
             width: "100%",
             maxWidth: "100%",
+            minWidth: 0,
             boxSizing: "border-box",
             paddingLeft: 34,
             minHeight: 38,
