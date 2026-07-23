@@ -34,54 +34,35 @@ const OUTPUT_SCHEMA = {
     quick_message: { type: "string" },
     keywords: { type: "string" },
     level: { type: "string" },
-    confidence: {
-      type: "string",
-      enum: ["alta", "media", "baixa"],
-    },
+    confidence: { type: "string", enum: ["alta", "media", "baixa"] },
     research_note: { type: "string" },
   },
   required: [
-    "brand",
-    "category",
-    "description",
-    "objective",
-    "ideal_profile",
-    "duration_days",
-    "information",
-    "quick_message",
-    "keywords",
-    "level",
-    "confidence",
-    "research_note",
+    "brand", "category", "description", "objective", "ideal_profile",
+    "duration_days", "information", "quick_message", "keywords", "level",
+    "confidence", "research_note",
   ],
   additionalProperties: false,
 } as const;
 
 function clean(value: unknown) {
-  return typeof value === "string" && value.trim()
-    ? value.trim()
-    : "";
+  return typeof value === "string" && value.trim() ? value.trim() : "";
+}
+
+function nullable(value: string) {
+  return value || null;
 }
 
 function extractOutputText(payload: JsonRecord) {
-  if (typeof payload.output_text === "string") {
-    return payload.output_text.trim();
-  }
-
+  if (typeof payload.output_text === "string") return payload.output_text.trim();
   const output = Array.isArray(payload.output) ? payload.output : [];
-
   return output
     .flatMap((item) => {
       if (!item || typeof item !== "object") return [];
       const record = item as JsonRecord;
       return Array.isArray(record.content) ? record.content : [];
     })
-    .filter(
-      (item) =>
-        item &&
-        typeof item === "object" &&
-        (item as JsonRecord).type === "output_text",
-    )
+    .filter((item) => item && typeof item === "object" && (item as JsonRecord).type === "output_text")
     .map((item) => String((item as JsonRecord).text ?? ""))
     .join("\n")
     .trim();
@@ -96,11 +77,7 @@ function extractSources(payload: JsonRecord) {
     const record = item as JsonRecord;
 
     if (record.type === "web_search_call") {
-      const action =
-        record.action && typeof record.action === "object"
-          ? (record.action as JsonRecord)
-          : null;
-
+      const action = record.action && typeof record.action === "object" ? record.action as JsonRecord : null;
       if (action && Array.isArray(action.sources)) {
         for (const source of action.sources) {
           if (!source || typeof source !== "object") continue;
@@ -111,21 +88,17 @@ function extractSources(payload: JsonRecord) {
     }
 
     if (!Array.isArray(record.content)) continue;
-
     for (const content of record.content) {
       if (!content || typeof content !== "object") continue;
       const annotations = (content as JsonRecord).annotations;
       if (!Array.isArray(annotations)) continue;
-
       for (const annotation of annotations) {
         if (!annotation || typeof annotation !== "object") continue;
         const value = annotation as JsonRecord;
-
         if (typeof value.url === "string") {
           sources.add(value.url);
           continue;
         }
-
         if (
           value.url_citation &&
           typeof value.url_citation === "object" &&
@@ -141,13 +114,9 @@ function extractSources(payload: JsonRecord) {
 }
 
 function normalizeSuggestion(value: unknown): SuggestionPayload {
-  if (!value || typeof value !== "object") {
-    throw new Error("O Nexus retornou uma resposta inválida.");
-  }
-
+  if (!value || typeof value !== "object") throw new Error("O Nexus retornou uma resposta inválida.");
   const row = value as JsonRecord;
   const confidence = clean(row.confidence);
-
   return {
     brand: clean(row.brand),
     category: clean(row.category),
@@ -159,113 +128,70 @@ function normalizeSuggestion(value: unknown): SuggestionPayload {
     quick_message: clean(row.quick_message),
     keywords: clean(row.keywords),
     level: clean(row.level),
-    confidence:
-      confidence === "alta" || confidence === "media"
-        ? confidence
-        : "baixa",
+    confidence: confidence === "alta" || confidence === "media" ? confidence : "baixa",
     research_note: clean(row.research_note),
   };
 }
 
 function usefulTextCount(value: SuggestionPayload) {
   return [
-    value.description,
-    value.objective,
-    value.ideal_profile,
-    value.information,
-    value.quick_message,
-    value.keywords,
-    value.level,
+    value.description, value.objective, value.ideal_profile, value.information,
+    value.quick_message, value.keywords, value.level,
   ].filter(Boolean).length;
 }
 
-function mergeSuggestions(
-  primary: SuggestionPayload | null,
-  fallback: SuggestionPayload,
-): SuggestionPayload {
+function mergeSuggestions(primary: SuggestionPayload | null, fallback: SuggestionPayload): SuggestionPayload {
   if (!primary) return fallback;
-
   return {
     brand: primary.brand || fallback.brand,
     category: primary.category || fallback.category,
     description: primary.description || fallback.description,
     objective: primary.objective || fallback.objective,
     ideal_profile: primary.ideal_profile || fallback.ideal_profile,
-    duration_days:
-      primary.duration_days > 0
-        ? primary.duration_days
-        : fallback.duration_days,
+    duration_days: primary.duration_days > 0 ? primary.duration_days : fallback.duration_days,
     information: primary.information || fallback.information,
     quick_message: primary.quick_message || fallback.quick_message,
     keywords: primary.keywords || fallback.keywords,
     level: primary.level || fallback.level,
-    confidence:
-      primary.confidence === "alta" || primary.confidence === "media"
-        ? primary.confidence
-        : fallback.confidence,
-    research_note: [primary.research_note, fallback.research_note]
-      .filter(Boolean)
-      .join(" "),
+    confidence: primary.confidence === "alta" || primary.confidence === "media" ? primary.confidence : fallback.confidence,
+    research_note: [primary.research_note, fallback.research_note].filter(Boolean).join(" "),
   };
 }
 
-function nullable(value: string) {
-  return value || null;
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export async function POST(request: Request) {
   try {
     const access = await getCurrentUserAccess();
-
     if (!access.canWriteSupplements) {
-      return NextResponse.json(
-        { error: "Sem permissão para completar produtos." },
-        { status: 403 },
-      );
+      return NextResponse.json({ error: "Sem permissão para completar produtos." }, { status: 403 });
     }
 
-    const body = (await request.json().catch(() => ({}))) as JsonRecord;
+    const body = await request.json().catch(() => ({})) as JsonRecord;
     const name = clean(body.name);
-
     if (name.length < 3) {
-      return NextResponse.json(
-        { error: "Informe um nome de produto mais completo." },
-        { status: 400 },
-      );
+      return NextResponse.json({ error: "Informe um nome de produto mais completo." }, { status: 400 });
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
-
     if (!apiKey) {
-      return NextResponse.json(
-        { error: "OPENAI_API_KEY não está disponível neste deployment." },
-        { status: 503 },
-      );
+      return NextResponse.json({ error: "OPENAI_API_KEY não está disponível neste deployment." }, { status: 503 });
     }
 
-    const existing =
-      body.existing && typeof body.existing === "object"
-        ? (body.existing as JsonRecord)
-        : {};
-
+    const existing = body.existing && typeof body.existing === "object" ? body.existing as JsonRecord : {};
     const categories = Array.isArray(body.categories)
-      ? body.categories
-          .filter((value): value is string => typeof value === "string")
-          .slice(0, 80)
+      ? body.categories.filter((value): value is string => typeof value === "string").slice(0, 80)
       : [];
-
-    const imageUrl = clean(body.image_url);
     const category = clean(existing.category);
-    const isAccessory = category
-      .toLocaleLowerCase("pt-BR")
-      .includes("acess");
-
+    const isAccessory = category.toLocaleLowerCase("pt-BR").includes("acess");
     const model = process.env.OPENAI_PRODUCT_ENRICH_MODEL || "gpt-5";
 
     async function callModel(useWeb: boolean) {
       const modeInstruction = useWeb
         ? "Pesquise primeiro na web. Priorize fabricante, marca e página oficial."
-        : "A pesquisa externa não encontrou dados suficientes. Gere somente textos cadastrais seguros a partir do nome, categoria, campos existentes e imagem disponível.";
+        : "A pesquisa externa não pôde ser usada. Gere somente textos cadastrais seguros a partir do nome, categoria e campos existentes.";
 
       const prompt = [
         `Produto: ${name}`,
@@ -277,7 +203,7 @@ export async function POST(request: Request) {
         "REGRAS OBRIGATÓRIAS:",
         "- O objetivo é completar SOMENTE campos vazios; campos já preenchidos servem como contexto.",
         "- Nunca sugira preço, estoque, fornecedor, SKU ou categoria ABCZ.",
-        "- Marca só pode ser preenchida quando estiver explícita no nome, na imagem ou confirmada por fonte confiável. Se houver dúvida, retorne string vazia.",
+        "- Marca só pode ser preenchida quando estiver explícita no nome ou confirmada por fonte confiável. Se houver dúvida, retorne string vazia.",
         "- Duração/doses só pode ser preenchida quando houver informação explícita e verificável. Se houver dúvida, retorne 0.",
         "- Mesmo sem fonte oficial, preencha de forma útil os campos descritivos seguros: descrição, objetivo, perfil ideal, informativo, mensagem rápida, palavras-chave e nível.",
         "- Nos textos de fallback, não invente composição, ingredientes, concentração, dose, tecnologia ou promessa de resultado.",
@@ -289,28 +215,10 @@ export async function POST(request: Request) {
         "- Mensagem rápida: natural, curta e pronta para WhatsApp, sem pressão de venda.",
         "- Palavras-chave: termos separados por vírgula.",
         "- Nível: use um rótulo curto e comercial apenas quando fizer sentido; caso contrário, string vazia.",
-        ...(isAccessory
-          ? [
-              "- Este produto é um ACESSÓRIO GENÉRICO: brand deve ser string vazia e duration_days deve ser 0.",
-            ]
-          : []),
+        ...(isAccessory ? ["- Este produto é um ACESSÓRIO GENÉRICO: brand deve ser string vazia e duration_days deve ser 0."] : []),
         "",
         "Na research_note, explique em uma frase se os dados vieram de pesquisa confirmada ou de fallback descritivo seguro.",
       ].join("\n");
-
-      const content: Array<Record<string, string>> = [
-        {
-          type: "input_text",
-          text: prompt,
-        },
-      ];
-
-      if (/^https?:\/\//i.test(imageUrl)) {
-        content.push({
-          type: "input_image",
-          image_url: imageUrl,
-        });
-      }
 
       const payload: JsonRecord = {
         model,
@@ -318,13 +226,9 @@ export async function POST(request: Request) {
         input: [
           {
             role: "system",
-            content:
-              "Você é o Nexus de cadastro da Candinho Suplementos. Complete cadastros com utilidade prática, mas seja conservador com fatos técnicos e nunca invente dados de rótulo.",
+            content: "Você é o Nexus de cadastro da Candinho Suplementos. Complete cadastros com utilidade prática, seja conservador com fatos técnicos e nunca invente dados de rótulo.",
           },
-          {
-            role: "user",
-            content,
-          },
+          { role: "user", content: [{ type: "input_text", text: prompt }] },
         ],
         text: {
           format: {
@@ -341,40 +245,52 @@ export async function POST(request: Request) {
         payload.include = ["web_search_call.action.sources"];
       }
 
-      const response = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        signal: AbortSignal.timeout(useWeb ? 35_000 : 20_000),
-      });
+      let lastError = "Não foi possível consultar o Nexus.";
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          const response = await fetch("https://api.openai.com/v1/responses", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+            signal: AbortSignal.timeout(useWeb ? 35_000 : 20_000),
+          });
 
-      const raw = (await response.json()) as JsonRecord;
+          const raw = await response.json().catch(() => ({})) as JsonRecord;
+          if (!response.ok) {
+            const apiError = raw.error;
+            lastError =
+              apiError && typeof apiError === "object" && typeof (apiError as JsonRecord).message === "string"
+                ? String((apiError as JsonRecord).message)
+                : `Pesquisa falhou (${response.status}).`;
 
-      if (!response.ok) {
-        const apiError = raw.error;
-        const message =
-          apiError &&
-          typeof apiError === "object" &&
-          typeof (apiError as JsonRecord).message === "string"
-            ? String((apiError as JsonRecord).message)
-            : `Pesquisa falhou (${response.status}).`;
+            if ([429, 500, 502, 503, 504].includes(response.status) && attempt < 2) {
+              await sleep(700 * (attempt + 1));
+              continue;
+            }
+            throw new Error(lastError);
+          }
 
-        throw new Error(message);
+          const outputText = extractOutputText(raw);
+          if (!outputText) throw new Error("O Nexus não retornou dados estruturados.");
+
+          return {
+            suggestion: normalizeSuggestion(JSON.parse(outputText)),
+            sources: useWeb ? extractSources(raw) : [],
+          };
+        } catch (error) {
+          lastError = error instanceof Error ? error.message : lastError;
+          if (attempt < 2 && /429|rate|timeout|timed out|5\d\d/i.test(lastError)) {
+            await sleep(700 * (attempt + 1));
+            continue;
+          }
+          throw new Error(lastError);
+        }
       }
 
-      const outputText = extractOutputText(raw);
-
-      if (!outputText) {
-        throw new Error("O Nexus não retornou dados estruturados.");
-      }
-
-      return {
-        suggestion: normalizeSuggestion(JSON.parse(outputText)),
-        sources: useWeb ? extractSources(raw) : [],
-      };
+      throw new Error(lastError);
     }
 
     let primary: Awaited<ReturnType<typeof callModel>> | null = null;
@@ -383,31 +299,25 @@ export async function POST(request: Request) {
     try {
       primary = await callModel(true);
     } catch (error) {
-      primaryError =
-        error instanceof Error ? error.message : "Pesquisa web indisponível.";
+      primaryError = error instanceof Error ? error.message : "Pesquisa web indisponível.";
     }
 
     let finalSuggestion = primary?.suggestion ?? null;
-    let sources = primary?.sources ?? [];
-    let usedFallback = !primary || usefulTextCount(primary.suggestion) < 2;
+    const sources = primary?.sources ?? [];
+    const usedFallback = !primary || usefulTextCount(primary.suggestion) < 2;
 
     if (usedFallback) {
       const fallback = await callModel(false);
       finalSuggestion = mergeSuggestions(finalSuggestion, fallback.suggestion);
-
       if (primaryError) {
         finalSuggestion.research_note = [
-          `A pesquisa web não pôde ser concluída: ${primaryError}`,
+          "A pesquisa web não pôde ser concluída; foi usado fallback descritivo seguro.",
           finalSuggestion.research_note,
-        ]
-          .filter(Boolean)
-          .join(" ");
+        ].filter(Boolean).join(" ");
       }
     }
 
-    if (!finalSuggestion) {
-      throw new Error("Não foi possível gerar sugestões para este produto.");
-    }
+    if (!finalSuggestion) throw new Error("Não foi possível gerar sugestões para este produto.");
 
     if (isAccessory) {
       finalSuggestion.brand = "";
@@ -421,20 +331,13 @@ export async function POST(request: Request) {
         description: nullable(finalSuggestion.description),
         objective: nullable(finalSuggestion.objective),
         ideal_profile: nullable(finalSuggestion.ideal_profile),
-        duration_days:
-          finalSuggestion.duration_days > 0
-            ? finalSuggestion.duration_days
-            : null,
+        duration_days: finalSuggestion.duration_days > 0 ? finalSuggestion.duration_days : null,
         information: nullable(finalSuggestion.information),
         quick_message: nullable(finalSuggestion.quick_message),
         keywords: nullable(finalSuggestion.keywords),
         level: nullable(finalSuggestion.level),
       },
-      confidence: usedFallback
-        ? finalSuggestion.confidence === "alta"
-          ? "media"
-          : finalSuggestion.confidence
-        : finalSuggestion.confidence,
+      confidence: usedFallback && finalSuggestion.confidence === "alta" ? "media" : finalSuggestion.confidence,
       research_note: finalSuggestion.research_note || null,
       sources,
       saved: false,
@@ -442,12 +345,7 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível completar o produto.",
-      },
+      { error: error instanceof Error ? error.message : "Não foi possível completar o produto." },
       { status: 500 },
     );
   }

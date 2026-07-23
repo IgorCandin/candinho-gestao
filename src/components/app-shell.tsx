@@ -37,7 +37,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Truck,
-  UserRoundPlus,
   UsersRound,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
@@ -332,16 +331,16 @@ export function AppShell({
                   ]
                 : [
                     {
-                      href: "/leads/novo",
-                      label: "Novo lead",
-                      icon: UserRoundPlus,
-                      primary: false,
-                    },
-                    {
                       href: "/vendas/nova",
                       label: "Novo Orçamento",
                       icon: CircleDollarSign,
                       primary: true,
+                    },
+                    {
+                      href: "/clientes",
+                      label: "CRM",
+                      icon: ContactRound,
+                      primary: false,
                     },
                     {
                       href: "/produtos",
@@ -613,17 +612,10 @@ export function AppShell({
           <header className="topbar">
             <div className="topbar-actions">
               {showSupplementActions && (
-                <>
-                  <Link className="button ghost" href="/leads/novo">
-                    <UserRoundPlus size={16} />
-                    Novo lead
-                  </Link>
-
-                  <Link className="button gold" href="/vendas/nova">
-                    <CircleDollarSign size={16} />
-                    Novo Orçamento
-                  </Link>
-                </>
+                <Link className="button gold" href="/vendas/nova">
+                  <CircleDollarSign size={16} />
+                  Novo Orçamento
+                </Link>
               )}
 
               {showFitnessActions && (

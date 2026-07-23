@@ -1,7 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { Boxes, Check, CircleDollarSign, ExternalLink, FileText, Globe2, ListPlus, LoaderCircle, Plus, Save, ShieldCheck, Sparkles, Trash2, X } from "lucide-react";
+import {
+  AlertTriangle,
+  Boxes,
+  Check,
+  CheckCircle2,
+  CircleDollarSign,
+  ExternalLink,
+  FileText,
+  Globe2,
+  ListPlus,
+  LoaderCircle,
+  Plus,
+  Save,
+  ShieldCheck,
+  Sparkles,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -47,7 +64,6 @@ type StockLocation = {
   physicalQuantity: number;
 };
 
-
 type ProductEnrichmentSuggestions = {
   brand: string | null;
   category: string | null;
@@ -67,45 +83,12 @@ type ProductEnrichmentPreview = {
   research_note: string | null;
   sources: string[];
   saved: boolean;
+  fallbackUsed: boolean;
 };
 
-async function edgeErrorMessage(error: unknown) {
-  const fallback =
-    error instanceof Error
-      ? error.message
-      : "Não foi possível pesquisar o produto.";
-
-  const context =
-    error &&
-    typeof error === "object" &&
-    "context" in error
-      ? (error as { context?: unknown }).context
-      : null;
-
-  if (context instanceof Response) {
-    try {
-      const payload = await context.clone().json();
-
-      if (
-        payload &&
-        typeof payload.error === "string"
-      ) {
-        return payload.error;
-      }
-    } catch {
-      // Mantém a mensagem padrão.
-    }
-  }
-
-  return fallback;
-}
-
 function sourceHost(url: string) {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
+  try { return new URL(url).hostname.replace(/^www\./, ""); }
+  catch { return url; }
 }
 
 function initialDraft(product?: ProductManagementDetails | null): ProductDraft {
@@ -166,16 +149,20 @@ export function ProductForm({ product, suppliers, categories }: {
   const installment = numeric(draft.installmentPrice);
   const profit = sale - cost;
   const margin = sale > 0 ? (profit / sale) * 100 : 0;
+
   const categoryOptions = useMemo(
     () => [...new Set(categories)].sort((a, b) => a.localeCompare(b, "pt-BR")),
     [categories],
   );
 
+  const activeFlavors = useMemo(
+    () => flavors.filter((flavor) => flavor.active && flavor.name.trim()),
+    [flavors],
+  );
+
   const enrichmentAvailableCount = useMemo(() => {
     if (!enrichment) return 0;
-
     const suggestions = enrichment.suggestions;
-
     return [
       !draft.brand.trim() && suggestions.brand,
       !draft.category.trim() && suggestions.category,
@@ -201,42 +188,15 @@ export function ProductForm({ product, suppliers, categories }: {
     async function loadFlavorSetup() {
       const supabase = createClient();
       const [flavorResult, summaryResult, locationsResult, inventoryResult, pendingResult] = await Promise.all([
-        supabase
-          .from("product_flavors")
-          .select("id,name,active,display_order")
-          .eq("product_id", product!.id)
-          .eq("active", true)
-          .order("display_order")
-          .order("name"),
-        supabase
-          .from("product_flavor_summary")
-          .select("flavor_tracking_enabled")
-          .eq("product_id", product!.id)
-          .maybeSingle(),
-        supabase
-          .from("inventory_location_overview")
-          .select("location_id,location_code,location_name,physical_quantity")
-          .eq("product_id", product!.id)
-          .order("location_code"),
-        supabase
-          .from("product_flavor_inventory_overview")
-          .select("flavor_id,location_id,physical_quantity")
-          .eq("product_id", product!.id),
-        supabase
-          .from("product_flavor_history_pending")
-          .select("sale_item_id", { count: "exact", head: true })
-          .eq("product_id", product!.id),
+        supabase.from("product_flavors").select("id,name,active,display_order").eq("product_id", product!.id).eq("active", true).order("display_order").order("name"),
+        supabase.from("product_flavor_summary").select("flavor_tracking_enabled").eq("product_id", product!.id).maybeSingle(),
+        supabase.from("inventory_location_overview").select("location_id,location_code,location_name,physical_quantity").eq("product_id", product!.id).order("location_code"),
+        supabase.from("product_flavor_inventory_overview").select("flavor_id,location_id,physical_quantity").eq("product_id", product!.id),
+        supabase.from("product_flavor_history_pending").select("sale_item_id", { count: "exact", head: true }).eq("product_id", product!.id),
       ]);
 
       if (cancelled) return;
-
-      const firstError =
-        flavorResult.error ||
-        summaryResult.error ||
-        locationsResult.error ||
-        inventoryResult.error ||
-        pendingResult.error;
-
+      const firstError = flavorResult.error || summaryResult.error || locationsResult.error || inventoryResult.error || pendingResult.error;
       if (firstError) {
         setMessage(firstError.message);
         setFlavorLoading(false);
@@ -255,15 +215,12 @@ export function ProductForm({ product, suppliers, categories }: {
       setFlavorAlreadyEnabled(enabled);
       setFlavorMode(enabled || loadedFlavors.length > 0);
       setFlavors(loadedFlavors);
-
-      setStockLocations(
-        (locationsResult.data ?? []).map((row) => ({
-          id: String(row.location_id),
-          code: String(row.location_code ?? ""),
-          name: String(row.location_name ?? ""),
-          physicalQuantity: Number(row.physical_quantity ?? 0),
-        })),
-      );
+      setStockLocations((locationsResult.data ?? []).map((row) => ({
+        id: String(row.location_id),
+        code: String(row.location_code ?? ""),
+        name: String(row.location_name ?? ""),
+        physicalQuantity: Number(row.physical_quantity ?? 0),
+      })));
 
       const nextAllocations: Record<string, string> = {};
       for (const row of inventoryResult.data ?? []) {
@@ -287,49 +244,37 @@ export function ProductForm({ product, suppliers, categories }: {
     setEnrichment(null);
 
     if (draft.name.trim().length < 3) {
-      setEnrichmentFeedback(
-        "Digite primeiro um nome de produto mais completo para o Nexus pesquisar.",
-      );
+      setEnrichmentFeedback("Digite primeiro um nome de produto mais completo para o Nexus pesquisar.");
       return;
     }
 
     setEnrichmentLoading(true);
-
     try {
-      const { data, error } = await createClient().functions.invoke(
-        "product-nexus-enrich",
-        {
-          body: {
-            name: draft.name.trim(),
-            existing: {
-              brand: nullableText(draft.brand),
-              category: nullableText(draft.category),
-              description: nullableText(draft.description),
-              objective: nullableText(draft.objective),
-              ideal_profile: nullableText(draft.idealProfile),
-              duration_days: draft.durationDays.trim()
-                ? Number(draft.durationDays)
-                : null,
-              information: nullableText(draft.information),
-              quick_message: nullableText(draft.quickMessage),
-              keywords: nullableText(draft.keywords),
-              level: nullableText(draft.level),
-            },
-            categories: categoryOptions,
+      const response = await fetch("/api/produtos/completar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: draft.name.trim(),
+          existing: {
+            brand: nullableText(draft.brand),
+            category: nullableText(draft.category),
+            description: nullableText(draft.description),
+            objective: nullableText(draft.objective),
+            ideal_profile: nullableText(draft.idealProfile),
+            duration_days: draft.durationDays.trim() ? Number(draft.durationDays) : null,
+            information: nullableText(draft.information),
+            quick_message: nullableText(draft.quickMessage),
+            keywords: nullableText(draft.keywords),
+            level: nullableText(draft.level),
           },
-        },
-      );
+          categories: categoryOptions,
+        }),
+      });
 
-      if (error) {
-        throw new Error(
-          await edgeErrorMessage(error),
-        );
-      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data?.error ?? `Não foi possível pesquisar o produto (${response.status}).`);
 
-      if (data?.error) {
-        throw new Error(String(data.error));
-      }
-
+      const fallbackUsed = Boolean(data?.fallback_used);
       setEnrichment({
         suggestions: {
           brand: data?.suggestions?.brand ?? null,
@@ -337,42 +282,26 @@ export function ProductForm({ product, suppliers, categories }: {
           description: data?.suggestions?.description ?? null,
           objective: data?.suggestions?.objective ?? null,
           ideal_profile: data?.suggestions?.ideal_profile ?? null,
-          duration_days:
-            Number(data?.suggestions?.duration_days) > 0
-              ? Number(data.suggestions.duration_days)
-              : null,
+          duration_days: Number(data?.suggestions?.duration_days) > 0 ? Number(data.suggestions.duration_days) : null,
           information: data?.suggestions?.information ?? null,
           quick_message: data?.suggestions?.quick_message ?? null,
           keywords: data?.suggestions?.keywords ?? null,
           level: data?.suggestions?.level ?? null,
         },
-        confidence:
-          data?.confidence === "alta" ||
-          data?.confidence === "media"
-            ? data.confidence
-            : "baixa",
-        research_note:
-          typeof data?.research_note === "string"
-            ? data.research_note
-            : null,
-        sources: Array.isArray(data?.sources)
-          ? data.sources.filter(
-              (value: unknown): value is string =>
-                typeof value === "string",
-            )
-          : [],
+        confidence: data?.confidence === "alta" || data?.confidence === "media" ? data.confidence : "baixa",
+        research_note: typeof data?.research_note === "string" ? data.research_note : null,
+        sources: Array.isArray(data?.sources) ? data.sources.filter((value: unknown): value is string => typeof value === "string") : [],
         saved: false,
+        fallbackUsed,
       });
 
       setEnrichmentFeedback(
-        "Pesquisa concluída. Revise o que o Nexus encontrou antes de aplicar.",
+        fallbackUsed
+          ? "A pesquisa pública não ficou disponível, então o Nexus usou um fallback descritivo seguro. Revise antes de aplicar."
+          : "Pesquisa concluída. Revise o que o Nexus encontrou antes de aplicar.",
       );
     } catch (error) {
-      setEnrichmentFeedback(
-        error instanceof Error
-          ? error.message
-          : "Não foi possível pesquisar o produto.",
-      );
+      setEnrichmentFeedback(error instanceof Error ? error.message : "Não foi possível pesquisar o produto.");
     } finally {
       setEnrichmentLoading(false);
     }
@@ -380,58 +309,21 @@ export function ProductForm({ product, suppliers, categories }: {
 
   function applyEnrichment() {
     if (!enrichment) return;
-
     const suggestions = enrichment.suggestions;
-
     setDraft((current) => ({
       ...current,
-      brand:
-        current.brand.trim()
-          ? current.brand
-          : suggestions.brand ?? current.brand,
-      category:
-        current.category.trim()
-          ? current.category
-          : suggestions.category ?? current.category,
-      description:
-        current.description.trim()
-          ? current.description
-          : suggestions.description ?? current.description,
-      objective:
-        current.objective.trim()
-          ? current.objective
-          : suggestions.objective ?? current.objective,
-      idealProfile:
-        current.idealProfile.trim()
-          ? current.idealProfile
-          : suggestions.ideal_profile ?? current.idealProfile,
-      durationDays:
-        current.durationDays.trim()
-          ? current.durationDays
-          : suggestions.duration_days
-            ? String(suggestions.duration_days)
-            : current.durationDays,
-      information:
-        current.information.trim()
-          ? current.information
-          : suggestions.information ?? current.information,
-      quickMessage:
-        current.quickMessage.trim()
-          ? current.quickMessage
-          : suggestions.quick_message ?? current.quickMessage,
-      keywords:
-        current.keywords.trim()
-          ? current.keywords
-          : suggestions.keywords ?? current.keywords,
-      level:
-        current.level.trim()
-          ? current.level
-          : suggestions.level ?? current.level,
+      brand: current.brand.trim() ? current.brand : suggestions.brand ?? current.brand,
+      category: current.category.trim() ? current.category : suggestions.category ?? current.category,
+      description: current.description.trim() ? current.description : suggestions.description ?? current.description,
+      objective: current.objective.trim() ? current.objective : suggestions.objective ?? current.objective,
+      idealProfile: current.idealProfile.trim() ? current.idealProfile : suggestions.ideal_profile ?? current.idealProfile,
+      durationDays: current.durationDays.trim() ? current.durationDays : suggestions.duration_days ? String(suggestions.duration_days) : current.durationDays,
+      information: current.information.trim() ? current.information : suggestions.information ?? current.information,
+      quickMessage: current.quickMessage.trim() ? current.quickMessage : suggestions.quick_message ?? current.quickMessage,
+      keywords: current.keywords.trim() ? current.keywords : suggestions.keywords ?? current.keywords,
+      level: current.level.trim() ? current.level : suggestions.level ?? current.level,
     }));
-
-    setEnrichmentFeedback(
-      "Informações aplicadas somente nos campos vazios. Nada foi salvo ainda: revise o formulário e clique em Salvar quando estiver de acordo.",
-    );
+    setEnrichmentFeedback("Informações aplicadas somente nos campos vazios. Revise o formulário antes de salvar.");
   }
 
   function enableFlavorMode() {
@@ -443,10 +335,9 @@ export function ProductForm({ product, suppliers, categories }: {
 
   function addFlavor() {
     setFlavorMode(true);
-    setFlavors((current) => [
-      ...current,
-      { key: flavorKey(), id: null, name: "", active: true, displayOrder: current.length },
-    ]);
+    setFlavors((current) => [...current, {
+      key: flavorKey(), id: null, name: "", active: true, displayOrder: current.length,
+    }]);
   }
 
   function updateFlavor(key: string, patch: Partial<FlavorDraft>) {
@@ -466,9 +357,15 @@ export function ProductForm({ product, suppliers, categories }: {
   }
 
   function allocatedAtLocation(locationId: string) {
-    return flavors
-      .filter((flavor) => flavor.active && flavor.name.trim())
-      .reduce((sum, flavor) => sum + allocationValue(locationId, flavor), 0);
+    return activeFlavors.reduce((sum, flavor) => sum + allocationValue(locationId, flavor), 0);
+  }
+
+  function allocationStatus(location: StockLocation) {
+    const allocated = allocatedAtLocation(location.id);
+    const difference = location.physicalQuantity - allocated;
+    if (difference === 0) return { allocated, tone: "green", label: "OK" };
+    if (difference > 0) return { allocated, tone: "orange", label: `Faltam ${difference}` };
+    return { allocated, tone: "red", label: `Sobram ${Math.abs(difference)}` };
   }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -477,24 +374,24 @@ export function ProductForm({ product, suppliers, categories }: {
     setMessage(null);
 
     try {
-      if (!draft.name.trim() || !draft.category.trim()) {
-        throw new Error("Informe o nome e a categoria do produto.");
-      }
+      if (!draft.name.trim() || !draft.category.trim()) throw new Error("Informe o nome e a categoria do produto.");
       if ([cost, sale, installment, numeric(draft.minStock), numeric(draft.idealStock)].some((value) => value < 0)) {
         throw new Error("Preços e níveis de estoque não podem ser negativos.");
       }
 
-      const activeFlavors = flavors.filter((flavor) => flavor.active && flavor.name.trim());
-      if (flavorMode && activeFlavors.length === 0) {
-        throw new Error("Adicione pelo menos um sabor.");
-      }
+      if (flavorMode && activeFlavors.length === 0) throw new Error("Adicione pelo menos um sabor.");
+      const normalizedNames = activeFlavors.map((flavor) => flavor.name.trim().toLocaleLowerCase("pt-BR"));
+      if (new Set(normalizedNames).size !== normalizedNames.length) throw new Error("Existem sabores com nomes repetidos.");
 
       if (flavorMode && product) {
         for (const location of stockLocations) {
           const allocated = allocatedAtLocation(location.id);
           if (allocated !== location.physicalQuantity) {
+            const difference = location.physicalQuantity - allocated;
             throw new Error(
-              `Distribua exatamente ${location.physicalQuantity} unidade(s) do estoque ${location.code} entre os sabores. Distribuído: ${allocated}.`,
+              difference > 0
+                ? `Ainda faltam ${difference} unidade(s) para distribuir no estoque ${location.code}.`
+                : `Foram distribuídas ${Math.abs(difference)} unidade(s) a mais no estoque ${location.code}.`,
             );
           }
         }
@@ -535,14 +432,12 @@ export function ProductForm({ product, suppliers, categories }: {
         : null;
 
       const allocationPayload = flavorMode && product
-        ? stockLocations.flatMap((location) =>
-            activeFlavors.map((flavor) => ({
-              location_id: location.id,
-              flavor_id: flavor.id,
-              flavor_name: flavor.id ? null : flavor.name.trim(),
-              quantity: allocationValue(location.id, flavor),
-            })),
-          )
+        ? stockLocations.flatMap((location) => activeFlavors.map((flavor) => ({
+            location_id: location.id,
+            flavor_id: flavor.id,
+            flavor_name: flavor.id ? null : flavor.name.trim(),
+            quantity: allocationValue(location.id, flavor),
+          })))
         : [];
 
       const flavorParams = {
@@ -552,19 +447,11 @@ export function ProductForm({ product, suppliers, categories }: {
       };
 
       const { data, error } = isEditing
-        ? await supabase.rpc("update_product_record_v2", {
-            p_product_id: product!.id,
-            ...params,
-            ...flavorParams,
-          })
-        : await supabase.rpc("create_product_record_v2", {
-            ...params,
-            ...flavorParams,
-          });
+        ? await supabase.rpc("update_product_record_v2", { p_product_id: product!.id, ...params, ...flavorParams })
+        : await supabase.rpc("create_product_record_v2", { ...params, ...flavorParams });
 
       if (error) throw error;
       const productId = String(data);
-
       router.push(`/produtos/${productId}`);
       router.refresh();
     } catch (error) {
@@ -580,245 +467,144 @@ export function ProductForm({ product, suppliers, categories }: {
         <article className="panel">
           <div className="panel-head">
             <div><h2>Identificação</h2><p>Nome, categoria e organização do catálogo.</p></div>
-            <button
-              className="button ghost compact-button"
-              type="button"
-              onClick={enrichProduct}
-              disabled={enrichmentLoading}
-              title="O Nexus pesquisa o produto na internet e sugere apenas campos vazios. Nada é salvo automaticamente."
-            >
-              {enrichmentLoading ? <LoaderCircle className="spin" size={16} /> : <Sparkles size={16} />}
-              {enrichmentLoading ? "Pesquisando" : "Completar informações"}
+            <button className="button ghost compact-button" type="button" onClick={enrichProduct} disabled={enrichmentLoading} title="O Nexus consulta dados públicos e sugere apenas campos cadastrais vazios. Dados internos não são inventados.">
+              {enrichmentLoading ? <LoaderCircle className="spin" size={16}/> : <Sparkles size={16}/>} {enrichmentLoading ? "Pesquisando" : "Completar com Nexus"}
             </button>
           </div>
+
           <div className="panel-body form-grid-two">
-            <label className="field field-span-two"><span>Nome do produto</span><input className="input" required value={draft.name} onChange={(event) => update("name", event.target.value)} placeholder="Ex.: Creatina Candinho 300g" /></label>
-            <label className="field"><span>Categoria</span><input className="input" list="product-categories" required value={draft.category} onChange={(event) => update("category", event.target.value)} placeholder="Força, Energia, Saúde..." /><datalist id="product-categories">{categoryOptions.map((category) => <option key={category} value={category} />)}</datalist></label>
-            <label className="field"><span>Marca</span><input className="input" value={draft.brand} onChange={(event) => update("brand", event.target.value)} placeholder="Marca do produto" /></label>
-            <label className="field"><span>SKU / código interno</span><input className="input" value={draft.sku} onChange={(event) => update("sku", event.target.value)} placeholder="Opcional" /></label>
+            <label className="field field-span-two"><span>Nome do produto</span><input className="input" required value={draft.name} onChange={(event) => update("name", event.target.value)} placeholder="Ex.: Creatina Candinho 300g"/></label>
+            <label className="field"><span>Categoria</span><input className="input" list="product-categories" required value={draft.category} onChange={(event) => update("category", event.target.value)} placeholder="Força, Energia, Saúde..."/><datalist id="product-categories">{categoryOptions.map((category) => <option key={category} value={category}/>)}</datalist></label>
+            <label className="field"><span>Marca</span><input className="input" value={draft.brand} onChange={(event) => update("brand", event.target.value)} placeholder="Marca do produto"/></label>
+            <label className="field"><span>SKU / código interno</span><input className="input" value={draft.sku} onChange={(event) => update("sku", event.target.value)} placeholder="Definido internamente"/></label>
             <label className="field"><span>Fornecedor padrão</span><select className="select" value={draft.supplierId} onChange={(event) => update("supplierId", event.target.value)}><option value="">Sem fornecedor padrão</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label>
           </div>
 
           {(enrichment || enrichmentFeedback) && (
             <div className="product-nexus-enrichment">
               <div className="product-nexus-enrichment-head">
-                <span className="product-nexus-enrichment-icon"><Globe2 size={17} /></span>
+                <span className="product-nexus-enrichment-icon"><Globe2 size={17}/></span>
                 <div>
-                  <strong>Nexus · Completar informações</strong>
-                  <small>
-                    Pesquisa online para agilizar o cadastro. Preços, estoque, SKU, fornecedor e categoria ABC nunca são preenchidos.
-                  </small>
+                  <strong>Nexus · Cadastro assistido</strong>
+                  <small>Pesquisa dados públicos e completa textos cadastrais. Preço, estoque, SKU, fornecedor e classificação ABCZ são dados internos e nunca são inventados.</small>
                 </div>
-                {enrichment && (
-                  <span className={`badge ${enrichment.confidence === "alta" ? "green" : enrichment.confidence === "media" ? "orange" : "gray"}`}>
-                    Confiança {enrichment.confidence}
-                  </span>
-                )}
+                {enrichment && <span className={`badge ${enrichment.confidence === "alta" ? "green" : enrichment.confidence === "media" ? "orange" : "gray"}`}>Confiança {enrichment.confidence}</span>}
               </div>
 
-              {enrichment?.research_note && (
-                <p className="product-nexus-research-note">{enrichment.research_note}</p>
-              )}
+              {enrichment?.fallbackUsed && <p className="product-nexus-research-note"><AlertTriangle size={14}/> Pesquisa pública indisponível ou insuficiente. O Nexus usou um fallback descritivo seguro sem inventar dados técnicos.</p>}
+              {enrichment?.research_note && <p className="product-nexus-research-note">{enrichment.research_note}</p>}
 
               {enrichment && (
                 <div className="product-nexus-enrichment-result">
-                  <div>
-                    <strong>{enrichmentAvailableCount} campo(s) vazio(s) podem ser preenchidos</strong>
-                    <span>O Nexus não sobrescreve o que você já digitou.</span>
-                  </div>
-
+                  <div><strong>{enrichmentAvailableCount} campo(s) vazio(s) podem ser preenchidos</strong><span>O Nexus não sobrescreve o que você já digitou.</span></div>
                   <div className="product-nexus-enrichment-actions">
-                    <button
-                      className="button gold compact-button"
-                      type="button"
-                      onClick={applyEnrichment}
-                      disabled={enrichmentAvailableCount === 0}
-                    >
-                      <Check size={15} />
-                      Aplicar nos campos vazios
-                    </button>
-
-                    <button
-                      className="button ghost compact-button"
-                      type="button"
-                      onClick={() => setEnrichment(null)}
-                    >
-                      <X size={15} />
-                      Fechar
-                    </button>
+                    <button className="button gold compact-button" type="button" onClick={applyEnrichment} disabled={enrichmentAvailableCount === 0}><Check size={15}/>Aplicar nos campos vazios</button>
+                    <button className="button ghost compact-button" type="button" onClick={() => setEnrichment(null)}><X size={15}/>Fechar</button>
                   </div>
                 </div>
               )}
 
-              {enrichment?.sources.length ? (
-                <div className="product-nexus-sources">
-                  <span>Fontes consultadas</span>
-                  <div>
-                    {enrichment.sources.slice(0, 5).map((url) => (
-                      <a href={url} target="_blank" rel="noreferrer" key={url}>
-                        {sourceHost(url)}
-                        <ExternalLink size={11} />
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {enrichmentFeedback && (
-                <p className="form-help">{enrichmentFeedback}</p>
-              )}
-
-              <small className="product-nexus-save-warning">
-                Nada é salvo automaticamente. Depois de aplicar, revise os campos normalmente e só então use “Salvar alterações” ou “Cadastrar produto”.
-              </small>
+              {enrichment?.sources.length ? <div className="product-nexus-sources"><span>Fontes consultadas</span><div>{enrichment.sources.slice(0, 5).map((url) => <a href={url} target="_blank" rel="noreferrer" key={url}>{sourceHost(url)}<ExternalLink size={11}/></a>)}</div></div> : null}
+              {enrichmentFeedback && <p className="form-help">{enrichmentFeedback}</p>}
+              <small className="product-nexus-save-warning">Nada é salvo automaticamente. Revise as sugestões e salve o produto somente quando estiver de acordo.</small>
             </div>
           )}
         </article>
 
         <article className="panel">
-          <div className="panel-head"><div><h2>Preços e estoque</h2><p>Dados internos usados em vendas, margens e reposição.</p></div><CircleDollarSign size={20} /></div>
+          <div className="panel-head"><div><h2>Preços e estoque</h2><p>Dados internos usados em vendas, margens e reposição. O Nexus não altera estes campos.</p></div><CircleDollarSign size={20}/></div>
           <div className="panel-body form-grid-three">
-            <label className="field"><span>Preço de custo</span><input className="input" type="number" min="0" step="0.01" required value={draft.costPrice} onChange={(event) => update("costPrice", event.target.value)} /></label>
-            <label className="field"><span>Preço à vista</span><input className="input" type="number" min="0" step="0.01" required value={draft.salePrice} onChange={(event) => update("salePrice", event.target.value)} /></label>
-            <label className="field"><span>Preço a prazo</span><input className="input" type="number" min="0" step="0.01" required value={draft.installmentPrice} onChange={(event) => update("installmentPrice", event.target.value)} /></label>
-            <label className="field"><span>Estoque mínimo</span><input className="input" type="number" min="0" step="1" required value={draft.minStock} onChange={(event) => update("minStock", event.target.value)} /></label>
-            <label className="field"><span>Estoque ideal</span><input className="input" type="number" min="0" step="1" required value={draft.idealStock} onChange={(event) => update("idealStock", event.target.value)} /></label>
+            <label className="field"><span>Preço de custo</span><input className="input" type="number" min="0" step="0.01" required value={draft.costPrice} onChange={(event) => update("costPrice", event.target.value)}/></label>
+            <label className="field"><span>Preço à vista</span><input className="input" type="number" min="0" step="0.01" required value={draft.salePrice} onChange={(event) => update("salePrice", event.target.value)}/></label>
+            <label className="field"><span>Preço a prazo</span><input className="input" type="number" min="0" step="0.01" required value={draft.installmentPrice} onChange={(event) => update("installmentPrice", event.target.value)}/></label>
+            <label className="field"><span>Estoque mínimo</span><input className="input" type="number" min="0" step="1" required value={draft.minStock} onChange={(event) => update("minStock", event.target.value)}/></label>
+            <label className="field"><span>Estoque ideal</span><input className="input" type="number" min="0" step="1" required value={draft.idealStock} onChange={(event) => update("idealStock", event.target.value)}/></label>
             <div className="product-margin-preview"><span>Lucro unitário previsto</span><strong>{formatCurrency(profit)}</strong><small>{margin.toLocaleString("pt-BR", { maximumFractionDigits: 1 })}% sobre a venda</small></div>
           </div>
         </article>
 
         <article className="panel">
           <div className="panel-head">
-            <div>
-              <h2>Sabores</h2>
-              <p>Opcional. Use para whey, pré-treino, hipercalórico e outros produtos com variações de sabor.</p>
-            </div>
+            <div><h2>Sabores</h2><p>Ative somente para produtos em que o estoque precisa ser separado por sabor.</p></div>
             {!flavorMode
-              ? <button className="button ghost compact-button" type="button" onClick={enableFlavorMode}><ListPlus size={16} />Adicionar sabores</button>
-              : <button className="button ghost compact-button" type="button" onClick={addFlavor}><Plus size={16} />Adicionar sabor</button>}
+              ? <button className="button ghost compact-button" type="button" onClick={enableFlavorMode}><ListPlus size={16}/>Adicionar sabores</button>
+              : <button className="button ghost compact-button" type="button" onClick={addFlavor}><Plus size={16}/>Adicionar sabor</button>}
           </div>
 
           <div className="panel-body">
-            {flavorLoading ? (
-              <p className="form-help">Carregando configuração de sabores...</p>
-            ) : !flavorMode ? (
-              <div className="empty compact-empty">
-                <strong>Produto sem controle por sabor</strong>
-                Nada muda nas vendas ou no estoque deste produto.
-              </div>
+            {flavorLoading ? <p className="form-help">Carregando configuração de sabores...</p> : !flavorMode ? (
+              <div className="empty compact-empty"><Boxes size={24}/><strong>Produto sem controle por sabor</strong>O estoque continua sendo controlado apenas pelo total do produto.</div>
             ) : (
-              <div style={{ display: "grid", gap: 16 }}>
-                <div className="sale-form-items">
-                  {flavors.map((flavor, index) => (
-                    <div className="sale-form-item" key={flavor.key}>
-                      <div className="sale-form-item-head">
-                        <strong>Sabor {index + 1}</strong>
-                        {flavors.length > 1 && (
-                          <button className="icon-button" type="button" aria-label="Remover sabor" onClick={() => removeFlavor(flavor.key)}>
-                            <Trash2 size={16} />
-                          </button>
-                        )}
+              <div className="product-flavor-flow">
+                <section className="product-flavor-step">
+                  <div className="product-flavor-step-title"><span>1</span><div><strong>Cadastre os sabores</strong><small>Adicione apenas os sabores que realmente existem para este produto.</small></div></div>
+                  <div className="sale-form-items">
+                    {flavors.map((flavor, index) => (
+                      <div className="sale-form-item" key={flavor.key}>
+                        <div className="sale-form-item-head"><strong>Sabor {index + 1}</strong>{flavors.length > 1 && <button className="icon-button" type="button" aria-label="Remover sabor" onClick={() => removeFlavor(flavor.key)}><Trash2 size={16}/></button>}</div>
+                        <label className="field"><span>Nome do sabor</span><input className="input" value={flavor.name} onChange={(event) => updateFlavor(flavor.key, { name: event.target.value })} placeholder="Ex.: Maçã Verde"/></label>
                       </div>
-                      <label className="field">
-                        <span>Nome do sabor</span>
-                        <input className="input" value={flavor.name} onChange={(event) => updateFlavor(flavor.key, { name: event.target.value })} placeholder="Ex.: Maçã Verde" />
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                </section>
 
-                {product && stockLocations.length > 0 && flavors.some((flavor) => flavor.active && flavor.name.trim()) && (
-                  <div>
-                    <div className="panel-head" style={{ paddingInline: 0 }}>
-                      <div>
-                        <h3>Distribuição do estoque atual</h3>
-                        <p>A soma dos sabores precisa ser exatamente igual ao estoque físico de cada local.</p>
-                      </div>
-                    </div>
-
+                {product && stockLocations.length > 0 && activeFlavors.length > 0 ? (
+                  <section className="product-flavor-step">
+                    <div className="product-flavor-step-title"><span>2</span><div><strong>Distribua o estoque atual</strong><small>Para salvar, cada local precisa ficar em OK: a soma dos sabores deve ser igual ao estoque físico.</small></div></div>
                     <div className="table-wrap">
                       <table>
-                        <thead>
-                          <tr>
-                            <th>Local</th>
-                            {flavors.filter((flavor) => flavor.active && flavor.name.trim()).map((flavor) => <th key={flavor.key}>{flavor.name}</th>)}
-                            <th>Distribuído</th>
-                            <th>Físico</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {stockLocations.map((location) => {
-                            const activeFlavors = flavors.filter((flavor) => flavor.active && flavor.name.trim());
-                            const allocated = allocatedAtLocation(location.id);
-                            const valid = allocated === location.physicalQuantity;
-                            return (
-                              <tr key={location.id}>
-                                <td><strong>{location.code}</strong><small>{location.name}</small></td>
-                                {activeFlavors.map((flavor) => {
-                                  const key = allocationKey(location.id, flavor);
-                                  return (
-                                    <td key={key}>
-                                      <input
-                                        className="input"
-                                        type="number"
-                                        min="0"
-                                        step="1"
-                                        value={allocations[key] ?? "0"}
-                                        onChange={(event) => setAllocations((current) => ({ ...current, [key]: event.target.value }))}
-                                      />
-                                    </td>
-                                  );
-                                })}
-                                <td><strong className={valid ? "positive" : "warning-text"}>{allocated}</strong></td>
-                                <td><strong>{location.physicalQuantity}</strong></td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
+                        <thead><tr><th>Local</th>{activeFlavors.map((flavor) => <th key={flavor.key}>{flavor.name}</th>)}<th>Distribuído</th><th>Físico</th><th>Status</th></tr></thead>
+                        <tbody>{stockLocations.map((location) => {
+                          const status = allocationStatus(location);
+                          return <tr key={location.id}>
+                            <td><strong>{location.code}</strong><small>{location.name}</small></td>
+                            {activeFlavors.map((flavor) => {
+                              const key = allocationKey(location.id, flavor);
+                              return <td key={key}><input className="input" type="number" min="0" step="1" value={allocations[key] ?? "0"} onChange={(event) => setAllocations((current) => ({ ...current, [key]: event.target.value }))}/></td>;
+                            })}
+                            <td><strong>{status.allocated}</strong></td>
+                            <td><strong>{location.physicalQuantity}</strong></td>
+                            <td><span className={`badge ${status.tone}`}>{status.label === "OK" ? <CheckCircle2 size={12}/> : <AlertTriangle size={12}/>} {status.label}</span></td>
+                          </tr>;
+                        })}</tbody>
                       </table>
                     </div>
-                  </div>
+                  </section>
+                ) : (
+                  <div className="form-help"><strong>2. Distribuição do estoque:</strong> {product ? "adicione o nome dos sabores para distribuir o estoque atual." : "depois que o produto for cadastrado e tiver estoque, você poderá distribuir as unidades entre os sabores."}</div>
                 )}
 
-                <div className="form-help">
-                  <strong>{flavorAlreadyEnabled ? "Controle por sabor ativo." : "Ao salvar, o controle por sabor será ativado."}</strong>{" "}
-                  A partir da ativação, vendas, reservas, compras, recebimentos, transferências e ajustes exigirão o sabor.
-                </div>
-
-                {product && historyPending > 0 && (
-                  <Link className="button ghost" href={`/produtos/sabores/historico?produto=${product.id}`}>
-                    Classificar histórico sem sabor · {historyPending} pendência(s)
-                  </Link>
-                )}
+                <div className="form-help"><strong>{flavorAlreadyEnabled ? "Controle por sabor ativo." : "Ao salvar, o controle por sabor será ativado."}</strong> A partir da ativação, vendas, reservas, compras, recebimentos, transferências e ajustes exigirão o sabor.</div>
+                {product && historyPending > 0 && <Link className="button ghost" href={`/produtos/sabores/historico?produto=${product.id}`}>Classificar histórico sem sabor · {historyPending} pendência(s)</Link>}
               </div>
             )}
           </div>
         </article>
 
         <article className="panel">
-          <div className="panel-head"><div><h2>Informações comerciais</h2><p>Conteúdo usado no atendimento e na apresentação do produto.</p></div><FileText size={20} /></div>
+          <div className="panel-head"><div><h2>Informações comerciais</h2><p>Conteúdo usado no atendimento e na apresentação do produto.</p></div><FileText size={20}/></div>
           <div className="panel-body product-copy-editor">
-            <label className="field"><span>Descrição</span><textarea className="textarea" rows={3} value={draft.description} onChange={(event) => update("description", event.target.value)} /></label>
-            <label className="field"><span>Objetivo</span><textarea className="textarea" rows={2} value={draft.objective} onChange={(event) => update("objective", event.target.value)} /></label>
-            <label className="field"><span>Perfil ideal</span><textarea className="textarea" rows={2} value={draft.idealProfile} onChange={(event) => update("idealProfile", event.target.value)} /></label>
+            <label className="field"><span>Descrição</span><textarea className="textarea" rows={3} value={draft.description} onChange={(event) => update("description", event.target.value)}/></label>
+            <label className="field"><span>Objetivo</span><textarea className="textarea" rows={2} value={draft.objective} onChange={(event) => update("objective", event.target.value)}/></label>
+            <label className="field"><span>Perfil ideal</span><textarea className="textarea" rows={2} value={draft.idealProfile} onChange={(event) => update("idealProfile", event.target.value)}/></label>
             <div className="form-grid-three">
-              <label className="field"><span>Duração / doses</span><input className="input" type="number" min="1" step="1" value={draft.durationDays} onChange={(event) => update("durationDays", event.target.value)} placeholder="Ex.: 100" /></label>
-              <label className="field"><span>Nível</span><input className="input" value={draft.level} onChange={(event) => update("level", event.target.value)} placeholder="Essencial, forte..." /></label>
-              <label className="field"><span>Categoria de vendas</span><input className="input" value={draft.salesCategory} onChange={(event) => update("salesCategory", event.target.value)} placeholder="A, B, C..." /></label>
+              <label className="field"><span>Duração / doses</span><input className="input" type="number" min="1" step="1" value={draft.durationDays} onChange={(event) => update("durationDays", event.target.value)} placeholder="Ex.: 100"/></label>
+              <label className="field"><span>Nível</span><input className="input" value={draft.level} onChange={(event) => update("level", event.target.value)} placeholder="Essencial, forte..."/></label>
+              <label className="field"><span>Categoria de vendas</span><input className="input" value={draft.salesCategory} onChange={(event) => update("salesCategory", event.target.value)} placeholder="A, B, C..."/></label>
             </div>
-            <label className="field"><span>Informativo</span><textarea className="textarea" rows={3} value={draft.information} onChange={(event) => update("information", event.target.value)} /></label>
-            <label className="field"><span>Mensagem rápida</span><textarea className="textarea" rows={3} value={draft.quickMessage} onChange={(event) => update("quickMessage", event.target.value)} /></label>
-            <label className="field"><span>Palavras-chave</span><input className="input" value={draft.keywords} onChange={(event) => update("keywords", event.target.value)} placeholder="Separe por vírgulas" /></label>
+            <label className="field"><span>Informativo</span><textarea className="textarea" rows={3} value={draft.information} onChange={(event) => update("information", event.target.value)}/></label>
+            <label className="field"><span>Mensagem rápida</span><textarea className="textarea" rows={3} value={draft.quickMessage} onChange={(event) => update("quickMessage", event.target.value)}/></label>
+            <label className="field"><span>Palavras-chave</span><input className="input" value={draft.keywords} onChange={(event) => update("keywords", event.target.value)} placeholder="Separe por vírgulas"/></label>
           </div>
         </article>
       </div>
 
       <aside className="product-editor-side">
         <article className="panel">
-          <div className="panel-head"><div><h2>Disponibilidade</h2><p>Controle como o produto aparece e pode ser usado.</p></div><ShieldCheck size={20} /></div>
+          <div className="panel-head"><div><h2>Disponibilidade</h2><p>Controle como o produto aparece e pode ser usado.</p></div><ShieldCheck size={20}/></div>
           <div className="panel-body product-switch-list">
-            <label className="switch-row"><div><strong>Produto ativo</strong><span>Disponível para vendas, estoque e catálogo.</span></div><input type="checkbox" checked={draft.active} onChange={(event) => update("active", event.target.checked)} /></label>
-            <label className="switch-row"><div><strong>Produto restrito</strong><span>Identifica itens que exigem atenção especial.</span></div><input type="checkbox" checked={draft.restricted} onChange={(event) => update("restricted", event.target.checked)} /></label>
+            <label className="switch-row"><div><strong>Produto ativo</strong><span>Disponível para vendas, estoque e catálogo.</span></div><input type="checkbox" checked={draft.active} onChange={(event) => update("active", event.target.checked)}/></label>
+            <label className="switch-row"><div><strong>Produto restrito</strong><span>Identifica itens que exigem atenção especial.</span></div><input type="checkbox" checked={draft.restricted} onChange={(event) => update("restricted", event.target.checked)}/></label>
           </div>
         </article>
 
@@ -831,13 +617,10 @@ export function ProductForm({ product, suppliers, categories }: {
               <div><dt>Custo</dt><dd>{formatCurrency(cost)}</dd></div>
               <div><dt>Venda</dt><dd>{formatCurrency(sale)}</dd></div>
               <div><dt>A prazo</dt><dd>{formatCurrency(installment)}</dd></div>
-              {flavorMode && <div><dt>Sabores</dt><dd>{flavors.filter((flavor) => flavor.active && flavor.name.trim()).length}</dd></div>}
+              {flavorMode && <div><dt>Sabores</dt><dd>{activeFlavors.length}</dd></div>}
             </dl>
             {message && <p className="form-error visible">{message}</p>}
-            <button className="button gold product-save-button" disabled={loading || flavorLoading} type="submit">
-              {loading ? <LoaderCircle className="spin" size={17} /> : <Save size={17} />}
-              {loading ? "Salvando" : isEditing ? "Salvar alterações" : "Cadastrar produto"}
-            </button>
+            <button className="button gold product-save-button" disabled={loading || flavorLoading} type="submit">{loading ? <LoaderCircle className="spin" size={17}/> : <Save size={17}/>} {loading ? "Salvando" : isEditing ? "Salvar alterações" : "Cadastrar produto"}</button>
             <Link className="button ghost product-cancel-button" href={product ? `/produtos/${product.id}` : "/produtos"}>Cancelar</Link>
           </div>
         </article>
