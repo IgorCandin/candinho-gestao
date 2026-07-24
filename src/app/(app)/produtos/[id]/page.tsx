@@ -8,7 +8,9 @@ import {
   Edit3,
   PackageCheck,
   PackagePlus,
+  ShoppingBag,
   Tags,
+  UserRound,
   Warehouse,
 } from "lucide-react";
 import { notFound } from "next/navigation";
@@ -20,7 +22,10 @@ import {
   getEntitySwipeNavigation,
   getProductDetails,
 } from "@/lib/data";
-import { formatCurrency } from "@/lib/format";
+import {
+  formatCurrency,
+  formatDateOnly,
+} from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
 function DetailItem({
@@ -28,9 +33,17 @@ function DetailItem({
   value,
 }: {
   label: string;
-  value: string | number | null | undefined;
+  value:
+    | string
+    | number
+    | null
+    | undefined;
 }) {
-  if (value === null || value === undefined || value === "") {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
     return null;
   }
 
@@ -61,14 +74,26 @@ function CopyItem({
 
 function stockState(status: string) {
   if (status === "healthy") {
-    return { label: "Disponível", tone: "green" };
+    return {
+      label: "Disponível",
+      tone: "green",
+    };
   }
 
-  if (status === "incoming" || status === "incoming_only") {
-    return { label: "A caminho", tone: "blue" };
+  if (
+    status === "incoming" ||
+    status === "incoming_only"
+  ) {
+    return {
+      label: "A caminho",
+      tone: "blue",
+    };
   }
 
-  if (status === "below_minimum" || status === "fully_reserved") {
+  if (
+    status === "below_minimum" ||
+    status === "fully_reserved"
+  ) {
     return {
       label:
         status === "fully_reserved"
@@ -79,10 +104,52 @@ function stockState(status: string) {
   }
 
   if (status === "inactive") {
-    return { label: "Inativo", tone: "gray" };
+    return {
+      label: "Inativo",
+      tone: "gray",
+    };
   }
 
-  return { label: "Sem estoque", tone: "red" };
+  return {
+    label: "Sem estoque",
+    tone: "red",
+  };
+}
+
+function saleStatus(
+  payment: unknown,
+  delivery: unknown,
+) {
+  const paid =
+    String(payment ?? "") === "received";
+  const delivered =
+    String(delivery ?? "") === "delivered";
+
+  if (paid && delivered) {
+    return {
+      label: "Finalizada",
+      tone: "green",
+    };
+  }
+
+  if (!paid && !delivered) {
+    return {
+      label: "Pagamento e entrega pendentes",
+      tone: "orange",
+    };
+  }
+
+  if (!paid) {
+    return {
+      label: "Pagamento pendente",
+      tone: "orange",
+    };
+  }
+
+  return {
+    label: "Entrega pendente",
+    tone: "blue",
+  };
 }
 
 export default async function ProductDetailsPage({
@@ -99,16 +166,22 @@ export default async function ProductDetailsPage({
     flavorSummaryResult,
     flavorInventoryResult,
     pendingResult,
+    recentSalesResult,
   ] = await Promise.all([
     getProductDetails(id),
-    getEntitySwipeNavigation("product", id),
+    getEntitySwipeNavigation(
+      "product",
+      id,
+    ),
     supabase
       .from("product_flavor_summary")
       .select("*")
       .eq("product_id", id)
       .maybeSingle(),
     supabase
-      .from("product_flavor_inventory_overview")
+      .from(
+        "product_flavor_inventory_overview",
+      )
       .select(
         "flavor_id,flavor_name,active,display_order,physical_quantity,reserved_quantity,available_quantity,incoming_quantity",
       )
@@ -117,22 +190,47 @@ export default async function ProductDetailsPage({
       .order("display_order")
       .order("flavor_name"),
     supabase
-      .from("product_flavor_history_pending")
+      .from(
+        "product_flavor_history_pending",
+      )
       .select("sale_item_id", {
         count: "exact",
         head: true,
       })
       .eq("product_id", id),
+    supabase
+      .from(
+        "product_recent_sales_overview",
+      )
+      .select("*")
+      .eq("product_id", id)
+      .order("sold_at", {
+        ascending: false,
+      })
+      .limit(12),
   ]);
 
   if (!product) notFound();
-  if (flavorSummaryResult.error) throw flavorSummaryResult.error;
-  if (flavorInventoryResult.error) throw flavorInventoryResult.error;
-  if (pendingResult.error) throw pendingResult.error;
+  if (flavorSummaryResult.error) {
+    throw flavorSummaryResult.error;
+  }
+  if (flavorInventoryResult.error) {
+    throw flavorInventoryResult.error;
+  }
+  if (pendingResult.error) {
+    throw pendingResult.error;
+  }
+  if (recentSalesResult.error) {
+    throw recentSalesResult.error;
+  }
 
-  const state = stockState(product.stock_status);
+  const state = stockState(
+    product.stock_status,
+  );
+
   const flavorEnabled = Boolean(
-    flavorSummaryResult.data?.flavor_tracking_enabled,
+    flavorSummaryResult.data
+      ?.flavor_tracking_enabled,
   );
 
   const flavorMap = new Map<
@@ -148,34 +246,64 @@ export default async function ProductDetailsPage({
     }
   >();
 
-  for (const row of flavorInventoryResult.data ?? []) {
-    const flavorId = String(row.flavor_id);
+  for (
+    const row of
+      flavorInventoryResult.data ?? []
+  ) {
+    const flavorId = String(
+      row.flavor_id,
+    );
 
-    const current = flavorMap.get(flavorId) ?? {
-      id: flavorId,
-      name: String(row.flavor_name ?? "Sabor"),
-      physical: 0,
-      reserved: 0,
-      available: 0,
-      incoming: 0,
-      order: Number(row.display_order ?? 0),
-    };
+    const current =
+      flavorMap.get(flavorId) ?? {
+        id: flavorId,
+        name: String(
+          row.flavor_name ?? "Sabor",
+        ),
+        physical: 0,
+        reserved: 0,
+        available: 0,
+        incoming: 0,
+        order: Number(
+          row.display_order ?? 0,
+        ),
+      };
 
-    current.physical += Number(row.physical_quantity ?? 0);
-    current.reserved += Number(row.reserved_quantity ?? 0);
-    current.available += Number(row.available_quantity ?? 0);
-    current.incoming += Number(row.incoming_quantity ?? 0);
+    current.physical += Number(
+      row.physical_quantity ?? 0,
+    );
+    current.reserved += Number(
+      row.reserved_quantity ?? 0,
+    );
+    current.available += Number(
+      row.available_quantity ?? 0,
+    );
+    current.incoming += Number(
+      row.incoming_quantity ?? 0,
+    );
 
-    flavorMap.set(flavorId, current);
+    flavorMap.set(
+      flavorId,
+      current,
+    );
   }
 
-  const flavorRows = [...flavorMap.values()].sort(
+  const flavorRows = [
+    ...flavorMap.values(),
+  ].sort(
     (a, b) =>
       a.order - b.order ||
-      a.name.localeCompare(b.name, "pt-BR"),
+      a.name.localeCompare(
+        b.name,
+        "pt-BR",
+      ),
   );
 
-  const historyPending = pendingResult.count ?? 0;
+  const historyPending =
+    pendingResult.count ?? 0;
+
+  const recentSales =
+    recentSalesResult.data ?? [];
 
   return (
     <>
@@ -184,7 +312,7 @@ export default async function ProductDetailsPage({
       <PageHeader
         eyebrow="Catálogo"
         title={product.name}
-        description="Informações comerciais, foto principal e situação atual do produto."
+        description="Informações comerciais, estoque, foto, características e últimas vendas."
         action={
           <div className="page-header-action-group">
             <Link
@@ -203,7 +331,10 @@ export default async function ProductDetailsPage({
               Ver estoque
             </Link>
 
-            <Link className="button ghost" href="/produtos">
+            <Link
+              className="button ghost"
+              href="/produtos"
+            >
               <ArrowLeft size={16} />
               Voltar
             </Link>
@@ -221,7 +352,9 @@ export default async function ProductDetailsPage({
           <PackageCheck size={18} />
           <div>
             <span>Físico</span>
-            <strong>{product.physical_quantity}</strong>
+            <strong>
+              {product.physical_quantity}
+            </strong>
           </div>
         </article>
 
@@ -229,7 +362,9 @@ export default async function ProductDetailsPage({
           <Warehouse size={18} />
           <div>
             <span>Reservado</span>
-            <strong>{product.reserved_quantity}</strong>
+            <strong>
+              {product.reserved_quantity}
+            </strong>
           </div>
         </article>
 
@@ -237,7 +372,9 @@ export default async function ProductDetailsPage({
           <CheckCircle2 size={18} />
           <div>
             <span>Disponível</span>
-            <strong>{product.available_quantity}</strong>
+            <strong>
+              {product.available_quantity}
+            </strong>
           </div>
         </article>
 
@@ -245,7 +382,9 @@ export default async function ProductDetailsPage({
           <PackagePlus size={18} />
           <div>
             <span>A caminho</span>
-            <strong>{product.incoming_quantity}</strong>
+            <strong>
+              {product.incoming_quantity}
+            </strong>
           </div>
         </article>
 
@@ -253,26 +392,194 @@ export default async function ProductDetailsPage({
           <CalendarDays size={18} />
           <div>
             <span>Vendas aguardando</span>
-            <strong>{product.awaiting_sales_quantity}</strong>
+            <strong>
+              {
+                product.awaiting_sales_quantity
+              }
+            </strong>
           </div>
         </article>
 
         <article>
-          <span className={`badge ${state.tone}`}>
+          <span
+            className={`badge ${state.tone}`}
+          >
             <span className="dot" />
             {state.label}
           </span>
         </article>
       </section>
 
+      <article
+        className="panel"
+        style={{ marginTop: 18 }}
+      >
+        <div className="panel-head">
+          <div>
+            <h2>Últimas vendas</h2>
+            <p>
+              Clientes que compraram este
+              produto, quantidade, sabor e
+              resultado da venda.
+            </p>
+          </div>
+          <span className="bank-module-badge">
+            <ShoppingBag size={15} />
+            {recentSales.length}
+          </span>
+        </div>
+
+        <div
+          className="panel-body"
+          style={{ padding: 0 }}
+        >
+          {recentSales.length === 0 ? (
+            <div className="bank-empty-state">
+              Nenhuma venda registrada para
+              este produto.
+            </div>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data</th>
+                    <th>Cliente</th>
+                    <th>Qtd.</th>
+                    <th>Sabor</th>
+                    <th>Valor</th>
+                    <th>Lucro</th>
+                    <th>Situação</th>
+                    <th />
+                  </tr>
+                </thead>
+                <tbody>
+                  {recentSales.map(
+                    (sale) => {
+                      const status =
+                        saleStatus(
+                          sale.payment_status,
+                          sale.delivery_status,
+                        );
+
+                      return (
+                        <tr
+                          key={String(
+                            sale.sale_item_id,
+                          )}
+                        >
+                          <td>
+                            {formatDateOnly(
+                              String(
+                                sale.sold_at ??
+                                  "",
+                              ),
+                            )}
+                          </td>
+                          <td>
+                            {sale.customer_id ? (
+                              <Link
+                                href={`/clientes/${String(
+                                  sale.customer_id,
+                                )}`}
+                              >
+                                <strong>
+                                  {String(
+                                    sale.customer_name,
+                                  )}
+                                </strong>
+                                <br />
+                                <small>
+                                  {[
+                                    sale.customer_reference,
+                                    sale.customer_city,
+                                  ]
+                                    .filter(
+                                      Boolean,
+                                    )
+                                    .join(" · ")}
+                                </small>
+                              </Link>
+                            ) : (
+                              <span>
+                                <UserRound
+                                  size={13}
+                                />{" "}
+                                {String(
+                                  sale.customer_name,
+                                )}
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            {Number(
+                              sale.quantity ?? 0,
+                            )}
+                          </td>
+                          <td>
+                            {String(
+                              sale.flavor_name ??
+                                "—",
+                            )}
+                          </td>
+                          <td>
+                            {formatCurrency(
+                              Number(
+                                sale.total_price ??
+                                  0,
+                              ),
+                            )}
+                          </td>
+                          <td className="positive">
+                            {formatCurrency(
+                              Number(
+                                sale.total_profit ??
+                                  0,
+                              ),
+                            )}
+                          </td>
+                          <td>
+                            <span
+                              className={`badge ${status.tone}`}
+                            >
+                              {status.label}
+                            </span>
+                          </td>
+                          <td>
+                            <Link
+                              className="button ghost compact-button"
+                              href={`/pedidos-pendentes/${String(
+                                sale.sale_id,
+                              )}`}
+                            >
+                              Abrir
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    },
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </article>
+
       {flavorEnabled && (
-        <article className="panel">
+        <article
+          className="panel"
+          style={{ marginTop: 18 }}
+        >
           <div className="panel-head">
             <div>
-              <h2>Composição por sabor</h2>
+              <h2>
+                Composição por sabor
+              </h2>
               <p>
-                O estoque total continua sendo o saldo oficial do produto.
-                Abaixo está a distribuição operacional desse total.
+                O estoque total continua
+                sendo o saldo oficial do
+                produto.
               </p>
             </div>
 
@@ -281,7 +588,8 @@ export default async function ProductDetailsPage({
                 className="button ghost compact-button"
                 href={`/produtos/sabores/historico?produto=${product.id}`}
               >
-                Histórico sem sabor · {historyPending}
+                Histórico sem sabor ·{" "}
+                {historyPending}
               </Link>
             )}
           </div>
@@ -297,26 +605,36 @@ export default async function ProductDetailsPage({
                   <th>A caminho</th>
                 </tr>
               </thead>
-
               <tbody>
-                {flavorRows.map((flavor) => (
-                  <tr key={flavor.id}>
-                    <td><strong>{flavor.name}</strong></td>
-                    <td>{flavor.physical}</td>
-                    <td>{flavor.reserved}</td>
-                    <td className="positive">
-                      {flavor.available}
-                    </td>
-                    <td className="blue-text">
-                      {flavor.incoming}
-                    </td>
-                  </tr>
-                ))}
+                {flavorRows.map(
+                  (flavor) => (
+                    <tr key={flavor.id}>
+                      <td>
+                        <strong>
+                          {flavor.name}
+                        </strong>
+                      </td>
+                      <td>
+                        {flavor.physical}
+                      </td>
+                      <td>
+                        {flavor.reserved}
+                      </td>
+                      <td className="positive">
+                        {flavor.available}
+                      </td>
+                      <td className="blue-text">
+                        {flavor.incoming}
+                      </td>
+                    </tr>
+                  ),
+                )}
 
                 {flavorRows.length === 0 && (
                   <tr>
                     <td colSpan={5}>
-                      Nenhum sabor ativo encontrado.
+                      Nenhum sabor ativo
+                      encontrado.
                     </td>
                   </tr>
                 )}
@@ -332,7 +650,9 @@ export default async function ProductDetailsPage({
             <div>
               <h2>Foto do produto</h2>
               <p>
-                Uma única foto principal é usada no catálogo e nas listas.
+                Uma única foto principal é
+                usada no catálogo e nas
+                listas.
               </p>
             </div>
           </div>
@@ -340,8 +660,12 @@ export default async function ProductDetailsPage({
           <div className="panel-body">
             <ProductImageUploader
               productId={product.id}
-              initialImageUrl={product.image_url}
-              initialThumbnailUrl={product.thumbnail_url}
+              initialImageUrl={
+                product.image_url
+              }
+              initialThumbnailUrl={
+                product.thumbnail_url
+              }
             />
           </div>
         </article>
@@ -352,33 +676,48 @@ export default async function ProductDetailsPage({
               <div>
                 <h2>Resumo comercial</h2>
                 <p>
-                  Informações seguras para consultar durante o atendimento.
+                  Informações para consultar
+                  durante o atendimento.
                 </p>
               </div>
 
               <span
-                className={`badge ${product.active ? "green" : "gray"}`}
+                className={`badge ${
+                  product.active
+                    ? "green"
+                    : "gray"
+                }`}
               >
                 <span className="dot" />
-                {product.active ? "Ativo" : "Inativo"}
+                {product.active
+                  ? "Ativo"
+                  : "Inativo"}
               </span>
             </div>
 
             <div className="panel-body">
               <div className="product-price-grid">
                 <div className="product-price-card">
-                  <CircleDollarSign size={18} />
+                  <CircleDollarSign
+                    size={18}
+                  />
                   <span>Preço à vista</span>
                   <strong>
-                    {formatCurrency(product.sale_price)}
+                    {formatCurrency(
+                      product.sale_price,
+                    )}
                   </strong>
                 </div>
 
                 <div className="product-price-card">
-                  <CalendarDays size={18} />
+                  <CalendarDays
+                    size={18}
+                  />
                   <span>Preço a prazo</span>
                   <strong>
-                    {formatCurrency(product.installment_price)}
+                    {formatCurrency(
+                      product.installment_price,
+                    )}
                   </strong>
                 </div>
               </div>
@@ -398,7 +737,9 @@ export default async function ProductDetailsPage({
                 />
                 <DetailItem
                   label="Categoria de vendas"
-                  value={product.sales_category}
+                  value={
+                    product.sales_category
+                  }
                 />
                 <DetailItem
                   label="Duração"
@@ -411,7 +752,9 @@ export default async function ProductDetailsPage({
                 {flavorEnabled && (
                   <DetailItem
                     label="Sabores ativos"
-                    value={flavorRows.length}
+                    value={
+                      flavorRows.length
+                    }
                   />
                 )}
               </div>
@@ -428,7 +771,8 @@ export default async function ProductDetailsPage({
                 <div>
                   <h2>Características</h2>
                   <p>
-                    Argumentos e orientações para apresentar o produto.
+                    Argumentos e orientações
+                    para apresentar o produto.
                   </p>
                 </div>
                 <BadgeInfo size={19} />
@@ -437,7 +781,9 @@ export default async function ProductDetailsPage({
               <div className="panel-body product-copy-list">
                 <CopyItem
                   label="Descrição"
-                  value={product.description}
+                  value={
+                    product.description
+                  }
                 />
                 <CopyItem
                   label="Objetivo"
@@ -445,15 +791,21 @@ export default async function ProductDetailsPage({
                 />
                 <CopyItem
                   label="Perfil ideal"
-                  value={product.ideal_profile}
+                  value={
+                    product.ideal_profile
+                  }
                 />
                 <CopyItem
                   label="Informativo"
-                  value={product.information}
+                  value={
+                    product.information
+                  }
                 />
                 <CopyItem
                   label="Mensagem rápida"
-                  value={product.quick_message}
+                  value={
+                    product.quick_message
+                  }
                 />
               </div>
             </article>
@@ -465,7 +817,8 @@ export default async function ProductDetailsPage({
                 <div>
                   <h2>Palavras-chave</h2>
                   <p>
-                    Facilitam a consulta e o atendimento.
+                    Facilitam a consulta e o
+                    atendimento.
                   </p>
                 </div>
                 <Tags size={19} />
@@ -473,12 +826,18 @@ export default async function ProductDetailsPage({
 
               <div className="panel-body">
                 <div className="keyword-list">
-                  {product.keywords.split(",").map((keyword) => (
-                    <span key={keyword.trim()}>
-                      <CheckCircle2 size={14} />
-                      {keyword.trim()}
-                    </span>
-                  ))}
+                  {product.keywords
+                    .split(",")
+                    .map((keyword) => (
+                      <span
+                        key={keyword.trim()}
+                      >
+                        <CheckCircle2
+                          size={14}
+                        />
+                        {keyword.trim()}
+                      </span>
+                    ))}
                 </div>
               </div>
             </article>

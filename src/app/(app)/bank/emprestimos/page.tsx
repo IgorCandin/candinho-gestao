@@ -2,8 +2,6 @@ import Link from "next/link";
 import {
   CalendarClock,
   CheckCircle2,
-  HandCoins,
-  Handshake,
   History,
   Plus,
   Save,
@@ -24,69 +22,47 @@ import {
   payBankDebtInstallment,
   postponeBankDebtPayment,
 } from "./actions";
+import { correctBankDebtTotalPaid } from "./correction-actions";
 
 function todayInBrazil() {
-  return new Intl.DateTimeFormat(
-    "en-CA",
-    {
-      timeZone:
-        "America/Sao_Paulo",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    },
-  ).format(new Date());
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 }
 
-function debtTypeLabel(
-  value: unknown,
-) {
-  return String(
-    value ?? "loan",
-  ) === "note"
+function debtTypeLabel(value: unknown) {
+  return String(value ?? "loan") === "note"
     ? "Notinha"
     : "Empréstimo";
 }
 
-function debtStatusLabel(
-  value: unknown,
-) {
+function statusLabel(value: unknown) {
   const status = String(
     value ?? "active",
   );
 
-  if (status === "paid")
-    return "Quitado";
-  if (status === "paused")
-    return "Pausado";
-  if (status === "cancelled")
-    return "Cancelado";
-  if (status === "overdue")
-    return "Atrasado";
-
+  if (status === "paid") return "Quitado";
+  if (status === "paused") return "Pausado";
+  if (status === "cancelled") return "Cancelado";
+  if (status === "overdue") return "Atrasado";
   return "Ativo";
 }
 
-function debtStatusClass(
-  value: unknown,
-) {
+function statusClass(value: unknown) {
   const status = String(
     value ?? "active",
   );
 
-  if (status === "paid")
-    return "green";
-  if (status === "overdue")
-    return "red";
-  if (status === "paused")
-    return "orange";
-
+  if (status === "paid") return "green";
+  if (status === "overdue") return "red";
+  if (status === "paused") return "orange";
   return "gray";
 }
 
-function referenceMonth(
-  value: unknown,
-) {
+function referenceMonth(value: unknown) {
   const date =
     typeof value === "string"
       ? value
@@ -106,10 +82,10 @@ export default async function BankDebtsPage({
     pagar?: string;
     adiar?: string;
     ajustar?: string;
+    corrigir?: string;
   }>;
 }) {
-  const params =
-    await searchParams;
+  const params = await searchParams;
 
   const [debts, accounts] =
     await Promise.all([
@@ -126,7 +102,7 @@ export default async function BankDebtsPage({
           (debt) =>
             String(debt.id) ===
             params.pagar,
-        )
+        ) ?? null
       : null;
 
   const selectedPostponeDebt =
@@ -135,7 +111,7 @@ export default async function BankDebtsPage({
           (debt) =>
             String(debt.id) ===
             params.adiar,
-        )
+        ) ?? null
       : null;
 
   const selectedAdjustmentDebt =
@@ -144,10 +120,47 @@ export default async function BankDebtsPage({
           (debt) =>
             String(debt.id) ===
             params.ajustar,
-        )
+        ) ?? null
+      : null;
+
+  const selectedCorrectionDebt =
+    params.corrigir
+      ? debts.find(
+          (debt) =>
+            String(debt.id) ===
+            params.corrigir,
+        ) ?? null
       : null;
 
   const today = todayInBrazil();
+
+  const totalOriginal =
+    debts.reduce(
+      (sum, debt) =>
+        sum +
+        Number(
+          debt.original_amount ?? 0,
+        ),
+      0,
+    );
+
+  const totalPaid =
+    debts.reduce(
+      (sum, debt) =>
+        sum +
+        Number(debt.total_paid ?? 0),
+      0,
+    );
+
+  const totalRemaining =
+    debts.reduce(
+      (sum, debt) =>
+        sum +
+        Number(
+          debt.remaining_amount ?? 0,
+        ),
+      0,
+    );
 
   return (
     <section>
@@ -156,66 +169,94 @@ export default async function BankDebtsPage({
           <div className="eyebrow">
             Candinho Bank
           </div>
-
           <h1>
             Empréstimos e Notinhas
           </h1>
-
           <p>
             Acompanhe saldo restante,
-            pagamentos reais e pendências
-            mensais. O ajuste histórico é
-            uma ferramenta de conciliação
-            inicial, não uma rotina diária.
+            pagamentos, próximos vencimentos
+            e correções auditadas.
           </p>
         </div>
 
-        <div className="bank-header-actions">
-          <span className="bank-module-badge">
-            <Handshake size={16} />
-            {debts.length} registros
-          </span>
-
-          {!creating && (
-            <Link
-              className="button gold"
-              href="/bank/emprestimos?acao=nova"
-            >
-              <Plus size={16} />
-              Nova dívida
-            </Link>
-          )}
-        </div>
+        {!creating && (
+          <Link
+            className="button gold"
+            href="/bank/emprestimos?acao=nova"
+          >
+            <Plus size={16} />
+            Nova dívida
+          </Link>
+        )}
       </div>
 
       {params.salvo && (
         <div className="bank-success-banner">
-          <CheckCircle2
-            size={18}
-          />
-
+          <CheckCircle2 size={18} />
           <div>
             <strong>
               {params.salvo ===
-              "ajustada"
-                ? "Histórico conciliado com sucesso."
+              "corrigida"
+                ? "Histórico corrigido com auditoria."
                 : params.salvo ===
-                    "paga"
-                  ? "Pagamento registrado com sucesso."
+                    "ajustada"
+                  ? "Histórico conciliado com sucesso."
                   : params.salvo ===
-                      "adiada"
-                    ? "Pagamento adiado com sucesso."
-                    : "Dívida cadastrada com sucesso."}
+                      "paga"
+                    ? "Pagamento registrado com sucesso."
+                    : params.salvo ===
+                        "adiada"
+                      ? "Pagamento adiado com sucesso."
+                      : "Dívida cadastrada com sucesso."}
             </strong>
-
             <span>
-              O Dashboard e as
-              projeções já usam o novo
-              estado.
+              Dashboard e projeções já usam o
+              estado atual.
             </span>
           </div>
         </div>
       )}
+
+      <div className="grid stats-grid bank-stats-grid">
+        <article className="stat-card">
+          <div className="stat-head">
+            <span>Total contratado</span>
+          </div>
+          <div className="stat-value">
+            {formatCurrency(totalOriginal)}
+          </div>
+          <div className="stat-note">
+            Soma das dívidas cadastradas.
+          </div>
+        </article>
+
+        <article className="stat-card">
+          <div className="stat-head">
+            <span>Total pago</span>
+          </div>
+          <div className="stat-value">
+            {formatCurrency(totalPaid)}
+          </div>
+          <div className="stat-note">
+            Pagamentos confirmados e
+            conciliações.
+          </div>
+        </article>
+
+        <article className="stat-card">
+          <div className="stat-head">
+            <span>Saldo restante</span>
+          </div>
+          <div className="stat-value">
+            {formatCurrency(
+              totalRemaining,
+            )}
+          </div>
+          <div className="stat-note">
+            Valor ainda devido.
+          </div>
+        </article>
+      </div>
 
       {creating && (
         <article className="panel bank-debt-form-panel">
@@ -223,34 +264,27 @@ export default async function BankDebtsPage({
             <div>
               <h2>Nova dívida</h2>
               <p>
-                Use Empréstimo para
-                dívidas parceladas e
-                Notinha para valores
-                informais.
+                Use Empréstimo para dívidas
+                parceladas e Notinha para
+                valores informais.
               </p>
             </div>
-
             <Link
               className="icon-link"
               href="/bank/emprestimos"
-              aria-label="Fechar cadastro"
+              aria-label="Fechar"
             >
               <X size={17} />
             </Link>
           </div>
 
-          <form
-            action={createBankDebt}
-          >
+          <form action={createBankDebt}>
             <div className="bank-debt-form-grid">
               <label className="field bank-debt-form-wide">
-                <span>
-                  Nome da dívida
-                </span>
+                <span>Nome da dívida</span>
                 <input
                   className="input"
                   name="name"
-                  placeholder="Ex.: Empréstimo Ian"
                   required
                 />
               </label>
@@ -272,10 +306,7 @@ export default async function BankDebtsPage({
               </label>
 
               <label className="field">
-                <span>
-                  Credor / para quem
-                  devo
-                </span>
+                <span>Credor</span>
                 <input
                   className="input"
                   name="creditor_name"
@@ -283,54 +314,46 @@ export default async function BankDebtsPage({
               </label>
 
               <label className="field">
-                <span>
-                  Valor total
-                </span>
+                <span>Valor total</span>
                 <div className="bank-money-input">
                   <b>R$</b>
                   <input
                     className="input"
-                    inputMode="decimal"
                     name="original_amount"
+                    inputMode="decimal"
                     required
                   />
                 </div>
               </label>
 
               <label className="field">
-                <span>
-                  Parcela planejada
-                </span>
+                <span>Parcela planejada</span>
                 <div className="bank-money-input">
                   <b>R$</b>
                   <input
                     className="input"
-                    inputMode="decimal"
                     name="monthly_amount"
+                    inputMode="decimal"
                   />
                 </div>
               </label>
 
               <label className="field">
-                <span>
-                  Data inicial
-                </span>
+                <span>Data inicial</span>
                 <input
                   className="input"
-                  type="date"
                   name="start_date"
+                  type="date"
                   defaultValue={today}
                 />
               </label>
 
               <label className="field">
-                <span>
-                  Próximo vencimento
-                </span>
+                <span>Próximo vencimento</span>
                 <input
                   className="input"
-                  type="date"
                   name="next_due_date"
+                  type="date"
                 />
               </label>
 
@@ -343,9 +366,7 @@ export default async function BankDebtsPage({
               </label>
 
               <label className="field bank-debt-form-wide">
-                <span>
-                  Observações
-                </span>
+                <span>Observações</span>
                 <textarea
                   className="input bank-textarea"
                   name="notes"
@@ -360,7 +381,6 @@ export default async function BankDebtsPage({
               >
                 Cancelar
               </Link>
-
               <button
                 className="button gold"
                 type="submit"
@@ -377,17 +397,13 @@ export default async function BankDebtsPage({
         <article className="panel bank-debt-action-panel">
           <div className="panel-head">
             <div>
-              <h2>
-                Registrar pagamento
-              </h2>
-
+              <h2>Registrar pagamento</h2>
               <p>
-                O valor pago será
-                abatido do saldo
-                restante.
+                Pode informar um valor
+                diferente da parcela
+                planejada.
               </p>
             </div>
-
             <Link
               className="icon-link"
               href="/bank/emprestimos"
@@ -396,10 +412,41 @@ export default async function BankDebtsPage({
             </Link>
           </div>
 
+          <div className="bank-charge-payment-summary">
+            <div>
+              <span>Dívida</span>
+              <strong>
+                {String(
+                  selectedPaymentDebt.name,
+                )}
+              </strong>
+            </div>
+            <div>
+              <span>Saldo restante</span>
+              <strong>
+                {formatCurrency(
+                  Number(
+                    selectedPaymentDebt.remaining_amount ??
+                      0,
+                  ),
+                )}
+              </strong>
+            </div>
+            <div>
+              <span>Parcela planejada</span>
+              <strong>
+                {formatCurrency(
+                  Number(
+                    selectedPaymentDebt.monthly_amount ??
+                      0,
+                  ),
+                )}
+              </strong>
+            </div>
+          </div>
+
           <form
-            action={
-              payBankDebtInstallment
-            }
+            action={payBankDebtInstallment}
           >
             <input
               type="hidden"
@@ -409,46 +456,26 @@ export default async function BankDebtsPage({
               )}
             />
 
-            <div className="bank-debt-action-fields">
+            <div className="bank-debt-form-grid">
               <label className="field">
-                <span>
-                  Valor pago
-                </span>
+                <span>Valor pago</span>
                 <div className="bank-money-input">
                   <b>R$</b>
                   <input
                     className="input"
-                    inputMode="decimal"
                     name="amount"
-                    placeholder={
-                      Number(
-                        selectedPaymentDebt.monthly_amount ??
-                          0,
-                      ) > 0
-                        ? String(
-                            Number(
-                              selectedPaymentDebt.monthly_amount,
-                            ).toFixed(
-                              2,
-                            ),
-                          ).replace(
-                            ".",
-                            ",",
-                          )
-                        : "Vazio = quitar restante"
-                    }
+                    inputMode="decimal"
+                    placeholder="Vazio = parcela planejada"
                   />
                 </div>
               </label>
 
               <label className="field">
-                <span>
-                  Data do pagamento
-                </span>
+                <span>Data do pagamento</span>
                 <input
                   className="input"
-                  type="date"
                   name="paid_on"
+                  type="date"
                   defaultValue={today}
                   required
                 />
@@ -456,9 +483,8 @@ export default async function BankDebtsPage({
 
               <label className="field bank-debt-form-wide">
                 <span>
-                  Conta usada
+                  Conta usada no pagamento
                 </span>
-
                 <select
                   className="select"
                   name="payment_account_id"
@@ -467,7 +493,6 @@ export default async function BankDebtsPage({
                   <option value="">
                     Não informar
                   </option>
-
                   {accounts.map(
                     (account) => (
                       <option
@@ -481,13 +506,6 @@ export default async function BankDebtsPage({
                         {String(
                           account.name ??
                             "Conta",
-                        )}{" "}
-                        —{" "}
-                        {formatCurrency(
-                          Number(
-                            account.balance ??
-                              0,
-                          ),
                         )}
                       </option>
                     ),
@@ -496,9 +514,7 @@ export default async function BankDebtsPage({
               </label>
 
               <label className="field bank-debt-form-wide">
-                <span>
-                  Observação
-                </span>
+                <span>Observações</span>
                 <textarea
                   className="input bank-textarea"
                   name="notes"
@@ -513,39 +529,28 @@ export default async function BankDebtsPage({
               >
                 Cancelar
               </Link>
-
               <button
                 className="button gold"
                 type="submit"
               >
-                <WalletCards
-                  size={16}
-                />
-                Confirmar pagamento
+                <CheckCircle2 size={16} />
+                Registrar pagamento
               </button>
             </div>
           </form>
         </article>
       )}
 
-      {selectedAdjustmentDebt && (
-        <article className="panel">
+      {selectedPostponeDebt && (
+        <article className="panel bank-debt-action-panel">
           <div className="panel-head">
             <div>
-              <h2>
-                Ajustar histórico
-              </h2>
-
+              <h2>Adiar pagamento</h2>
               <p>
-                Use uma única vez para
-                informar quanto já havia
-                sido pago antes do
-                controle atual. Nenhum
-                valor é inventado pelo
-                sistema.
+                Move a próxima parcela para o
+                mês seguinte.
               </p>
             </div>
-
             <Link
               className="icon-link"
               href="/bank/emprestimos"
@@ -555,9 +560,64 @@ export default async function BankDebtsPage({
           </div>
 
           <form
-            action={
-              adjustBankDebtHistory
-            }
+            action={postponeBankDebtPayment}
+          >
+            <input
+              type="hidden"
+              name="debt_id"
+              value={String(
+                selectedPostponeDebt.id,
+              )}
+            />
+            <label className="field">
+              <span>Observação</span>
+              <textarea
+                className="input bank-textarea"
+                name="notes"
+                placeholder="Motivo do adiamento..."
+              />
+            </label>
+            <div className="bank-balance-update-actions">
+              <Link
+                className="button ghost"
+                href="/bank/emprestimos"
+              >
+                Cancelar
+              </Link>
+              <button
+                className="button gold"
+                type="submit"
+              >
+                <CalendarClock size={16} />
+                Confirmar adiamento
+              </button>
+            </div>
+          </form>
+        </article>
+      )}
+
+      {selectedAdjustmentDebt && (
+        <article className="panel bank-debt-action-panel">
+          <div className="panel-head">
+            <div>
+              <h2>Ajustar histórico</h2>
+              <p>
+                Conciliação normal: pode
+                aumentar o total pago, mas
+                nunca apaga pagamentos já
+                confirmados.
+              </p>
+            </div>
+            <Link
+              className="icon-link"
+              href="/bank/emprestimos"
+            >
+              <X size={17} />
+            </Link>
+          </div>
+
+          <form
+            action={adjustBankDebtHistory}
           >
             <input
               type="hidden"
@@ -567,12 +627,9 @@ export default async function BankDebtsPage({
               )}
             />
 
-            <div className="panel-body form-grid-two">
+            <div className="bank-debt-form-grid">
               <label className="field">
-                <span>
-                  Total já pago até hoje
-                </span>
-
+                <span>Total já pago</span>
                 <div className="bank-money-input">
                   <b>R$</b>
                   <input
@@ -584,117 +641,65 @@ export default async function BankDebtsPage({
                         0,
                     )
                       .toFixed(2)
-                      .replace(
-                        ".",
-                        ",",
-                      )}
+                      .replace(".", ",")}
                     required
                   />
                 </div>
-
-                <small>
-                  Valor original:{" "}
-                  {formatCurrency(
-                    Number(
-                      selectedAdjustmentDebt.original_amount ??
-                        0,
-                    ),
-                  )}
-                </small>
               </label>
 
               <label className="field">
-                <span>
-                  Forma de vencimento
-                </span>
-
+                <span>Modo de vencimento</span>
                 <select
                   className="select"
                   name="due_mode"
-                  defaultValue={String(
-                    selectedAdjustmentDebt.due_mode ??
-                      "fixed_day",
-                  )}
+                  defaultValue={
+                    String(
+                      selectedAdjustmentDebt.due_mode ??
+                        "fixed_day",
+                    ) === "month_only"
+                      ? "month_only"
+                      : "fixed_day"
+                  }
                 >
                   <option value="fixed_day">
-                    Tem uma data fixa
+                    Data fixa
                   </option>
-
                   <option value="month_only">
-                    Pendência do mês ·
-                    sem dia fixo
+                    Somente mês
                   </option>
                 </select>
               </label>
 
               <label className="field">
-                <span>
-                  Próxima data fixa
-                </span>
-
-                <input
-                  className="input"
-                  type="date"
-                  name="next_due_date"
-                  defaultValue={
-                    String(
-                      selectedAdjustmentDebt.due_mode ??
-                        "fixed_day",
-                    ) ===
-                    "fixed_day"
-                      ? String(
-                          selectedAdjustmentDebt.next_due_date ??
-                            "",
-                        )
-                      : ""
-                  }
-                />
-
-                <small>
-                  Preencha quando a
-                  dívida tiver dia
-                  específico.
-                </small>
-              </label>
-
-              <label className="field">
-                <span>
-                  Próximo mês de
-                  referência
-                </span>
-
+                <span>Próximo mês</span>
                 <input
                   className="input"
                   type="month"
                   name="next_reference_month"
-                  defaultValue={
-                    String(
-                      selectedAdjustmentDebt.due_mode ??
-                        "",
-                    ) ===
-                    "month_only"
-                      ? referenceMonth(
-                          selectedAdjustmentDebt.next_due_date,
-                        )
-                      : ""
-                  }
+                  defaultValue={referenceMonth(
+                    selectedAdjustmentDebt.next_due_date,
+                  )}
                 />
-
-                <small>
-                  Use quando o acerto
-                  pode acontecer em
-                  qualquer dia do mês.
-                </small>
               </label>
 
-              <label className="field field-span-two">
-                <span>
-                  Observação do acerto
-                </span>
+              <label className="field">
+                <span>Próxima data</span>
+                <input
+                  className="input"
+                  type="date"
+                  name="next_due_date"
+                  defaultValue={String(
+                    selectedAdjustmentDebt.next_due_date ??
+                      "",
+                  )}
+                />
+              </label>
+
+              <label className="field bank-debt-form-wide">
+                <span>Observações</span>
                 <textarea
                   className="input bank-textarea"
                   name="notes"
-                  placeholder="Ex.: Corrigindo as parcelas que já estavam pagas antes de começar a usar o Bank."
                 />
               </label>
             </div>
@@ -706,58 +711,156 @@ export default async function BankDebtsPage({
               >
                 Cancelar
               </Link>
-
+              <Link
+                className="button ghost"
+                href={`/bank/emprestimos?corrigir=${encodeURIComponent(
+                  String(
+                    selectedAdjustmentDebt.id,
+                  ),
+                )}`}
+              >
+                Correção auditada
+              </Link>
               <button
                 className="button gold"
                 type="submit"
               >
                 <History size={16} />
-                Salvar acerto
-                histórico
+                Salvar conciliação
               </button>
             </div>
           </form>
         </article>
       )}
 
-      {selectedPostponeDebt && (
-        <article className="panel bank-debt-action-panel">
+      {selectedCorrectionDebt && (
+        <article
+          className="panel bank-debt-action-panel"
+          style={{
+            borderColor:
+              "rgba(239,100,100,.35)",
+          }}
+        >
           <div className="panel-head">
             <div>
               <h2>
-                Adiar pagamento
+                Correção auditada do total
+                pago
               </h2>
               <p>
-                Move o próximo
-                vencimento em um mês
-                sem alterar o saldo.
+                Use somente para corrigir um
+                erro histórico. Aqui é
+                possível reduzir ou zerar o
+                valor pago, sempre com
+                justificativa.
               </p>
+            </div>
+            <Link
+              className="icon-link"
+              href="/bank/emprestimos"
+            >
+              <X size={17} />
+            </Link>
+          </div>
+
+          <div className="bank-charge-payment-summary">
+            <div>
+              <span>Dívida</span>
+              <strong>
+                {String(
+                  selectedCorrectionDebt.name,
+                )}
+              </strong>
+            </div>
+            <div>
+              <span>Total atual pago</span>
+              <strong>
+                {formatCurrency(
+                  Number(
+                    selectedCorrectionDebt.total_paid ??
+                      0,
+                  ),
+                )}
+              </strong>
+            </div>
+            <div>
+              <span>Saldo atual</span>
+              <strong>
+                {formatCurrency(
+                  Number(
+                    selectedCorrectionDebt.remaining_amount ??
+                      0,
+                  ),
+                )}
+              </strong>
             </div>
           </div>
 
           <form
             action={
-              postponeBankDebtPayment
+              correctBankDebtTotalPaid
             }
           >
             <input
               type="hidden"
               name="debt_id"
               value={String(
-                selectedPostponeDebt.id,
+                selectedCorrectionDebt.id,
               )}
             />
 
-            <div className="panel-body">
+            <div className="bank-debt-form-grid">
               <label className="field">
                 <span>
-                  Motivo /
-                  observação
+                  Total pago correto
+                </span>
+                <div className="bank-money-input">
+                  <b>R$</b>
+                  <input
+                    className="input"
+                    name="total_paid"
+                    inputMode="decimal"
+                    defaultValue={Number(
+                      selectedCorrectionDebt.total_paid ??
+                        0,
+                    )
+                      .toFixed(2)
+                      .replace(".", ",")}
+                    required
+                  />
+                </div>
+              </label>
+
+              <label className="field bank-debt-form-wide">
+                <span>
+                  Motivo da correção
                 </span>
                 <textarea
                   className="input bank-textarea"
-                  name="notes"
+                  name="reason"
+                  placeholder="Ex.: O pagamento de R$ 100 foi lançado por engano."
+                  required
                 />
+              </label>
+
+              <label className="bank-check-option bank-debt-form-wide">
+                <input
+                  type="checkbox"
+                  name="confirm_correction"
+                  value="yes"
+                  required
+                />
+                <span>
+                  <strong>
+                    Confirmo que é uma
+                    correção de histórico
+                  </strong>
+                  <small>
+                    A alteração será
+                    registrada na auditoria
+                    da dívida.
+                  </small>
+                </span>
               </label>
             </div>
 
@@ -768,264 +871,162 @@ export default async function BankDebtsPage({
               >
                 Cancelar
               </Link>
-
               <button
                 className="button gold"
                 type="submit"
               >
-                <CalendarClock
-                  size={16}
-                />
-                Adiar 1 mês
+                <History size={16} />
+                Corrigir histórico
               </button>
             </div>
           </form>
         </article>
       )}
 
-      <div className="bank-card-grid">
-        {debts.map((debt) => {
-          const status = String(
-            debt.effective_status ??
-              debt.status ??
-              "active",
-          );
+      <article
+        className="panel"
+        style={{ marginTop: 18 }}
+      >
+        <div className="panel-head">
+          <div>
+            <h2>Dívidas cadastradas</h2>
+            <p>
+              Abra uma ação para pagar,
+              adiar, conciliar ou corrigir.
+            </p>
+          </div>
+          <span className="bank-module-badge">
+            <WalletCards size={15} />
+            {debts.length}
+          </span>
+        </div>
 
-          const dueMode =
-            String(
-              debt.due_mode ??
-                "fixed_day",
-            );
+        <div className="panel-body">
+          {debts.length === 0 ? (
+            <div className="bank-empty-state">
+              Nenhuma dívida cadastrada.
+            </div>
+          ) : (
+            <div className="bank-income-list">
+              {debts.map((debt) => {
+                const effective =
+                  String(
+                    debt.effective_status ??
+                      debt.status ??
+                      "active",
+                  );
+                const open =
+                  ![
+                    "paid",
+                    "cancelled",
+                  ].includes(effective);
 
-          const canAct = ![
-            "paid",
-            "cancelled",
-          ].includes(status);
-
-          const hasDueDate =
-            Boolean(
-              debt.next_due_date,
-            );
-
-          return (
-            <article
-              className="panel bank-detail-card bank-debt-card"
-              key={String(debt.id)}
-            >
-              <div className="panel-body">
-                <div className="bank-detail-card-head">
-                  <div>
-                    <span>
-                      {debtTypeLabel(
-                        debt.debt_type,
-                      )}
-                    </span>
-
-                    <h2>
-                      {String(
-                        debt.name ??
-                          "Dívida",
-                      )}
-                    </h2>
-
-                    {Boolean(
-                      debt.creditor_name,
-                    ) && (
-                      <small>
-                        Credor:{" "}
-                        {String(
-                          debt.creditor_name,
-                        )}
-                      </small>
-                    )}
-                  </div>
-
-                  <span
-                    className={`badge ${debtStatusClass(
-                      status,
-                    )}`}
+                return (
+                  <div
+                    className="bank-income-list-item"
+                    key={String(debt.id)}
                   >
-                    {debtStatusLabel(
-                      status,
-                    )}
-                  </span>
-                </div>
+                    <div>
+                      <strong>
+                        {String(
+                          debt.name ??
+                            "Dívida",
+                        )}
+                      </strong>
+                      <span>
+                        {debtTypeLabel(
+                          debt.debt_type,
+                        )}{" "}
+                        ·{" "}
+                        {String(
+                          debt.creditor_name ??
+                            debt.origin ??
+                            "Sem credor",
+                        )}
+                      </span>
+                    </div>
 
-                <div className="bank-detail-values">
-                  <div>
-                    <span>
-                      Saldo restante
-                    </span>
-                    <strong>
-                      {formatCurrency(
-                        Number(
-                          debt.remaining_amount ??
-                            0,
-                        ),
-                      )}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>
-                      Parcela planejada
-                    </span>
-                    <strong>
-                      {formatCurrency(
-                        Number(
-                          debt.monthly_amount ??
-                            0,
-                        ),
-                      )}
-                    </strong>
-                  </div>
-
-                  <div>
-                    <span>
-                      Próximo pagamento
-                    </span>
-
-                    <strong>
-                      {dueMode ===
-                      "month_only"
-                        ? hasDueDate
-                          ? `Mês ${referenceMonth(
-                              debt.next_due_date,
-                            )
-                              .split(
-                                "-",
-                              )
-                              .reverse()
-                              .join(
-                                "/",
-                              )} · sem dia fixo`
-                          : "Sem referência"
-                        : hasDueDate
-                          ? formatDateOnly(
-                              String(
-                                debt.next_due_date,
-                              ),
-                            )
-                          : "—"}
-                    </strong>
-                  </div>
-                </div>
-
-                <div className="bank-debt-progress">
-                  <div>
-                    <span>Pago</span>
-                    <strong>
-                      {formatCurrency(
-                        Number(
-                          debt.total_paid ??
-                            0,
-                        ),
-                      )}{" "}
-                      de{" "}
-                      {formatCurrency(
-                        Number(
-                          debt.original_amount ??
-                            0,
-                        ),
-                      )}
-                    </strong>
-                  </div>
-
-                  <div className="bank-debt-progress-track">
-                    <i
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          Math.max(
-                            0,
-                            Number(
-                              debt.original_amount ??
-                                0,
-                            ) > 0
-                              ? (Number(
-                                  debt.total_paid ??
-                                    0,
-                                ) /
-                                  Number(
-                                    debt.original_amount ??
-                                      1,
-                                  )) *
-                                100
-                              : 0,
+                    <div>
+                      <strong>
+                        {formatCurrency(
+                          Number(
+                            debt.remaining_amount ??
+                              0,
                           ),
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
+                        )}
+                      </strong>
+                      <span>
+                        Pago:{" "}
+                        {formatCurrency(
+                          Number(
+                            debt.total_paid ??
+                              0,
+                          ),
+                        )}
+                      </span>
+                    </div>
 
-                <div className="bank-debt-card-actions">
-                  {canAct && (
-                    <Link
-                      className="button gold"
-                      href={`/bank/emprestimos?pagar=${encodeURIComponent(
-                        String(
-                          debt.id,
-                        ),
+                    <span
+                      className={`badge ${statusClass(
+                        effective,
                       )}`}
                     >
-                      <HandCoins
-                        size={15}
-                      />
-                      Paguei
-                    </Link>
-                  )}
+                      {statusLabel(
+                        effective,
+                      )}
+                    </span>
 
-                  <Link
-                    className="button ghost"
-                    href={`/bank/emprestimos?ajustar=${encodeURIComponent(
-                      String(debt.id),
-                    )}`}
-                  >
-                    <History
-                      size={15}
-                    />
-                    Ajustar histórico
-                  </Link>
+                    <div className="bank-header-actions">
+                      {open && (
+                        <>
+                          <Link
+                            className="button ghost compact-button"
+                            href={`/bank/emprestimos?pagar=${encodeURIComponent(
+                              String(
+                                debt.id,
+                              ),
+                            )}`}
+                          >
+                            Pagar
+                          </Link>
+                          <Link
+                            className="button ghost compact-button"
+                            href={`/bank/emprestimos?adiar=${encodeURIComponent(
+                              String(
+                                debt.id,
+                              ),
+                            )}`}
+                          >
+                            Adiar
+                          </Link>
+                        </>
+                      )}
 
-                  {canAct &&
-                    hasDueDate &&
-                    dueMode ===
-                      "fixed_day" && (
                       <Link
-                        className="button ghost"
-                        href={`/bank/emprestimos?adiar=${encodeURIComponent(
-                          String(
-                            debt.id,
-                          ),
+                        className="button ghost compact-button"
+                        href={`/bank/emprestimos?ajustar=${encodeURIComponent(
+                          String(debt.id),
                         )}`}
                       >
-                        <CalendarClock
-                          size={15}
-                        />
-                        Adiar pagamento
+                        Ajustar
                       </Link>
-                    )}
-                </div>
-              </div>
-            </article>
-          );
-        })}
 
-        {debts.length === 0 && (
-          <article className="panel">
-            <div className="empty">
-              <strong>
-                Nenhum empréstimo ou
-                notinha cadastrado
-              </strong>
-              Use Nova dívida para
-              cadastrar o primeiro
-              registro.
+                      <Link
+                        className="button ghost compact-button"
+                        href={`/bank/emprestimos?corrigir=${encodeURIComponent(
+                          String(debt.id),
+                        )}`}
+                      >
+                        Corrigir
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </article>
-        )}
-      </div>
+          )}
+        </div>
+      </article>
     </section>
   );
 }

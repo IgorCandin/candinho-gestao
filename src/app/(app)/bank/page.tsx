@@ -7,44 +7,37 @@ import {
   CheckCircle2,
   ChevronRight,
   CircleDollarSign,
-  CreditCard,
+  HandCoins,
   Landmark,
-  RefreshCcw,
+  PencilLine,
   ReceiptText,
+  RefreshCcw,
   TrendingUp,
   Wallet,
 } from "lucide-react";
 import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
-import { getBankDashboardData } from "@/lib/bank-data";
 import {
-  getBankMonthHomeData,
+  getBankDashboardData,
+  getBankDebts,
+} from "@/lib/bank-data";
+import {
   type BankMonthCommitment,
 } from "@/lib/bank-home-data";
+import { getBankMonthHomeDataV2 } from "@/lib/bank-home-data-v2";
 import {
   formatCurrency,
   formatDateOnly,
 } from "@/lib/format";
 import { markBankCommitmentAsPaid } from "./actions";
+import { adjustBankMonthCommitment } from "./commitment-actions";
 
 function commitmentTone(
   item: BankMonthCommitment,
   today: string,
 ) {
-  if (item.dueMode === "month_only") {
-    return "blue";
-  }
-
-  if (
-    item.dueDate &&
-    item.dueDate < today
-  ) {
-    return "red";
-  }
-
-  if (item.dueDate === today) {
-    return "gold";
-  }
-
+  if (item.dueMode === "month_only") return "blue";
+  if (item.dueDate && item.dueDate < today) return "red";
+  if (item.dueDate === today) return "gold";
   return "gray";
 }
 
@@ -52,21 +45,9 @@ function commitmentLabel(
   item: BankMonthCommitment,
   today: string,
 ) {
-  if (item.dueMode === "month_only") {
-    return "Sem dia fixo";
-  }
-
-  if (
-    item.dueDate &&
-    item.dueDate < today
-  ) {
-    return "Atrasado";
-  }
-
-  if (item.dueDate === today) {
-    return "Vence hoje";
-  }
-
+  if (item.dueMode === "month_only") return "Sem dia fixo";
+  if (item.dueDate && item.dueDate < today) return "Atrasado";
+  if (item.dueDate === today) return "Vence hoje";
   return item.dueDate
     ? formatDateOnly(item.dueDate)
     : "Sem data";
@@ -75,25 +56,22 @@ function commitmentLabel(
 function kindLabel(
   kind: BankMonthCommitment["kind"],
 ) {
-  if (kind === "invoice")
-    return "Fatura";
-  if (kind === "subscription")
-    return "Mensalidade";
-  if (kind === "debt")
-    return "Parcela";
+  if (kind === "invoice") return "Fatura";
+  if (kind === "subscription") return "Mensalidade";
+  if (kind === "debt") return "Parcela";
   return "Cobrança";
 }
 
 function CommitmentList({
   rows,
   today,
-  emptyMessage,
   referenceMonth,
+  emptyMessage,
 }: {
   rows: BankMonthCommitment[];
   today: string;
-  emptyMessage: string;
   referenceMonth: string;
+  emptyMessage: string;
 }) {
   if (rows.length === 0) {
     return (
@@ -112,8 +90,7 @@ function CommitmentList({
         >
           <div className="bank-charge-date">
             <strong>
-              {item.dueMode ===
-              "month_only"
+              {item.dueMode === "month_only"
                 ? "Mês"
                 : item.dueDate
                   ? formatDateOnly(
@@ -121,7 +98,6 @@ function CommitmentList({
                     ).slice(0, 5)
                   : "—"}
             </strong>
-
             <span>
               {item.origin ?? "Geral"}
             </span>
@@ -136,11 +112,8 @@ function CommitmentList({
 
           <div className="bank-charge-value">
             <strong>
-              {formatCurrency(
-                item.amount,
-              )}
+              {formatCurrency(item.amount)}
             </strong>
-
             <span
               className={`badge ${commitmentTone(
                 item,
@@ -154,43 +127,35 @@ function CommitmentList({
             </span>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent:
-                "flex-end",
-              gap: 8,
-              flexWrap: "wrap",
-            }}
-          >
+          <div className="bank-header-actions">
+            <Link
+              className="button ghost compact-button"
+              href={`/bank?compromisso=${encodeURIComponent(
+                item.id,
+              )}`}
+            >
+              <PencilLine size={14} />
+              Detalhes
+            </Link>
+
             <form
-              action={
-                markBankCommitmentAsPaid
-              }
+              action={markBankCommitmentAsPaid}
             >
               <input
                 type="hidden"
                 name="commitment_key"
                 value={item.id}
               />
-
               <input
                 type="hidden"
                 name="reference_month"
-                value={
-                  referenceMonth
-                }
+                value={referenceMonth}
               />
-
               <button
                 className="button ghost compact-button"
                 type="submit"
-                title="Registra este compromisso como pago no fluxo correto do Bank."
               >
-                <CheckCircle2
-                  size={14}
-                />
+                <CheckCircle2 size={14} />
                 Paguei
               </button>
             </form>
@@ -200,9 +165,7 @@ function CommitmentList({
               href={item.href}
               aria-label={`Abrir ${item.title}`}
             >
-              <ChevronRight
-                size={16}
-              />
+              <ChevronRight size={16} />
             </Link>
           </div>
         </div>
@@ -211,12 +174,52 @@ function CommitmentList({
   );
 }
 
-export default async function BankDashboardPage() {
-  const [data, month] =
+export default async function BankDashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    compromisso?: string;
+    salvo?: string;
+  }>;
+}) {
+  const params = await searchParams;
+
+  const [data, month, debts] =
     await Promise.all([
       getBankDashboardData(),
-      getBankMonthHomeData(),
+      getBankMonthHomeDataV2(),
+      getBankDebts(),
     ]);
+
+  const openDebts = debts.filter(
+    (debt) =>
+      !["paid", "cancelled"].includes(
+        String(
+          debt.effective_status ??
+            debt.status ??
+            "active",
+        ),
+      ),
+  );
+
+  const totalDebtRemaining =
+    openDebts.reduce(
+      (sum, debt) =>
+        sum +
+        Number(
+          debt.remaining_amount ?? 0,
+        ),
+      0,
+    );
+
+  const selectedCommitment =
+    params.compromisso
+      ? month.commitments.find(
+          (item) =>
+            item.id ===
+            params.compromisso,
+        ) ?? null
+      : null;
 
   const expectedIncome =
     month.receivableThisMonthTotal;
@@ -228,9 +231,7 @@ export default async function BankDashboardPage() {
     month.overdueTotal;
 
   const monthName =
-    month.monthLabel
-      .charAt(0)
-      .toUpperCase() +
+    month.monthLabel.charAt(0).toUpperCase() +
     month.monthLabel.slice(1);
 
   const nextProjection =
@@ -243,57 +244,72 @@ export default async function BankDashboardPage() {
   const nextIncome =
     nextProjection?.totalExpectedIncome ??
     0;
-
   const nextExpenses =
     nextProjection?.totalCommitments ??
     0;
-
   const nextDifference =
     nextIncome - nextExpenses;
 
-  const nextMonthName =
-    nextProjection?.referenceMonth
-      ? new Intl.DateTimeFormat(
-          "pt-BR",
-          {
-            timeZone:
-              "America/Sao_Paulo",
-            month: "long",
-            year: "numeric",
-          },
-        ).format(
-          new Date(
-            `${nextProjection.referenceMonth}T12:00:00-03:00`,
-          ),
+  const attentionCount =
+    month.overdue.length +
+    month.dueToday.length +
+    month.monthPending.length +
+    openDebts.length;
+
+  const heroTitle =
+    month.dueToday.length > 0
+      ? formatCurrency(
+          month.dueTodayTotal,
         )
-      : "próximo mês";
+      : month.overdue.length > 0
+        ? `${formatCurrency(
+            month.overdueTotal,
+          )} atrasado`
+        : attentionCount > 0
+          ? "Há pendências abertas"
+          : "Nada pendente hoje";
+
+  const heroDescription =
+    month.dueToday.length > 0
+      ? `${month.dueToday.length} compromisso(s) vencem hoje`
+      : month.overdue.length > 0
+        ? `${month.overdue.length} compromisso(s) precisam de atenção imediata`
+        : attentionCount > 0
+          ? `${month.monthPending.length} compromisso(s) sem dia fixo e ${openDebts.length} dívida(s) aberta(s)`
+          : "Nenhum vencimento ou pendência aberta para hoje.";
 
   return (
     <section className="bank-dashboard">
       <div className="operation-home-toolbar bank-home-toolbar">
         <span>
-          {monthName} · cada mês é
-          uma pequena vitória
+          {monthName} · cada mês é uma
+          pequena vitória
         </span>
 
-        <div className="bank-header-actions">
-          <Link
-            className="button ghost"
-            href="/bank/atualizar"
-          >
-            <RefreshCcw size={16} />
-            Atualização rápida
-          </Link>
-
-          <Link
-            className="button gold"
-            href="/bank/faturas?acao=atualizar"
-          >
-            <CreditCard size={16} />
-            Atualizar faturas
-          </Link>
-        </div>
+        <Link
+          className="button gold"
+          href="/bank/atualizar"
+        >
+          <RefreshCcw size={16} />
+          Atualizar saldos
+        </Link>
       </div>
+
+      {params.salvo && (
+        <div className="bank-success-banner">
+          <CheckCircle2 size={18} />
+          <div>
+            <strong>
+              Compromisso atualizado com
+              sucesso.
+            </strong>
+            <span>
+              Os totais deste mês já foram
+              recalculados.
+            </span>
+          </div>
+        </div>
+      )}
 
       <div
         className="bank-balance-hero"
@@ -308,43 +324,13 @@ export default async function BankDashboardPage() {
         <div>
           <span className="bank-balance-kicker">
             O que precisa de atenção
-            hoje
           </span>
-
-          <strong>
-            {month.dueToday.length > 0
-              ? formatCurrency(
-                  month.dueTodayTotal,
-                )
-              : "Nada vence hoje"}
-          </strong>
-
-          <small>
-            {month.dueToday.length >
-            0
-              ? `${month.dueToday.length} compromisso(s) com vencimento hoje`
-              : month.monthPending
-                    .length > 0
-                ? `${month.monthPending.length} pendência(s) do mês continuam abertas, mas sem dia fixo`
-                : `Próximo foco: ${
-                    month.upcoming[0]
-                      ? `${formatDateOnly(
-                          month
-                            .upcoming[0]
-                            .dueDate!,
-                        )} · ${
-                          month
-                            .upcoming[0]
-                            .title
-                        }`
-                      : "nenhum vencimento restante neste mês"
-                  }`}
-          </small>
+          <strong>{heroTitle}</strong>
+          <small>{heroDescription}</small>
         </div>
 
-        {month.dueToday.length >
-        0 ? (
-          <ReceiptText size={42} />
+        {attentionCount > 0 ? (
+          <AlertTriangle size={42} />
         ) : (
           <CheckCircle2 size={42} />
         )}
@@ -353,82 +339,63 @@ export default async function BankDashboardPage() {
       <div className="grid stats-grid bank-stats-grid">
         <article className="stat-card">
           <div className="stat-head">
-            <span>
-              Saldo disponível
-            </span>
+            <span>Saldo disponível</span>
             <span className="stat-icon">
               <Landmark size={17} />
             </span>
           </div>
-
           <div className="stat-value">
             {formatCurrency(
               data.summary.totalBalance,
             )}
           </div>
-
           <div className="stat-note">
-            {data.summary
-              .latestBalanceDate
+            {data.summary.latestBalanceDate
               ? `Atualizado em ${formatDateOnly(
                   data.summary
                     .latestBalanceDate,
                 )}`
-              : "Atualize suas contas para refletir o saldo real."}
+              : "Atualize seus saldos reais."}
           </div>
         </article>
 
         <article className="stat-card">
           <div className="stat-head">
             <span>
-              A pagar até o fim do
-              mês
+              A pagar até o fim do mês
             </span>
             <span className="stat-icon">
-              <ReceiptText
-                size={17}
-              />
+              <ReceiptText size={17} />
             </span>
           </div>
-
           <div className="stat-value">
             {formatCurrency(
               month.remainingMonthTotal,
             )}
           </div>
-
           <div className="stat-note">
             {month.upcoming.length +
               month.dueToday.length +
-              month.monthPending
-                .length}{" "}
-            compromisso(s) ainda
-            abertos em {monthName}.
+              month.monthPending.length}{" "}
+            compromisso(s) abertos.
           </div>
         </article>
 
         <article className="stat-card">
           <div className="stat-head">
-            <span>
-              A receber neste mês
-            </span>
+            <span>A receber neste mês</span>
             <span className="stat-icon">
-              <TrendingUp
-                size={17}
-              />
+              <TrendingUp size={17} />
             </span>
           </div>
-
           <div className="stat-value">
             {formatCurrency(
               expectedIncome,
             )}
           </div>
-
           <div className="stat-note">
-            Somente valores reais em
-            aberto com vencimento neste
-            mês.
+            Valores reais ainda a receber
+            neste mês.
           </div>
         </article>
 
@@ -441,8 +408,7 @@ export default async function BankDashboardPage() {
         >
           <div className="stat-head">
             <span>
-              Projeção até o fim do
-              mês
+              Projeção até o fim do mês
             </span>
             <span className="stat-icon">
               <CircleDollarSign
@@ -450,23 +416,136 @@ export default async function BankDashboardPage() {
               />
             </span>
           </div>
-
           <div className="stat-value">
             {formatCurrency(
               projectedEndOfMonth,
             )}
           </div>
-
           <div className="stat-note">
-            Saldo atual + valores a
-            receber − compromissos ainda
+            Saldo + entradas − compromissos
             abertos.
           </div>
         </article>
       </div>
 
-      {month.overdue.length >
-        0 && (
+      {selectedCommitment && (
+        <article
+          className="panel bank-income-form-panel"
+          style={{ marginTop: 18 }}
+        >
+          <div className="panel-head">
+            <div>
+              <h2>
+                Detalhes da pendência
+              </h2>
+              <p>
+                Ajuste somente o valor deste
+                mês. O valor padrão dos meses
+                futuros continua igual.
+              </p>
+            </div>
+            <Link
+              className="button ghost compact-button"
+              href="/bank"
+            >
+              Fechar
+            </Link>
+          </div>
+
+          <div className="bank-charge-payment-summary">
+            <div>
+              <span>Compromisso</span>
+              <strong>
+                {selectedCommitment.title}
+              </strong>
+            </div>
+            <div>
+              <span>Tipo</span>
+              <strong>
+                {kindLabel(
+                  selectedCommitment.kind,
+                )}
+              </strong>
+            </div>
+            <div>
+              <span>Valor atual no mês</span>
+              <strong>
+                {formatCurrency(
+                  selectedCommitment.amount,
+                )}
+              </strong>
+            </div>
+          </div>
+
+          <form
+            action={
+              adjustBankMonthCommitment
+            }
+          >
+            <input
+              type="hidden"
+              name="commitment_key"
+              value={selectedCommitment.id}
+            />
+            <input
+              type="hidden"
+              name="reference_month"
+              value={month.referenceMonth}
+            />
+
+            <div className="bank-income-form-grid">
+              <label className="field">
+                <span>
+                  Valor correto deste mês
+                </span>
+                <div className="bank-money-input">
+                  <b>R$</b>
+                  <input
+                    className="input"
+                    name="amount"
+                    inputMode="decimal"
+                    defaultValue={Number(
+                      selectedCommitment.amount,
+                    )
+                      .toFixed(2)
+                      .replace(".", ",")}
+                    required
+                  />
+                </div>
+              </label>
+
+              <label className="field bank-income-form-wide">
+                <span>
+                  Motivo ou observação
+                </span>
+                <textarea
+                  className="input bank-textarea"
+                  name="notes"
+                  placeholder="Ex.: Neste mês foram somente duas sessões."
+                />
+              </label>
+            </div>
+
+            <div className="bank-balance-update-actions">
+              <Link
+                className="button ghost"
+                href="/bank"
+              >
+                Cancelar
+              </Link>
+              <button
+                className="button gold"
+                type="submit"
+              >
+                <PencilLine size={16} />
+                Salvar valor deste mês
+              </button>
+            </div>
+          </form>
+        </article>
+      )}
+
+      {month.overdue.length > 0 && (
         <article
           className="panel"
           style={{
@@ -477,23 +556,16 @@ export default async function BankDashboardPage() {
         >
           <div className="panel-head">
             <div>
-              <h2>
-                Atrasados deste mês
-              </h2>
+              <h2>Atrasados</h2>
               <p>
                 {formatCurrency(
                   month.overdueTotal,
                 )}{" "}
-                ainda aparece como
-                pendente.
+                ainda aparece como pendente.
               </p>
             </div>
-
-            <AlertTriangle
-              size={20}
-            />
+            <AlertTriangle size={20} />
           </div>
-
           <div
             className="panel-body"
             style={{ padding: 0 }}
@@ -504,14 +576,13 @@ export default async function BankDashboardPage() {
               referenceMonth={
                 month.referenceMonth
               }
-              emptyMessage="Nenhum atraso neste mês."
+              emptyMessage="Nenhum atraso."
             />
           </div>
         </article>
       )}
 
-      {month.monthPending.length >
-        0 && (
+      {month.monthPending.length > 0 && (
         <article
           className="panel"
           style={{ marginTop: 18 }}
@@ -519,27 +590,20 @@ export default async function BankDashboardPage() {
           <div className="panel-head">
             <div>
               <h2>
-                Pendências do mês · sem
-                data fixa
+                Pendências do mês · sem dia
+                fixo
               </h2>
               <p>
-                Compromissos que precisam
-                ser acertados em{" "}
-                {monthName}, mas não
-                possuem um dia específico.
-                Eles nunca viram
-                “atrasados” só porque o mês
-                começou.
+                Abra os detalhes para ajustar
+                somente o valor deste mês.
               </p>
             </div>
-
             <span className="badge blue">
               {formatCurrency(
                 month.monthPendingTotal,
               )}
             </span>
           </div>
-
           <div
             className="panel-body"
             style={{ padding: 0 }}
@@ -550,7 +614,7 @@ export default async function BankDashboardPage() {
               referenceMonth={
                 month.referenceMonth
               }
-              emptyMessage="Nenhuma pendência mensal sem data fixa."
+              emptyMessage="Nenhuma pendência sem dia fixo."
             />
           </div>
         </article>
@@ -566,20 +630,15 @@ export default async function BankDashboardPage() {
               Vencimentos de {monthName}
             </h2>
             <p>
-              Apenas compromissos com data
-              fixa. O que já foi pago sai
-              da fila.
+              Compromissos com data fixa.
             </p>
           </div>
-
           <span className="badge gold">
             {formatCurrency(
               month.monthCommitmentTotal,
-            )}{" "}
-            no mês
+            )}
           </span>
         </div>
-
         <div
           className="panel-body"
           style={{ padding: 0 }}
@@ -593,7 +652,7 @@ export default async function BankDashboardPage() {
             referenceMonth={
               month.referenceMonth
             }
-            emptyMessage="Nenhum compromisso com data fixa pendente até o fim deste mês."
+            emptyMessage="Nenhum compromisso com data fixa pendente."
           />
         </div>
       </article>
@@ -605,17 +664,115 @@ export default async function BankDashboardPage() {
         <div className="panel-head">
           <div>
             <h2>
-              Projeção do mês que vem
+              Empréstimos e Notinhas
             </h2>
             <p>
-              {nextMonthName
-                .charAt(0)
-                .toUpperCase() +
-                nextMonthName.slice(1)}{" "}
-              · previsão, não saldo real.
+              Saldo total ainda devido e
+              próximos pagamentos.
             </p>
           </div>
+          <span className="badge orange">
+            {openDebts.length} aberta(s) ·{" "}
+            {formatCurrency(
+              totalDebtRemaining,
+            )}
+          </span>
+        </div>
 
+        <div className="panel-body">
+          {openDebts.length === 0 ? (
+            <div className="bank-empty-state">
+              Nenhuma dívida aberta.
+            </div>
+          ) : (
+            <div className="bank-income-list">
+              {openDebts
+                .slice(0, 5)
+                .map((debt) => (
+                  <div
+                    className="bank-income-list-item"
+                    key={String(debt.id)}
+                  >
+                    <div>
+                      <strong>
+                        {String(
+                          debt.name ??
+                            "Dívida",
+                        )}
+                      </strong>
+                      <span>
+                        {String(
+                          debt.creditor_name ??
+                            debt.origin ??
+                            "Sem credor informado",
+                        )}
+                      </span>
+                    </div>
+
+                    <div>
+                      <strong>
+                        {formatCurrency(
+                          Number(
+                            debt.remaining_amount ??
+                              0,
+                          ),
+                        )}
+                      </strong>
+                      <span>
+                        {debt.next_due_date
+                          ? formatDateOnly(
+                              String(
+                                debt.next_due_date,
+                              ),
+                            )
+                          : "Sem próxima data"}
+                      </span>
+                    </div>
+
+                    <span className="badge orange">
+                      {String(
+                        debt.debt_type,
+                      ) === "note"
+                        ? "Notinha"
+                        : "Empréstimo"}
+                    </span>
+
+                    <Link
+                      className="button ghost bank-income-action"
+                      href={`/bank/emprestimos?ajustar=${encodeURIComponent(
+                        String(debt.id),
+                      )}`}
+                    >
+                      Abrir
+                    </Link>
+                  </div>
+                ))}
+            </div>
+          )}
+        </div>
+
+        <div className="panel-body">
+          <Link
+            className="button ghost"
+            href="/bank/emprestimos"
+          >
+            <HandCoins size={16} />
+            Ver todas as dívidas
+          </Link>
+        </div>
+      </article>
+
+      <article
+        className="panel"
+        style={{ marginTop: 18 }}
+      >
+        <div className="panel-head">
+          <div>
+            <h2>Projeção do próximo mês</h2>
+            <p>
+              Previsão, não saldo real.
+            </p>
+          </div>
           <CalendarDays size={20} />
         </div>
 
@@ -628,71 +785,41 @@ export default async function BankDashboardPage() {
               gap: 12,
             }}
           >
-            <div
-              className="stat-card"
-              style={{
-                minHeight: 118,
-              }}
-            >
+            <div className="stat-card">
               <div className="stat-head">
-                <span>
-                  Entrada prevista
-                </span>
+                <span>Entrada prevista</span>
                 <span className="stat-icon">
                   <ArrowUpRight
                     size={17}
                   />
                 </span>
               </div>
-
               <div
                 className="stat-value"
-                style={{
-                  fontSize: 24,
-                }}
+                style={{ fontSize: 24 }}
               >
                 {formatCurrency(
                   nextIncome,
                 )}
               </div>
-
-              <div className="stat-note">
-                Receitas e valores
-                projetados.
-              </div>
             </div>
 
-            <div
-              className="stat-card"
-              style={{
-                minHeight: 118,
-              }}
-            >
+            <div className="stat-card">
               <div className="stat-head">
-                <span>
-                  Saída prevista
-                </span>
+                <span>Saída prevista</span>
                 <span className="stat-icon">
                   <ArrowDownRight
                     size={17}
                   />
                 </span>
               </div>
-
               <div
                 className="stat-value"
-                style={{
-                  fontSize: 24,
-                }}
+                style={{ fontSize: 24 }}
               >
                 {formatCurrency(
                   nextExpenses,
                 )}
-              </div>
-
-              <div className="stat-note">
-                Faturas, mensalidades,
-                dívidas e compromissos.
               </div>
             </div>
 
@@ -702,9 +829,6 @@ export default async function BankDashboardPage() {
                   ? "negative"
                   : "positive"
               }`}
-              style={{
-                minHeight: 118,
-              }}
             >
               <div className="stat-head">
                 <span>
@@ -716,21 +840,13 @@ export default async function BankDashboardPage() {
                   />
                 </span>
               </div>
-
               <div
                 className="stat-value"
-                style={{
-                  fontSize: 24,
-                }}
+                style={{ fontSize: 24 }}
               >
                 {formatCurrency(
                   nextDifference,
                 )}
-              </div>
-
-              <div className="stat-note">
-                Entrada prevista − saída
-                prevista.
               </div>
             </div>
           </div>
@@ -747,55 +863,30 @@ export default async function BankDashboardPage() {
           className="bank-quick-card"
         >
           <RefreshCcw size={20} />
-
           <div>
-            <strong>
-              Atualização rápida
-            </strong>
+            <strong>Atualizar saldos</strong>
             <span>
-              Atualize saldos e somente as
-              faturas ainda abertas.
+              Informe o saldo real das contas
+              e carteiras.
             </span>
           </div>
-
           <ChevronRight size={17} />
         </Link>
 
         <Link
-          href="/bank/cobrancas?acao=nova"
-          className="bank-quick-card"
-        >
-          <ReceiptText size={20} />
-
-          <div>
-            <strong>
-              Nova cobrança
-            </strong>
-            <span>
-              Cadastre uma conta avulsa
-              com vencimento específico.
-            </span>
-          </div>
-
-          <ChevronRight size={17} />
-        </Link>
-
-        <Link
-          href="/bank/entradas?acao=nova-receber"
+          href="/bank/entradas"
           className="bank-quick-card"
         >
           <TrendingUp size={20} />
-
           <div>
             <strong>
-              Nova entrada
+              Entradas e recebimentos
             </strong>
             <span>
-              Registre um valor previsto ou
-              uma conta a receber.
+              Confirme o que já entrou neste
+              mês.
             </span>
           </div>
-
           <ChevronRight size={17} />
         </Link>
 
@@ -804,38 +895,13 @@ export default async function BankDashboardPage() {
           className="bank-quick-card"
         >
           <Wallet size={20} />
-
           <div>
-            <strong>
-              Fechar o mês
-            </strong>
+            <strong>Fechar o mês</strong>
             <span>
-              Guarda uma fotografia do
-              patrimônio e resultado do
-              mês.
+              Guarde a fotografia financeira
+              do mês.
             </span>
           </div>
-
-          <ChevronRight size={17} />
-        </Link>
-
-        <Link
-          href="/bank/visao-anual"
-          className="bank-quick-card"
-        >
-          <CalendarDays size={20} />
-
-          <div>
-            <strong>
-              Visão detalhada
-            </strong>
-            <span>
-              Abra a análise anual quando
-              quiser enxergar o quadro
-              completo.
-            </span>
-          </div>
-
           <ChevronRight size={17} />
         </Link>
       </div>
