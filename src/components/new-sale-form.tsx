@@ -745,7 +745,7 @@ export function NewSaleForm({
           p_agreed_markup_amount: agreedMarkupValue,
         });
 
-      if (quoteError) throw quoteError;
+      if (quoteError) throw new Error(quoteError.message);
 
       const saved = Array.isArray(quoteData)
         ? quoteData[0]
@@ -775,7 +775,7 @@ export function NewSaleForm({
           },
         );
 
-        if (confirmError) throw confirmError;
+        if (confirmError) throw new Error(confirmError.message);
 
         saleId = String(confirmedSaleId ?? "");
 
