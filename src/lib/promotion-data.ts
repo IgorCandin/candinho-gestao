@@ -72,6 +72,8 @@ export type PromotionProductOption = {
   id: string;
   label: string;
   meta: string;
+  category: string;
+  imageUrl: string | null;
   currentPrice: number;
   availableQuantity: number;
 };
@@ -163,6 +165,7 @@ export async function getPromotionDetail(id: string) {
     promotionResult,
     itemsResult,
     supplementProductsResult,
+    supplementStockResult,
     fitnessVariantsResult,
   ] = await Promise.all([
     supabase
@@ -178,13 +181,16 @@ export async function getPromotionDetail(id: string) {
       .order("item_label"),
     supabase
       .from("products")
-      .select("id,name,category,sales_category,sale_price,active")
+      .select("id,name,category,sales_category,sale_price,active,image_url,thumbnail_url")
       .eq("active", true)
       .order("name"),
     supabase
+      .from("stock_balances")
+      .select("product_id,quantity"),
+    supabase
       .from("fitness_stock_overview")
       .select(
-        "variant_id,product_name,category,size,color,sale_price,available_quantity,product_active,variant_active",
+        "variant_id,product_name,category,size,color,sale_price,available_quantity,image_url,product_active,variant_active",
       )
       .eq("product_active", true)
       .eq("variant_active", true)
@@ -204,6 +210,12 @@ export async function getPromotionDetail(id: string) {
   if (supplementProductsResult.error) {
     throw new Error(
       `Falha ao carregar produtos de Suplementos: ${supplementProductsResult.error.message}`,
+    );
+  }
+
+  if (supplementStockResult.error) {
+    throw new Error(
+      `Falha ao carregar estoque de Suplementos: ${supplementStockResult.error.message}`,
     );
   }
 
@@ -238,6 +250,16 @@ export async function getPromotionDetail(id: string) {
     }),
   );
 
+  const stockByProduct = new Map<string, number>();
+
+  for (const row of supplementStockResult.data ?? []) {
+    const productId = String(row.product_id);
+    stockByProduct.set(
+      productId,
+      (stockByProduct.get(productId) ?? 0) + numberValue(row.quantity),
+    );
+  }
+
   const supplementOptions: PromotionProductOption[] = (
     supplementProductsResult.data ?? []
   )
@@ -247,11 +269,15 @@ export async function getPromotionDetail(id: string) {
     .map((row) => ({
       id: String(row.id),
       label: String(row.name),
-      meta: `${String(row.category ?? "Sem categoria")} · curva ${String(
-        row.sales_category ?? "—",
-      )}`,
+      category: String(row.category ?? "Sem categoria"),
+      meta: `Curva ${String(row.sales_category ?? "—")}`,
+      imageUrl: row.thumbnail_url
+        ? String(row.thumbnail_url)
+        : row.image_url
+          ? String(row.image_url)
+          : null,
       currentPrice: numberValue(row.sale_price),
-      availableQuantity: 0,
+      availableQuantity: stockByProduct.get(String(row.id)) ?? 0,
     }));
 
   const fitnessOptions: PromotionProductOption[] = (
@@ -259,7 +285,9 @@ export async function getPromotionDetail(id: string) {
   ).map((row) => ({
     id: String(row.variant_id),
     label: [row.product_name, row.size, row.color].filter(Boolean).join(" · "),
-    meta: String(row.category ?? "Fitness"),
+    category: String(row.category ?? "Fitness"),
+    meta: [row.size, row.color].filter(Boolean).join(" · ") || "Fitness",
+    imageUrl: row.image_url ? String(row.image_url) : null,
     currentPrice: numberValue(row.sale_price),
     availableQuantity: numberValue(row.available_quantity),
   }));

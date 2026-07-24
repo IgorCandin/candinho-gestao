@@ -1,4 +1,60 @@
 import Link from "next/link";
-import { ArrowLeft, Dumbbell, ExternalLink, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import {
+  PhysiqueTrainingPlanBrowser,
+  type PhysiqueTrainingPlanBrowserItem,
+} from "@/components/physique-training-plan-browser";
+import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { getPhysiqueTrainingPlans } from "@/lib/physique-data";
-export default async function PhysiqueTrainingPlansPage(){const plans=await getPhysiqueTrainingPlans();return <section className="physique-page"><header className="physique-subpage-header"><Link href="/physique"><ArrowLeft size={16}/> Physique</Link><div><span>Treinos</span><h1>Fichas de treino</h1><p>Fichas estruturadas manualmente ou importadas de PDF pelo Nexus.</p></div><Link className="physique-action-button secondary" href="/physique/fichas/nova"><Plus size={15}/> Importar PDF</Link></header>{plans.length===0?<div className="physique-empty"><Dumbbell size={28}/><strong>Nenhuma ficha cadastrada</strong><p>Importe a primeira ficha em PDF e revise a estrutura antes de salvar.</p></div>:<div className="physique-plan-list">{plans.map((plan)=><Link href={`/physique/fichas/${plan.id}`} key={plan.id}><div><small>{plan.status} · {plan.source_type}</small><strong>{plan.title}</strong><span>{plan.athlete_name} · {plan.goal??"Sem objetivo descrito"}</span></div><ExternalLink size={15}/></Link>)}</div>}</section>;}
+
+function planCounts(payload: Record<string, unknown>) {
+  const days = Array.isArray(payload.days) ? payload.days : [];
+  const exerciseCount = days.reduce((sum, day) => {
+    if (!day || typeof day !== "object") return sum;
+    const exercises = (day as Record<string, unknown>).exercises;
+    return sum + (Array.isArray(exercises) ? exercises.length : 0);
+  }, 0);
+
+  return { daysCount: days.length, exerciseCount };
+}
+
+export default async function PhysiqueTrainingPlansPage() {
+  const plans = await getPhysiqueTrainingPlans();
+
+  const browserPlans: PhysiqueTrainingPlanBrowserItem[] = plans.map((plan) => {
+    const counts = planCounts(plan.ai_payload);
+
+    return {
+      id: plan.id,
+      title: plan.title,
+      athleteName: plan.athlete_name ?? "Atleta",
+      goal: plan.goal ?? "Sem objetivo descrito",
+      status: plan.status,
+      sourceType: plan.source_type,
+      daysCount: counts.daysCount,
+      exerciseCount: counts.exerciseCount,
+      updatedAt: plan.updated_at || plan.created_at,
+    };
+  });
+
+  return (
+    <section className="physique-page physique-ux-page">
+      <PhysiqueSectionNav active="training" />
+
+      <header className="physique-ux-page-header">
+        <div>
+          <span>TREINOS</span>
+          <h1>Fichas de treino</h1>
+          <p>Consulte fichas ativas, histórico e estruturas importadas pelo Nexus.</p>
+        </div>
+
+        <Link className="physique-action-button secondary" href="/physique/fichas/nova">
+          <Plus size={15} />
+          Importar ficha
+        </Link>
+      </header>
+
+      <PhysiqueTrainingPlanBrowser plans={browserPlans} />
+    </section>
+  );
+}

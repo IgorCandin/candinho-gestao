@@ -5,7 +5,8 @@ import {
   ArrowLeft,
   BadgePercent,
   CalendarDays,
-  PackageOpen,
+  ImageIcon,
+  Tag,
 } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
@@ -29,20 +30,17 @@ export default async function PromotionShowcaseDetailPage({
 
   const { id } = await params;
   const item = await getPromotionShowcaseItem(id);
+
   if (!item) notFound();
 
   const company = BRAND_ASSETS.company.complete;
-  const hasDiscount =
-    item.promotional_price < item.current_price;
+  const hasDiscount = item.promotional_price < item.current_price;
+  const economy = Math.max(item.current_price - item.promotional_price, 0);
 
   return (
-    <div className="promotion-showcase-detail-page">
-      <header className="promotion-showcase-detail-header">
-        <Link href="/promocoes">
-          <ArrowLeft size={18} />
-          Voltar às promoções
-        </Link>
-
+    <div className="promotion-ux-showcase-page">
+      <header className="promotion-ux-detail-topbar">
+        <Link href="/promocoes"><ArrowLeft size={16} /> Promoções</Link>
         <Image
           src={company.src}
           alt={company.alt}
@@ -52,80 +50,61 @@ export default async function PromotionShowcaseDetailPage({
         />
       </header>
 
-      <main className="promotion-showcase-detail">
-        <div className="promotion-showcase-detail-image">
+      <main className="promotion-ux-detail">
+        <div className="promotion-ux-detail-image">
           {item.image_url ? (
-            <img
-              src={item.image_url}
-              alt={item.item_label}
-              referrerPolicy="no-referrer"
-            />
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.image_url} alt={item.item_label} />
           ) : (
-            <PackageOpen size={62} />
+            <ImageIcon size={56} />
           )}
+
+          {hasDiscount && item.discount_pct > 0 && <span>-{item.discount_pct}%</span>}
         </div>
 
-        <article className="promotion-showcase-detail-copy">
-          <span className="promotion-showcase-detail-operation">
-            {item.operation_scope === "supplements"
-              ? "Candinho Suplementos"
-              : "Candinho Fitness"}
+        <article className="promotion-ux-detail-copy">
+          <span className="promotion-ux-detail-operation">
+            {item.operation_scope === "supplements" ? "Candinho Suplementos" : "Candinho Fitness"}
           </span>
 
           <h1>{item.item_label}</h1>
+          {item.category && <p>{item.category}</p>}
 
-          {item.category && (
-            <p>{item.category}</p>
-          )}
-
-          <div className="promotion-showcase-detail-price">
-            {hasDiscount && (
-              <span>
-                {formatCurrency(item.current_price)}
-              </span>
-            )}
-            <strong>
-              {formatCurrency(item.promotional_price)}
-            </strong>
+          <div className="promotion-ux-detail-price">
+            {hasDiscount && <s>{formatCurrency(item.current_price)}</s>}
+            <strong>{formatCurrency(item.promotional_price)}</strong>
+            {economy > 0 && <em>Você economiza {formatCurrency(economy)}</em>}
           </div>
 
-          <div className="promotion-showcase-detail-campaign">
-            <BadgePercent size={18} />
+          <div className="promotion-ux-detail-info-grid">
             <div>
-              <small>Campanha</small>
-              <strong>{item.promotion_name}</strong>
+              <BadgePercent size={18} />
+              <span>Campanha<strong>{item.promotion_name}</strong></span>
             </div>
+
+            {(item.starts_on || item.ends_on) && (
+              <div>
+                <CalendarDays size={18} />
+                <span>
+                  Período
+                  <strong>
+                    {item.starts_on ? formatDateOnly(item.starts_on) : "Agora"}
+                    {" → "}
+                    {item.ends_on ? formatDateOnly(item.ends_on) : "Sem data final"}
+                  </strong>
+                </span>
+              </div>
+            )}
+
+            {item.coupon_code && (
+              <div>
+                <Tag size={18} />
+                <span>Cupom<strong>{item.coupon_code}</strong></span>
+              </div>
+            )}
           </div>
 
-          {(item.starts_on || item.ends_on) && (
-            <div className="promotion-showcase-detail-campaign">
-              <CalendarDays size={18} />
-              <div>
-                <small>Período</small>
-                <strong>
-                  {item.starts_on
-                    ? formatDateOnly(item.starts_on)
-                    : "Agora"}
-                  {" → "}
-                  {item.ends_on
-                    ? formatDateOnly(item.ends_on)
-                    : "Sem data final"}
-                </strong>
-              </div>
-            </div>
-          )}
-
-          {item.coupon_code && (
-            <div className="promotion-showcase-coupon">
-              Cupom: <strong>{item.coupon_code}</strong>
-            </div>
-          )}
-
-          {item.notes && (
-            <div className="promotion-showcase-notes">
-              {item.notes}
-            </div>
-          )}
+          {item.notes && <div className="promotion-ux-detail-notes">{item.notes}</div>}
         </article>
       </main>
     </div>

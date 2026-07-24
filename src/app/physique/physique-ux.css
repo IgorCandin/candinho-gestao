@@ -1,0 +1,374 @@
+/* Physique UX 2.0 · telas internas. A Home original permanece intacta. */
+
+.physique-ux-page { gap: 18px; }
+
+.physique-ux-nav {
+  min-height: 62px; padding: 10px 12px 10px 16px;
+  border: 1px solid rgba(255,255,255,.08); border-radius: 18px;
+  background: rgba(8,14,23,.76); backdrop-filter: blur(18px);
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  position: sticky; top: 12px; z-index: 20;
+  box-shadow: 0 18px 48px rgba(0,0,0,.22);
+}
+.physique-ux-nav-brand { display:flex; align-items:baseline; gap:5px; letter-spacing:.13em; }
+.physique-ux-nav-brand span { color:#dcc46c; font-size:10px; font-weight:900; }
+.physique-ux-nav-brand strong { color:#8fe9cd; font-size:11px; }
+.physique-ux-nav-links { display:flex; gap:6px; flex-wrap:wrap; }
+.physique-ux-nav-links a {
+  min-height:38px; padding:0 13px; border-radius:10px; color:rgba(232,239,247,.68);
+  display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:800;
+}
+.physique-ux-nav-links a:hover, .physique-ux-nav-links a.active {
+  color:#b6f3df; background:rgba(87,216,184,.09);
+}
+
+.physique-ux-page-header,
+.physique-ux-athlete-hero,
+.physique-ux-training-hero {
+  padding:26px 28px; border:1px solid rgba(255,255,255,.08); border-radius:22px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(87,216,184,.07), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(214,193,93,.06), transparent 32%),
+    rgba(255,255,255,.014);
+  display:flex; align-items:flex-end; justify-content:space-between; gap:20px;
+}
+.physique-ux-page-header > div:first-child,
+.physique-ux-training-hero > div:first-child { min-width:0; }
+.physique-ux-page-header > div > span,
+.physique-ux-athlete-hero > div > span,
+.physique-ux-training-hero > div > span,
+.physique-ux-import-stage header > div > span,
+.physique-ux-save-strip > div > span {
+  color:#dcc46c; font-size:9px; font-weight:900; letter-spacing:.14em;
+}
+.physique-ux-page-header h1,
+.physique-ux-athlete-hero h1,
+.physique-ux-training-hero h1 { margin:5px 0 7px; font-size:clamp(30px,4vw,46px); line-height:1; }
+.physique-ux-page-header p,
+.physique-ux-athlete-hero p,
+.physique-ux-training-hero p {
+  margin:0; max-width:720px; color:rgba(232,239,247,.68); font-size:12px; line-height:1.6;
+}
+.physique-ux-back {
+  width:fit-content; margin-bottom:14px; color:rgba(232,239,247,.62);
+  display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:800;
+}
+.physique-ux-header-icon {
+  width:52px; height:52px; border:1px solid rgba(87,216,184,.2); border-radius:16px;
+  color:#8fe9cd; background:rgba(87,216,184,.06); display:grid; place-items:center;
+}
+
+.physique-ux-athlete-grid, .physique-ux-plan-grid {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px;
+}
+.physique-ux-athlete-card, .physique-ux-plan-card {
+  min-width:0; padding:18px; border:1px solid rgba(255,255,255,.08); border-radius:18px;
+  color:inherit; background:rgba(255,255,255,.015);
+  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+}
+.physique-ux-athlete-card:hover, .physique-ux-plan-card:hover {
+  transform:translateY(-2px); border-color:rgba(87,216,184,.24); background:rgba(87,216,184,.035);
+}
+.physique-ux-athlete-card-top, .physique-ux-plan-card-top {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.physique-ux-status {
+  width:fit-content; padding:5px 8px; border-radius:999px;
+  color:rgba(232,239,247,.65); background:rgba(255,255,255,.05);
+  font-size:8px; font-weight:900; text-transform:uppercase;
+}
+.physique-ux-status.active { color:#9ff1d8; background:rgba(87,216,184,.09); }
+.physique-ux-athlete-avatar {
+  width:48px; height:48px; margin:20px 0 14px; border:1px solid rgba(87,216,184,.18);
+  border-radius:15px; color:#8fe9cd; background:rgba(87,216,184,.06);
+  display:grid; place-items:center;
+}
+.physique-ux-athlete-avatar.large { width:62px; height:62px; margin:0; border-radius:18px; }
+.physique-ux-athlete-card > strong, .physique-ux-plan-card > strong { display:block; font-size:16px; }
+.physique-ux-athlete-card > p, .physique-ux-plan-card > p {
+  min-height:36px; margin:5px 0 0; color:rgba(232,239,247,.64); font-size:11px; line-height:1.5;
+}
+.physique-ux-athlete-numbers, .physique-ux-plan-kpis {
+  margin-top:16px; padding-top:13px; border-top:1px solid rgba(255,255,255,.07);
+  color:rgba(232,239,247,.62); display:flex; justify-content:space-between; gap:10px; font-size:9px;
+}
+.physique-ux-athlete-numbers span, .physique-ux-plan-kpis span { display:flex; align-items:center; gap:5px; }
+.physique-ux-plan-card > small { display:block; margin-top:18px; color:#dcc46c; font-size:9px; font-weight:850; }
+.physique-ux-plan-card footer {
+  margin-top:14px; color:rgba(232,239,247,.48); display:flex; justify-content:space-between; gap:10px; font-size:8px;
+}
+
+.physique-ux-browser { display:grid; gap:14px; }
+.physique-ux-browser-toolbar {
+  padding:10px; border:1px solid rgba(255,255,255,.08); border-radius:16px;
+  background:rgba(255,255,255,.014); display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.physique-ux-search {
+  min-width:0; flex:1; padding:0 12px; border:1px solid rgba(255,255,255,.08); border-radius:11px;
+  background:rgba(0,0,0,.18); display:flex; align-items:center; gap:8px;
+}
+.physique-ux-search input {
+  min-width:0; width:100%; height:40px; border:0; outline:0; color:#eef4fb; background:transparent;
+}
+.physique-ux-segmented { display:flex; gap:4px; }
+.physique-ux-segmented button {
+  min-height:38px; padding:0 12px; border:0; border-radius:9px; color:rgba(232,239,247,.58);
+  background:transparent; font-size:10px; font-weight:850; cursor:pointer;
+}
+.physique-ux-segmented button.active { color:#9ff1d8; background:rgba(87,216,184,.09); }
+
+.physique-ux-athlete-identity { display:flex; align-items:center; gap:15px; }
+.physique-ux-athlete-identity > div:last-child > span {
+  color:#dcc46c; font-size:9px; font-weight:900; text-transform:uppercase;
+}
+.physique-ux-athlete-kpis, .physique-ux-training-hero-kpis {
+  display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px;
+}
+.physique-ux-athlete-kpis article, .physique-ux-training-hero-kpis article {
+  padding:14px 16px; border:1px solid rgba(255,255,255,.07); border-radius:14px; background:rgba(255,255,255,.014);
+}
+.physique-ux-athlete-kpis strong, .physique-ux-athlete-kpis span,
+.physique-ux-training-hero-kpis strong, .physique-ux-training-hero-kpis span { display:block; }
+.physique-ux-athlete-kpis strong, .physique-ux-training-hero-kpis strong { font-size:18px; }
+.physique-ux-athlete-kpis span, .physique-ux-training-hero-kpis span {
+  margin-top:4px; color:rgba(232,239,247,.55); font-size:9px;
+}
+.physique-ux-athlete-tabs {
+  padding:7px; border:1px solid rgba(255,255,255,.08); border-radius:15px;
+  background:rgba(255,255,255,.014); display:flex; gap:5px; overflow-x:auto;
+}
+.physique-ux-athlete-tabs a {
+  min-height:38px; padding:0 13px; border-radius:9px; color:rgba(232,239,247,.6);
+  display:inline-flex; align-items:center; white-space:nowrap; font-size:10px; font-weight:850;
+}
+.physique-ux-athlete-tabs a.active { color:#9ff1d8; background:rgba(87,216,184,.09); }
+.physique-ux-tab-content { display:grid; gap:14px; }
+
+.physique-ux-profile-card dl, .physique-ux-training-meta dl { margin:14px 0 0; display:grid; gap:9px; }
+.physique-ux-profile-card dl > div, .physique-ux-training-meta dl > div {
+  padding:10px 0; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; justify-content:space-between; gap:16px;
+}
+.physique-ux-profile-card dt, .physique-ux-training-meta dt { color:rgba(232,239,247,.5); font-size:10px; }
+.physique-ux-profile-card dd, .physique-ux-training-meta dd {
+  margin:0; font-size:10px; font-weight:800; text-align:right;
+}
+
+.physique-ux-overview-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; }
+.physique-ux-overview-grid > a {
+  min-width:0; padding:17px; border:1px solid rgba(255,255,255,.08); border-radius:16px;
+  color:inherit; background:rgba(255,255,255,.014); display:flex; align-items:flex-start; gap:12px;
+}
+.physique-ux-overview-grid > a > svg { flex:0 0 auto; color:#8fe9cd; }
+.physique-ux-overview-grid span, .physique-ux-overview-grid strong, .physique-ux-overview-grid p { display:block; }
+.physique-ux-overview-grid span { color:#dcc46c; font-size:8px; font-weight:900; text-transform:uppercase; }
+.physique-ux-overview-grid strong { margin-top:4px; font-size:12px; }
+.physique-ux-overview-grid p { margin-top:5px; font-size:9px; }
+.physique-ux-feature-panel { overflow:hidden; }
+
+.physique-ux-photo-grid { margin-top:16px; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.physique-ux-photo-grid a {
+  position:relative; aspect-ratio:4/5; border-radius:14px; overflow:hidden; background:rgba(255,255,255,.03);
+}
+.physique-ux-photo-grid img { width:100%; height:100%; object-fit:cover; }
+.physique-ux-photo-grid span {
+  position:absolute; left:9px; bottom:9px; padding:5px 8px; border-radius:999px;
+  color:white; background:rgba(0,0,0,.65); font-size:9px; font-weight:800;
+}
+
+.physique-ux-training-hero { align-items:center; }
+.physique-ux-training-hero p { display:flex; align-items:center; gap:7px; }
+.physique-ux-training-hero p a { color:#9ff1d8; display:inline-flex; align-items:center; gap:5px; }
+.physique-ux-training-hero-kpis { grid-template-columns:repeat(3,minmax(100px,1fr)); }
+.physique-ux-training-panel { padding-bottom:14px; }
+
+.physique-ux-training-view { margin-top:16px; display:grid; gap:14px; }
+.physique-ux-day-tabs {
+  padding:6px; border:1px solid rgba(255,255,255,.07); border-radius:14px;
+  background:rgba(0,0,0,.15); display:flex; gap:5px; overflow-x:auto;
+}
+.physique-ux-day-tabs button {
+  min-width:120px; padding:10px 13px; border:0; border-radius:10px;
+  color:rgba(232,239,247,.58); background:transparent; text-align:left; cursor:pointer;
+}
+.physique-ux-day-tabs button small, .physique-ux-day-tabs button strong { display:block; }
+.physique-ux-day-tabs button small { font-size:8px; opacity:.72; }
+.physique-ux-day-tabs button strong { margin-top:3px; font-size:11px; }
+.physique-ux-day-tabs button.active { color:#b6f3df; background:rgba(87,216,184,.1); }
+
+.physique-ux-selected-day {
+  padding:18px; border:1px solid rgba(255,255,255,.07); border-radius:16px; background:rgba(255,255,255,.012);
+}
+.physique-ux-selected-day > header {
+  padding-bottom:15px; border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex; align-items:flex-start; justify-content:space-between; gap:14px;
+}
+.physique-ux-selected-day > header span { color:#dcc46c; font-size:8px; font-weight:900; text-transform:uppercase; }
+.physique-ux-selected-day > header h2 { margin:4px 0 5px; font-size:22px; }
+.physique-ux-selected-day > header p { margin:0; }
+.physique-ux-selected-day > header > b {
+  padding:7px 10px; border-radius:999px; color:#9ff1d8; background:rgba(87,216,184,.08);
+  font-size:9px; white-space:nowrap;
+}
+
+.physique-ux-exercise-grid { margin-top:13px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.physique-ux-exercise-card {
+  min-width:0; padding:13px; border:1px solid rgba(255,255,255,.06); border-radius:13px;
+  background:rgba(0,0,0,.14); display:flex; align-items:flex-start; gap:11px;
+}
+.physique-ux-exercise-number {
+  width:28px; height:28px; flex:0 0 auto; border-radius:9px; color:#9ff1d8;
+  background:rgba(87,216,184,.08); display:grid; place-items:center; font-size:10px; font-weight:900;
+}
+.physique-ux-exercise-copy { min-width:0; }
+.physique-ux-exercise-copy > strong { font-size:12px; }
+.physique-ux-exercise-meta {
+  margin-top:5px; color:rgba(232,239,247,.58); display:flex; gap:9px; flex-wrap:wrap; font-size:9px;
+}
+.physique-ux-exercise-meta span { display:inline-flex; align-items:center; gap:4px; }
+.physique-ux-exercise-notes { margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,.05); }
+.physique-ux-exercise-notes p { margin:3px 0; font-size:9px; line-height:1.45; }
+
+.physique-ux-training-meta { display:grid; grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr); gap:12px; }
+.physique-ux-notice {
+  padding:14px 16px; border-radius:14px; display:flex; align-items:flex-start; gap:10px;
+}
+.physique-ux-notice strong, .physique-ux-notice span { display:block; }
+.physique-ux-notice span { margin-top:3px; font-size:10px; opacity:.78; }
+.physique-ux-notice.success {
+  border:1px solid rgba(87,216,184,.18); color:#b6f3df; background:rgba(87,216,184,.06);
+}
+.physique-ux-notice.warning {
+  border:1px solid rgba(214,193,93,.2); color:#ead989; background:rgba(214,193,93,.06);
+}
+
+.physique-ux-import-flow { display:grid; gap:14px; }
+.physique-ux-stepper {
+  padding:12px 16px; border:1px solid rgba(255,255,255,.08); border-radius:15px;
+  background:rgba(255,255,255,.012); display:flex; align-items:center; gap:10px;
+}
+.physique-ux-stepper > div {
+  display:flex; align-items:center; gap:8px; color:rgba(232,239,247,.42); font-size:9px; font-weight:800;
+}
+.physique-ux-stepper b {
+  width:25px; height:25px; border-radius:999px; background:rgba(255,255,255,.05); display:grid; place-items:center;
+}
+.physique-ux-stepper > div.active { color:#9ff1d8; }
+.physique-ux-stepper > div.active b { background:rgba(87,216,184,.11); }
+.physique-ux-stepper i { height:1px; flex:1; background:rgba(255,255,255,.08); }
+
+.physique-ux-import-stage {
+  padding:22px; border:1px solid rgba(255,255,255,.08); border-radius:18px;
+  background:rgba(255,255,255,.014); display:grid; gap:16px;
+}
+.physique-ux-import-stage.highlight { border-color:rgba(87,216,184,.15); }
+.physique-ux-import-stage > header { display:flex; align-items:flex-start; gap:12px; }
+.physique-ux-import-stage > header > div:nth-child(2) { min-width:0; flex:1; }
+.physique-ux-import-stage h2 { margin:3px 0 5px; font-size:18px; }
+.physique-ux-import-stage p { margin:0; }
+
+.physique-ux-stage-icon {
+  width:40px; height:40px; flex:0 0 auto; border-radius:12px;
+  color:#dcc46c; background:rgba(214,193,93,.08); display:grid; place-items:center;
+}
+.physique-ux-stage-icon.success { color:#8fe9cd; background:rgba(87,216,184,.08); }
+
+.physique-ux-file-selected {
+  padding:12px 13px; border:1px solid rgba(87,216,184,.13); border-radius:12px;
+  color:#8fe9cd; background:rgba(87,216,184,.035); display:flex; align-items:center; gap:10px;
+}
+.physique-ux-file-selected strong, .physique-ux-file-selected span { display:block; }
+.physique-ux-file-selected strong { color:#eef4fb; font-size:10px; }
+.physique-ux-file-selected span { margin-top:2px; font-size:8px; }
+
+.physique-ux-import-summary-kpis { margin-left:auto; display:flex; gap:7px; }
+.physique-ux-import-summary-kpis b {
+  min-width:70px; padding:8px 10px; border-radius:11px; background:rgba(87,216,184,.06);
+  color:#9ff1d8; text-align:center; font-size:16px;
+}
+.physique-ux-import-summary-kpis small {
+  display:block; margin-top:2px; color:rgba(232,239,247,.52); font-size:7px;
+}
+
+.physique-ux-import-days { display:grid; gap:7px; }
+.physique-ux-import-days details {
+  border:1px solid rgba(255,255,255,.07); border-radius:13px; overflow:hidden; background:rgba(0,0,0,.12);
+}
+.physique-ux-import-days summary {
+  padding:12px 14px; display:grid; grid-template-columns:1fr auto auto; align-items:center; gap:12px;
+  cursor:pointer; list-style:none;
+}
+.physique-ux-import-days summary::-webkit-details-marker { display:none; }
+.physique-ux-import-days summary small, .physique-ux-import-days summary strong, .physique-ux-import-days summary span { display:block; }
+.physique-ux-import-days summary small { color:#dcc46c; font-size:7px; font-weight:900; }
+.physique-ux-import-days summary strong { margin-top:2px; font-size:11px; }
+.physique-ux-import-days summary span { margin-top:2px; color:rgba(232,239,247,.55); font-size:8px; }
+.physique-ux-import-days summary > b { color:#9ff1d8; font-size:9px; }
+.physique-ux-import-days details > div {
+  padding:4px 12px 12px; border-top:1px solid rgba(255,255,255,.05);
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px;
+}
+.physique-ux-import-days article {
+  padding:9px; border-radius:9px; background:rgba(255,255,255,.018); display:flex; gap:8px;
+}
+.physique-ux-import-days article > b { color:#8fe9cd; font-size:9px; }
+.physique-ux-import-days article strong, .physique-ux-import-days article span { display:block; }
+.physique-ux-import-days article strong { font-size:9px; }
+.physique-ux-import-days article span { margin-top:2px; color:rgba(232,239,247,.5); font-size:8px; }
+
+.physique-ux-save-strip {
+  padding:14px; border:1px solid rgba(87,216,184,.14); border-radius:13px; background:rgba(87,216,184,.035);
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+}
+.physique-ux-save-strip strong { display:block; margin-top:2px; font-size:12px; }
+.physique-ux-save-strip p { margin-top:3px; font-size:9px; }
+.physique-ux-form-panel { max-width:900px; }
+
+.physique-import-hub { display:grid; gap:14px; }
+.physique-import-result {
+  padding:14px; border:1px solid rgba(87,216,184,.14); border-radius:13px;
+  background:rgba(87,216,184,.035); display:grid; gap:5px;
+}
+.physique-import-result strong { color:#9ff1d8; font-size:11px; }
+.physique-import-result span, .physique-import-result small {
+  color:rgba(232,239,247,.65); font-size:9px; line-height:1.5;
+}
+.physique-import-context-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.physique-import-history { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
+.physique-import-history article {
+  padding:11px; border:1px solid rgba(255,255,255,.06); border-radius:11px; background:rgba(255,255,255,.012);
+}
+.physique-import-history strong, .physique-import-history small { display:block; }
+.physique-import-history strong { font-size:10px; }
+.physique-import-history small { margin-top:3px; color:rgba(232,239,247,.52); font-size:8px; line-height:1.45; }
+
+.physique-form-grid.two, .physique-form-grid.three { display:grid; gap:10px; }
+.physique-form-grid.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.physique-form-grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.physique-form-grid .field > span { display:flex; align-items:center; gap:5px; }
+
+@media (max-width:980px) {
+  .physique-ux-athlete-grid, .physique-ux-plan-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .physique-ux-overview-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .physique-ux-exercise-grid { grid-template-columns:1fr; }
+  .physique-ux-training-meta { grid-template-columns:1fr; }
+}
+@media (max-width:720px) {
+  .physique-ux-nav, .physique-ux-page-header, .physique-ux-athlete-hero,
+  .physique-ux-training-hero, .physique-ux-save-strip {
+    align-items:stretch; flex-direction:column;
+  }
+  .physique-ux-nav { position:static; }
+  .physique-ux-nav-links { width:100%; }
+  .physique-ux-nav-links a { flex:1; justify-content:center; }
+  .physique-ux-athlete-grid, .physique-ux-plan-grid, .physique-ux-athlete-kpis,
+  .physique-ux-overview-grid, .physique-ux-photo-grid, .physique-form-grid.two,
+  .physique-form-grid.three, .physique-import-context-grid, .physique-import-history,
+  .physique-ux-import-days details > div { grid-template-columns:1fr; }
+  .physique-ux-browser-toolbar { align-items:stretch; flex-direction:column; }
+  .physique-ux-segmented button { flex:1; }
+  .physique-ux-training-hero-kpis { grid-template-columns:repeat(3,1fr); }
+  .physique-ux-import-stage > header { flex-wrap:wrap; }
+  .physique-ux-import-summary-kpis { width:100%; margin-left:0; }
+  .physique-ux-import-summary-kpis b { flex:1; }
+}
