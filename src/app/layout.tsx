@@ -4,10 +4,12 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import "./ux-homologation.css";
 import "./refino-navegacao-vitrine.css";
+import "./bank-ux-refino.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
-  description: "Gestão integrada da Candinho Company: Central, Suplementos, Fitness, Bank e Portal do Parceiro.",
+  description:
+    "Gestão integrada da Candinho Company: Central, Suplementos, Fitness, Bank e Portal do Parceiro.",
   applicationName: "Candinho Company",
   manifest: "/manifest.webmanifest",
 };
@@ -19,7 +21,9 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
       <body>
