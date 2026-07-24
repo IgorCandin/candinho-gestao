@@ -63,7 +63,7 @@ export async function getActivePromotionRows(): Promise<ActivePromotionRow[]> {
 
   if (error) throw error;
 
-  return (data ?? []).map((row) => ({
+  return (data ?? []).map((row: Record<string, unknown>) => ({
     promotion_item_id: String(row.promotion_item_id),
     promotion_id: String(row.promotion_id),
     promotion_name: String(row.promotion_name ?? "Promoção"),
@@ -78,7 +78,9 @@ export async function getActivePromotionRows(): Promise<ActivePromotionRow[]> {
     category: nullableText(row.category),
     image_url: nullableText(row.image_url),
     current_price: numberValue(row.current_price),
-    effective_promotional_price: numberValue(row.effective_promotional_price),
+    effective_promotional_price: numberValue(
+      row.effective_promotional_price,
+    ),
     effective_discount_pct: numberValue(row.effective_discount_pct),
     available_quantity: numberValue(row.available_quantity),
     incoming_quantity: numberValue(row.incoming_quantity),
@@ -194,8 +196,12 @@ export function applyFitnessCatalogPromotions(
 
   return products.map((product) => {
     const promotions = grouped.get(product.id) ?? [];
-    const prices = promotions.map((row) => row.effective_promotional_price);
-    const names = [...new Set(promotions.map((row) => row.promotion_name))];
+    const prices = promotions.map(
+      (row) => row.effective_promotional_price,
+    );
+    const names = [
+      ...new Set(promotions.map((row) => row.promotion_name)),
+    ];
     const ends = promotions
       .map((row) => row.ends_on)
       .filter((value): value is string => Boolean(value))
@@ -216,7 +222,12 @@ export function applyFitnessCatalogPromotions(
           : Math.max(promotionTo, product.max_sale_price),
       promotion_price_from: promotionFrom,
       promotion_price_to: promotionTo,
-      promotion_name: names.length === 1 ? names[0] : names.length ? "Promoção ativa" : null,
+      promotion_name:
+        names.length === 1
+          ? names[0]
+          : names.length
+            ? "Promoção ativa"
+            : null,
       promotion_ends_on: ends[0] ?? null,
       promotion_variant_count: promotions.length,
     };
@@ -234,5 +245,7 @@ export function getFitnessProductPromotions(
   productId: string,
   rows: ActivePromotionRow[],
 ) {
-  return usable(rows).filter((row) => row.fitness_product_id === productId);
+  return usable(rows).filter(
+    (row) => row.fitness_product_id === productId,
+  );
 }
