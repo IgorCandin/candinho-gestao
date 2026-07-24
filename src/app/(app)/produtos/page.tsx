@@ -8,14 +8,26 @@ import {
   getProductCatalog,
   getProductCategories,
 } from "@/lib/data";
+import {
+  applySupplementCatalogPromotions,
+  getActivePromotionRows,
+} from "@/lib/active-promotion-data";
 
 export default async function ProductsPage() {
-  const [access, products, categories, locations] = await Promise.all([
-    getCurrentUserAccess(),
-    getProductCatalog(),
-    getProductCategories(),
-    getInventoryLocationOverview(),
-  ]);
+  const [access, baseProducts, categories, locations, promotionRows] =
+    await Promise.all([
+      getCurrentUserAccess(),
+      getProductCatalog(),
+      getProductCategories(),
+      getInventoryLocationOverview(),
+      getActivePromotionRows(),
+    ]);
+
+  const products = applySupplementCatalogPromotions(
+    baseProducts,
+    promotionRows,
+  );
+  const promotionCount = products.filter((product) => product.promotion_price != null).length;
 
   return (
     <>
@@ -24,7 +36,7 @@ export default async function ProductsPage() {
       <PageHeader
         eyebrow="Catálogo"
         title="Produtos"
-        description="Consulta rápida de preço, disponibilidade e reposição. O preenchimento assistido continua disponível individualmente ao editar cada produto."
+        description="Consulta rápida de preço, disponibilidade, promoções ativas e reposição. O preenchimento assistido continua disponível individualmente ao editar cada produto."
         action={
           <ProductCatalogActions
             canWrite={access.canWriteSupplements}
@@ -32,6 +44,13 @@ export default async function ProductsPage() {
           />
         }
       />
+
+      {promotionCount > 0 && (
+        <div className="operation-promotion-banner">
+          <strong>{promotionCount} produto(s) com promoção ativa</strong>
+          <span>O preço promocional já aparece no catálogo e entra automaticamente em novos orçamentos e vendas, enquanto houver estoque.</span>
+        </div>
+      )}
 
       <ProductCatalogTable
         products={products}
@@ -67,7 +86,9 @@ export default async function ProductsPage() {
                   )
                   .map((row) => (
                     <tr key={`${row.product_id}-${row.location_id}`}>
-                      <td><strong>{row.product_name}</strong></td>
+                      <td>
+                        <strong>{row.product_name}</strong>
+                      </td>
                       <td>
                         {row.location_name}
                         <small className="crm-cell-note">

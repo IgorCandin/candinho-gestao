@@ -22,6 +22,8 @@ export type PromotionShowcaseItem = {
   ends_on: string | null;
   coupon_code: string | null;
   notes: string | null;
+  available_quantity: number;
+  stock_status: "available" | "sold_out";
 };
 
 function promotionalPrice(
@@ -29,14 +31,49 @@ function promotionalPrice(
   explicitPrice: unknown,
   discountValue: unknown,
 ) {
-  if (explicitPrice != null) {
-    return numberValue(explicitPrice);
-  }
-
+  if (explicitPrice != null) return numberValue(explicitPrice);
   const discount = numberValue(discountValue);
   if (discount <= 0) return currentPrice;
-
   return Math.max(0, currentPrice * (1 - discount / 100));
+}
+
+function mapItem(
+  row: Record<string, unknown>,
+  promotion: Record<string, unknown>,
+): PromotionShowcaseItem {
+  const currentPrice = numberValue(row.current_price);
+  const availableQuantity = numberValue(row.available_quantity);
+
+  return {
+    id: String(row.id),
+    promotion_id: String(row.promotion_id),
+    promotion_name: String(promotion.name ?? "Promoção"),
+    promotion_status: String(
+      promotion.effective_status,
+    ) as PromotionShowcaseItem["promotion_status"],
+    operation_scope: String(
+      row.operation_scope,
+    ) as PromotionShowcaseItem["operation_scope"],
+    item_label: String(row.item_label ?? "Produto"),
+    category: typeof row.category === "string" ? row.category : null,
+    image_url: typeof row.image_url === "string" ? row.image_url : null,
+    current_price: currentPrice,
+    promotional_price: promotionalPrice(
+      currentPrice,
+      row.promotional_price,
+      row.discount_pct,
+    ),
+    discount_pct: numberValue(row.discount_pct),
+    item_role: String(row.item_role ?? "discounted"),
+    starts_on:
+      typeof promotion.starts_on === "string" ? promotion.starts_on : null,
+    ends_on: typeof promotion.ends_on === "string" ? promotion.ends_on : null,
+    coupon_code:
+      typeof promotion.coupon_code === "string" ? promotion.coupon_code : null,
+    notes: typeof promotion.notes === "string" ? promotion.notes : null,
+    available_quantity: availableQuantity,
+    stock_status: availableQuantity > 0 ? "available" : "sold_out",
+  };
 }
 
 export async function getPromotionShowcase() {
@@ -44,16 +81,12 @@ export async function getPromotionShowcase() {
 
   const { data: promotions, error: promotionsError } = await supabase
     .from("central_promotions_overview")
-    .select(
-      "id,name,effective_status,starts_on,ends_on,coupon_code,notes",
-    )
+    .select("id,name,effective_status,starts_on,ends_on,coupon_code,notes")
     .in("effective_status", ["active", "scheduled"])
     .order("starts_on", { ascending: true, nullsFirst: false });
 
   if (promotionsError) {
-    throw new Error(
-      `Falha ao carregar promoções: ${promotionsError.message}`,
-    );
+    throw new Error(`Falha ao carregar promoções: ${promotionsError.message}`);
   }
 
   if (!promotions || promotions.length === 0) {
@@ -64,10 +97,7 @@ export async function getPromotionShowcase() {
   }
 
   const promotionMap = new Map(
-    promotions.map((promotion) => [
-      String(promotion.id),
-      promotion,
-    ]),
+    promotions.map((promotion) => [String(promotion.id), promotion]),
   );
 
   const { data: items, error: itemsError } = await supabase
@@ -85,65 +115,26 @@ export async function getPromotionShowcase() {
     );
   }
 
-  const mapped: PromotionShowcaseItem[] = (items ?? [])
+  const mapped = (items ?? [])
     .map((row) => {
       const promotion = promotionMap.get(String(row.promotion_id));
       if (!promotion) return null;
-
-      const currentPrice = numberValue(row.current_price);
-      const discountPct = numberValue(row.discount_pct);
-
-      return {
-        id: String(row.id),
-        promotion_id: String(row.promotion_id),
-        promotion_name: String(promotion.name ?? ""),
-        promotion_status: String(
-          promotion.effective_status,
-        ) as PromotionShowcaseItem["promotion_status"],
-        operation_scope: String(
-          row.operation_scope,
-        ) as PromotionShowcaseItem["operation_scope"],
-        item_label: String(row.item_label ?? ""),
-        category: row.category ? String(row.category) : null,
-        image_url: row.image_url ? String(row.image_url) : null,
-        current_price: currentPrice,
-        promotional_price: promotionalPrice(
-          currentPrice,
-          row.promotional_price,
-          row.discount_pct,
-        ),
-        discount_pct: discountPct,
-        item_role: String(row.item_role ?? "discounted"),
-        starts_on: promotion.starts_on
-          ? String(promotion.starts_on)
-          : null,
-        ends_on: promotion.ends_on
-          ? String(promotion.ends_on)
-          : null,
-        coupon_code: promotion.coupon_code
-          ? String(promotion.coupon_code)
-          : null,
-        notes: promotion.notes ? String(promotion.notes) : null,
-      };
+      return mapItem(
+        row as Record<string, unknown>,
+        promotion as Record<string, unknown>,
+      );
     })
-    .filter(
-      (item): item is PromotionShowcaseItem =>
-        Boolean(item),
-    );
+    .filter((item): item is PromotionShowcaseItem => Boolean(item));
 
   return {
     supplements: mapped.filter(
       (item) => item.operation_scope === "supplements",
     ),
-    fitness: mapped.filter(
-      (item) => item.operation_scope === "fitness",
-    ),
+    fitness: mapped.filter((item) => item.operation_scope === "fitness"),
   };
 }
 
-export async function getPromotionShowcaseItem(
-  itemId: string,
-) {
+export async function getPromotionShowcaseItem(itemId: string) {
   const supabase = await createClient();
 
   const { data: item, error: itemError } = await supabase
@@ -157,59 +148,22 @@ export async function getPromotionShowcaseItem(
       `Falha ao carregar produto promocional: ${itemError.message}`,
     );
   }
-
   if (!item) return null;
 
-  const { data: promotion, error: promotionError } =
-    await supabase
-      .from("central_promotions_overview")
-      .select(
-        "id,name,effective_status,starts_on,ends_on,coupon_code,notes",
-      )
-      .eq("id", item.promotion_id)
-      .in("effective_status", ["active", "scheduled"])
-      .maybeSingle();
+  const { data: promotion, error: promotionError } = await supabase
+    .from("central_promotions_overview")
+    .select("id,name,effective_status,starts_on,ends_on,coupon_code,notes")
+    .eq("id", item.promotion_id)
+    .in("effective_status", ["active", "scheduled"])
+    .maybeSingle();
 
   if (promotionError) {
-    throw new Error(
-      `Falha ao carregar promoção: ${promotionError.message}`,
-    );
+    throw new Error(`Falha ao carregar promoção: ${promotionError.message}`);
   }
-
   if (!promotion) return null;
 
-  const currentPrice = numberValue(item.current_price);
-
-  return {
-    id: String(item.id),
-    promotion_id: String(item.promotion_id),
-    promotion_name: String(promotion.name ?? ""),
-    promotion_status: String(
-      promotion.effective_status,
-    ) as PromotionShowcaseItem["promotion_status"],
-    operation_scope: String(
-      item.operation_scope,
-    ) as PromotionShowcaseItem["operation_scope"],
-    item_label: String(item.item_label ?? ""),
-    category: item.category ? String(item.category) : null,
-    image_url: item.image_url ? String(item.image_url) : null,
-    current_price: currentPrice,
-    promotional_price: promotionalPrice(
-      currentPrice,
-      item.promotional_price,
-      item.discount_pct,
-    ),
-    discount_pct: numberValue(item.discount_pct),
-    item_role: String(item.item_role ?? "discounted"),
-    starts_on: promotion.starts_on
-      ? String(promotion.starts_on)
-      : null,
-    ends_on: promotion.ends_on
-      ? String(promotion.ends_on)
-      : null,
-    coupon_code: promotion.coupon_code
-      ? String(promotion.coupon_code)
-      : null,
-    notes: promotion.notes ? String(promotion.notes) : null,
-  } satisfies PromotionShowcaseItem;
+  return mapItem(
+    item as Record<string, unknown>,
+    promotion as Record<string, unknown>,
+  );
 }

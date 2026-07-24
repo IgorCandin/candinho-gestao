@@ -66,6 +66,8 @@ export type PromotionItem = {
   image_url: string | null;
   current_price: number;
   cost_price: number;
+  available_quantity: number;
+  incoming_quantity: number;
 };
 
 export type PromotionProductOption = {
@@ -247,6 +249,8 @@ export async function getPromotionDetail(id: string) {
       image_url: row.image_url ? String(row.image_url) : null,
       current_price: numberValue(row.current_price),
       cost_price: numberValue(row.cost_price),
+      available_quantity: numberValue(row.available_quantity),
+      incoming_quantity: numberValue(row.incoming_quantity),
     }),
   );
 

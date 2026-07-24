@@ -13,6 +13,7 @@ export type PublicStorefrontProduct = {
 
 export type PublicStorefrontPromotion = {
   id: string;
+  promotion_id: string;
   product_id: string | null;
   operation: "supplements" | "fitness";
   name: string;
@@ -25,6 +26,8 @@ export type PublicStorefrontPromotion = {
   promotion_status: "active" | "scheduled";
   starts_on: string | null;
   ends_on: string | null;
+  available_quantity: number;
+  stock_status: "available" | "sold_out";
 };
 
 export type PublicStorefrontSnapshot = {
@@ -69,8 +72,10 @@ function product(row: Record<string, unknown>): PublicStorefrontProduct {
 }
 
 function promotion(row: Record<string, unknown>): PublicStorefrontPromotion {
+  const availableQuantity = num(row.available_quantity);
   return {
     id: String(row.id ?? ""),
+    promotion_id: String(row.promotion_id ?? ""),
     product_id: typeof row.product_id === "string" ? row.product_id : null,
     operation: row.operation === "fitness" ? "fitness" : "supplements",
     name: String(row.name ?? "Produto"),
@@ -80,9 +85,15 @@ function promotion(row: Record<string, unknown>): PublicStorefrontPromotion {
     promotional_price: num(row.promotional_price),
     discount_pct: num(row.discount_pct),
     promotion_name: String(row.promotion_name ?? "Promoção"),
-    promotion_status: row.promotion_status === "scheduled" ? "scheduled" : "active",
+    promotion_status:
+      row.promotion_status === "scheduled" ? "scheduled" : "active",
     starts_on: typeof row.starts_on === "string" ? row.starts_on : null,
     ends_on: typeof row.ends_on === "string" ? row.ends_on : null,
+    available_quantity: availableQuantity,
+    stock_status:
+      row.stock_status === "sold_out" || availableQuantity <= 0
+        ? "sold_out"
+        : "available",
   };
 }
 
@@ -105,12 +116,18 @@ export async function getPublicStorefrontSnapshot(): Promise<PublicStorefrontSna
 
   const asRows = (value: unknown): Record<string, unknown>[] =>
     Array.isArray(value)
-      ? value.filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
+      ? value.filter(
+          (item): item is Record<string, unknown> =>
+            Boolean(item && typeof item === "object"),
+        )
       : [];
 
   const asStrings = (value: unknown): string[] =>
     Array.isArray(value)
-      ? value.filter((item): item is string => typeof item === "string" && item.trim().length > 0)
+      ? value.filter(
+          (item): item is string =>
+            typeof item === "string" && item.trim().length > 0,
+        )
       : [];
 
   return {
@@ -126,6 +143,7 @@ export async function getPublicStorefrontSnapshot(): Promise<PublicStorefrontSna
       supplements: asStrings(categories.supplements),
       fitness: asStrings(categories.fitness),
     },
-    generated_at: typeof payload.generated_at === "string" ? payload.generated_at : null,
+    generated_at:
+      typeof payload.generated_at === "string" ? payload.generated_at : null,
   };
 }

@@ -26,7 +26,9 @@ export default async function PromotionsShowcasePage() {
     <div className="promotion-ux-showcase-page">
       <header className="promotion-ux-showcase-hero">
         <div className="promotion-ux-showcase-brand">
-          <Link href="/dashboard"><ArrowLeft size={16} /> Operações</Link>
+          <Link href="/dashboard">
+            <ArrowLeft size={16} /> Operações
+          </Link>
           <Image
             src={company.src}
             alt={company.alt}
@@ -39,7 +41,10 @@ export default async function PromotionsShowcasePage() {
         <div>
           <span>CANDINHO COMPANY</span>
           <h1>Promoções</h1>
-          <p>Campanhas ativas e próximas ofertas organizadas para consulta rápida.</p>
+          <p>
+            Campanhas ativas e próximas ofertas. Preços válidos enquanto durar
+            o estoque; itens zerados permanecem identificados na vitrine.
+          </p>
         </div>
 
         <Link className="promotion-ux-export" href="/promocoes/exportar">

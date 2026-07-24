@@ -4,6 +4,9 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BadgePercent,
+  Eye,
+  EyeOff,
   ImageOff,
   LayoutGrid,
   Rows3,
@@ -15,12 +18,65 @@ import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { FitnessProductRow } from "@/lib/types";
 
+type FitnessCatalogProduct = FitnessProductRow & {
+  regular_min_sale_price?: number;
+  regular_max_sale_price?: number;
+  promotion_price_from?: number | null;
+  promotion_price_to?: number | null;
+  promotion_name?: string | null;
+  promotion_ends_on?: string | null;
+  promotion_variant_count?: number;
+};
+
 type ViewMode = "deck" | "gallery";
 
-function stockBorder(product: FitnessProductRow) {
+function stockBorder(product: FitnessCatalogProduct) {
   if (product.available_quantity > 0) return "available";
   if (product.incoming_quantity > 0) return "incoming";
   return "empty";
+}
+
+function hasPromotion(product: FitnessCatalogProduct) {
+  return (
+    product.available_quantity > 0 &&
+    product.promotion_price_from != null &&
+    Number(product.promotion_variant_count ?? 0) > 0
+  );
+}
+
+function regularPriceLabel(product: FitnessCatalogProduct) {
+  const min = Number(product.regular_min_sale_price ?? product.min_sale_price);
+  const max = Number(product.regular_max_sale_price ?? product.max_sale_price);
+  return Math.abs(min - max) < 0.01
+    ? formatCurrency(min)
+    : `${formatCurrency(min)} – ${formatCurrency(max)}`;
+}
+
+function priceLabel(product: FitnessCatalogProduct) {
+  if (hasPromotion(product)) {
+    const from = Number(product.promotion_price_from ?? product.min_sale_price);
+    const to = Number(product.promotion_price_to ?? from);
+    return Math.abs(from - to) < 0.01
+      ? formatCurrency(from)
+      : `${formatCurrency(from)} – ${formatCurrency(to)}`;
+  }
+
+  return product.min_sale_price === product.max_sale_price
+    ? formatCurrency(product.min_sale_price)
+    : `${formatCurrency(product.min_sale_price)} – ${formatCurrency(
+        product.max_sale_price,
+      )}`;
+}
+
+function PromotionBadge({ product }: { product: FitnessCatalogProduct }) {
+  if (!hasPromotion(product)) return null;
+
+  return (
+    <span className="operation-promotion-badge fitness-promotion-badge">
+      <BadgePercent size={12} />
+      Promoção · {product.promotion_variant_count} variação(ões)
+    </span>
+  );
 }
 
 function GalleryZoomControl({
@@ -42,7 +98,6 @@ function GalleryZoomControl({
       >
         <ZoomOut size={14} />
       </button>
-
       <input
         aria-label="Tamanho dos cards da galeria Fitness"
         type="range"
@@ -52,7 +107,6 @@ function GalleryZoomControl({
         value={value}
         onChange={(event) => set(Number(event.target.value))}
       />
-
       <button
         type="button"
         aria-label="Aumentar os cards"
@@ -61,7 +115,6 @@ function GalleryZoomControl({
       >
         <ZoomIn size={14} />
       </button>
-
       <span>{value}/5</span>
     </div>
   );
@@ -71,7 +124,7 @@ export function FitnessProductCatalog({
   products,
   salesMode = false,
 }: {
-  products: FitnessProductRow[];
+  products: FitnessCatalogProduct[];
   salesMode?: boolean;
 }) {
   const [query, setQuery] = useState("");
@@ -79,6 +132,7 @@ export function FitnessProductCatalog({
   const [stock, setStock] = useState("all");
   const [viewMode, setViewMode] = useState<ViewMode>("deck");
   const [galleryZoom, setGalleryZoom] = useState(3);
+  const [galleryDetails, setGalleryDetails] = useState(true);
 
   const categories = useMemo(
     () =>
@@ -95,41 +149,31 @@ export function FitnessProductCatalog({
       .filter(
         (product) =>
           !q ||
-          `${product.name} ${product.category} ${product.description ?? ""}`
+          `${product.name} ${product.category} ${product.description ?? ""} ${product.promotion_name ?? ""}`
             .toLocaleLowerCase("pt-BR")
             .includes(q),
       )
       .filter(
         (product) => category === "all" || product.category === category,
       )
-      .filter((product) =>
-        stock === "all"
-          ? true
-          : stock === "available"
-            ? product.available_quantity > 0
-            : stock === "incoming"
-              ? product.incoming_quantity > 0
-              : product.available_quantity === 0 &&
-                product.incoming_quantity === 0,
-      )
+      .filter((product) => {
+        if (stock === "all") return true;
+        if (stock === "available") return product.available_quantity > 0;
+        if (stock === "incoming") return product.incoming_quantity > 0;
+        if (stock === "promotion") return hasPromotion(product);
+        return (
+          product.available_quantity === 0 && product.incoming_quantity === 0
+        );
+      })
       .sort(
         (a, b) =>
-          Number(b.available_quantity > 0) -
-            Number(a.available_quantity > 0) ||
-          Number(b.incoming_quantity > 0) -
-            Number(a.incoming_quantity > 0) ||
+          Number(hasPromotion(b)) - Number(hasPromotion(a)) ||
+          Number(b.available_quantity > 0) - Number(a.available_quantity > 0) ||
+          Number(b.incoming_quantity > 0) - Number(a.incoming_quantity > 0) ||
           a.category.localeCompare(b.category, "pt-BR") ||
           a.name.localeCompare(b.name, "pt-BR"),
       );
   }, [products, query, category, stock]);
-
-  function priceLabel(product: FitnessProductRow) {
-    return product.min_sale_price === product.max_sale_price
-      ? formatCurrency(product.min_sale_price)
-      : `${formatCurrency(product.min_sale_price)} – ${formatCurrency(
-          product.max_sale_price,
-        )}`;
-  }
 
   return (
     <article className="panel product-catalog-panel">
@@ -139,7 +183,7 @@ export function FitnessProductCatalog({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar peça, modelo ou categoria..."
+            placeholder="Buscar peça, modelo, categoria ou promoção..."
           />
         </label>
 
@@ -150,9 +194,7 @@ export function FitnessProductCatalog({
         >
           <option value="all">Todas as categorias</option>
           {categories.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
+            <option key={item} value={item}>{item}</option>
           ))}
         </select>
 
@@ -162,6 +204,7 @@ export function FitnessProductCatalog({
           onChange={(event) => setStock(event.target.value)}
         >
           <option value="all">Todos os estoques</option>
+          <option value="promotion">Em promoção</option>
           <option value="available">Disponíveis</option>
           <option value="incoming">A caminho</option>
           <option value="empty">Sem disponibilidade</option>
@@ -173,25 +216,28 @@ export function FitnessProductCatalog({
             type="button"
             onClick={() => setViewMode("deck")}
           >
-            <Rows3 size={15} />
-            Deck
+            <Rows3 size={15} /> Deck
           </button>
           <button
             className={viewMode === "gallery" ? "active" : ""}
             type="button"
             onClick={() => setViewMode("gallery")}
           >
-            <LayoutGrid size={15} />
-            Gallery
+            <LayoutGrid size={15} /> Gallery
           </button>
         </div>
 
         {viewMode === "gallery" && (
           <div className="product-gallery-controls">
-            <GalleryZoomControl
-              value={galleryZoom}
-              onChange={setGalleryZoom}
-            />
+            <GalleryZoomControl value={galleryZoom} onChange={setGalleryZoom} />
+            <button
+              className={galleryDetails ? "active" : ""}
+              type="button"
+              onClick={() => setGalleryDetails((current) => !current)}
+            >
+              {galleryDetails ? <Eye size={14} /> : <EyeOff size={14} />}
+              {galleryDetails ? "Completo" : "Essencial"}
+            </button>
           </div>
         )}
 
@@ -203,10 +249,7 @@ export function FitnessProductCatalog({
       {salesMode && (
         <div className="sales-profile-note">
           <strong>Perfil Vendas</strong>
-          <span>
-            Consulta comercial de preço e disponibilidade. Custos e alterações
-            permanecem ocultos.
-          </span>
+          <span>Consulta comercial com promoções ativas, preço e disponibilidade.</span>
         </div>
       )}
 
@@ -217,49 +260,48 @@ export function FitnessProductCatalog({
         </div>
       ) : viewMode === "gallery" ? (
         <div
-          className={`product-gallery-grid product-gallery-grid-responsive fitness-gallery-grid zoom-${galleryZoom}`}
+          className={`product-gallery-grid product-gallery-grid-responsive fitness-gallery-grid zoom-${galleryZoom} ${
+            galleryDetails ? "show-details" : "essential"
+          }`}
         >
           {filtered.map((product) => (
             <Link
               key={product.id}
-              href={
-                salesMode
-                  ? "/fitness/produtos"
-                  : `/fitness/produtos/${product.id}`
-              }
-              className={`product-gallery-card stock-${stockBorder(product)}`}
+              href={salesMode ? "/fitness/produtos" : `/fitness/produtos/${product.id}`}
+              className={`product-gallery-card stock-${stockBorder(product)} ${
+                hasPromotion(product) ? "has-operation-promotion" : ""
+              }`}
             >
               <div className="product-gallery-image">
                 {product.image_url ? (
-                  <img
-                    src={product.image_url}
-                    alt={product.name}
-                    loading="lazy"
-                  />
+                  <img src={product.image_url} alt={product.name} loading="lazy" />
                 ) : (
                   <ImageOff size={30} />
                 )}
+                <PromotionBadge product={product} />
               </div>
 
               <div className="product-gallery-copy">
                 <div className="product-gallery-heading">
                   <strong>{product.name}</strong>
-                  <span>
-                    {product.category} · {product.variant_count} variação(ões)
-                  </span>
+                  {galleryDetails && (
+                    <span>{product.category} · {product.variant_count} variação(ões)</span>
+                  )}
                 </div>
 
                 <div className="product-gallery-stock">
-                  <span>
-                    Disponível <b>{product.available_quantity}</b>
-                  </span>
-                  <span>
-                    A caminho <b>{product.incoming_quantity}</b>
-                  </span>
+                  <span>Disponível <b>{product.available_quantity}</b></span>
+                  {galleryDetails && (
+                    <span>A caminho <b>{product.incoming_quantity}</b></span>
+                  )}
                 </div>
 
                 <div className="product-gallery-price">
+                  {hasPromotion(product) && <s>{regularPriceLabel(product)}</s>}
                   <strong>{priceLabel(product)}</strong>
+                  {hasPromotion(product) && (
+                    <small>{product.promotion_name ?? "Promoção ativa"} · enquanto durar o estoque</small>
+                  )}
                 </div>
               </div>
             </Link>
@@ -280,37 +322,28 @@ export function FitnessProductCatalog({
                 <th />
               </tr>
             </thead>
-
             <tbody>
               {filtered.map((product) => (
-                <tr key={product.id}>
+                <tr
+                  className={hasPromotion(product) ? "has-operation-promotion" : ""}
+                  key={product.id}
+                >
                   <td>
                     <Link
                       className="product-cell product-link"
-                      href={
-                        salesMode
-                          ? "/fitness/produtos"
-                          : `/fitness/produtos/${product.id}`
-                      }
+                      href={salesMode ? "/fitness/produtos" : `/fitness/produtos/${product.id}`}
                     >
                       {product.image_url ? (
-                        <img
-                          className="product-thumb"
-                          src={product.image_url}
-                          alt=""
-                          loading="lazy"
-                        />
+                        <img className="product-thumb" src={product.image_url} alt="" loading="lazy" />
                       ) : (
-                        <span className="product-avatar">
-                          <ImageOff size={17} />
-                        </span>
+                        <span className="product-avatar"><ImageOff size={17} /></span>
                       )}
-
                       <div>
-                        <div className="cell-main">{product.name}</div>
-                        <div className="cell-sub">
-                          {product.variant_count} variação(ões)
+                        <div className="cell-main product-name-with-promo">
+                          {product.name}
+                          <PromotionBadge product={product} />
                         </div>
+                        <div className="cell-sub">{product.variant_count} variação(ões)</div>
                       </div>
                     </Link>
                   </td>
@@ -319,13 +352,15 @@ export function FitnessProductCatalog({
                   <td>{product.available_quantity}</td>
                   <td>{product.reserved_quantity}</td>
                   <td>{product.incoming_quantity}</td>
-                  <td>{priceLabel(product)}</td>
+                  <td>
+                    <div className="operation-promo-price compact">
+                      {hasPromotion(product) && <s>{regularPriceLabel(product)}</s>}
+                      <strong>{priceLabel(product)}</strong>
+                    </div>
+                  </td>
                   <td>
                     {!salesMode && (
-                      <Link
-                        className="icon-link"
-                        href={`/fitness/produtos/${product.id}`}
-                      >
+                      <Link className="icon-link" href={`/fitness/produtos/${product.id}`}>
                         <ArrowRight size={17} />
                       </Link>
                     )}

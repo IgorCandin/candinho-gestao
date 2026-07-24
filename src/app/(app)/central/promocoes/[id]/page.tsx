@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Eye,
   ExternalLink,
+  FileDown,
   ImageIcon,
   Save,
   Trash2,
@@ -93,6 +94,13 @@ export default async function PromotionDetailPage({
             <Link className="button ghost" href="/promocoes">
               <Eye size={16} />
               Ver exposição
+            </Link>
+            <Link
+              className="button ghost"
+              href={`/promocoes/exportar?promotion=${encodeURIComponent(promotion.id)}`}
+            >
+              <FileDown size={16} />
+              Exportar PDF
             </Link>
           </div>
         }
@@ -256,9 +264,13 @@ export default async function PromotionDetailPage({
             {items.map((item) => {
               const finalPrice = effectivePrice(item);
               const margin = finalPrice - item.cost_price;
+              const soldOut = item.available_quantity <= 0;
 
               return (
-                <article className="promotion-ux-configured-card" key={item.id}>
+                <article
+                  className={`promotion-ux-configured-card ${soldOut ? "sold-out" : ""}`}
+                  key={item.id}
+                >
                   <div className="promotion-ux-configured-product">
                     <div className="promotion-ux-configured-image">
                       {item.image_url ? (
@@ -266,6 +278,11 @@ export default async function PromotionDetailPage({
                         <img src={item.image_url} alt={item.item_label} />
                       ) : (
                         <ImageIcon size={23} />
+                      )}
+                      {soldOut && (
+                        <div className="promotion-ux-sold-out-overlay compact">
+                          <strong>Estoque zerado</strong>
+                        </div>
                       )}
                     </div>
                     <div>
@@ -276,6 +293,7 @@ export default async function PromotionDetailPage({
                   </div>
 
                   <div className="promotion-ux-price-summary">
+                    <span>Estoque<b className={soldOut ? "danger" : ""}>{item.available_quantity}</b></span>
                     <span>Preço atual<b>{formatCurrency(item.current_price)}</b></span>
                     <span>Custo<b>{formatCurrency(item.cost_price)}</b></span>
                     <span>Preço promo<b>{formatCurrency(finalPrice)}</b></span>
@@ -368,8 +386,9 @@ export default async function PromotionDetailPage({
             <div className="promotion-ux-preview-grid">
               {items.slice(0, 8).map((item) => {
                 const finalPrice = effectivePrice(item);
+                const soldOut = item.available_quantity <= 0;
                 return (
-                  <div key={item.id}>
+                  <div className={soldOut ? "sold-out" : ""} key={item.id}>
                     <div>
                       {item.image_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -377,8 +396,13 @@ export default async function PromotionDetailPage({
                       ) : (
                         <ImageIcon size={22} />
                       )}
+                      {soldOut && (
+                        <div className="promotion-ux-sold-out-overlay compact">
+                          <strong>Zerado</strong>
+                        </div>
+                      )}
                     </div>
-                    <small>{item.operation_scope === "supplements" ? "Suplementos" : "Fitness"}</small>
+                    <small>{soldOut ? "Estoque zerado" : item.operation_scope === "supplements" ? "Suplementos" : "Fitness"}</small>
                     <strong>{item.item_label}</strong>
                     <span>
                       {finalPrice < item.current_price && <s>{formatCurrency(item.current_price)}</s>}

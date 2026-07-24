@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   ArrowUpDown,
+  BadgePercent,
   Eye,
   EyeOff,
   ImageOff,
@@ -19,6 +20,15 @@ import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { ProductCatalogRow } from "@/lib/types";
 
+type CatalogProduct = ProductCatalogRow & {
+  regular_sale_price?: number;
+  regular_installment_price?: number;
+  promotion_price?: number | null;
+  promotion_name?: string | null;
+  promotion_ends_on?: string | null;
+  promotion_discount_pct?: number;
+};
+
 type SortKey =
   | "commercial"
   | "name"
@@ -28,11 +38,10 @@ type SortKey =
   | "cash"
   | "installment"
   | "status";
-
 type SortDirection = "asc" | "desc";
 type ViewMode = "deck" | "gallery";
 
-function stockLabel(product: ProductCatalogRow) {
+function stockLabel(product: CatalogProduct) {
   if (!product.active) return { label: "Inativo", tone: "gray" };
   if (product.available_quantity > 0 && product.incoming_quantity > 0) {
     return { label: "Disponível + reposição", tone: "green" };
@@ -49,19 +58,31 @@ function stockLabel(product: ProductCatalogRow) {
   return { label: "Sem estoque", tone: "red" };
 }
 
-function stockBorder(product: ProductCatalogRow) {
+function stockBorder(product: CatalogProduct) {
   if (product.available_quantity > 0) return "available";
   if (product.incoming_quantity > 0) return "incoming";
   return "empty";
 }
 
-function isLegacyCombo(product: ProductCatalogRow) {
+function isLegacyCombo(product: CatalogProduct) {
   const brand = (product.brand ?? "").trim().toLocaleLowerCase("pt-BR");
   const name = product.name.trim().toLocaleLowerCase("pt-BR");
   return brand === "combo" || name.startsWith("combo ");
 }
 
-function compare(a: ProductCatalogRow, b: ProductCatalogRow, key: SortKey) {
+function hasPromotion(product: CatalogProduct) {
+  return (
+    product.promotion_price != null &&
+    product.available_quantity > 0 &&
+    Number(product.promotion_price) < Number(product.regular_sale_price ?? Infinity)
+  );
+}
+
+function regularCash(product: CatalogProduct) {
+  return Number(product.regular_sale_price ?? product.sale_price);
+}
+
+function compare(a: CatalogProduct, b: CatalogProduct, key: SortKey) {
   if (key === "commercial") {
     return (
       a.flagship_rank - b.flagship_rank ||
@@ -76,7 +97,9 @@ function compare(a: ProductCatalogRow, b: ProductCatalogRow, key: SortKey) {
   if (key === "available") return a.available_quantity - b.available_quantity;
   if (key === "incoming") return a.incoming_quantity - b.incoming_quantity;
   if (key === "cash") return a.sale_price - b.sale_price;
-  if (key === "installment") return a.installment_price - b.installment_price;
+  if (key === "installment") {
+    return a.installment_price - b.installment_price;
+  }
   return stockLabel(a).label.localeCompare(stockLabel(b).label, "pt-BR");
 }
 
@@ -103,7 +126,7 @@ function HeaderButton({
   );
 }
 
-function IncomingTruck({ product }: { product: ProductCatalogRow }) {
+function IncomingTruck({ product }: { product: CatalogProduct }) {
   if (!(product.available_quantity > 0 && product.incoming_quantity > 0)) {
     return null;
   }
@@ -116,6 +139,37 @@ function IncomingTruck({ product }: { product: ProductCatalogRow }) {
     >
       <Truck size={15} />
     </span>
+  );
+}
+
+function PromotionBadge({ product }: { product: CatalogProduct }) {
+  if (!hasPromotion(product)) return null;
+
+  return (
+    <span
+      className="operation-promotion-badge"
+      title={`${product.promotion_name ?? "Promoção ativa"} · enquanto durar o estoque`}
+    >
+      <BadgePercent size={12} />
+      Promoção
+      {Number(product.promotion_discount_pct ?? 0) > 0
+        ? ` -${Math.round(Number(product.promotion_discount_pct))}%`
+        : ""}
+    </span>
+  );
+}
+
+function PriceDisplay({ product, compact = false }: { product: CatalogProduct; compact?: boolean }) {
+  const promotion = hasPromotion(product);
+
+  return (
+    <div className={compact ? "operation-promo-price compact" : "operation-promo-price"}>
+      {promotion && <s>{formatCurrency(regularCash(product))}</s>}
+      <strong>{formatCurrency(product.sale_price)}</strong>
+      {promotion && !compact && (
+        <small>{product.promotion_name ?? "Promoção ativa"} · enquanto durar o estoque</small>
+      )}
+    </div>
   );
 }
 
@@ -138,7 +192,6 @@ function GalleryZoomControl({
       >
         <ZoomOut size={14} />
       </button>
-
       <input
         aria-label="Tamanho dos cards da galeria"
         type="range"
@@ -148,7 +201,6 @@ function GalleryZoomControl({
         value={value}
         onChange={(event) => set(Number(event.target.value))}
       />
-
       <button
         type="button"
         aria-label="Aumentar os cards"
@@ -157,7 +209,6 @@ function GalleryZoomControl({
       >
         <ZoomIn size={14} />
       </button>
-
       <span>{value}/5</span>
     </div>
   );
@@ -168,7 +219,7 @@ export function ProductCatalogTable({
   categories,
   salesMode = false,
 }: {
-  products: ProductCatalogRow[];
+  products: CatalogProduct[];
   categories: string[];
   salesMode?: boolean;
 }) {
@@ -177,8 +228,7 @@ export function ProductCatalogTable({
   const [status, setStatus] = useState("active");
   const [stock, setStock] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("commercial");
-  const [sortDirection, setSortDirection] =
-    useState<SortDirection>("asc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [viewMode, setViewMode] = useState<ViewMode>("deck");
   const [galleryZoom, setGalleryZoom] = useState(3);
   const [galleryDetails, setGalleryDetails] = useState(true);
@@ -191,7 +241,7 @@ export function ProductCatalogTable({
       .filter(
         (product) =>
           !normalized ||
-          `${product.name} ${product.category} ${product.brand ?? ""}`
+          `${product.name} ${product.category} ${product.brand ?? ""} ${product.promotion_name ?? ""}`
             .toLocaleLowerCase("pt-BR")
             .includes(normalized),
       )
@@ -203,16 +253,15 @@ export function ProductCatalogTable({
           status === "all" ||
           (status === "active" ? product.active : !product.active),
       )
-      .filter(
-        (product) =>
-          stock === "all" ||
-          (stock === "available"
-            ? product.available_quantity > 0
-            : stock === "incoming"
-              ? product.incoming_quantity > 0
-              : product.available_quantity === 0 &&
-                product.incoming_quantity === 0),
-      )
+      .filter((product) => {
+        if (stock === "all") return true;
+        if (stock === "available") return product.available_quantity > 0;
+        if (stock === "incoming") return product.incoming_quantity > 0;
+        if (stock === "promotion") return hasPromotion(product);
+        return (
+          product.available_quantity === 0 && product.incoming_quantity === 0
+        );
+      })
       .sort((a, b) => {
         const value = compare(a, b, sortKey);
         return sortDirection === "asc" ? value : -value;
@@ -229,20 +278,16 @@ export function ProductCatalogTable({
 
   function sort(key: SortKey) {
     if (key === sortKey) {
-      setSortDirection((current) =>
-        current === "asc" ? "desc" : "asc",
-      );
-    } else {
-      setSortKey(key);
-      setSortDirection(
-        key === "available" ||
-          key === "incoming" ||
-          key === "cash" ||
-          key === "installment"
-          ? "desc"
-          : "asc",
-      );
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"));
+      return;
     }
+
+    setSortKey(key);
+    setSortDirection(
+      ["available", "incoming", "cash", "installment"].includes(key)
+        ? "desc"
+        : "asc",
+    );
   }
 
   return (
@@ -253,7 +298,7 @@ export function ProductCatalogTable({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar produto, marca ou categoria"
+            placeholder="Buscar produto, marca, categoria ou promoção"
           />
         </label>
 
@@ -264,9 +309,7 @@ export function ProductCatalogTable({
         >
           <option value="all">Todas as categorias</option>
           {categories.map((item) => (
-            <option key={item} value={item}>
-              {item}
-            </option>
+            <option key={item} value={item}>{item}</option>
           ))}
         </select>
 
@@ -276,6 +319,7 @@ export function ProductCatalogTable({
           onChange={(event) => setStock(event.target.value)}
         >
           <option value="all">Todos os estoques</option>
+          <option value="promotion">Em promoção</option>
           <option value="available">Disponíveis</option>
           <option value="incoming">A caminho</option>
           <option value="empty">Sem disponibilidade</option>
@@ -297,27 +341,20 @@ export function ProductCatalogTable({
             type="button"
             onClick={() => setViewMode("deck")}
           >
-            <Rows3 size={15} />
-            Deck
+            <Rows3 size={15} /> Deck
           </button>
-
           <button
             className={viewMode === "gallery" ? "active" : ""}
             type="button"
             onClick={() => setViewMode("gallery")}
           >
-            <LayoutGrid size={15} />
-            Gallery
+            <LayoutGrid size={15} /> Gallery
           </button>
         </div>
 
         {viewMode === "gallery" && (
           <div className="product-gallery-controls">
-            <GalleryZoomControl
-              value={galleryZoom}
-              onChange={setGalleryZoom}
-            />
-
+            <GalleryZoomControl value={galleryZoom} onChange={setGalleryZoom} />
             <button
               className={galleryDetails ? "active" : ""}
               type="button"
@@ -337,18 +374,14 @@ export function ProductCatalogTable({
       {salesMode && (
         <div className="sales-profile-note">
           <strong>Perfil Vendas</strong>
-          <span>
-            Consulta somente comercial: preço de venda, disponibilidade e
-            produtos a caminho.
-          </span>
+          <span>Consulta comercial com preço promocional e disponibilidade real.</span>
         </div>
       )}
 
       <div className="product-commercial-order-note">
         <span>Ordem padrão:</span>
         <strong>
-          Creatina Candinho → disponível → a caminho → zerado → categoria
-          estratégica → mais vendidos
+          Creatina Candinho → disponível → a caminho → zerado → categoria estratégica → mais vendidos
         </strong>
         {sortKey !== "commercial" && (
           <button
@@ -380,7 +413,9 @@ export function ProductCatalogTable({
 
             return (
               <Link
-                className={`product-gallery-card stock-${border}`}
+                className={`product-gallery-card stock-${border} ${
+                  hasPromotion(product) ? "has-operation-promotion" : ""
+                }`}
                 href={salesMode ? "/produtos" : `/produtos/${product.id}`}
                 key={product.id}
               >
@@ -394,6 +429,7 @@ export function ProductCatalogTable({
                   ) : (
                     <ImageOff size={28} />
                   )}
+                  <PromotionBadge product={product} />
                 </div>
 
                 <div className="product-gallery-copy">
@@ -408,28 +444,21 @@ export function ProductCatalogTable({
                   </div>
 
                   <div className="product-gallery-stock">
-                    <span>
-                      Disponível <b>{product.available_quantity}</b>
-                    </span>
+                    <span>Disponível <b>{product.available_quantity}</b></span>
                     {galleryDetails && (
-                      <span>
-                        A caminho <b>{product.incoming_quantity}</b>
-                      </span>
+                      <span>A caminho <b>{product.incoming_quantity}</b></span>
                     )}
                   </div>
 
                   {galleryDetails && (
                     <div className="product-gallery-price">
-                      <strong>{formatCurrency(product.sale_price)}</strong>
-                      <span>
-                        {formatCurrency(product.installment_price)} a prazo
-                      </span>
+                      <PriceDisplay product={product} />
+                      <span>{formatCurrency(product.installment_price)} a prazo</span>
                     </div>
                   )}
 
                   <span className={`badge ${state.tone}`}>
-                    <span className="dot" />
-                    {state.label}
+                    <span className="dot" /> {state.label}
                   </span>
                 </div>
 
@@ -443,58 +472,15 @@ export function ProductCatalogTable({
           <table className="products-table product-catalog-table">
             <thead>
               <tr>
-                <th>
-                  <HeaderButton
-                    label="Produto"
-                    sortKey="name"
-                    currentKey={sortKey}
-                    onSort={sort}
-                  />
-                </th>
-                <th>
-                  <HeaderButton
-                    label="Disponível"
-                    sortKey="available"
-                    currentKey={sortKey}
-                    onSort={sort}
-                  />
-                </th>
-                <th>
-                  <HeaderButton
-                    label="A caminho"
-                    sortKey="incoming"
-                    currentKey={sortKey}
-                    onSort={sort}
-                  />
-                </th>
-                <th>
-                  <HeaderButton
-                    label="À vista"
-                    sortKey="cash"
-                    currentKey={sortKey}
-                    onSort={sort}
-                  />
-                </th>
-                <th>
-                  <HeaderButton
-                    label="A prazo"
-                    sortKey="installment"
-                    currentKey={sortKey}
-                    onSort={sort}
-                  />
-                </th>
-                <th>
-                  <HeaderButton
-                    label="Situação"
-                    sortKey="status"
-                    currentKey={sortKey}
-                    onSort={sort}
-                  />
-                </th>
+                <th><HeaderButton label="Produto" sortKey="name" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="Disponível" sortKey="available" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="A caminho" sortKey="incoming" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="À vista" sortKey="cash" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="A prazo" sortKey="installment" currentKey={sortKey} onSort={sort} /></th>
+                <th><HeaderButton label="Situação" sortKey="status" currentKey={sortKey} onSort={sort} /></th>
                 <th aria-label="Abrir produto" />
               </tr>
             </thead>
-
             <tbody>
               {filtered.map((product) => {
                 const state = stockLabel(product);
@@ -502,99 +488,62 @@ export function ProductCatalogTable({
 
                 return (
                   <tr
-                    className={`product-deck-row stock-${border}`}
+                    className={`product-deck-row stock-${border} ${
+                      hasPromotion(product) ? "has-operation-promotion" : ""
+                    }`}
                     key={product.id}
                   >
                     <td>
                       <Link
                         className="product-cell product-link"
-                        href={
-                          salesMode ? "/produtos" : `/produtos/${product.id}`
-                        }
+                        href={salesMode ? "/produtos" : `/produtos/${product.id}`}
                       >
                         {product.thumbnail_url ? (
-                          <img
-                            className="product-thumb"
-                            src={product.thumbnail_url}
-                            alt=""
-                            loading="lazy"
-                          />
+                          <img className="product-thumb" src={product.thumbnail_url} alt="" loading="lazy" />
                         ) : (
                           <span className="product-avatar">
-                            {product.image_url ? (
-                              <ImageOff size={17} />
-                            ) : (
-                              product.name.slice(0, 2).toUpperCase()
-                            )}
+                            {product.image_url ? <ImageOff size={17} /> : product.name.slice(0, 2).toUpperCase()}
                           </span>
                         )}
-
                         <div>
-                          <div className="cell-main">{product.name}</div>
+                          <div className="cell-main product-name-with-promo">
+                            {product.name}
+                            <PromotionBadge product={product} />
+                          </div>
                           <div className="cell-sub">
-                            {product.category}
-                            {product.brand ? ` · ${product.brand}` : ""}
+                            {product.category}{product.brand ? ` · ${product.brand}` : ""}
                           </div>
                         </div>
                       </Link>
                     </td>
-
                     <td>
-                      <strong
-                        className={
-                          product.available_quantity > 0
-                            ? "positive"
-                            : "muted-number"
-                        }
-                      >
+                      <strong className={product.available_quantity > 0 ? "positive" : "muted-number"}>
                         {product.available_quantity}
                       </strong>
                       {product.reserved_quantity > 0 && (
                         <div className="cell-sub">
-                          {product.reserved_quantity} reservada
-                          {product.reserved_quantity === 1 ? "" : "s"}
+                          {product.reserved_quantity} reservada{product.reserved_quantity === 1 ? "" : "s"}
                         </div>
                       )}
                     </td>
-
                     <td>
-                      <strong
-                        className={
-                          product.incoming_quantity > 0
-                            ? "incoming-text"
-                            : "muted-number"
-                        }
-                      >
+                      <strong className={product.incoming_quantity > 0 ? "incoming-text" : "muted-number"}>
                         {product.incoming_quantity}
                       </strong>
                       {product.awaiting_sales_quantity > 0 && (
-                        <div className="cell-sub">
-                          {product.awaiting_sales_quantity} aguardando
-                        </div>
+                        <div className="cell-sub">{product.awaiting_sales_quantity} aguardando</div>
                       )}
                     </td>
-
-                    <td className="amount">
-                      {formatCurrency(product.sale_price)}
-                    </td>
-                    <td className="amount">
-                      {formatCurrency(product.installment_price)}
-                    </td>
+                    <td className="amount"><PriceDisplay product={product} compact /></td>
+                    <td className="amount">{formatCurrency(product.installment_price)}</td>
                     <td>
-                      <span className={`badge ${state.tone}`}>
-                        <span className="dot" />
-                        {state.label}
-                      </span>
+                      <span className={`badge ${state.tone}`}><span className="dot" /> {state.label}</span>
                     </td>
                     <td>
                       <div className="product-row-actions">
                         <IncomingTruck product={product} />
                         {!salesMode && (
-                          <Link
-                            className="icon-link"
-                            href={`/produtos/${product.id}`}
-                            aria-label={`Abrir ${product.name}`}
-                          >
+                          <Link className="icon-link" href={`/produtos/${product.id}`} aria-label={`Abrir ${product.name}`}>
                             <ArrowRight size={18} />
                           </Link>
                         )}

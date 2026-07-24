@@ -9,14 +9,24 @@ import { FitnessProductCatalog } from "@/components/fitness-product-catalog";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess, getFitnessProducts } from "@/lib/data";
+import {
+  applyFitnessCatalogPromotions,
+  getActivePromotionRows,
+} from "@/lib/active-promotion-data";
 
 export default async function Page() {
-  const [access, products] = await Promise.all([
+  const [access, baseProducts, promotionRows] = await Promise.all([
     getCurrentUserAccess(),
     getFitnessProducts(),
+    getActivePromotionRows(),
   ]);
 
+  const products = applyFitnessCatalogPromotions(
+    baseProducts,
+    promotionRows,
+  );
   const active = products.filter((product) => product.active);
+  const promotionCount = products.filter((product) => product.promotion_variant_count > 0).length;
   const available = active.reduce(
     (sum, product) => sum + product.available_quantity,
     0,
@@ -34,8 +44,8 @@ export default async function Page() {
         title="Produtos"
         description={
           salesMode
-            ? "Consulta comercial de preço, estoque e reposição prevista."
-            : "Modelos, tamanhos, cores e disponibilidade. O cadastro é completado individualmente na edição de cada produto."
+            ? "Consulta comercial de preço promocional, estoque e reposição prevista."
+            : "Modelos, tamanhos, cores, promoções ativas e disponibilidade. O cadastro é completado individualmente na edição de cada produto."
         }
         action={
           !salesMode && access.canWriteFitness ? (
@@ -46,6 +56,13 @@ export default async function Page() {
           ) : null
         }
       />
+
+      {promotionCount > 0 && (
+        <div className="operation-promotion-banner">
+          <strong>{promotionCount} modelo(s) com promoção ativa</strong>
+          <span>As variações promocionais já entram com o preço correto no catálogo, em novos orçamentos e em novas vendas, enquanto houver estoque.</span>
+        </div>
+      )}
 
       <section className="stats-grid">
         <StatCard
