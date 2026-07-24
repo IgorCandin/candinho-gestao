@@ -80,6 +80,7 @@ export default async function QuoteDetailsPage({
     swipe,
     quoteItemsResult,
     installmentsResult,
+    markupResult,
   ] = await Promise.all([
     getQuoteDetails(id),
     getEntitySwipeNavigation("quote", id),
@@ -98,11 +99,17 @@ export default async function QuoteDetailsPage({
       )
       .eq("quote_id", id)
       .order("installment_no"),
+    supabase
+      .from("sales_quotes")
+      .select("agreed_markup_amount")
+      .eq("id", id)
+      .maybeSingle(),
   ]);
 
   if (!quote) notFound();
   if (quoteItemsResult.error) throw quoteItemsResult.error;
   if (installmentsResult.error) throw installmentsResult.error;
+  if (markupResult.error) throw markupResult.error;
 
   const displayItems = (quoteItemsResult.data ?? []).map(
     (row) => {
@@ -143,6 +150,9 @@ export default async function QuoteDetailsPage({
   );
 
   const hasInstallments = installments.length > 0;
+  const agreedMarkupAmount = Number(
+    markupResult.data?.agreed_markup_amount ?? 0,
+  );
   const canEdit = quote.status === "quoted";
 
   const action = (
@@ -285,6 +295,40 @@ export default async function QuoteDetailsPage({
               ))}
             </div>
           </article>
+
+          {(quote.discount_amount > 0 || agreedMarkupAmount > 0) && (
+            <article className="panel">
+              <div className="panel-head">
+                <div>
+                  <h2>Composição do valor</h2>
+                  <p>Como o total final deste orçamento foi formado.</p>
+                </div>
+                <CircleDollarSign size={19} />
+              </div>
+              <div className="panel-body sale-detail-list">
+                <Line
+                  label="Subtotal dos produtos"
+                  value={formatCurrency(quote.gross_amount)}
+                />
+                {quote.discount_amount > 0 && (
+                  <Line
+                    label="Desconto"
+                    value={`- ${formatCurrency(quote.discount_amount)}`}
+                  />
+                )}
+                {agreedMarkupAmount > 0 && (
+                  <Line
+                    label="Lucro do combinado"
+                    value={`+ ${formatCurrency(agreedMarkupAmount)}`}
+                  />
+                )}
+                <Line
+                  label="Total final"
+                  value={formatCurrency(quote.total_amount)}
+                />
+              </div>
+            </article>
+          )}
 
           {hasInstallments && (
             <article className="panel">

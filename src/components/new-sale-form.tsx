@@ -172,6 +172,7 @@ export function NewSaleForm({
   const [discount, setDiscount] = useState(
     initialQuote ? String(initialQuote.discount_amount) : "0",
   );
+  const [agreedMarkup, setAgreedMarkup] = useState("0");
   const [giftProductId, setGiftProductId] = useState(
     initialQuote?.gift_product_id ?? "",
   );
@@ -305,7 +306,7 @@ export function NewSaleForm({
         const [quotePaymentResult, planResult] = await Promise.all([
           supabase
             .from("sales_quotes")
-            .select("payment_mode")
+            .select("payment_mode,agreed_markup_amount")
             .eq("id", initialQuote.id)
             .maybeSingle(),
           supabase
@@ -328,6 +329,10 @@ export function NewSaleForm({
           setMessage(planResult.error.message);
           return;
         }
+
+        setAgreedMarkup(
+          Number(quotePaymentResult.data?.agreed_markup_amount ?? 0).toFixed(2),
+        );
 
         if (quotePaymentResult.data?.payment_mode === "split") {
           setPaymentMode("split");
@@ -521,7 +526,11 @@ export function NewSaleForm({
   );
 
   const discountValue = Math.max(Number(discount) || 0, 0);
-  const finalTotal = Math.max(grossTotal - discountValue, 0);
+  const agreedMarkupValue = Math.max(Number(agreedMarkup) || 0, 0);
+  const finalTotal = Math.max(
+    grossTotal - discountValue + agreedMarkupValue,
+    0,
+  );
 
   const giftRow = giftProductId
     ? rowFor(giftProductId) ??
@@ -672,7 +681,7 @@ export function NewSaleForm({
       const supabase = createClient();
 
       const { data: quoteData, error: quoteError } =
-        await supabase.rpc("save_budget_quote_v3", {
+        await supabase.rpc("save_budget_quote_v4", {
           p_customer_id: customerId,
           p_location_id: locationId,
           p_quoted_on: quotedOn,
@@ -733,6 +742,7 @@ export function NewSaleForm({
                   notes: row.notes.trim() || null,
                 }))
               : [],
+          p_agreed_markup_amount: agreedMarkupValue,
         });
 
       if (quoteError) throw quoteError;
@@ -759,7 +769,7 @@ export function NewSaleForm({
           data: confirmedSaleId,
           error: confirmError,
         } = await supabase.rpc(
-          "confirm_budget_quote_v3",
+          "confirm_budget_quote_v4",
           {
             p_quote_id: quoteId,
           },
@@ -1239,11 +1249,10 @@ export function NewSaleForm({
         <article className="panel">
           <div className="panel-head">
             <div>
-              <h2>Desconto e brinde</h2>
+              <h2>Ajustes do valor e brinde</h2>
               <p>
-                O desconto é aplicado no total. Produto com
-                sabores deve entrar como item para o sabor ser
-                escolhido.
+                Desconto reduz o total. Lucro do combinado adiciona
+                ao valor final sem alterar o preço individual dos produtos.
               </p>
             </div>
             <Gift size={20} />
@@ -1268,6 +1277,27 @@ export function NewSaleForm({
               <small>
                 Subtotal atual:{" "}
                 {formatCurrency(grossTotal)}
+              </small>
+            </label>
+
+            <label className="field">
+              <span>
+                <CircleDollarSign size={14} /> Lucro do combinado (R$)
+              </span>
+              <input
+                className="input"
+                type="number"
+                min="0"
+                step="0.01"
+                value={agreedMarkup}
+                onChange={(event) =>
+                  setAgreedMarkup(event.target.value)
+                }
+              />
+              <small>
+                Use quando o valor negociado ficou acima da soma dos
+                produtos. Esse valor entra integralmente como receita e
+                lucro adicional da venda.
               </small>
             </label>
 
@@ -1747,6 +1777,12 @@ export function NewSaleForm({
               <small>
                 Desconto: -
                 {formatCurrency(discountValue)}
+              </small>
+            )}
+            {agreedMarkupValue > 0 && (
+              <small className="positive">
+                Lucro do combinado: +
+                {formatCurrency(agreedMarkupValue)}
               </small>
             )}
             <span className="budget-final-label">

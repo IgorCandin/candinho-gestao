@@ -106,7 +106,7 @@ export async function GET(
   const { data, error } = await supabase
     .from("sales_quotes")
     .select(`
-      id,quote_number,status,quoted_on,valid_until,gross_amount,discount_amount,total_amount,
+      id,quote_number,status,quoted_on,valid_until,gross_amount,discount_amount,agreed_markup_amount,total_amount,
       gift_quantity,payment_mode,payment_method,payment_due_on,notes,
       customer:customers(name,phone,city,reference),
       gift:products!sales_quotes_gift_product_id_fkey(name),
@@ -349,22 +349,27 @@ export async function GET(
     y -= rowHeight + 5;
   }
 
-  ensure(112);
+  ensure(128);
   y -= 5;
-  page.drawRectangle({ x: M, y: y - 92, width: W - M * 2, height: 92, color: PANEL, borderColor: GOLD, borderWidth: 0.8 });
-  page.drawRectangle({ x: M, y: y - 92, width: 4, height: 92, color: GOLD });
+  page.drawRectangle({ x: M, y: y - 108, width: W - M * 2, height: 108, color: PANEL, borderColor: GOLD, borderWidth: 0.8 });
+  page.drawRectangle({ x: M, y: y - 108, width: 4, height: 108, color: GOLD });
   page.drawText("RESUMO COMERCIAL", { x: M + 16, y: y - 20, size: 6.8, font: bold, color: MUTED });
   page.drawText("Subtotal", { x: M + 16, y: y - 43, size: 8, font: regular, color: MUTED });
   page.drawText(money(row.gross_amount), { x: M + 116, y: y - 43, size: 8.6, font: bold, color: TEXT });
   const discount = Number(row.discount_amount ?? 0);
+  const agreedMarkup = Number(row.agreed_markup_amount ?? 0);
   if (discount > 0) {
     page.drawText("Desconto", { x: M + 16, y: y - 62, size: 8, font: regular, color: MUTED });
     page.drawText(`- ${money(discount)}`, { x: M + 116, y: y - 62, size: 8.6, font: bold, color: GREEN });
   }
+  if (agreedMarkup > 0) {
+    page.drawText("Lucro do combinado", { x: M + 16, y: y - 81, size: 8, font: regular, color: MUTED });
+    page.drawText(`+ ${money(agreedMarkup)}`, { x: M + 116, y: y - 81, size: 8.6, font: bold, color: GOLD });
+  }
   page.drawText("TOTAL FINAL", { x: W - M - 175, y: y - 23, size: 6.8, font: bold, color: GOLD });
   const finalText = money(row.total_amount);
   page.drawText(finalText, { x: W - M - 16 - bold.widthOfTextAtSize(finalText, 21), y: y - 57, size: 21, font: bold, color: GOLD });
-  y -= 110;
+  y -= 126;
 
   sectionTitle("Condições", "Pagamento, parcelas e observações");
   const paymentMode = String(row.payment_mode ?? "receivable");
