@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { getCurrentUserAccess } from "@/lib/data";
+import {
+  deleteOpenAIFile,
+  uploadOpenAIUserFile,
+} from "@/lib/openai-file-input";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -58,7 +62,59 @@ async function responseJson(response: Response): Promise<JsonRecord> {
   }
 }
 
+function openAIError(status: number, raw: JsonRecord) {
+  const apiError =
+    raw.error && typeof raw.error === "object"
+      ? (raw.error as JsonRecord)
+      : null;
+
+  const detail =
+    typeof apiError?.message === "string"
+      ? apiError.message
+      : "";
+
+  const code =
+    typeof apiError?.code === "string"
+      ? apiError.code
+      : "";
+
+  const quota =
+    code === "insufficient_quota" ||
+    /quota|billing|current plan|exceeded your current quota/i.test(detail);
+
+  if (status === 429 && quota) {
+    return {
+      quota: true,
+      message:
+        "O Nexus está temporariamente indisponível porque a cota da inteligência artificial foi atingida. Regularize o faturamento da API OpenAI e tente novamente.",
+    };
+  }
+
+  if (status === 429) {
+    return {
+      quota: false,
+      message:
+        "O Nexus recebeu muitas solicitações agora. Aguarde um instante e tente novamente.",
+    };
+  }
+
+  if (status === 401 || status === 403) {
+    return {
+      quota: false,
+      message:
+        "A integração do Nexus com a OpenAI precisa ser revisada pelo administrador.",
+    };
+  }
+
+  return {
+    quota: false,
+    message: `Nexus temporariamente indisponível (${status}).`,
+  };
+}
+
 export async function POST(request: Request) {
+  let openAIFileId: string | null = null;
+
   try {
     const access = await getCurrentUserAccess();
     if (!access.canManageUsers && access.role !== "admin") {
@@ -79,6 +135,7 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
     if (file.size > 4 * 1024 * 1024) {
       return NextResponse.json(
         { error: "O arquivo deve ter no máximo 4 MB por importação." },
@@ -87,6 +144,7 @@ export async function POST(request: Request) {
     }
 
     const apiKey = process.env.OPENAI_API_KEY;
+
     if (!apiKey) {
       return NextResponse.json(
         { error: "OPENAI_API_KEY não está disponível neste deployment." },
@@ -94,8 +152,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const base64 = bytes.toString("base64");
     const model = process.env.OPENAI_PHYSIQUE_MODEL || "gpt-5";
 
     const prompt = [
@@ -122,20 +178,28 @@ export async function POST(request: Request) {
       file.type === "application/pdf" ||
       file.name.toLowerCase().endsWith(".pdf")
     ) {
+      openAIFileId = await uploadOpenAIUserFile(apiKey, file);
+
       content.push({
         type: "input_file",
-        filename: file.name || "arquivo.pdf",
-        file_data: base64,
+        file_id: openAIFileId,
       });
     } else if (file.type.startsWith("image/")) {
+      const bytes = Buffer.from(await file.arrayBuffer());
+      const base64 = bytes.toString("base64");
+
       content.push({
         type: "input_image",
         image_url: `data:${file.type};base64,${base64}`,
       });
     } else {
+      const bytes = Buffer.from(await file.arrayBuffer());
+
       content.push({
         type: "input_text",
-        text: `Conteúdo do arquivo:\n${bytes.toString("utf8").slice(0, 30000)}`,
+        text: `Conteúdo do arquivo:\n${bytes
+          .toString("utf8")
+          .slice(0, 30000)}`,
       });
     }
 
@@ -148,7 +212,10 @@ export async function POST(request: Request) {
           content:
             "Você é o Nexus da Candinho Physique. Organize histórico de atletas com rigor factual, comparação futura e revisão humana.",
         },
-        { role: "user", content },
+        {
+          role: "user",
+          content,
+        },
       ],
       text: {
         format: {
@@ -160,24 +227,32 @@ export async function POST(request: Request) {
       },
     });
 
-    let lastMessage = "Não foi possível analisar o arquivo com o Nexus.";
+    let lastMessage =
+      "Não foi possível analisar o arquivo com o Nexus.";
 
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const response = await fetch("https://api.openai.com/v1/responses", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "https://api.openai.com/v1/responses",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
+          body,
+          signal: AbortSignal.timeout(50_000),
         },
-        body,
-        signal: AbortSignal.timeout(50_000),
-      });
+      );
 
       const raw = await responseJson(response);
+
       if (response.ok) {
         const outputText = extractOutputText(raw);
+
         if (!outputText) {
-          throw new Error("O Nexus não retornou uma análise estruturada.");
+          throw new Error(
+            "O Nexus não retornou uma análise estruturada.",
+          );
         }
 
         try {
@@ -186,20 +261,17 @@ export async function POST(request: Request) {
             model,
           });
         } catch {
-          throw new Error("O Nexus retornou a análise em formato inválido.");
+          throw new Error(
+            "O Nexus retornou a análise em formato inválido.",
+          );
         }
       }
 
-      const apiError =
-        raw.error && typeof raw.error === "object"
-          ? (raw.error as JsonRecord)
-          : null;
-      lastMessage =
-        apiError && typeof apiError.message === "string"
-          ? apiError.message
-          : `Nexus indisponível (${response.status}).`;
+      const friendly = openAIError(response.status, raw);
+      lastMessage = friendly.message;
 
       if (
+        friendly.quota ||
         ![429, 500, 502, 503, 504].includes(response.status) ||
         attempt === 1
       ) {
@@ -211,7 +283,10 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ error: lastMessage }, { status: 502 });
+    return NextResponse.json(
+      { error: lastMessage },
+      { status: 502 },
+    );
   } catch (error) {
     return NextResponse.json(
       {
@@ -222,5 +297,11 @@ export async function POST(request: Request) {
       },
       { status: 500 },
     );
+  } finally {
+    const apiKey = process.env.OPENAI_API_KEY;
+
+    if (apiKey) {
+      await deleteOpenAIFile(apiKey, openAIFileId);
+    }
   }
 }
