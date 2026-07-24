@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import "./ux-homologation.css";
+import "./refino-navegacao-vitrine.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",

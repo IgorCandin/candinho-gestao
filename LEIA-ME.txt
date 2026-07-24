@@ -1,0 +1,18 @@
+Candinho Company — Refino 1
+
+Arquivos de aplicação:
+- src/app/layout.tsx
+- src/app/refino-navegacao-vitrine.css
+- src/components/public-storefront-browser.tsx
+
+Mudanças:
+- sidebar desktop alinhada em uma grade fixa de ícone + texto;
+- cabeçalho e gaveta mobile proporcionais;
+- correção visual do destaque persistente em telas touch;
+- vitrine com filtros escuros e responsivos;
+- topo público mais compacto no telefone;
+- preço promocional integrado também na aba Produtos;
+- ordenação e PDF usam o preço promocional vigente;
+- nenhuma migration e nenhuma alteração direta no banco.
+
+Extraia o ZIP na raiz do repositório e confirme a substituição dos arquivos.

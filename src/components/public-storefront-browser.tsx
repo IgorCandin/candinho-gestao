@@ -35,6 +35,13 @@ function selectionId(item: SelectableItem) {
   return `${item.kind}:${item.operation}:${item.id}`;
 }
 
+function productPromotionKey(
+  operation: PublicStorefrontProduct["operation"],
+  productId: string,
+) {
+  return `${operation}:${productId}`;
+}
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -53,7 +60,7 @@ function absoluteUrl(value: string | null) {
   }
 }
 
-function ProductPrice({ item }: { item: PublicStorefrontProduct }) {
+function RegularProductPrice({ item }: { item: PublicStorefrontProduct }) {
   if (Math.abs(item.price_from - item.price_to) < 0.01) {
     return <strong>{formatCurrency(item.price_from)}</strong>;
   }
@@ -62,6 +69,32 @@ function ProductPrice({ item }: { item: PublicStorefrontProduct }) {
     <strong>
       {formatCurrency(item.price_from)} — {formatCurrency(item.price_to)}
     </strong>
+  );
+}
+
+function ProductPrice({
+  item,
+  promotion,
+}: {
+  item: PublicStorefrontProduct;
+  promotion: PublicStorefrontPromotion | null;
+}) {
+  if (!promotion) {
+    return <RegularProductPrice item={item} />;
+  }
+
+  const hasDiscount = promotion.promotional_price < promotion.current_price;
+
+  return (
+    <>
+      <div className="public-storefront-product-effective-price">
+        {hasDiscount && <span>{formatCurrency(promotion.current_price)}</span>}
+        <strong>{formatCurrency(promotion.promotional_price)}</strong>
+      </div>
+      <em className="public-storefront-product-promo-note">
+        <b>Promoção</b> · {promotion.promotion_name} · enquanto durar o estoque
+      </em>
+    </>
   );
 }
 
@@ -90,17 +123,23 @@ function SelectButton({
 
 function ProductCard({
   item,
+  promotion,
   selectable,
   selected,
   onToggle,
 }: {
   item: PublicStorefrontProduct;
+  promotion: PublicStorefrontPromotion | null;
   selectable: boolean;
   selected: boolean;
   onToggle: () => void;
 }) {
   return (
-    <article className={`public-storefront-card ${selected ? "selected" : ""}`}>
+    <article
+      className={`public-storefront-card ${
+        promotion ? "has-active-promotion" : ""
+      } ${selected ? "selected" : ""}`}
+    >
       <div className="public-storefront-card-image">
         {selectable && <SelectButton selected={selected} onToggle={onToggle} />}
         {item.image_url ? (
@@ -114,15 +153,24 @@ function ProductCard({
         ) : (
           <PackageOpen size={38} />
         )}
-        <span className="public-storefront-available">
-          <PackageCheck size={13} />
-          Disponível
-        </span>
+
+        {promotion ? (
+          <span className="public-storefront-promo-badge">
+            <BadgePercent size={13} />
+            Promoção
+          </span>
+        ) : (
+          <span className="public-storefront-available">
+            <PackageCheck size={13} />
+            Disponível
+          </span>
+        )}
       </div>
+
       <div className="public-storefront-card-copy">
         <small>{item.category ?? "Produto"}</small>
         <h3>{item.name}</h3>
-        <ProductPrice item={item} />
+        <ProductPrice item={item} promotion={promotion} />
       </div>
     </article>
   );
@@ -211,7 +259,9 @@ export function PublicStorefrontBrowser({
   const initialPromotionItems = [
     ...snapshot.promotions.supplements,
     ...snapshot.promotions.fitness,
-  ].filter((item) => !initialPromotionId || item.promotion_id === initialPromotionId);
+  ].filter(
+    (item) => !initialPromotionId || item.promotion_id === initialPromotionId,
+  );
 
   const [view, setView] = useState<ViewMode>(initialView);
   const [operation, setOperation] = useState<Operation>("all");
@@ -226,9 +276,52 @@ export function PublicStorefrontBrowser({
       : [],
   );
 
+  const promotionByProduct = useMemo(() => {
+    const result = new Map<string, PublicStorefrontPromotion>();
+
+    [
+      ...snapshot.promotions.supplements,
+      ...snapshot.promotions.fitness,
+    ].forEach((promotion) => {
+      if (
+        promotion.promotion_status !== "active" ||
+        promotion.stock_status === "sold_out" ||
+        !promotion.product_id
+      ) {
+        return;
+      }
+
+      const key = productPromotionKey(
+        promotion.operation,
+        promotion.product_id,
+      );
+      const current = result.get(key);
+
+      if (
+        !current ||
+        promotion.promotional_price < current.promotional_price
+      ) {
+        result.set(key, promotion);
+      }
+    });
+
+    return result;
+  }, [snapshot.promotions]);
+
+  function promotionForProduct(item: PublicStorefrontProduct) {
+    return promotionByProduct.get(
+      productPromotionKey(item.operation, item.id),
+    ) ?? null;
+  }
+
+  function effectiveProductPrice(item: PublicStorefrontProduct) {
+    return promotionForProduct(item)?.promotional_price ?? item.price_from;
+  }
+
   const categories = useMemo(() => {
     if (operation === "supplements") return snapshot.categories.supplements;
     if (operation === "fitness") return snapshot.categories.fitness;
+
     return [
       ...new Set([
         ...snapshot.categories.supplements,
@@ -255,15 +348,27 @@ export function PublicStorefrontBrowser({
 
   const sortProducts = (items: PublicStorefrontProduct[]) =>
     [...items].sort((a, b) => {
-      if (sort === "price_asc") return a.price_from - b.price_from;
-      if (sort === "price_desc") return b.price_from - a.price_from;
+      if (sort === "price_asc") {
+        return effectiveProductPrice(a) - effectiveProductPrice(b);
+      }
+
+      if (sort === "price_desc") {
+        return effectiveProductPrice(b) - effectiveProductPrice(a);
+      }
+
       return a.name.localeCompare(b.name, "pt-BR");
     });
 
   const sortPromotions = (items: PublicStorefrontPromotion[]) =>
     [...items].sort((a, b) => {
-      if (sort === "price_asc") return a.promotional_price - b.promotional_price;
-      if (sort === "price_desc") return b.promotional_price - a.promotional_price;
+      if (sort === "price_asc") {
+        return a.promotional_price - b.promotional_price;
+      }
+
+      if (sort === "price_desc") {
+        return b.promotional_price - a.promotional_price;
+      }
+
       return a.name.localeCompare(b.name, "pt-BR");
     });
 
@@ -283,19 +388,43 @@ export function PublicStorefrontBrowser({
   const visibleItems: SelectableItem[] =
     view === "products"
       ? [
-          ...supplementProducts.map((item) => ({ ...item, kind: "product" as const })),
-          ...fitnessProducts.map((item) => ({ ...item, kind: "product" as const })),
+          ...supplementProducts.map((item) => ({
+            ...item,
+            kind: "product" as const,
+          })),
+          ...fitnessProducts.map((item) => ({
+            ...item,
+            kind: "product" as const,
+          })),
         ]
       : [
-          ...supplementPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
-          ...fitnessPromotions.map((item) => ({ ...item, kind: "promotion" as const })),
+          ...supplementPromotions.map((item) => ({
+            ...item,
+            kind: "promotion" as const,
+          })),
+          ...fitnessPromotions.map((item) => ({
+            ...item,
+            kind: "promotion" as const,
+          })),
         ];
 
   const allItems: SelectableItem[] = [
-    ...snapshot.products.supplements.map((item) => ({ ...item, kind: "product" as const })),
-    ...snapshot.products.fitness.map((item) => ({ ...item, kind: "product" as const })),
-    ...snapshot.promotions.supplements.map((item) => ({ ...item, kind: "promotion" as const })),
-    ...snapshot.promotions.fitness.map((item) => ({ ...item, kind: "promotion" as const })),
+    ...snapshot.products.supplements.map((item) => ({
+      ...item,
+      kind: "product" as const,
+    })),
+    ...snapshot.products.fitness.map((item) => ({
+      ...item,
+      kind: "product" as const,
+    })),
+    ...snapshot.promotions.supplements.map((item) => ({
+      ...item,
+      kind: "promotion" as const,
+    })),
+    ...snapshot.promotions.fitness.map((item) => ({
+      ...item,
+      kind: "promotion" as const,
+    })),
   ];
 
   const selectedItems = allItems.filter((item) =>
@@ -305,16 +434,25 @@ export function PublicStorefrontBrowser({
   const blocks =
     view === "products"
       ? [
-          { key: "supplements", title: "Suplementos", items: supplementProducts },
+          {
+            key: "supplements",
+            title: "Suplementos",
+            items: supplementProducts,
+          },
           { key: "fitness", title: "Fitness", items: fitnessProducts },
         ]
       : [
-          { key: "supplements", title: "Suplementos", items: supplementPromotions },
+          {
+            key: "supplements",
+            title: "Suplementos",
+            items: supplementPromotions,
+          },
           { key: "fitness", title: "Fitness", items: fitnessPromotions },
         ];
 
   function toggleItem(item: SelectableItem) {
     const key = selectionId(item);
+
     setSelectedIds((current) =>
       current.includes(key)
         ? current.filter((value) => value !== key)
@@ -328,6 +466,11 @@ export function PublicStorefrontBrowser({
       visibleItems.forEach((item) => next.add(selectionId(item)));
       return [...next];
     });
+  }
+
+  function changeOperation(nextOperation: Operation) {
+    setOperation(nextOperation);
+    setCategory("all");
   }
 
   function exportPdf() {
@@ -344,14 +487,15 @@ export function PublicStorefrontBrowser({
           : BRAND_ASSETS.supplements.complete;
 
     const logoUrl = absoluteUrl(logo.src);
+    const effectivePromotions = selectedItems
+      .map((item) =>
+        item.kind === "promotion" ? item : promotionForProduct(item),
+      )
+      .filter(
+        (item): item is PublicStorefrontPromotion => Boolean(item),
+      );
     const campaignNames = [
-      ...new Set(
-        selectedItems
-          .filter((item): item is Extract<SelectableItem, { kind: "promotion" }> =>
-            item.kind === "promotion",
-          )
-          .map((item) => item.promotion_name),
-      ),
+      ...new Set(effectivePromotions.map((item) => item.promotion_name)),
     ];
     const documentTitle =
       view === "promotions"
@@ -367,45 +511,68 @@ export function PublicStorefrontBrowser({
           item.operation === "fitness"
             ? "Candinho Fitness"
             : "Candinho Suplementos";
-        const soldOut = item.kind === "promotion" && item.stock_status === "sold_out";
-        const price =
-          item.kind === "product"
-            ? Math.abs(item.price_from - item.price_to) < 0.01
+        const effectivePromotion =
+          item.kind === "promotion" ? item : promotionForProduct(item);
+        const soldOut =
+          effectivePromotion?.stock_status === "sold_out";
+
+        let price: string;
+        let oldPrice = "";
+        let campaign = `<p>Disponível para venda</p>`;
+        let stock = "";
+
+        if (effectivePromotion) {
+          price = formatCurrency(effectivePromotion.promotional_price);
+
+          if (
+            effectivePromotion.promotional_price <
+            effectivePromotion.current_price
+          ) {
+            oldPrice = `<span class="old-price">${escapeHtml(
+              formatCurrency(effectivePromotion.current_price),
+            )}</span>`;
+          }
+
+          campaign = `<p>${escapeHtml(
+            effectivePromotion.promotion_name,
+          )}</p>`;
+
+          stock = soldOut
+            ? `<div class="sold-out-label">✕ ESTOQUE ZERADO</div>`
+            : `<div class="stock-label">Enquanto durar o estoque · ${effectivePromotion.available_quantity} un.</div>`;
+        } else if (item.kind === "product") {
+          price =
+            Math.abs(item.price_from - item.price_to) < 0.01
               ? formatCurrency(item.price_from)
-              : `${formatCurrency(item.price_from)} — ${formatCurrency(item.price_to)}`
-            : formatCurrency(item.promotional_price);
-        const oldPrice =
-          item.kind === "promotion" &&
-          item.promotional_price < item.current_price
-            ? `<span class="old-price">${escapeHtml(
-                formatCurrency(item.current_price),
-              )}</span>`
-            : "";
-        const campaign =
-          item.kind === "promotion"
-            ? `<p>${escapeHtml(item.promotion_name)}</p>`
-            : `<p>Disponível para venda</p>`;
-        const stock =
-          item.kind === "promotion"
-            ? soldOut
-              ? `<div class="sold-out-label">✕ ESTOQUE ZERADO</div>`
-              : `<div class="stock-label">Enquanto durar o estoque · ${item.available_quantity} un.</div>`
-            : "";
+              : `${formatCurrency(item.price_from)} — ${formatCurrency(
+                  item.price_to,
+                )}`;
+        } else {
+          price = formatCurrency(item.promotional_price);
+        }
 
         return `
           <article class="card ${soldOut ? "sold-out" : ""}">
             <div class="photo">
-              ${image
-                ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(item.name)}">`
-                : `<div class="placeholder">CANDINHO</div>`}
+              ${
+                image
+                  ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(
+                      item.name,
+                    )}">`
+                  : `<div class="placeholder">CANDINHO</div>`
+              }
               ${soldOut ? `<div class="sold-x">✕</div>` : ""}
             </div>
             <div class="copy">
               <span class="operation">${escapeHtml(operationLabel)}</span>
               <h2>${escapeHtml(item.name)}</h2>
-              <span class="category">${escapeHtml(item.category ?? "Produto")}</span>
+              <span class="category">${escapeHtml(
+                item.category ?? "Produto",
+              )}</span>
               ${campaign}
-              <div class="price">${oldPrice}<strong>${escapeHtml(price)}</strong></div>
+              <div class="price">${oldPrice}<strong>${escapeHtml(
+                price,
+              )}</strong></div>
               ${stock}
             </div>
           </article>
@@ -455,8 +622,14 @@ export function PublicStorefrontBrowser({
         <body>
           <main class="sheet">
             <header class="header">
-              ${logoUrl ? `<img src="${escapeHtml(logoUrl)}" alt="Candinho">` : ""}
-              <div><h1>${escapeHtml(documentTitle)}</h1><p>Qualidade que entrega resultado.</p></div>
+              ${
+                logoUrl
+                  ? `<img src="${escapeHtml(logoUrl)}" alt="Candinho">`
+                  : ""
+              }
+              <div><h1>${escapeHtml(
+                documentTitle,
+              )}</h1><p>Qualidade que entrega resultado.</p></div>
             </header>
             <div class="notice">OFERTAS ENQUANTO DURAR O ESTOQUE</div>
             <section class="grid">${rows}</section>
@@ -482,7 +655,10 @@ export function PublicStorefrontBrowser({
       )}
 
       <div className="public-storefront-toolbar">
-        <div className="public-storefront-view-toggle">
+        <div
+          className="public-storefront-view-toggle"
+          aria-label="Alternar visualização"
+        >
           <button
             className={view === "products" ? "active" : ""}
             type="button"
@@ -509,20 +685,36 @@ export function PublicStorefrontBrowser({
           />
         </label>
 
-        <select value={operation} onChange={(event) => setOperation(event.target.value as Operation)}>
+        <select
+          aria-label="Filtrar por operação"
+          value={operation}
+          onChange={(event) =>
+            changeOperation(event.target.value as Operation)
+          }
+        >
           <option value="all">Todas as operações</option>
           <option value="supplements">Suplementos</option>
           <option value="fitness">Fitness</option>
         </select>
 
-        <select value={category} onChange={(event) => setCategory(event.target.value)}>
+        <select
+          aria-label="Filtrar por categoria"
+          value={category}
+          onChange={(event) => setCategory(event.target.value)}
+        >
           <option value="all">Todas as categorias</option>
           {categories.map((item) => (
-            <option key={item} value={item}>{item}</option>
+            <option key={item} value={item}>
+              {item}
+            </option>
           ))}
         </select>
 
-        <select value={sort} onChange={(event) => setSort(event.target.value as SortMode)}>
+        <select
+          aria-label="Ordenar produtos"
+          value={sort}
+          onChange={(event) => setSort(event.target.value as SortMode)}
+        >
           <option value="name">Ordenar por nome</option>
           <option value="price_asc">Menor preço</option>
           <option value="price_desc">Maior preço</option>
@@ -536,11 +728,19 @@ export function PublicStorefrontBrowser({
             <span>Selecione produtos ou promoções para gerar o PDF A4.</span>
           </div>
           <div>
-            <button className="button ghost" type="button" onClick={selectVisible}>
+            <button
+              className="button ghost"
+              type="button"
+              onClick={selectVisible}
+            >
               <CheckSquare size={15} />
               Selecionar visíveis
             </button>
-            <button className="button ghost" type="button" onClick={() => setSelectedIds([])}>
+            <button
+              className="button ghost"
+              type="button"
+              onClick={() => setSelectedIds([])}
+            >
               Limpar
             </button>
             <button
@@ -560,20 +760,32 @@ export function PublicStorefrontBrowser({
         {blocks.map((block) =>
           block.items.length > 0 ? (
             <section key={block.key}>
-              <header><h2>{block.title}</h2><span>{block.items.length} item(ns)</span></header>
+              <header>
+                <h2>{block.title}</h2>
+                <span>{block.items.length} item(ns)</span>
+              </header>
+
               <div className="public-storefront-grid">
                 {block.items.map((item) => {
                   const selectable = enableExport;
                   const selectableItem = {
                     ...item,
-                    kind: view === "products" ? ("product" as const) : ("promotion" as const),
+                    kind:
+                      view === "products"
+                        ? ("product" as const)
+                        : ("promotion" as const),
                   } as SelectableItem;
-                  const selected = selectedIds.includes(selectionId(selectableItem));
+                  const selected = selectedIds.includes(
+                    selectionId(selectableItem),
+                  );
 
                   return view === "products" ? (
                     <ProductCard
                       key={item.id}
                       item={item as PublicStorefrontProduct}
+                      promotion={promotionForProduct(
+                        item as PublicStorefrontProduct,
+                      )}
                       selectable={selectable}
                       selected={selected}
                       onToggle={() => toggleItem(selectableItem)}

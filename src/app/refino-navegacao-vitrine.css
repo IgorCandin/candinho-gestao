@@ -1,0 +1,468 @@
+/* Refino 1 · Navegação simétrica + vitrine operacional
+   Importado por último para corrigir proporções sem apagar os estilos anteriores. */
+
+/* -----------------------------
+   Navegação desktop
+------------------------------ */
+@media (min-width: 821px) {
+  .app-shell {
+    grid-template-columns: 248px minmax(0, 1fr);
+  }
+
+  .app-shell > .sidebar {
+    padding: 22px 16px;
+  }
+
+  .app-shell > .sidebar .brand-logo-link {
+    min-height: 78px;
+    padding: 2px 10px 18px;
+    justify-content: center;
+  }
+
+  .app-shell > .sidebar .sidebar-company-logo {
+    display: block;
+    width: auto;
+    max-width: 192px;
+    height: 58px;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .app-shell > .sidebar .nav {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 0 2px !important;
+  }
+
+  .app-shell > .sidebar .nav-link {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 14px;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 11px;
+    border-radius: 12px;
+  }
+
+  .app-shell > .sidebar .nav-link > svg {
+    width: 18px;
+    height: 18px;
+    justify-self: center;
+  }
+
+  .app-shell > .sidebar .nav-label {
+    min-width: 0;
+    line-height: 1.22;
+  }
+
+  .app-shell > .sidebar .sidebar-footer {
+    padding: 16px 4px 0 !important;
+  }
+
+  .app-shell > .sidebar .sidebar-footer .nav-link {
+    padding-inline: 14px !important;
+  }
+}
+
+/* Hover só existe em aparelhos com ponteiro real.
+   Evita que o toque no iPhone deixe duas opções aparentando estar ativas. */
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover {
+    background: var(--panel);
+    color: var(--text);
+    transform: translateX(2px);
+  }
+
+  .mobile-menu-link:hover {
+    background: var(--gold-soft);
+    color: var(--accent-nav-text);
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .nav-link:hover:not(.primary),
+  .mobile-menu-link:hover:not(.primary) {
+    background: transparent;
+    color: var(--muted);
+    transform: none;
+  }
+}
+
+/* -----------------------------
+   Navegação mobile
+------------------------------ */
+@media (max-width: 820px) {
+  .mobile-header {
+    min-height: 64px;
+    padding: max(9px, env(safe-area-inset-top)) 14px 9px;
+    display: grid !important;
+    grid-template-columns: minmax(86px, 1fr) minmax(0, auto) minmax(46px, 1fr);
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mobile-header .mobile-menu {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+    order: initial;
+  }
+
+  .mobile-header .mobile-brand-link {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+    order: initial;
+    max-width: min(168px, 44vw);
+  }
+
+  .mobile-header .mobile-back-button {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    order: initial;
+    margin-left: 0;
+  }
+
+  .mobile-header .mobile-operation-logo {
+    max-width: min(166px, 44vw);
+    height: 40px;
+    object-position: center;
+  }
+
+  .mobile-menu summary {
+    min-width: 88px;
+    min-height: 44px;
+    padding: 0 13px;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .mobile-menu-panel {
+    width: min(304px, 82vw);
+    padding: 12px 10px max(18px, env(safe-area-inset-bottom));
+    gap: 4px;
+    border-radius: 0 18px 18px 0;
+  }
+
+  .mobile-menu-link {
+    min-height: 48px;
+    padding: 0 13px;
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    align-items: center;
+    gap: 11px;
+    border-radius: 11px;
+    font-size: 13px;
+    line-height: 1.2;
+  }
+
+  .mobile-menu-link > svg {
+    width: 19px;
+    height: 19px;
+    justify-self: center;
+  }
+
+  .mobile-menu-link.primary {
+    background: var(--gold-soft);
+    color: var(--accent-nav-text);
+    box-shadow: inset 3px 0 0 var(--gold);
+  }
+
+  .mobile-menu-panel form {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--line);
+  }
+
+  .app-shell:has(.operation-home-hero) .mobile-header,
+  .app-shell:has(.bank-dashboard) .mobile-header {
+    display: flex !important;
+    padding: 0;
+  }
+
+  .app-shell:has(.operation-home-hero) .mobile-menu-panel,
+  .app-shell:has(.bank-dashboard) .mobile-menu-panel {
+    width: min(304px, 82vw);
+  }
+}
+
+/* -----------------------------
+   Vitrine pública
+------------------------------ */
+.public-storefront-header {
+  padding-top: 22px;
+}
+
+.public-storefront-hero {
+  padding: 42px 0 24px;
+}
+
+.public-storefront-hero h1 {
+  max-width: 900px;
+}
+
+.public-storefront-toolbar {
+  grid-template-columns:
+    minmax(210px, auto)
+    minmax(280px, 1fr)
+    minmax(160px, .58fr)
+    minmax(170px, .62fr)
+    minmax(155px, .55fr);
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+}
+
+.public-storefront-view-toggle {
+  min-width: 210px;
+  min-height: 42px;
+  padding: 4px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #0b0f15;
+}
+
+.public-storefront-view-toggle button {
+  min-height: 34px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.public-storefront-view-toggle button.active {
+  background: rgba(217, 164, 65, .14);
+  color: #f0cf80;
+  box-shadow: inset 0 0 0 1px rgba(217, 164, 65, .27);
+}
+
+.public-storefront-view-toggle button:disabled {
+  opacity: .65;
+  cursor: not-allowed;
+}
+
+.public-storefront-toolbar > select {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  outline: 0;
+  background-color: #0b0f15;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 750;
+  color-scheme: dark;
+}
+
+.public-storefront-toolbar > select:focus,
+.public-storefront-search:focus-within {
+  border-color: rgba(217, 164, 65, .62);
+  box-shadow: 0 0 0 3px rgba(217, 164, 65, .09);
+}
+
+.public-storefront-search {
+  background: #0b0f15;
+}
+
+.public-storefront-card.has-active-promotion {
+  border-color: rgba(217, 164, 65, .30);
+  box-shadow: inset 0 -3px 0 rgba(217, 164, 65, .16);
+}
+
+.public-storefront-product-effective-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.public-storefront-product-effective-price span {
+  color: var(--muted);
+  font-size: 10px;
+  text-decoration: line-through;
+}
+
+.public-storefront-product-effective-price strong {
+  color: #ecd083;
+  font-size: 15px;
+}
+
+.public-storefront-product-promo-note {
+  display: block;
+  margin-top: 6px;
+  color: #d8bc73;
+  font-size: 8px;
+  font-style: normal;
+  line-height: 1.35;
+}
+
+.public-storefront-product-promo-note b {
+  color: #f1d48c;
+}
+
+.public-storefront-blocks {
+  margin-top: 24px;
+}
+
+.public-storefront-block > header,
+.public-storefront-blocks > section > header {
+  margin-bottom: 14px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.public-storefront-blocks > section > header h2 {
+  margin: 0;
+  font-size: 25px;
+}
+
+.public-storefront-blocks > section > header span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+@media (max-width: 1100px) {
+  .public-storefront-toolbar {
+    grid-template-columns: minmax(210px, auto) minmax(260px, 1fr) repeat(2, minmax(150px, .65fr));
+  }
+
+  .public-storefront-toolbar > select:last-child {
+    grid-column: 3 / 5;
+  }
+}
+
+@media (max-width: 720px) {
+  .public-storefront-header {
+    width: min(100% - 28px, 1260px);
+    padding: 18px 0 10px;
+  }
+
+  .public-storefront-header-top > img {
+    width: min(210px, 56vw);
+    max-height: 62px;
+  }
+
+  .public-storefront-login {
+    min-height: 38px;
+    padding-inline: 12px;
+  }
+
+  .public-storefront-hero {
+    padding: 30px 0 14px;
+  }
+
+  .public-storefront-hero > span {
+    font-size: 10px;
+  }
+
+  .public-storefront-hero h1 {
+    margin-top: 8px;
+    font-size: clamp(36px, 11vw, 52px);
+    line-height: .98;
+  }
+
+  .public-storefront-hero p {
+    margin-bottom: 0;
+    font-size: 13px;
+    line-height: 1.58;
+  }
+
+  .public-storefront-content {
+    width: min(100% - 24px, 1260px);
+    padding-top: 4px;
+  }
+
+  .public-storefront-toolbar {
+    position: static;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    padding: 11px;
+    border-radius: 15px;
+  }
+
+  .public-storefront-view-toggle,
+  .public-storefront-search {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+
+  .public-storefront-toolbar > select {
+    grid-column: auto !important;
+    min-height: 42px;
+    padding-left: 10px;
+    font-size: 10px;
+  }
+
+  .public-storefront-toolbar > select:last-child {
+    grid-column: 1 / -1 !important;
+  }
+
+  .public-storefront-blocks {
+    gap: 34px;
+    margin-top: 22px;
+  }
+
+  .public-storefront-blocks > section > header h2 {
+    font-size: 23px;
+  }
+}
+
+@media (max-width: 430px) {
+  .public-storefront-header {
+    width: min(100% - 22px, 1260px);
+  }
+
+  .public-storefront-header-top {
+    gap: 12px;
+  }
+
+  .public-storefront-header-top > img {
+    width: min(190px, 54vw);
+  }
+
+  .public-storefront-hero {
+    padding-top: 24px;
+  }
+
+  .public-storefront-hero h1 {
+    font-size: clamp(34px, 10.5vw, 45px);
+  }
+
+  .public-storefront-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .public-storefront-view-toggle,
+  .public-storefront-search,
+  .public-storefront-toolbar > select,
+  .public-storefront-toolbar > select:last-child {
+    grid-column: 1 !important;
+  }
+
+  .public-storefront-card-copy {
+    min-height: 126px;
+  }
+
+  .public-storefront-product-effective-price strong {
+    font-size: 13px;
+  }
+
+  .public-storefront-product-promo-note {
+    font-size: 7px;
+  }
+}
