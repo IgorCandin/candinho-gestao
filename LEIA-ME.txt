@@ -1,0 +1,26 @@
+Candinho Company — Custos por momento real de consumo
+
+O pacote implementa:
+- editar cadastro de materiais;
+- corrigir saldo e custo médio com motivo/auditoria;
+- Etiqueta: baixa quando produto entra no estoque e entra no custo médio do produto recebido;
+- Sacola/Cartão: escolha manual no momento da entrega da venda;
+- quantidade por pedido pode ser 0, 1 ou várias unidades;
+- sugestão opcional por capacidade, ex.: 1 sacola a cada 2 produtos;
+- vendas antigas não são recalculadas.
+
+Arquivos:
+- src/components/operational-costs-page.tsx
+- src/app/(app)/estoque/custos/materiais/page.tsx
+- src/components/operational-supplies-admin.tsx
+- src/components/operational-supplies-admin.module.css
+- src/components/sale-status-actions.tsx
+- src/components/sale-delivery-supplies.module.css
+- supabase/migrations/20260725173000_operational_supplies_consumption_stages.sql
+- supabase/migrations/20260725173500_operational_supply_defaults.sql
+- supabase/migrations/20260725174000_protect_manual_delivery_supplies.sql
+
+As migrations já foram aplicadas no Supabase de produção. Elas estão no ZIP para sincronizar o repositório.
+
+Commit sugerido:
+feat: separa custos de entrada e materiais escolhidos na entrega
