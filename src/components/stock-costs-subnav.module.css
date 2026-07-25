@@ -1,0 +1,2 @@
+.nav{display:flex;gap:8px;margin:0 0 16px;padding:5px;border:1px solid var(--line);border-radius:13px;background:var(--panel);overflow-x:auto}.link{display:inline-flex;align-items:center;gap:8px;min-height:38px;padding:0 13px;border-radius:9px;color:var(--muted);font-size:11px;font-weight:850;white-space:nowrap}.active{background:var(--gold-soft);color:var(--accent-nav-text)}
+@media(max-width:720px){.nav{margin-inline:-2px}.link{flex:1;justify-content:center}}
