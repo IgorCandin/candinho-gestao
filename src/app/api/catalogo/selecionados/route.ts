@@ -1,9 +1,20 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { NextRequest } from "next/server";
-import { PDFDocument, StandardFonts, rgb, type PDFImage, type PDFFont, type PDFPage } from "pdf-lib";
+import {
+  PDFDocument,
+  StandardFonts,
+  rgb,
+  type PDFImage,
+  type PDFFont,
+  type PDFPage,
+} from "pdf-lib";
 import sharp from "sharp";
 import { getCurrentUserAccess } from "@/lib/data";
+import {
+  getActiveSupplementPromotionMap,
+  type CatalogActivePromotion,
+} from "@/lib/catalog-active-promotions";
 import { createClient } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -19,6 +30,7 @@ type CatalogProduct = {
   installment_price: number | string;
   available_quantity: number | string;
   incoming_quantity: number | string;
+  promotion: CatalogActivePromotion | null;
 };
 
 const PAGE_W = 595.28;
@@ -58,6 +70,12 @@ function safeText(value: unknown) {
     .trim();
 }
 
+function shortDate(value: string | null) {
+  if (!value) return null;
+  const [year, month, day] = value.slice(0, 10).split("-");
+  return year && month && day ? `${day}/${month}/${year}` : null;
+}
+
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number, maxLines = 2) {
   const words = safeText(text).split(/\s+/).filter(Boolean);
   const lines: string[] = [];
@@ -78,11 +96,23 @@ function wrapText(text: string, font: PDFFont, size: number, maxWidth: number, m
   return lines;
 }
 
-async function imageToPngBuffer(url: string) {
-  const response = await fetch(url, { signal: AbortSignal.timeout(6500) });
-  if (!response.ok) throw new Error("Imagem indisponível");
-  return sharp(Buffer.from(await response.arrayBuffer()))
-    .resize({ width: 320, height: 320, fit: "contain", background: { r: 15, g: 19, b: 27, alpha: 0 } })
+async function imageToPngBuffer(source: string | Buffer) {
+  const input =
+    typeof source === "string"
+      ? Buffer.from(
+          await (
+            await fetch(source, { signal: AbortSignal.timeout(6500) })
+          ).arrayBuffer(),
+        )
+      : source;
+
+  return sharp(input)
+    .resize({
+      width: 320,
+      height: 320,
+      fit: "contain",
+      background: { r: 15, g: 19, b: 27, alpha: 0 },
+    })
     .png()
     .toBuffer();
 }
@@ -96,9 +126,14 @@ async function embedImage(pdf: PDFDocument, url: string | null): Promise<PDFImag
   }
 }
 
-function drawHeader(page: PDFPage, logo: PDFImage, bold: PDFFont, regular: PDFFont, includeIncoming: boolean) {
+function drawHeader(
+  page: PDFPage,
+  logo: PDFImage,
+  bold: PDFFont,
+  regular: PDFFont,
+  includeIncoming: boolean,
+) {
   page.drawRectangle({ x: 0, y: 0, width: PAGE_W, height: PAGE_H, color: BG });
-
   const logoScale = Math.min(205 / logo.width, 60 / logo.height);
   page.drawImage(logo, {
     x: 34,
@@ -106,7 +141,6 @@ function drawHeader(page: PDFPage, logo: PDFImage, bold: PDFFont, regular: PDFFo
     width: logo.width * logoScale,
     height: logo.height * logoScale,
   });
-
   page.drawText("CATALOGO SELECIONADO", {
     x: 330,
     y: PAGE_H - 50,
@@ -114,15 +148,14 @@ function drawHeader(page: PDFPage, logo: PDFImage, bold: PDFFont, regular: PDFFo
     font: bold,
     color: TEXT,
   });
-
-  page.drawText(safeText(`Preparado em ${new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo" }).format(new Date())}`), {
-    x: 330,
-    y: PAGE_H - 68,
-    size: 8.5,
-    font: regular,
-    color: MUTED,
-  });
-
+  page.drawText(
+    safeText(
+      `Preparado em ${new Intl.DateTimeFormat("pt-BR", {
+        timeZone: "America/Sao_Paulo",
+      }).format(new Date())}`,
+    ),
+    { x: 330, y: PAGE_H - 68, size: 8.5, font: regular, color: MUTED },
+  );
   if (includeIncoming) {
     page.drawText("Inclui produtos a caminho", {
       x: 330,
@@ -132,7 +165,6 @@ function drawHeader(page: PDFPage, logo: PDFImage, bold: PDFFont, regular: PDFFo
       color: GOLD,
     });
   }
-
   page.drawLine({
     start: { x: 34, y: PAGE_H - 98 },
     end: { x: PAGE_W - 34, y: PAGE_H - 98 },
@@ -148,7 +180,6 @@ function drawFooter(page: PDFPage, regular: PDFFont, pageNumber: number) {
     thickness: 0.7,
     color: LINE,
   });
-
   page.drawText("Candinho Suplementos - Qualidade que entrega resultado.", {
     x: 34,
     y: 19,
@@ -156,7 +187,6 @@ function drawFooter(page: PDFPage, regular: PDFFont, pageNumber: number) {
     font: regular,
     color: MUTED,
   });
-
   page.drawText(String(pageNumber), {
     x: PAGE_W - 42,
     y: 19,
@@ -177,6 +207,7 @@ function drawCard(
 ) {
   const width = 254;
   const height = 205;
+  const promotion = product.promotion;
 
   page.drawRectangle({ x, y, width, height, color: PANEL, borderColor: LINE, borderWidth: 0.8 });
   page.drawRectangle({ x, y: y + height - 4, width, height: 4, color: GOLD });
@@ -184,7 +215,6 @@ function drawCard(
   const imageX = x + 14;
   const imageY = y + 72;
   const imageSize = 104;
-
   page.drawRectangle({
     x: imageX,
     y: imageY,
@@ -207,28 +237,72 @@ function drawCard(
     page.drawText("SEM FOTO", { x: imageX + 28, y: imageY + 48, size: 8, font: bold, color: MUTED });
   }
 
+  if (promotion) {
+    page.drawRectangle({ x: imageX + 4, y: imageY + imageSize - 19, width: 54, height: 15, color: GOLD });
+    page.drawText("PROMOCAO", {
+      x: imageX + 9,
+      y: imageY + imageSize - 14,
+      size: 6.5,
+      font: bold,
+      color: BG,
+    });
+  }
+
   const textX = x + 132;
   const textWidth = width - 146;
-
   wrapText(product.name, bold, 10.5, textWidth, 3).forEach((line, index) => {
     page.drawText(line, { x: textX, y: y + 163 - index * 14, size: 10.5, font: bold, color: TEXT });
   });
 
-  wrapText([product.category, product.brand].filter(Boolean).join(" - "), regular, 7.5, textWidth, 2).forEach((line, index) => {
-    page.drawText(line, { x: textX, y: y + 113 - index * 10, size: 7.5, font: regular, color: MUTED });
-  });
+  wrapText([product.category, product.brand].filter(Boolean).join(" - ") || "Produto", regular, 7.5, textWidth, 2).forEach(
+    (line, index) => {
+      page.drawText(line, { x: textX, y: y + 116 - index * 10, size: 7.5, font: regular, color: MUTED });
+    },
+  );
 
-  page.drawText("A vista", { x: textX, y: y + 79, size: 7.5, font: regular, color: MUTED });
-  page.drawText(safeText(money(product.sale_price)), { x: textX, y: y + 62, size: 13.5, font: bold, color: GOLD });
-
-  if (num(product.installment_price) > 0 && num(product.installment_price) !== num(product.sale_price)) {
-    page.drawText(safeText(`Prazo: ${money(product.installment_price)}`), {
-      x: textX,
-      y: y + 46,
-      size: 7.5,
-      font: regular,
-      color: TEXT,
+  if (promotion) {
+    const normalPrice = promotion.currentPrice > 0 ? promotion.currentPrice : num(product.sale_price);
+    const oldPrice = safeText(money(normalPrice));
+    page.drawText(oldPrice, { x: textX, y: y + 83, size: 7.5, font: regular, color: MUTED });
+    const oldWidth = regular.widthOfTextAtSize(oldPrice, 7.5);
+    page.drawLine({
+      start: { x: textX, y: y + 86 },
+      end: { x: textX + oldWidth, y: y + 86 },
+      thickness: 0.7,
+      color: MUTED,
     });
+    page.drawText(safeText(money(promotion.promotionalPrice)), {
+      x: textX,
+      y: y + 63,
+      size: 14.5,
+      font: bold,
+      color: GOLD,
+    });
+
+    const promoLabel = promotion.discountPct > 0
+      ? `${promotion.promotionName} - ${Math.round(promotion.discountPct)}% OFF`
+      : promotion.promotionName;
+    wrapText(promoLabel, regular, 6.8, textWidth, 2).forEach((line, index) => {
+      page.drawText(line, { x: textX, y: y + 49 - index * 8, size: 6.8, font: regular, color: TEXT });
+    });
+  } else {
+    page.drawText("A vista", { x: textX, y: y + 79, size: 7.5, font: regular, color: MUTED });
+    page.drawText(safeText(money(product.sale_price)), {
+      x: textX,
+      y: y + 62,
+      size: 13.5,
+      font: bold,
+      color: GOLD,
+    });
+    if (num(product.installment_price) > 0 && num(product.installment_price) !== num(product.sale_price)) {
+      page.drawText(safeText(`Prazo: ${money(product.installment_price)}`), {
+        x: textX,
+        y: y + 46,
+        size: 7.5,
+        font: regular,
+        color: TEXT,
+      });
+    }
   }
 
   const available = num(product.available_quantity);
@@ -236,7 +310,11 @@ function drawCard(
   let stockLabel = `Disponivel: ${available}`;
   let stockColor = GREEN;
 
-  if (available === 1) {
+  if (promotion) {
+    const until = shortDate(promotion.endsOn);
+    stockLabel = until ? `Oferta ate ${until} - enquanto durar` : "Oferta - enquanto durar o estoque";
+    stockColor = GOLD;
+  } else if (available === 1) {
     stockLabel = "ULTIMA UNIDADE";
     stockColor = GOLD;
   } else if (available <= 0 && incoming > 0) {
@@ -244,7 +322,7 @@ function drawCard(
     stockColor = GOLD;
   }
 
-  page.drawText(stockLabel, { x: x + 14, y: y + 26, size: 8.5, font: bold, color: stockColor });
+  page.drawText(safeText(stockLabel), { x: x + 14, y: y + 26, size: 8.2, font: bold, color: stockColor });
 }
 
 export async function GET(request: NextRequest) {
@@ -265,21 +343,32 @@ export async function GET(request: NextRequest) {
   const includeIncoming = request.nextUrl.searchParams.get("includeIncoming") === "1";
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("product_catalog_commercial_sort")
-    .select("id,name,category,brand,image_url,sale_price,installment_price,available_quantity,incoming_quantity")
-    .eq("active", true)
-    .in("id", ids);
+  const [{ data, error }, promotionMap] = await Promise.all([
+    supabase
+      .from("product_catalog_commercial_sort")
+      .select("id,name,category,brand,image_url,sale_price,installment_price,available_quantity,incoming_quantity")
+      .eq("active", true)
+      .in("id", ids),
+    getActiveSupplementPromotionMap(),
+  ]);
 
   if (error) {
     return new Response(`Nao foi possivel gerar o catalogo: ${error.message}`, { status: 500 });
   }
 
-  const byId = new Map(((data ?? []) as CatalogProduct[]).map((product) => [product.id, product]));
-  const products = ids
+  const byId = new Map(
+    ((data ?? []) as Array<Omit<CatalogProduct, "promotion">>).map((product) => [product.id, product]),
+  );
+
+  const products: CatalogProduct[] = ids
     .map((id) => byId.get(id))
-    .filter((product): product is CatalogProduct => Boolean(product))
-    .filter((product) => includeIncoming ? num(product.available_quantity) > 0 || num(product.incoming_quantity) > 0 : num(product.available_quantity) > 0);
+    .filter((product): product is Omit<CatalogProduct, "promotion"> => Boolean(product))
+    .filter((product) =>
+      includeIncoming
+        ? num(product.available_quantity) > 0 || num(product.incoming_quantity) > 0
+        : num(product.available_quantity) > 0,
+    )
+    .map((product) => ({ ...product, promotion: promotionMap.get(product.id) ?? null }));
 
   if (products.length === 0) {
     return new Response("Nenhum dos produtos selecionados esta disponivel para este filtro.", { status: 400 });
@@ -289,8 +378,21 @@ export async function GET(request: NextRequest) {
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
-  const logoBuffer = await readFile(path.join(process.cwd(), "public", "candinho-suplementos-logo.png"));
-  const logo = await pdf.embedPng(logoBuffer);
+  let logo: PDFImage;
+  try {
+    const logoBuffer = await readFile(path.join(process.cwd(), "public", "candinho-suplementos-logo.png"));
+    logo = await pdf.embedPng(logoBuffer);
+  } catch {
+    const fallback = await sharp({
+      create: {
+        width: 640,
+        height: 180,
+        channels: 4,
+        background: { r: 7, g: 9, b: 13, alpha: 0 },
+      },
+    }).png().toBuffer();
+    logo = await pdf.embedPng(fallback);
+  }
 
   const imageMap = new Map<string, PDFImage | null>();
   await Promise.all(
@@ -305,8 +407,7 @@ export async function GET(request: NextRequest) {
     const pageNumber = pdf.getPageCount();
     drawHeader(page, logo, bold, regular, includeIncoming);
 
-    const pageProducts = products.slice(index, index + cardsPerPage);
-    pageProducts.forEach((product, localIndex) => {
+    products.slice(index, index + cardsPerPage).forEach((product, localIndex) => {
       const column = localIndex % 2;
       const row = Math.floor(localIndex / 2);
       const x = column === 0 ? 34 : 307;
