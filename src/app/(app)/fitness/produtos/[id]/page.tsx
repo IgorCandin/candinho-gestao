@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { BadgePercent } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
+import { FitnessProductImageViewer } from "@/components/fitness-product-image-viewer";
 import { getEntitySwipeNavigation, getFitnessProduct } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import {
@@ -44,6 +45,11 @@ export default async function Page({
 
       <EntitySwipeNavigator previous={swipe.previous} next={swipe.next} />
 
+      <FitnessProductImageViewer
+        imageUrl={product.image_url}
+        alt={product.name}
+      />
+
       {productPromotions.length > 0 && (
         <article className="panel product-active-promotion-panel">
           <div>
@@ -81,7 +87,83 @@ export default async function Page({
       </section>
 
       <article className="panel">
+        <div className="panel-head">
+          <div>
+            <h2>Tamanhos e cores</h2>
+            <p>Informações principais para consultar a peça rapidamente.</p>
+          </div>
+        </div>
+
         <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Tamanho</th>
+                <th>Cor</th>
+                <th>Disponível</th>
+                <th>A caminho</th>
+                <th>Venda</th>
+              </tr>
+            </thead>
+            <tbody>
+              {variants.map((variant) => {
+                const promotion = promotionMap.get(variant.variant_id);
+
+                return (
+                  <tr key={variant.variant_id}>
+                    <td>
+                      <strong>{variant.size}</strong>
+                    </td>
+                    <td>{variant.color}</td>
+                    <td>
+                      <strong>{variant.available_quantity}</strong>
+                      {variant.reserved_quantity > 0 && (
+                        <small className="crm-cell-note">
+                          {variant.reserved_quantity} reservado(s)
+                        </small>
+                      )}
+                    </td>
+                    <td>{variant.incoming_quantity}</td>
+                    <td>
+                      {promotion ? (
+                        <div className="operation-promotion-price">
+                          <s>{formatCurrency(variant.sale_price)}</s>
+                          <strong>
+                            {formatCurrency(
+                              promotion.effective_promotional_price,
+                            )}
+                          </strong>
+                          <small>Promoção</small>
+                        </div>
+                      ) : (
+                        <strong>{formatCurrency(variant.sale_price)}</strong>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </article>
+
+      <details className="panel">
+        <summary
+          style={{
+            cursor: "pointer",
+            fontWeight: 800,
+            listStylePosition: "inside",
+          }}
+        >
+          Ver dados completos de estoque e custo
+        </summary>
+
+        <p style={{ color: "var(--muted)", marginTop: 8 }}>
+          Use esta área quando precisar conferir SKU, estoque físico, reservas
+          ou custo.
+        </p>
+
+        <div className="table-wrap" style={{ marginTop: 12 }}>
           <table>
             <thead>
               <tr>
@@ -99,6 +181,7 @@ export default async function Page({
             <tbody>
               {variants.map((variant) => {
                 const promotion = promotionMap.get(variant.variant_id);
+
                 return (
                   <tr key={variant.variant_id}>
                     <td>{variant.size}</td>
@@ -130,7 +213,7 @@ export default async function Page({
             </tbody>
           </table>
         </div>
-      </article>
+      </details>
     </>
   );
 }
