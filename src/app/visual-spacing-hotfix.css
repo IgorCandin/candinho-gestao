@@ -1,0 +1,67 @@
+/* Correção global de legibilidade: cards manuais com label + valor + observação.
+   O componente StatCard usa .stat-head/.stat-value/.stat-note e continua intacto.
+   Esta regra cobre páginas que montam .stat-card diretamente com span/strong/small. */
+
+.stat-card > span:not(.badge):not(.stat-icon),
+.stat-card > strong,
+.stat-card > small {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-card > span:not(.badge):not(.stat-icon) {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.stat-card > strong {
+  margin-top: 14px;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+
+.stat-card > small {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+/* Mantém pequenos selos dentro de cards com o comportamento original. */
+.stat-card > .badge {
+  position: relative;
+  z-index: 1;
+}
+
+/* Reforço para cards-resumo da Fitness que seguem o mesmo padrão semântico. */
+.fitness-summary-card > span,
+.fitness-summary-card > strong,
+.fitness-summary-card > small {
+  display: block;
+}
+
+.fitness-summary-card > strong {
+  margin-top: 5px;
+}
+
+.fitness-summary-card > small {
+  margin-top: 5px;
+}
+
+/* No celular, evita que label/valor/nota sejam comprimidos na mesma linha. */
+@media (max-width: 720px) {
+  .stat-card > span:not(.badge):not(.stat-icon),
+  .stat-card > strong,
+  .stat-card > small,
+  .fitness-summary-card > span,
+  .fitness-summary-card > strong,
+  .fitness-summary-card > small {
+    width: 100%;
+  }
+}
