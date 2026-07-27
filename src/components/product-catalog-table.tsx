@@ -55,13 +55,37 @@ function stockLabel(product: CatalogProduct) {
   if (product.reserved_quantity > 0) {
     return { label: "Reservado", tone: "orange" };
   }
+  if (product.stock_status === "restricted_order") {
+    return { label: "Sob encomenda", tone: "gray" };
+  }
+  if (product.stock_status === "made_to_order") {
+    return { label: "Sob encomenda", tone: "orange" };
+  }
   return { label: "Sem estoque", tone: "red" };
 }
 
 function stockBorder(product: CatalogProduct) {
   if (product.available_quantity > 0) return "available";
   if (product.incoming_quantity > 0) return "incoming";
+  if (product.stock_status === "made_to_order") return "incoming";
+  if (product.stock_status === "restricted_order") return "available";
   return "empty";
+}
+
+function stockCardStyle(product: CatalogProduct) {
+  if (product.available_quantity > 0 || product.incoming_quantity > 0) {
+    return undefined;
+  }
+
+  if (product.stock_status === "made_to_order") {
+    return { borderColor: "rgba(217,164,65,.58)" };
+  }
+
+  if (product.stock_status === "restricted_order") {
+    return { borderColor: "rgba(145,151,163,.48)" };
+  }
+
+  return undefined;
 }
 
 function isLegacyCombo(product: CatalogProduct) {
@@ -416,6 +440,7 @@ export function ProductCatalogTable({
                 className={`product-gallery-card stock-${border} ${
                   hasPromotion(product) ? "has-operation-promotion" : ""
                 }`}
+                style={stockCardStyle(product)}
                 href={salesMode ? "/produtos" : `/produtos/${product.id}`}
                 key={product.id}
               >
