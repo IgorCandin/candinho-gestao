@@ -54,6 +54,28 @@
   margin-top: 5px;
 }
 
+/* Correção global do agrupamento de cards-resumo.
+   Várias telas definem apenas grid-template-columns em .stats-grid
+   e em modificadores como crm-stats-grid / supplier-stats-grid.
+   Sem display:grid e gap no elemento base, os cards viram blocos
+   empilhados e ficam visualmente colados. */
+.stats-grid {
+  display: grid;
+  gap: 18px;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.stats-grid > * {
+  min-width: 0;
+}
+
+/* No painel da Fitness, o bloco de KPIs é seguido pelos atalhos operacionais.
+   Mantém a mesma respiração visual usada nos demais painéis. */
+.theme-fitness .stats-grid {
+  margin-bottom: 18px;
+}
+
 /* No celular, evita que label/valor/nota sejam comprimidos na mesma linha. */
 @media (max-width: 720px) {
   .stat-card > span:not(.badge):not(.stat-icon),
@@ -63,5 +85,13 @@
   .fitness-summary-card > strong,
   .fitness-summary-card > small {
     width: 100%;
+  }
+
+  .stats-grid {
+    gap: 12px;
+  }
+
+  .theme-fitness .stats-grid {
+    margin-bottom: 14px;
   }
 }
