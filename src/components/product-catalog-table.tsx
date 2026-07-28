@@ -38,29 +38,37 @@ type SortKey =
   | "cash"
   | "installment"
   | "status";
+
 type SortDirection = "asc" | "desc";
 type ViewMode = "deck" | "gallery";
 
 function stockLabel(product: CatalogProduct) {
   if (!product.active) return { label: "Inativo", tone: "gray" };
+
   if (product.available_quantity > 0 && product.incoming_quantity > 0) {
     return { label: "Disponível + reposição", tone: "green" };
   }
+
   if (product.available_quantity > 0) {
     return { label: "Disponível", tone: "green" };
   }
+
   if (product.incoming_quantity > 0) {
     return { label: "A caminho", tone: "orange" };
   }
+
   if (product.reserved_quantity > 0) {
     return { label: "Reservado", tone: "orange" };
   }
+
   if (product.stock_status === "restricted_order") {
     return { label: "Sob encomenda", tone: "gray" };
   }
+
   if (product.stock_status === "made_to_order") {
     return { label: "Sob encomenda", tone: "orange" };
   }
+
   return { label: "Sem estoque", tone: "red" };
 }
 
@@ -91,6 +99,7 @@ function stockCardStyle(product: CatalogProduct) {
 function isLegacyCombo(product: CatalogProduct) {
   const brand = (product.brand ?? "").trim().toLocaleLowerCase("pt-BR");
   const name = product.name.trim().toLocaleLowerCase("pt-BR");
+
   return brand === "combo" || name.startsWith("combo ");
 }
 
@@ -98,7 +107,8 @@ function hasPromotion(product: CatalogProduct) {
   return (
     product.promotion_price != null &&
     product.available_quantity > 0 &&
-    Number(product.promotion_price) < Number(product.regular_sale_price ?? Infinity)
+    Number(product.promotion_price) <
+      Number(product.regular_sale_price ?? Infinity)
   );
 }
 
@@ -116,14 +126,17 @@ function compare(a: CatalogProduct, b: CatalogProduct, key: SortKey) {
       a.name.localeCompare(b.name, "pt-BR")
     );
   }
+
   if (key === "name") return a.name.localeCompare(b.name, "pt-BR");
   if (key === "category") return a.category.localeCompare(b.category, "pt-BR");
   if (key === "available") return a.available_quantity - b.available_quantity;
   if (key === "incoming") return a.incoming_quantity - b.incoming_quantity;
   if (key === "cash") return a.sale_price - b.sale_price;
+
   if (key === "installment") {
     return a.installment_price - b.installment_price;
   }
+
   return stockLabel(a).label.localeCompare(stockLabel(b).label, "pt-BR");
 }
 
@@ -183,20 +196,45 @@ function PromotionBadge({ product }: { product: CatalogProduct }) {
   );
 }
 
-function PriceDisplay({ product, compact = false }: { product: CatalogProduct; compact?: boolean }) {
+function PriceDisplay({
+  product,
+  compact = false,
+}: {
+  product: CatalogProduct;
+  compact?: boolean;
+}) {
   const promotion = hasPromotion(product);
 
   return (
-    <div className={compact ? "operation-promo-price compact" : "operation-promo-price"}>
+    <div
+      className={
+        compact
+          ? "operation-promo-price compact"
+          : "operation-promo-price"
+      }
+    >
       {promotion && <s>{formatCurrency(regularCash(product))}</s>}
       <strong>{formatCurrency(product.sale_price)}</strong>
+
       {promotion && !compact && (
-        <small>{product.promotion_name ?? "Promoção ativa"} · enquanto durar o estoque</small>
+        <small>
+          {product.promotion_name ?? "Promoção ativa"} · enquanto durar o estoque
+        </small>
       )}
     </div>
   );
 }
 
+/*
+ * A galeria agora possui exatamente 3 níveis.
+ *
+ * Nível 1 = cards grandes
+ * Nível 2 = cards médios
+ * Nível 3 = grade compacta
+ *
+ * No telefone o CSS traduz esses níveis para:
+ * 1 coluna / 2 colunas / 4 colunas.
+ */
 function GalleryZoomControl({
   value,
   onChange,
@@ -204,36 +242,50 @@ function GalleryZoomControl({
   value: number;
   onChange: (value: number) => void;
 }) {
-  const set = (next: number) => onChange(Math.max(1, Math.min(5, next)));
+  const set = (next: number) =>
+    onChange(Math.max(1, Math.min(3, next)));
+
+  const label =
+    value === 1
+      ? "Grande"
+      : value === 2
+        ? "Médio"
+        : "Grade";
 
   return (
-    <div className="product-gallery-zoom product-gallery-zoom-v2">
+    <div
+      className="product-gallery-zoom product-gallery-zoom-v3"
+      title={`${value}/3 · ${label}`}
+    >
       <button
         type="button"
-        aria-label="Diminuir os cards"
+        aria-label="Aumentar cards"
         disabled={value <= 1}
         onClick={() => set(value - 1)}
       >
-        <ZoomOut size={14} />
+        <ZoomIn size={14} />
       </button>
+
       <input
         aria-label="Tamanho dos cards da galeria"
         type="range"
         min="1"
-        max="5"
+        max="3"
         step="1"
         value={value}
         onChange={(event) => set(Number(event.target.value))}
       />
+
       <button
         type="button"
-        aria-label="Aumentar os cards"
-        disabled={value >= 5}
+        aria-label="Diminuir cards e mostrar mais produtos por linha"
+        disabled={value >= 3}
         onClick={() => set(value + 1)}
       >
-        <ZoomIn size={14} />
+        <ZoomOut size={14} />
       </button>
-      <span>{value}/5</span>
+
+      <span>{value}/3</span>
     </div>
   );
 }
@@ -252,10 +304,15 @@ export function ProductCatalogTable({
   const [status, setStatus] = useState("active");
   const [stock, setStock] = useState("all");
   const [sortKey, setSortKey] = useState<SortKey>("commercial");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortDirection, setSortDirection] =
+    useState<SortDirection>("asc");
   const [viewMode, setViewMode] = useState<ViewMode>("deck");
-  const [galleryZoom, setGalleryZoom] = useState(3);
+
+  // 2/3 é o equilíbrio ideal ao abrir a Gallery.
+  const [galleryZoom, setGalleryZoom] = useState(2);
   const [galleryDetails, setGalleryDetails] = useState(true);
+
+  const compactGallery = galleryZoom === 3;
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLocaleLowerCase("pt-BR");
@@ -265,12 +322,15 @@ export function ProductCatalogTable({
       .filter(
         (product) =>
           !normalized ||
-          `${product.name} ${product.category} ${product.brand ?? ""} ${product.promotion_name ?? ""}`
+          `${product.name} ${product.category} ${product.brand ?? ""} ${
+            product.promotion_name ?? ""
+          }`
             .toLocaleLowerCase("pt-BR")
             .includes(normalized),
       )
       .filter(
-        (product) => category === "all" || product.category === category,
+        (product) =>
+          category === "all" || product.category === category,
       )
       .filter(
         (product) =>
@@ -282,8 +342,10 @@ export function ProductCatalogTable({
         if (stock === "available") return product.available_quantity > 0;
         if (stock === "incoming") return product.incoming_quantity > 0;
         if (stock === "promotion") return hasPromotion(product);
+
         return (
-          product.available_quantity === 0 && product.incoming_quantity === 0
+          product.available_quantity === 0 &&
+          product.incoming_quantity === 0
         );
       })
       .sort((a, b) => {
@@ -302,7 +364,9 @@ export function ProductCatalogTable({
 
   function sort(key: SortKey) {
     if (key === sortKey) {
-      setSortDirection((current) => (current === "asc" ? "desc" : "asc"));
+      setSortDirection((current) =>
+        current === "asc" ? "desc" : "asc",
+      );
       return;
     }
 
@@ -319,6 +383,7 @@ export function ProductCatalogTable({
       <div className="product-catalog-toolbar">
         <label className="product-catalog-search">
           <Search size={16} />
+
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -332,8 +397,11 @@ export function ProductCatalogTable({
           onChange={(event) => setCategory(event.target.value)}
         >
           <option value="all">Todas as categorias</option>
+
           {categories.map((item) => (
-            <option key={item} value={item}>{item}</option>
+            <option key={item} value={item}>
+              {item}
+            </option>
           ))}
         </select>
 
@@ -359,54 +427,94 @@ export function ProductCatalogTable({
           <option value="all">Todos</option>
         </select>
 
-        <div className="product-view-toggle" aria-label="Modo de visualização">
+        <div
+          className="product-view-toggle"
+          aria-label="Modo de visualização"
+        >
           <button
             className={viewMode === "deck" ? "active" : ""}
             type="button"
             onClick={() => setViewMode("deck")}
           >
-            <Rows3 size={15} /> Deck
+            <Rows3 size={15} />
+            Deck
           </button>
+
           <button
             className={viewMode === "gallery" ? "active" : ""}
             type="button"
             onClick={() => setViewMode("gallery")}
           >
-            <LayoutGrid size={15} /> Gallery
+            <LayoutGrid size={15} />
+            Gallery
           </button>
         </div>
 
         {viewMode === "gallery" && (
           <div className="product-gallery-controls">
-            <GalleryZoomControl value={galleryZoom} onChange={setGalleryZoom} />
+            <GalleryZoomControl
+              value={galleryZoom}
+              onChange={setGalleryZoom}
+            />
+
             <button
-              className={galleryDetails ? "active" : ""}
+              className={
+                galleryDetails && !compactGallery
+                  ? "active"
+                  : ""
+              }
               type="button"
-              onClick={() => setGalleryDetails((current) => !current)}
+              disabled={compactGallery}
+              title={
+                compactGallery
+                  ? "No nível 3 a galeria usa miniaturas para caber 4 produtos por linha."
+                  : undefined
+              }
+              onClick={() =>
+                setGalleryDetails((current) => !current)
+              }
             >
-              {galleryDetails ? <Eye size={14} /> : <EyeOff size={14} />}
-              {galleryDetails ? "Completo" : "Essencial"}
+              {compactGallery ? (
+                <LayoutGrid size={14} />
+              ) : galleryDetails ? (
+                <Eye size={14} />
+              ) : (
+                <EyeOff size={14} />
+              )}
+
+              {compactGallery
+                ? "Miniaturas"
+                : galleryDetails
+                  ? "Completo"
+                  : "Essencial"}
             </button>
           </div>
         )}
 
         <span className="product-result-count">
-          {filtered.length} produto{filtered.length === 1 ? "" : "s"}
+          {filtered.length} produto
+          {filtered.length === 1 ? "" : "s"}
         </span>
       </div>
 
       {salesMode && (
         <div className="sales-profile-note">
           <strong>Perfil Vendas</strong>
-          <span>Consulta comercial com preço promocional e disponibilidade real.</span>
+          <span>
+            Consulta comercial com preço promocional e
+            disponibilidade real.
+          </span>
         </div>
       )}
 
       <div className="product-commercial-order-note">
         <span>Ordem padrão:</span>
+
         <strong>
-          Creatina Candinho → disponível → a caminho → zerado → categoria estratégica → mais vendidos
+          Creatina Candinho → disponível → a caminho → zerado →
+          categoria estratégica → mais vendidos
         </strong>
+
         {sortKey !== "commercial" && (
           <button
             type="button"
@@ -428,7 +536,11 @@ export function ProductCatalogTable({
       ) : viewMode === "gallery" ? (
         <div
           className={`product-gallery-grid product-gallery-grid-responsive zoom-${galleryZoom} ${
-            galleryDetails ? "show-details" : "essential"
+            compactGallery
+              ? "essential compact-grid"
+              : galleryDetails
+                ? "show-details"
+                : "essential"
           }`}
         >
           {filtered.map((product) => {
@@ -438,53 +550,87 @@ export function ProductCatalogTable({
             return (
               <Link
                 className={`product-gallery-card stock-${border} ${
-                  hasPromotion(product) ? "has-operation-promotion" : ""
+                  hasPromotion(product)
+                    ? "has-operation-promotion"
+                    : ""
                 }`}
                 style={stockCardStyle(product)}
-                href={salesMode ? "/produtos" : `/produtos/${product.id}`}
+                href={
+                  salesMode
+                    ? "/produtos"
+                    : `/produtos/${product.id}`
+                }
                 key={product.id}
               >
                 <div className="product-gallery-image">
                   {product.thumbnail_url || product.image_url ? (
                     <img
-                      src={product.thumbnail_url ?? product.image_url ?? ""}
+                      src={
+                        product.thumbnail_url ??
+                        product.image_url ??
+                        ""
+                      }
                       alt={product.name}
                       loading="lazy"
                     />
                   ) : (
                     <ImageOff size={28} />
                   )}
+
                   <PromotionBadge product={product} />
                 </div>
 
                 <div className="product-gallery-copy">
                   <div className="product-gallery-heading">
                     <strong>{product.name}</strong>
-                    {galleryDetails && (
+
+                    {!compactGallery && galleryDetails && (
                       <span>
                         {product.category}
-                        {product.brand ? ` · ${product.brand}` : ""}
+                        {product.brand
+                          ? ` · ${product.brand}`
+                          : ""}
                       </span>
                     )}
                   </div>
 
-                  <div className="product-gallery-stock">
-                    <span>Disponível <b>{product.available_quantity}</b></span>
-                    {galleryDetails && (
-                      <span>A caminho <b>{product.incoming_quantity}</b></span>
-                    )}
-                  </div>
+                  {!compactGallery && (
+                    <div className="product-gallery-stock">
+                      <span>
+                        Disponível
+                        <b>{product.available_quantity}</b>
+                      </span>
 
-                  {galleryDetails && (
-                    <div className="product-gallery-price">
-                      <PriceDisplay product={product} />
-                      <span>{formatCurrency(product.installment_price)} a prazo</span>
+                      {galleryDetails && (
+                        <span>
+                          A caminho
+                          <b>{product.incoming_quantity}</b>
+                        </span>
+                      )}
                     </div>
                   )}
 
-                  <span className={`badge ${state.tone}`}>
-                    <span className="dot" /> {state.label}
-                  </span>
+                  {!compactGallery && galleryDetails && (
+                    <div className="product-gallery-price">
+                      <PriceDisplay product={product} />
+                      <span>
+                        {formatCurrency(product.installment_price)} a prazo
+                      </span>
+                    </div>
+                  )}
+
+                  {compactGallery && (
+                    <div className="product-gallery-compact-price">
+                      <PriceDisplay product={product} compact />
+                    </div>
+                  )}
+
+                  {!compactGallery && (
+                    <span className={`badge ${state.tone}`}>
+                      <span className="dot" />
+                      {state.label}
+                    </span>
+                  )}
                 </div>
 
                 <IncomingTruck product={product} />
@@ -497,15 +643,58 @@ export function ProductCatalogTable({
           <table className="products-table product-catalog-table">
             <thead>
               <tr>
-                <th><HeaderButton label="Produto" sortKey="name" currentKey={sortKey} onSort={sort} /></th>
-                <th><HeaderButton label="Disponível" sortKey="available" currentKey={sortKey} onSort={sort} /></th>
-                <th><HeaderButton label="A caminho" sortKey="incoming" currentKey={sortKey} onSort={sort} /></th>
-                <th><HeaderButton label="À vista" sortKey="cash" currentKey={sortKey} onSort={sort} /></th>
-                <th><HeaderButton label="A prazo" sortKey="installment" currentKey={sortKey} onSort={sort} /></th>
-                <th><HeaderButton label="Situação" sortKey="status" currentKey={sortKey} onSort={sort} /></th>
+                <th>
+                  <HeaderButton
+                    label="Produto"
+                    sortKey="name"
+                    currentKey={sortKey}
+                    onSort={sort}
+                  />
+                </th>
+                <th>
+                  <HeaderButton
+                    label="Disponível"
+                    sortKey="available"
+                    currentKey={sortKey}
+                    onSort={sort}
+                  />
+                </th>
+                <th>
+                  <HeaderButton
+                    label="A caminho"
+                    sortKey="incoming"
+                    currentKey={sortKey}
+                    onSort={sort}
+                  />
+                </th>
+                <th>
+                  <HeaderButton
+                    label="À vista"
+                    sortKey="cash"
+                    currentKey={sortKey}
+                    onSort={sort}
+                  />
+                </th>
+                <th>
+                  <HeaderButton
+                    label="A prazo"
+                    sortKey="installment"
+                    currentKey={sortKey}
+                    onSort={sort}
+                  />
+                </th>
+                <th>
+                  <HeaderButton
+                    label="Situação"
+                    sortKey="status"
+                    currentKey={sortKey}
+                    onSort={sort}
+                  />
+                </th>
                 <th aria-label="Abrir produto" />
               </tr>
             </thead>
+
             <tbody>
               {filtered.map((product) => {
                 const state = stockLabel(product);
@@ -514,61 +703,120 @@ export function ProductCatalogTable({
                 return (
                   <tr
                     className={`product-deck-row stock-${border} ${
-                      hasPromotion(product) ? "has-operation-promotion" : ""
+                      hasPromotion(product)
+                        ? "has-operation-promotion"
+                        : ""
                     }`}
                     key={product.id}
                   >
                     <td>
                       <Link
                         className="product-cell product-link"
-                        href={salesMode ? "/produtos" : `/produtos/${product.id}`}
+                        href={
+                          salesMode
+                            ? "/produtos"
+                            : `/produtos/${product.id}`
+                        }
                       >
                         {product.thumbnail_url ? (
-                          <img className="product-thumb" src={product.thumbnail_url} alt="" loading="lazy" />
+                          <img
+                            className="product-thumb"
+                            src={product.thumbnail_url}
+                            alt=""
+                            loading="lazy"
+                          />
                         ) : (
                           <span className="product-avatar">
-                            {product.image_url ? <ImageOff size={17} /> : product.name.slice(0, 2).toUpperCase()}
+                            {product.image_url ? (
+                              <ImageOff size={17} />
+                            ) : (
+                              product.name
+                                .slice(0, 2)
+                                .toUpperCase()
+                            )}
                           </span>
                         )}
+
                         <div>
                           <div className="cell-main product-name-with-promo">
                             {product.name}
                             <PromotionBadge product={product} />
                           </div>
+
                           <div className="cell-sub">
-                            {product.category}{product.brand ? ` · ${product.brand}` : ""}
+                            {product.category}
+                            {product.brand
+                              ? ` · ${product.brand}`
+                              : ""}
                           </div>
                         </div>
                       </Link>
                     </td>
+
                     <td>
-                      <strong className={product.available_quantity > 0 ? "positive" : "muted-number"}>
+                      <strong
+                        className={
+                          product.available_quantity > 0
+                            ? "positive"
+                            : "muted-number"
+                        }
+                      >
                         {product.available_quantity}
                       </strong>
+
                       {product.reserved_quantity > 0 && (
                         <div className="cell-sub">
-                          {product.reserved_quantity} reservada{product.reserved_quantity === 1 ? "" : "s"}
+                          {product.reserved_quantity} reservada
+                          {product.reserved_quantity === 1
+                            ? ""
+                            : "s"}
                         </div>
                       )}
                     </td>
+
                     <td>
-                      <strong className={product.incoming_quantity > 0 ? "incoming-text" : "muted-number"}>
+                      <strong
+                        className={
+                          product.incoming_quantity > 0
+                            ? "incoming-text"
+                            : "muted-number"
+                        }
+                      >
                         {product.incoming_quantity}
                       </strong>
+
                       {product.awaiting_sales_quantity > 0 && (
-                        <div className="cell-sub">{product.awaiting_sales_quantity} aguardando</div>
+                        <div className="cell-sub">
+                          {product.awaiting_sales_quantity} aguardando
+                        </div>
                       )}
                     </td>
-                    <td className="amount"><PriceDisplay product={product} compact /></td>
-                    <td className="amount">{formatCurrency(product.installment_price)}</td>
-                    <td>
-                      <span className={`badge ${state.tone}`}><span className="dot" /> {state.label}</span>
+
+                    <td className="amount">
+                      <PriceDisplay product={product} compact />
                     </td>
+
+                    <td className="amount">
+                      {formatCurrency(product.installment_price)}
+                    </td>
+
+                    <td>
+                      <span className={`badge ${state.tone}`}>
+                        <span className="dot" />
+                        {state.label}
+                      </span>
+                    </td>
+
                     <td>
                       <div className="product-row-actions">
                         <IncomingTruck product={product} />
+
                         {!salesMode && (
-                          <Link className="icon-link" href={`/produtos/${product.id}`} aria-label={`Abrir ${product.name}`}>
+                          <Link
+                            className="icon-link"
+                            href={`/produtos/${product.id}`}
+                            aria-label={`Abrir ${product.name}`}
+                          >
                             <ArrowRight size={18} />
                           </Link>
                         )}
