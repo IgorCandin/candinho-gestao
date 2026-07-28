@@ -1,0 +1,154 @@
+/*
+ * Candinho Central · Custos e insumos
+ *
+ * 1) Remove os atalhos/tabs redundantes dentro de Suplementos e Fitness.
+ *    Custos e insumos passa a ser uma ferramenta exclusiva da Central.
+ *
+ * 2) Faz o módulo compartilhado herdar o accent da operação atual
+ *    (na Central, azul), evitando restos do dourado de Suplementos.
+ */
+
+/* =========================================================
+   REMOVER CUSTOS/INSUMOS DE DENTRO DAS OPERAÇÕES
+   ========================================================= */
+
+/* Se existir a barra antiga "Estoque de produtos | Custos e insumos",
+   remove a barra inteira, inclusive o botão redundante "Estoque de produtos". */
+.theme-supplements .main
+  *:has(> a[href="/estoque"]):has(> a[href="/estoque/custos"]),
+.theme-supplements .main
+  *:has(> a[href="/estoque"]):has(> a[href^="/central/custos-insumos"]),
+.theme-fitness .main
+  *:has(> a[href="/fitness/estoque"]):has(> a[href="/fitness/estoque/custos"]),
+.theme-fitness .main
+  *:has(> a[href="/fitness/estoque"]):has(> a[href^="/central/custos-insumos"]) {
+  display: none !important;
+}
+
+/* Fallback: nenhum botão de Custos e insumos deve aparecer no conteúdo
+   interno das operações. A Central continua intacta. */
+.theme-supplements .main a[href="/estoque/custos"],
+.theme-supplements .main a[href^="/estoque/custos?"],
+.theme-supplements .main a[href="/central/custos-insumos"],
+.theme-supplements .main a[href^="/central/custos-insumos?"],
+.theme-fitness .main a[href="/fitness/estoque/custos"],
+.theme-fitness .main a[href^="/fitness/estoque/custos?"],
+.theme-fitness .main a[href="/central/custos-insumos"],
+.theme-fitness .main a[href^="/central/custos-insumos?"] {
+  display: none !important;
+}
+
+/* =========================================================
+   IDENTIDADE VISUAL DA CENTRAL
+   ========================================================= */
+
+.theme-central .central-shared-costs-theme {
+  --shared-cost-accent: var(--gold);
+  --shared-cost-soft: var(--gold-soft);
+  --shared-cost-text: var(--accent-nav-text);
+}
+
+/* Eyebrows / pequenos destaques */
+.theme-central .central-shared-costs-theme [class*="eyebrow"] {
+  color: var(--shared-cost-accent) !important;
+}
+
+/* Etapa atual e aba ativa */
+.theme-central .central-shared-costs-theme [class*="setupCurrent"],
+.theme-central .central-shared-costs-theme [class*="tabActive"],
+.theme-central .central-shared-costs-theme [class*="profileChoiceActive"] {
+  border-color: color-mix(
+    in srgb,
+    var(--shared-cost-accent) 36%,
+    transparent
+  ) !important;
+  background: var(--shared-cost-soft) !important;
+  color: var(--shared-cost-text) !important;
+}
+
+.theme-central .central-shared-costs-theme [class*="setupCurrent"] > span,
+.theme-central .central-shared-costs-theme [class*="stepBubble"],
+.theme-central .central-shared-costs-theme [class*="profileChoiceActive"] > span {
+  background: var(--shared-cost-soft) !important;
+  color: var(--shared-cost-accent) !important;
+}
+
+/* Botões principais internos do módulo */
+.theme-central .central-shared-costs-theme [class*="buttonPrimary"] {
+  border-color: color-mix(
+    in srgb,
+    var(--shared-cost-accent) 45%,
+    transparent
+  ) !important;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--shared-cost-accent) 88%, white 12%),
+    color-mix(in srgb, var(--shared-cost-accent) 78%, black 22%)
+  ) !important;
+  color: var(--accent-contrast) !important;
+}
+
+/* Blocos explicativos que ainda carregavam dourado fixo. */
+.theme-central .central-shared-costs-theme [class*="firstStepCopy"],
+.theme-central .central-shared-costs-theme [class*="bankChoice"],
+.theme-central .central-shared-costs-theme [class*="explanation"],
+.theme-central .central-shared-costs-theme [class*="optionalNote"],
+.theme-central .central-shared-costs-theme [class*="recipeEmpty"] {
+  border-color: color-mix(
+    in srgb,
+    var(--shared-cost-accent) 20%,
+    transparent
+  ) !important;
+  background: color-mix(
+    in srgb,
+    var(--shared-cost-soft) 55%,
+    transparent
+  ) !important;
+}
+
+.theme-central .central-shared-costs-theme [class*="firstStepCopy"] > svg,
+.theme-central .central-shared-costs-theme [class*="bankChoice"] svg,
+.theme-central .central-shared-costs-theme [class*="explanation"] svg,
+.theme-central .central-shared-costs-theme [class*="optionalNote"] svg,
+.theme-central .central-shared-costs-theme [class*="recipeEmpty"] svg {
+  color: var(--shared-cost-accent) !important;
+}
+
+/* Sugestões e hovers */
+.theme-central .central-shared-costs-theme [class*="suggestionCard"]:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--shared-cost-accent) 35%,
+    transparent
+  ) !important;
+}
+
+.theme-central .central-shared-costs-theme [class*="suggestionCard"] > span {
+  background: var(--shared-cost-soft) !important;
+  color: var(--shared-cost-accent) !important;
+}
+
+/* Focus de formulários: nada de anel dourado dentro da Central. */
+.theme-central .central-shared-costs-theme input:focus,
+.theme-central .central-shared-costs-theme select:focus,
+.theme-central .central-shared-costs-theme textarea:focus {
+  border-color: color-mix(
+    in srgb,
+    var(--shared-cost-accent) 65%,
+    transparent
+  ) !important;
+  box-shadow: 0 0 0 3px var(--shared-cost-soft) !important;
+}
+
+/* Mensagens neutras seguem o accent da Central.
+   Estados de sucesso/erro continuam verde/vermelho. */
+.theme-central .central-shared-costs-theme
+  [class*="message"]:not([class*="success"]) {
+  border-color: color-mix(
+    in srgb,
+    var(--shared-cost-accent) 32%,
+    transparent
+  ) !important;
+  background: var(--shared-cost-soft) !important;
+  color: var(--shared-cost-text) !important;
+}

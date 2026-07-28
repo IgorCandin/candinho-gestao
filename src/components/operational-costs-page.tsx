@@ -90,7 +90,9 @@ export function OperationalCostsPage({
         </div>
       </article>
 
-      <OperationalCostsManager initialOperation={operation} />
+      <div className="central-shared-costs-theme">
+        <OperationalCostsManager initialOperation={operation} />
+      </div>
     </>
   );
 }
