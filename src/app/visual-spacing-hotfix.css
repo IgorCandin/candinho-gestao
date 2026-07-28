@@ -33,13 +33,12 @@
   line-height: 1.45;
 }
 
-/* Mantém pequenos selos dentro de cards com o comportamento original. */
 .stat-card > .badge {
   position: relative;
   z-index: 1;
 }
 
-/* Reforço para cards-resumo da Fitness que seguem o mesmo padrão semântico. */
+/* Reforço para cards-resumo da Fitness. */
 .fitness-summary-card > span,
 .fitness-summary-card > strong,
 .fitness-summary-card > small {
@@ -54,11 +53,8 @@
   margin-top: 5px;
 }
 
-/* Correção global do agrupamento de cards-resumo.
-   Várias telas definem apenas grid-template-columns em .stats-grid
-   e em modificadores como crm-stats-grid / supplier-stats-grid.
-   Sem display:grid e gap no elemento base, os cards viram blocos
-   empilhados e ficam visualmente colados. */
+/* Base dos cards de indicadores.
+   Alguns modificadores definem apenas a quantidade de colunas. */
 .stats-grid {
   display: grid;
   gap: 18px;
@@ -70,13 +66,47 @@
   min-width: 0;
 }
 
-/* No painel da Fitness, o bloco de KPIs é seguido pelos atalhos operacionais.
-   Mantém a mesma respiração visual usada nos demais painéis. */
+/* Salvaguarda para o layout dashboard legado.
+   A folha base define as colunas de .dashboard-grid, então garantimos
+   que a classe funcione mesmo quando usada sem a classe auxiliar .grid. */
+.dashboard-grid {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+
+.dashboard-grid > * {
+  min-width: 0;
+}
+
+/* Painéis de duas colunas usados no dashboard Fitness e no laboratório.
+   Essa classe existia no JSX, mas não tinha regra de layout no CSS.
+   Sem display/grid/gap, os painéis viravam blocos colados verticalmente. */
+.dashboard-two-column {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+  min-width: 0;
+  margin-top: 18px;
+}
+
+.dashboard-two-column > * {
+  min-width: 0;
+}
+
+/* Respiração entre KPIs e atalhos da Fitness. */
 .theme-fitness .stats-grid {
   margin-bottom: 18px;
 }
 
-/* No celular, evita que label/valor/nota sejam comprimidos na mesma linha. */
+@media (max-width: 1100px) {
+  .dashboard-two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* No celular, evita compressão e reduz o espaço sem colar os cards. */
 @media (max-width: 720px) {
   .stat-card > span:not(.badge):not(.stat-icon),
   .stat-card > strong,
@@ -87,8 +117,14 @@
     width: 100%;
   }
 
-  .stats-grid {
+  .stats-grid,
+  .dashboard-grid,
+  .dashboard-two-column {
     gap: 12px;
+  }
+
+  .dashboard-two-column {
+    margin-top: 14px;
   }
 
   .theme-fitness .stats-grid {
