@@ -1,12 +1,7 @@
 import { RotateCcw, Trash2, UserX } from "lucide-react";
+import { QuoteDeleteButton } from "@/components/quote-delete-button";
 
-export function QuoteStatusActions({
-  quoteId,
-  status,
-}: {
-  quoteId: string;
-  status: string;
-}) {
+export function QuoteStatusActions({ quoteId, status }: { quoteId: string; status: string }) {
   if (status === "confirmed") return null;
 
   const actionUrl = `/api/orcamentos/${quoteId}/status`;
@@ -16,13 +11,13 @@ export function QuoteStatusActions({
       <div className="quote-status-actions">
         <form action={actionUrl} method="post">
           <input type="hidden" name="status" value="quoted" />
-          <button className="button ghost" type="submit">
-            <RotateCcw size={16} />
-            Reabrir orçamento
-          </button>
+          <button className="button ghost" type="submit"><RotateCcw size={16} />Reabrir orçamento</button>
         </form>
+
+        <QuoteDeleteButton quoteId={quoteId} />
+
         <span className="form-help">
-          Reabrir devolve o orçamento para o fluxo comercial. Nenhum estoque é movimentado.
+          Reabrir devolve a proposta ao fluxo comercial. Excluir remove definitivamente o orçamento da lista e não movimenta estoque.
         </span>
       </div>
     );
@@ -32,22 +27,18 @@ export function QuoteStatusActions({
     <div className="quote-status-actions">
       <form action={actionUrl} method="post">
         <input type="hidden" name="status" value="lost" />
-        <button className="button ghost" type="submit">
-          <UserX size={16} />
-          Marcar como perdido
-        </button>
+        <button className="button ghost" type="submit"><UserX size={16} />Marcar como perdido</button>
       </form>
 
       <form action={actionUrl} method="post">
         <input type="hidden" name="status" value="cancelled" />
-        <button className="button danger" type="submit">
-          <Trash2 size={16} />
-          Cancelar orçamento
-        </button>
+        <button className="button ghost" type="submit"><Trash2 size={16} />Cancelar orçamento</button>
       </form>
 
+      <QuoteDeleteButton quoteId={quoteId} />
+
       <span className="form-help">
-        As duas ações encerram apenas a cotação e não movimentam estoque. O orçamento pode ser reaberto depois.
+        “Cancelar” mantém o orçamento no histórico e permite reabrir depois. “Excluir definitivamente” remove o registro da tela. Orçamentos já convertidos em venda ficam protegidos.
       </span>
     </div>
   );
