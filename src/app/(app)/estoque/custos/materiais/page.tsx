@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Boxes } from "lucide-react";
+import { Archive, ArrowLeft, Boxes } from "lucide-react";
 import { OperationalSuppliesAdmin } from "@/components/operational-supplies-admin";
 import { PageHeader } from "@/components/page-header";
 
@@ -16,21 +16,52 @@ export default async function OperationalSuppliesPage({
       <PageHeader
         eyebrow="Custos e insumos"
         title="Editar materiais"
-        description="Corrija cadastro, saldo e custo; defina se o material é usado quando o produto chega ou se será escolhido no momento da entrega."
+        description="Renomeie, corrija saldo/custo e retire materiais do uso. Para preservar o histórico, excluir da operação é feito arquivando o material."
         action={
           <div className="page-header-actions">
             <Link
               className="button ghost"
-              href={operation === "fitness" ? "/fitness/estoque/custos" : "/estoque/custos"}
+              href={
+                operation === "fitness"
+                  ? "/fitness/estoque/custos"
+                  : "/estoque/custos"
+              }
             >
-              <ArrowLeft size={16} /> Voltar aos custos
+              <ArrowLeft size={16} />
+              Voltar aos custos
             </Link>
-            <Link className="button ghost" href={operation === "fitness" ? "/fitness/estoque" : "/estoque"}>
-              <Boxes size={16} /> Estoque
+            <Link
+              className="button ghost"
+              href={operation === "fitness" ? "/fitness/estoque" : "/estoque"}
+            >
+              <Boxes size={16} />
+              Estoque
             </Link>
           </div>
         }
       />
+
+      <article className="panel" style={{ marginBottom: 16 }}>
+        <div
+          className="panel-body"
+          style={{
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+          }}
+        >
+          <Archive size={20} />
+          <div style={{ display: "grid", gap: 4 }}>
+            <strong>Quer “excluir” um material?</strong>
+            <span style={{ color: "var(--muted)", lineHeight: 1.45 }}>
+              Selecione o material e desative “Material ativo”. Ele some dos
+              fluxos novos, mas compras, custos e auditorias antigas continuam
+              corretos.
+            </span>
+          </div>
+        </div>
+      </article>
+
       <OperationalSuppliesAdmin initialOperation={operation} />
     </>
   );
