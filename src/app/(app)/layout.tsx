@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/app-shell";
+import { CentralCostsShortcut } from "@/components/central-costs-shortcut";
 import { DesktopEscapeBack } from "@/components/desktop-escape-back";
 import { DesktopSidebarController } from "@/components/desktop-sidebar-controller";
 import { OperationToolSearch } from "@/components/operation-tool-search";
@@ -13,10 +14,16 @@ export default async function ProtectedLayout({
 }) {
   const access = await getCurrentUserAccess();
 
+  const canAccessSharedCosts =
+    access.role === "admin" ||
+    access.canWriteSupplements ||
+    access.canWriteFitness;
+
   return (
     <DesktopSidebarController>
       <DesktopEscapeBack />
       <OperationToolSearch access={access} />
+      <CentralCostsShortcut enabled={canAccessSharedCosts} />
       <AppShell access={access}>{children}</AppShell>
     </DesktopSidebarController>
   );

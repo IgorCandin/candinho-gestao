@@ -1,8 +1,9 @@
 import Link from "next/link";
 import {
-  ArrowLeft,
+  Boxes,
+  Building2,
   CircleDollarSign,
-  Pencil,
+  Dumbbell,
   Settings2,
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
@@ -13,65 +14,79 @@ export function OperationalCostsPage({
 }: {
   operation?: "supplements" | "fitness";
 }) {
-  const backHref = operation === "fitness" ? "/fitness/estoque" : "/estoque";
   const manageHref =
     operation === "fitness"
-      ? "/estoque/custos/materiais?operacao=fitness"
-      : "/estoque/custos/materiais";
+      ? "/central/custos-insumos/materiais?operacao=fitness"
+      : "/central/custos-insumos/materiais";
 
   return (
     <>
       <PageHeader
-        eyebrow="Custos reais"
+        eyebrow="Candinho Central · Operação compartilhada"
         title="Custos e insumos"
-        description="Controle materiais, corrija cadastros, defina quando cada custo acontece e acompanhe a margem real sem duplicar saídas no Bank."
+        description="Materiais operacionais ficam na Central porque podem atender Suplementos, Fitness ou as duas operações. Cada regra continua separando corretamente onde e quando o custo é consumido."
         action={
           <div className="page-header-actions">
             <Link className="button gold" href={manageHref}>
               <Settings2 size={16} />
               Editar materiais
             </Link>
+
             <Link className="button ghost" href="/bank">
               <CircleDollarSign size={16} />
               Ver Bank
             </Link>
-            <Link className="button ghost" href={backHref}>
-              <ArrowLeft size={16} />
-              Voltar ao estoque
+
+            <Link className="button ghost" href="/central">
+              <Building2 size={16} />
+              Voltar à Central
             </Link>
           </div>
         }
       />
 
-      <article
-        className="panel"
-        style={{
-          marginBottom: 16,
-          borderColor: "rgba(245, 188, 63, .34)",
-        }}
-      >
-        <div
-          className="panel-body"
-          style={{
-            display: "flex",
-            gap: 14,
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "grid", gap: 4, flex: "1 1 300px" }}>
-            <strong>Nome errado ou material que não usa mais?</strong>
-            <span style={{ color: "var(--muted)", lineHeight: 1.45 }}>
-              Abra o cadastro para renomear, corrigir regras ou arquivar o
-              material sem apagar o histórico das compras e vendas.
-            </span>
-          </div>
+      <article className="panel" style={{ marginBottom: 16 }}>
+        <div className="panel-body">
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              alignItems: "flex-start",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "grid", gap: 5, flex: "1 1 420px" }}>
+              <strong>Um controle para as duas operações</strong>
+              <span style={{ color: "var(--muted)", lineHeight: 1.5 }}>
+                Etiquetas, sacolas, cartões, lacres e outros materiais ficam
+                centralizados aqui. O campo de operação continua definindo se o
+                insumo é compartilhado, de Suplementos ou de Fitness.
+              </span>
+            </div>
 
-          <Link className="button gold" href={manageHref}>
-            <Pencil size={16} />
-            Editar / arquivar materiais
-          </Link>
+            <div className="page-header-actions">
+              <Link
+                className={`button ${
+                  operation === "supplements" ? "gold" : "ghost"
+                }`}
+                href="/central/custos-insumos?operacao=supplements"
+              >
+                <Boxes size={15} />
+                Suplementos
+              </Link>
+
+              <Link
+                className={`button ${
+                  operation === "fitness" ? "gold" : "ghost"
+                }`}
+                href="/central/custos-insumos?operacao=fitness"
+              >
+                <Dumbbell size={15} />
+                Fitness
+              </Link>
+            </div>
+          </div>
         </div>
       </article>
 

@@ -1,5 +1,5 @@
-import { OperationalCostsPage } from "@/components/operational-costs-page";
+import { redirect } from "next/navigation";
 
-export default function SupplementsOperationalCostsPage() {
-  return <OperationalCostsPage operation="supplements" />;
+export default function LegacySupplementsOperationalCostsPage() {
+  redirect("/central/custos-insumos?operacao=supplements");
 }

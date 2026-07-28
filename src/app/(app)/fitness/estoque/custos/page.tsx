@@ -1,5 +1,5 @@
-import { OperationalCostsPage } from "@/components/operational-costs-page";
+import { redirect } from "next/navigation";
 
-export default function FitnessOperationalCostsPage() {
-  return <OperationalCostsPage operation="fitness" />;
+export default function LegacyFitnessOperationalCostsPage() {
+  redirect("/central/custos-insumos?operacao=fitness");
 }
