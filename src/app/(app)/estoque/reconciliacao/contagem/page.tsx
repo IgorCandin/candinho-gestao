@@ -1,6 +1,11 @@
 import Link from "next/link";
-import { ArrowLeft, ClipboardCheck, TriangleAlert } from "lucide-react";
+import {
+  ArrowLeft,
+  ClipboardCheck,
+  TriangleAlert,
+} from "lucide-react";
 import { InventoryActions } from "@/components/inventory-actions";
+import { InventoryZeroBaselineButton } from "@/components/inventory-zero-baseline-button";
 import { PageHeader } from "@/components/page-header";
 import {
   getInventoryLocationOverview,
@@ -11,18 +16,28 @@ import {
 export default async function ReconciliationCountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ local?: string }>;
+  searchParams: Promise<{
+    local?: string;
+  }>;
 }) {
-  const params = await searchParams;
+  const params =
+    await searchParams;
 
-  const [products, locations, locationRows] = await Promise.all([
+  const [
+    products,
+    locations,
+    locationRows,
+  ] = await Promise.all([
     getInventoryOverview(),
     getSaleLocations(),
     getInventoryLocationOverview(),
   ]);
 
   const selectedLocation =
-    locations.find((location) => location.id === params.local) ??
+    locations.find(
+      (location) =>
+        location.id === params.local,
+    ) ??
     locations[0] ??
     null;
 
@@ -34,8 +49,13 @@ export default async function ReconciliationCountPage({
           title="Contagem física"
           description="Nenhum ponto de estoque está disponível para conferência."
           action={
-            <Link className="button ghost" href="/estoque/reconciliacao">
-              <ArrowLeft size={16} />
+            <Link
+              className="button ghost"
+              href="/estoque/reconciliacao"
+            >
+              <ArrowLeft
+                size={16}
+              />
               Voltar
             </Link>
           }
@@ -44,15 +64,38 @@ export default async function ReconciliationCountPage({
     );
   }
 
+  const currentRows =
+    locationRows.filter(
+      (row) =>
+        row.location_id ===
+        selectedLocation.id,
+    );
+
+  const physicalTotal =
+    currentRows.reduce(
+      (sum, row) =>
+        sum +
+        Number(
+          row.physical_quantity ??
+            0,
+        ),
+      0,
+    );
+
   return (
     <>
       <PageHeader
         eyebrow="Estoque · Reconciliação"
-        title={`Recontar ${selectedLocation.name}`}
-        description="A pendência agora leva direto para a ferramenta que realmente corrige o saldo. Escolha o produto, informe a quantidade física encontrada e confirme."
+        title={`Conferir ${selectedLocation.name}`}
+        description="Aqui você define o saldo físico real do ponto. Se houver produtos, conte-os. Se o ponto estiver completamente vazio, confirme o zero sem criar uma movimentação falsa."
         action={
-          <Link className="button ghost" href="/estoque/reconciliacao">
-            <ArrowLeft size={16} />
+          <Link
+            className="button ghost"
+            href="/estoque/reconciliacao"
+          >
+            <ArrowLeft
+              size={16}
+            />
             Voltar à reconciliação
           </Link>
         }
@@ -63,48 +106,101 @@ export default async function ReconciliationCountPage({
           <div
             style={{
               display: "flex",
-              alignItems: "flex-start",
+              alignItems:
+                "flex-start",
               gap: 12,
               flexWrap: "wrap",
             }}
           >
             <span className="badge orange">
-              <TriangleAlert size={13} />
-              Conferência necessária
+              <TriangleAlert
+                size={13}
+              />
+              Validação do saldo
             </span>
 
-            <div style={{ display: "grid", gap: 5, flex: "1 1 320px" }}>
+            <div
+              style={{
+                display: "grid",
+                gap: 5,
+                flex: "1 1 320px",
+              }}
+            >
               <strong>
-                {selectedLocation.code} · {selectedLocation.name}
+                {
+                  selectedLocation.code
+                }{" "}
+                ·{" "}
+                {
+                  selectedLocation.name
+                }
               </strong>
-              <span style={{ color: "var(--muted)", lineHeight: 1.5 }}>
-                O local fica travado durante a contagem para evitar corrigir o
-                ponto errado. Se houver mais de um produto para conferir, repita
-                a contagem para cada produto necessário.
+
+              <span
+                style={{
+                  color:
+                    "var(--muted)",
+                  lineHeight: 1.5,
+                }}
+              >
+                “Contagem inicial” significa apenas que o sistema novo ainda não
+                recebeu uma confirmação física deste ponto. Ele não quer
+                inventar estoque: precisa saber se o zero mostrado é real ou se
+                existem unidades que ainda não foram registradas.
               </span>
+
+              <small
+                style={{
+                  color:
+                    "var(--muted)",
+                }}
+              >
+                Saldo físico registrado agora:{" "}
+                {physicalTotal}
+              </small>
             </div>
           </div>
         </div>
       </article>
 
+      {physicalTotal === 0 && (
+        <InventoryZeroBaselineButton
+          locationId={
+            selectedLocation.id
+          }
+          locationName={
+            selectedLocation.name
+          }
+        />
+      )}
+
       <article className="panel">
         <div className="panel-head">
           <div>
-            <h2>Corrigir pela contagem real</h2>
+            <h2>
+              Contar um produto
+            </h2>
             <p>
-              Não marque a pendência como resolvida antes de conferir o estoque
-              físico.
+              Use quando existe produto fisicamente no ponto ou quando a
+              quantidade registrada está diferente do que você encontrou.
             </p>
           </div>
-          <ClipboardCheck size={20} />
+
+          <ClipboardCheck
+            size={20}
+          />
         </div>
 
         <div className="panel-body">
           <InventoryActions
             products={products}
             locations={locations}
-            locationRows={locationRows}
-            initialLocationId={selectedLocation.id}
+            locationRows={
+              locationRows
+            }
+            initialLocationId={
+              selectedLocation.id
+            }
             initialMode="count"
             successHref="/estoque/reconciliacao"
           />

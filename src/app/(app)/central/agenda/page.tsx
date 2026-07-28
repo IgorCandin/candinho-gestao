@@ -6,15 +6,15 @@ import {
   ListChecks,
 } from "lucide-react";
 import { redirect } from "next/navigation";
-import { CentralTaskCard } from "@/components/central-task-card";
 import { CentralTaskCreateForm } from "@/components/central-task-create-form";
+import { CentralUnifiedAgendaCard } from "@/components/central-unified-agenda-card";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import {
-  getCentralAgendaSnapshot,
   getCentralAgendaUsers,
   getCentralContacts,
 } from "@/lib/central-data";
+import { getCentralUnifiedAgendaSnapshot } from "@/lib/central-unified-agenda";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export default async function CentralAgendaPage({
@@ -42,17 +42,6 @@ export default async function CentralAgendaPage({
   const params =
     await searchParams;
 
-  if (
-    params.scope ===
-      "marketing" &&
-    (access.role === "admin" ||
-      access.canAccessMarketing)
-  ) {
-    redirect(
-      "/marketing/planejamento",
-    );
-  }
-
   const allowedScopes = [
     "company",
     ...(access.canAccessSupplements ||
@@ -63,17 +52,11 @@ export default async function CentralAgendaPage({
     access.role === "admin"
       ? ["fitness"]
       : []),
-    ...(access.canAccessMarketing ||
-    access.role === "admin"
-      ? ["marketing"]
-      : []),
   ];
 
   const scope =
     params.scope &&
-    allowedScopes.includes(
-      params.scope,
-    )
+    allowedScopes.includes(params.scope)
       ? params.scope
       : null;
 
@@ -92,10 +75,16 @@ export default async function CentralAgendaPage({
     contacts,
     users,
   ] = await Promise.all([
-    getCentralAgendaSnapshot(
-      status,
+    getCentralUnifiedAgendaSnapshot({
+      canSupplements:
+        access.role === "admin" ||
+        access.canAccessSupplements,
+      canFitness:
+        access.role === "admin" ||
+        access.canAccessFitness,
       scope,
-    ),
+      status,
+    }),
     getCentralContacts(),
     getCentralAgendaUsers(),
   ]);
@@ -104,39 +93,56 @@ export default async function CentralAgendaPage({
     <>
       <PageHeader
         eyebrow="Candinho Central"
-        title="Agenda"
-        description="Compromissos e tarefas das operações em uma única rotina."
+        title="Agenda unificada"
+        description="Central, Suplementos e Fitness no mesmo lugar. A cor mostra de longe a origem de cada compromisso."
         action={
           <CentralTaskCreateForm
-            scopes={
-              allowedScopes
-            }
+            scopes={allowedScopes}
             contacts={contacts}
             users={users}
           />
         }
       />
 
+      <div className="central-agenda-scope-legend">
+        <span className="company">
+          <i />
+          Central
+        </span>
+        {(access.canAccessSupplements ||
+          access.role === "admin") && (
+          <span className="supplements">
+            <i />
+            Suplementos
+          </span>
+        )}
+        {(access.canAccessFitness ||
+          access.role === "admin") && (
+          <span className="fitness">
+            <i />
+            Fitness
+          </span>
+        )}
+      </div>
+
       <section className="stats-grid central-agenda-stats">
         <StatCard
           href="/central/agenda?status=planned"
           label="Hoje"
           value={String(
-            agenda.summary
-              .today_count,
+            agenda.summary.today_count,
           )}
-          note="tarefas previstas para hoje"
+          note="compromissos de todas as operações"
           icon={CalendarDays}
         />
 
         <StatCard
-          href="/central/pendencias"
+          href="/central/agenda?status=planned"
           label="Atrasadas"
           value={String(
-            agenda.summary
-              .overdue_count,
+            agenda.summary.overdue_count,
           )}
-          note="continuam visíveis até resolver"
+          note="continuam até resolver"
           icon={CalendarClock}
         />
 
@@ -170,13 +176,10 @@ export default async function CentralAgendaPage({
         >
           <label>
             <span>Operação</span>
-
             <select
               className="select"
               name="scope"
-              defaultValue={
-                scope ?? ""
-              }
+              defaultValue={scope ?? ""}
             >
               <option value="">
                 Todas
@@ -188,16 +191,12 @@ export default async function CentralAgendaPage({
                     value={item}
                     key={item}
                   >
-                    {item ===
-                    "company"
-                      ? "Company"
+                    {item === "company"
+                      ? "Central"
                       : item ===
                           "supplements"
                         ? "Suplementos"
-                        : item ===
-                            "fitness"
-                          ? "Fitness"
-                          : "Marketing"}
+                        : "Fitness"}
                   </option>
                 ),
               )}
@@ -206,7 +205,6 @@ export default async function CentralAgendaPage({
 
           <label>
             <span>Status</span>
-
             <select
               className="select"
               name="status"
@@ -233,9 +231,7 @@ export default async function CentralAgendaPage({
             className="button ghost"
             type="submit"
           >
-            <ListChecks
-              size={15}
-            />
+            <ListChecks size={15} />
             Filtrar
           </button>
         </form>
@@ -245,42 +241,31 @@ export default async function CentralAgendaPage({
         <div className="panel-head">
           <div>
             <h2>Compromissos</h2>
-
             <p>
-              {agenda.items.length}{" "}
-              item(ns) no filtro
-              atual.
+              {agenda.items.length} item(ns) no filtro atual.
             </p>
           </div>
         </div>
 
-        <div className="central-task-list">
+        <div className="panel-body">
           {agenda.items.length ? (
-            agenda.items.map(
-              (task) => (
-                <CentralTaskCard
-                  task={task}
-                  key={task.id}
-                />
-              ),
-            )
+            <div className="central-unified-agenda-list">
+              {agenda.items.map(
+                (item) => (
+                  <CentralUnifiedAgendaCard
+                    item={item}
+                    key={item.event_key}
+                  />
+                ),
+              )}
+            </div>
           ) : (
             <div className="empty">
-              <CalendarDays
-                size={30}
-              />
-
+              <CalendarDays size={30} />
               <strong>
-                Agenda livre neste
-                filtro
+                Agenda livre neste filtro
               </strong>
-
-              Não existe nenhuma tarefa
-              para mostrar agora. Isso
-              pode significar que está
-              tudo em dia ou que o filtro
-              escolhido não possui
-              compromissos.
+              Nenhum compromisso encontrado.
             </div>
           )}
         </div>
