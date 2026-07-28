@@ -1,8 +1,5 @@
 import Link from "next/link";
-import {
-  notFound,
-  redirect,
-} from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft,
   FileText,
@@ -13,34 +10,28 @@ import {
 import { CentralMediaClassifyButton } from "@/components/central-media-classify-button";
 import { CentralMediaDeleteButton } from "@/components/central-media-delete-button";
 import { CentralMediaLinkForm } from "@/components/central-media-link-form";
+import { CentralMediaPreviewViewer } from "@/components/central-media-preview-viewer";
 import { PageHeader } from "@/components/page-header";
 import {
   getCentralContacts,
-  getCentralIntegrationReadiness,
   getCentralMediaAssetDetails,
 } from "@/lib/central-data";
 import { getCurrentUserAccess } from "@/lib/data";
 import { formatDateTime } from "@/lib/format";
 
 function value(
-  metadata: Record<
-    string,
-    unknown
-  > | null,
+  metadata: Record<string, unknown> | null,
   key: string,
 ) {
   const item = metadata?.[key];
 
-  if (typeof item === "string") {
-    return item;
-  }
+  if (typeof item === "string") return item;
 
   if (Array.isArray(item)) {
     return item
       .filter(
-        (entry) =>
-          typeof entry ===
-          "string",
+        (entry): entry is string =>
+          typeof entry === "string",
       )
       .join(", ");
   }
@@ -48,15 +39,19 @@ function value(
   return null;
 }
 
+function operationLabel(value: string) {
+  if (value === "supplements") return "Suplementos";
+  if (value === "fitness") return "Fitness";
+  if (value === "marketing") return "Marketing";
+  return "Company";
+}
+
 export default async function CentralMediaDetailPage({
   params,
 }: {
-  params: Promise<{
-    id: string;
-  }>;
+  params: Promise<{ id: string }>;
 }) {
-  const access =
-    await getCurrentUserAccess();
+  const access = await getCurrentUserAccess();
 
   if (
     !(
@@ -71,77 +66,66 @@ export default async function CentralMediaDetailPage({
 
   const { id } = await params;
 
-  const [
-    asset,
-    contacts,
-    readiness,
-  ] = await Promise.all([
-    getCentralMediaAssetDetails(
-      id,
-    ),
+  const [asset, contacts] = await Promise.all([
+    getCentralMediaAssetDetails(id),
     getCentralContacts(),
-    access.canManageUsers
-      ? getCentralIntegrationReadiness()
-      : Promise.resolve(null),
   ]);
 
   if (!asset) notFound();
 
   const isImage =
-    asset.mime_type?.startsWith(
-      "image/",
-    );
-
+    asset.mime_type?.startsWith("image/");
   const isVideo =
-    asset.mime_type?.startsWith(
-      "video/",
-    );
+    asset.mime_type?.startsWith("video/");
 
   const supportedImage = [
     "image/jpeg",
     "image/png",
     "image/webp",
-  ].includes(
-    asset.mime_type ?? "",
-  );
+  ].includes(asset.mime_type ?? "");
 
   const aiReady = Boolean(
-    readiness?.openai.ready,
+    process.env.GEMINI_API_KEY ||
+      process.env.OPENAI_API_KEY,
   );
 
   const category = value(
     asset.ai_metadata,
     "category",
   );
-
   const environment = value(
     asset.ai_metadata,
     "environment",
   );
-
   const suggestedUse = value(
     asset.ai_metadata,
     "suggested_use",
   );
-
-  const recognizedProducts =
-    value(
-      asset.ai_metadata,
-      "recognized_products",
-    );
+  const recognizedProducts = value(
+    asset.ai_metadata,
+    "recognized_products",
+  );
+  const provider = value(
+    asset.ai_metadata,
+    "nexus_provider",
+  );
 
   const filename =
-    asset.original_filename ??
-    "arquivo";
+    asset.original_filename ?? "arquivo";
+
+  const classified = Boolean(
+    asset.description_ai,
+  );
 
   return (
-    <>
+    <div className="central-media-detail-v2">
       <PageHeader
         eyebrow="Candinho Central · Mídia"
         title={filename}
         description={
-          asset.description_ai ??
-          "Arquivo armazenado na biblioteca privada da Candinho Company."
+          classified
+            ? asset.description_ai!
+            : "Visualize, organize e classifique este arquivo sem sair da biblioteca."
         }
         action={
           <div className="page-header-actions">
@@ -149,9 +133,7 @@ export default async function CentralMediaDetailPage({
               href="/central/midia"
               className="button ghost"
             >
-              <ArrowLeft
-                size={15}
-              />
+              <ArrowLeft size={15} />
               Biblioteca
             </Link>
 
@@ -163,15 +145,12 @@ export default async function CentralMediaDetailPage({
         }
       />
 
-      <section className="central-media-detail-layout">
-        <article className="panel central-media-detail-preview-panel">
-          <div className="central-media-detail-preview">
-            {isImage &&
-            asset.signed_url ? (
-              <img
-                src={
-                  asset.signed_url
-                }
+      <section className="central-media-detail-v2-grid">
+        <div className="central-media-detail-v2-main">
+          <article className="central-media-viewer-card">
+            {isImage && asset.signed_url ? (
+              <CentralMediaPreviewViewer
+                url={asset.signed_url}
                 alt={
                   asset.description_ai ??
                   filename
@@ -179,40 +158,178 @@ export default async function CentralMediaDetailPage({
               />
             ) : isVideo &&
               asset.signed_url ? (
-              <video
-                src={
-                  asset.signed_url
-                }
-                controls
-                preload="metadata"
-              />
-            ) : asset.mime_type ===
-              "application/pdf" ? (
-              <FileText
-                size={54}
-              />
-            ) : (
-              <ImageIcon
-                size={54}
-              />
-            )}
-          </div>
-        </article>
-
-        <div className="central-media-detail-side">
-          <article className="panel">
-            <div className="panel-heading">
-              <span>
-                <Link2
-                  size={16}
+              <div className="central-media-viewer-stage">
+                <video
+                  src={asset.signed_url}
+                  controls
+                  preload="metadata"
                 />
-                <strong>
-                  Contexto
-                </strong>
+              </div>
+            ) : (
+              <div className="central-media-viewer-stage">
+                {asset.mime_type ===
+                "application/pdf" ? (
+                  <FileText size={62} />
+                ) : (
+                  <ImageIcon size={62} />
+                )}
+              </div>
+            )}
+          </article>
+
+          <section className="central-media-file-strip">
+            <div>
+              <span>Operação</span>
+              <strong>
+                {operationLabel(
+                  asset.operation_scope,
+                )}
+              </strong>
+            </div>
+
+            <div>
+              <span>Tipo</span>
+              <strong>
+                {asset.mime_type ??
+                  "Não informado"}
+              </strong>
+            </div>
+
+            <div>
+              <span>Origem</span>
+              <strong>
+                {asset.source ?? "upload"}
+              </strong>
+            </div>
+
+            <div>
+              <span>Adicionado</span>
+              <strong>
+                {formatDateTime(
+                  asset.created_at,
+                )}
+              </strong>
+            </div>
+          </section>
+
+          {asset.tags.length > 0 && (
+            <div className="central-media-tags-v2">
+              {asset.tags.map((tag) => (
+                <i key={tag}>{tag}</i>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <aside className="central-media-detail-v2-side">
+          <article className="central-media-side-card central-media-nexus-card">
+            <div className="central-media-side-card-head">
+              <div>
+                <Sparkles size={17} />
+                <div>
+                  <strong>Nexus Mídia</strong>
+                  <small>
+                    Entende a imagem e cria contexto para busca.
+                  </small>
+                </div>
+              </div>
+
+              <span
+                className={`central-media-nexus-status ${
+                  classified
+                    ? "ready"
+                    : aiReady
+                      ? ""
+                      : "waiting"
+                }`}
+              >
+                {classified
+                  ? provider === "gemini"
+                    ? "Gemini"
+                    : provider === "openai"
+                      ? "OpenAI"
+                      : "Classificado"
+                  : aiReady
+                    ? "Pronto"
+                    : "Indisponível"}
               </span>
             </div>
 
-            <div className="panel-body">
+            <div className="central-media-side-card-body">
+              {classified ? (
+                <div className="central-media-ai-meta-grid">
+                  {category && (
+                    <div>
+                      <span>Categoria</span>
+                      <strong>{category}</strong>
+                    </div>
+                  )}
+
+                  {environment && (
+                    <div>
+                      <span>Ambiente</span>
+                      <strong>{environment}</strong>
+                    </div>
+                  )}
+
+                  {recognizedProducts && (
+                    <div>
+                      <span>Produtos reconhecidos</span>
+                      <strong>
+                        {recognizedProducts}
+                      </strong>
+                    </div>
+                  )}
+
+                  {suggestedUse && (
+                    <div>
+                      <span>Uso sugerido</span>
+                      <strong>
+                        {suggestedUse}
+                      </strong>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p
+                  style={{
+                    margin: "0 0 12px",
+                    color: "var(--muted)",
+                    fontSize: 11,
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {supportedImage
+                    ? aiReady
+                      ? "A imagem ainda não foi analisada. O Nexus pode classificar agora usando o provedor disponível."
+                      : "Nenhum provedor do Nexus está configurado neste deployment."
+                    : "Este tipo de arquivo não usa análise visual automática."}
+                </p>
+              )}
+
+              {supportedImage && (
+                <CentralMediaClassifyButton
+                  assetId={asset.id}
+                  disabled={!aiReady}
+                />
+              )}
+            </div>
+          </article>
+
+          <article className="central-media-side-card">
+            <div className="central-media-side-card-head">
+              <div>
+                <Link2 size={17} />
+                <div>
+                  <strong>Contexto</strong>
+                  <small>
+                    Ligue a mídia ao cliente quando fizer sentido.
+                  </small>
+                </div>
+              </div>
+            </div>
+
+            <div className="central-media-side-card-body">
               <CentralMediaLinkForm
                 assetId={asset.id}
                 currentContactId={
@@ -221,185 +338,12 @@ export default async function CentralMediaDetailPage({
                 currentConversationId={
                   asset.conversation_id
                 }
-                contacts={
-                  contacts
-                }
+                contacts={contacts}
               />
             </div>
           </article>
-
-          <article className="panel">
-            <div className="panel-heading">
-              <span>
-                <Sparkles
-                  size={16}
-                />
-                <strong>
-                  Nexus Mídia
-                </strong>
-              </span>
-            </div>
-
-            <div className="panel-body central-media-ai-detail">
-              <div>
-                <span>Status</span>
-                <strong>
-                  {asset.description_ai
-                    ? "Classificado"
-                    : supportedImage
-                      ? aiReady
-                        ? "Pronto para classificar"
-                        : "Aguardando chave OpenAI"
-                      : "Sem análise visual automática"}
-                </strong>
-              </div>
-
-              {category && (
-                <div>
-                  <span>
-                    Categoria
-                  </span>
-                  <strong>
-                    {category}
-                  </strong>
-                </div>
-              )}
-
-              {environment && (
-                <div>
-                  <span>
-                    Ambiente
-                  </span>
-                  <strong>
-                    {
-                      environment
-                    }
-                  </strong>
-                </div>
-              )}
-
-              {recognizedProducts && (
-                <div>
-                  <span>
-                    Produtos
-                    reconhecidos
-                  </span>
-                  <strong>
-                    {
-                      recognizedProducts
-                    }
-                  </strong>
-                </div>
-              )}
-
-              {suggestedUse && (
-                <div>
-                  <span>
-                    Uso sugerido
-                  </span>
-                  <strong>
-                    {
-                      suggestedUse
-                    }
-                  </strong>
-                </div>
-              )}
-
-              {supportedImage && (
-                <CentralMediaClassifyButton
-                  assetId={
-                    asset.id
-                  }
-                  disabled={
-                    !aiReady
-                  }
-                />
-              )}
-            </div>
-          </article>
-        </div>
+        </aside>
       </section>
-
-      <article className="panel central-media-detail-info">
-        <div className="panel-heading">
-          <span>
-            <FileText size={16} />
-            <strong>
-              Informações do arquivo
-            </strong>
-          </span>
-        </div>
-
-        <div className="central-media-detail-info-grid">
-          <div>
-            <span>Operação</span>
-            <strong>
-              {
-                asset.operation_scope
-              }
-            </strong>
-          </div>
-
-          <div>
-            <span>Tipo</span>
-            <strong>
-              {asset.mime_type ??
-                "Não informado"}
-            </strong>
-          </div>
-
-          <div>
-            <span>Origem</span>
-            <strong>
-              {asset.source ??
-                "upload"}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              Adicionado em
-            </span>
-            <strong>
-              {formatDateTime(
-                asset.created_at,
-              )}
-            </strong>
-          </div>
-
-          <div>
-            <span>Contato</span>
-            <strong>
-              {asset.contact_name ??
-                "Sem vínculo"}
-            </strong>
-          </div>
-
-          <div>
-            <span>
-              Histórico antigo
-            </span>
-            <strong>
-              {asset.conversation_id
-                ? "Vínculo de conversa preservado"
-                : "Sem vínculo de conversa"}
-            </strong>
-          </div>
-        </div>
-
-        {asset.tags.length >
-          0 && (
-          <div className="central-media-detail-tags">
-            {asset.tags.map(
-              (tag) => (
-                <i key={tag}>
-                  {tag}
-                </i>
-              ),
-            )}
-          </div>
-        )}
-      </article>
-    </>
+    </div>
   );
 }
