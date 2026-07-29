@@ -3,6 +3,7 @@ import {
   Boxes,
   BrainCircuit,
   Building2,
+  ListChecks,
   PackageCheck,
   Plus,
   Truck,
@@ -44,17 +45,27 @@ export default async function SupplierOrdersPage({
       <PageHeader
         eyebrow="Compras"
         title="Pedidos de fornecedor"
-        description="Acompanhe o que já foi comprado e use o planejamento inteligente para decidir o próximo pedido. O histórico agora é paginado no servidor."
+        description="Acompanhe o que já foi comprado, planeje o próximo pedido de forma rápida ou abra a inteligência de reposição para análises de giro e cobertura."
         action={
           <div className="page-header-actions">
             <Link className="button ghost" href="/fornecedores">
               <Building2 size={16} />
               Fornecedores
             </Link>
+
+            <Link
+              className="button ghost"
+              href="/pedidos-fornecedor/proximo-pedido"
+            >
+              <ListChecks size={16} />
+              Próximo pedido
+            </Link>
+
             <Link className="button ghost" href="/pedidos-fornecedor/planejamento">
               <BrainCircuit size={16} />
-              Planejar compras
+              Inteligência
             </Link>
+
             <Link className="button gold" href="/pedidos-fornecedor/novo">
               <Plus size={16} />
               Novo pedido
