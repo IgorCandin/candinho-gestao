@@ -4,6 +4,7 @@ import { CentralKnowledgeNav } from "@/components/central-knowledge-nav";
 import { DesktopEscapeBack } from "@/components/desktop-escape-back";
 import { DesktopSidebarController } from "@/components/desktop-sidebar-controller";
 import { OperationToolSearch } from "@/components/operation-tool-search";
+import { PurchasingNavigation } from "@/components/purchasing-navigation";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -34,6 +35,7 @@ export default async function ProtectedLayout({
         <CentralKnowledgeNav
           canManageUsers={canManageCentralKnowledge}
         />
+        <PurchasingNavigation />
         {children}
       </AppShell>
     </DesktopSidebarController>
