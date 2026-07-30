@@ -3,9 +3,11 @@ import { CommercialPagination } from "@/components/commercial-pagination";
 import { CommercialSearchForm } from "@/components/commercial-search-form";
 import { DemoBanner } from "@/components/demo-banner";
 import { LeadsTable } from "@/components/leads-table";
+import { NexusLeadQueue } from "@/components/nexus-lead-queue";
 import { PageHeader } from "@/components/page-header";
 import { getLeadsPage } from "@/lib/commercial-scale-data";
 import { formatMonthYear } from "@/lib/format";
+import { getNexusBrief } from "@/lib/nexus-operating-context";
 import type { LeadRow } from "@/lib/types";
 
 function groupByMonth(leads: LeadRow[]) {
@@ -33,12 +35,15 @@ export default async function LeadsPage({
   const q = params.q?.trim() ?? "";
   const month = params.month?.trim() ?? "";
 
-  const result = await getLeadsPage({
-    page,
-    pageSize: 30,
-    search: q,
-    month,
-  });
+  const [result, nexus] = await Promise.all([
+    getLeadsPage({
+      page,
+      pageSize: 30,
+      search: q,
+      month,
+    }),
+    getNexusBrief({ refresh: true, signalLimit: 45 }),
+  ]);
 
   const groups = groupByMonth(result.rows);
 
@@ -49,7 +54,7 @@ export default async function LeadsPage({
       <PageHeader
         eyebrow="Comercial"
         title="Leads"
-        description="Contatos e oportunidades com busca, filtro mensal e paginação."
+        description="A fila do Nexus mostra quem realmente merece retomada; a lista completa abaixo continua sendo o histórico comercial."
       />
 
       <nav className="period-tabs">
@@ -57,6 +62,8 @@ export default async function LeadsPage({
         <Link className="period-tab" href="/orcamentos">Orçamentos</Link>
         <Link className="period-tab active" href="/leads">Leads</Link>
       </nav>
+
+      <NexusLeadQueue signals={nexus.signals} />
 
       <div className="commercial-scale-toolbar commercial-scale-toolbar-leads">
         <CommercialSearchForm
@@ -110,12 +117,12 @@ export default async function LeadsPage({
                 <section className="lead-group" key={groupMonth}>
                   <div className="lead-group-title">
                     <div>
-                      <span>Leads do mês</span>
+                      <span>Histórico de leads do mês</span>
                       <h2>{formatMonthYear(groupMonth)}</h2>
                     </div>
                     <strong>
-                      {leadCount} lead{leadCount === 1 ? "" : "s"} ·{" "}
-                      {rows.length} produto{rows.length === 1 ? "" : "s"}
+                      {leadCount} lead{leadCount === 1 ? "" : "s"} · {rows.length}{" "}
+                      produto{rows.length === 1 ? "" : "s"}
                     </strong>
                   </div>
 
