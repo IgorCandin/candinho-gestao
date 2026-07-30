@@ -146,7 +146,7 @@ export function PartnerUxOverlay({
           ":scope > button.button.gold",
         ) ?? null;
 
-      if (original) {
+      if (original && head) {
         if (
           originalRewardButtonRef.current &&
           originalRewardButtonRef.current !== original
@@ -157,7 +157,7 @@ export function PartnerUxOverlay({
         originalRewardButtonRef.current = original;
 
         let rewardSlot =
-          head?.querySelector<HTMLElement>(
+          head.querySelector<HTMLElement>(
             '[data-partner-reward-ux-slot="true"]',
           ) ?? null;
 
