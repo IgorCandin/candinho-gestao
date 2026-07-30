@@ -19,11 +19,14 @@ type ProfitPoint = {
   label: string;
   fullLabel: string;
   profit: number;
+  revenue: number;
+  salesCount: number;
 };
 
 type SaleProfitRow = {
   delivered_at: string | null;
   total_profit: number | string | null;
+  total_amount: number | string | null;
 };
 
 const PERIODS: Record<
@@ -185,6 +188,8 @@ function createEmptyPoints(
         label: formatShortDate(date),
         fullLabel: formatFullDate(date),
         profit: 0,
+        revenue: 0,
+        salesCount: 0,
       };
     });
   }
@@ -195,11 +200,14 @@ function createEmptyPoints(
     return Array.from({ length: count }, (_, index) => {
       const date = addDays(start, index * 7);
       const weekEnd = addDays(date, 6);
+
       return {
         key: `week-${index}`,
         label: formatShortDate(date),
         fullLabel: `${formatShortDate(date)} a ${formatShortDate(weekEnd)}`,
         profit: 0,
+        revenue: 0,
+        salesCount: 0,
       };
     });
   }
@@ -219,7 +227,10 @@ function createEmptyPoints(
       label: monthLabel(cursor),
       fullLabel: monthLabel(cursor),
       profit: 0,
+      revenue: 0,
+      salesCount: 0,
     });
+
     cursor = addMonths(cursor, 1);
   }
 
@@ -247,13 +258,14 @@ export async function GET(request: NextRequest) {
 
   const requested = request.nextUrl.searchParams.get("period") as PeriodKey | null;
   const period: PeriodKey = requested && requested in PERIODS ? requested : "30d";
-  const { config, currentStart, currentEnd, previousStart, previousEnd } = buildPeriod(period);
+  const { config, currentStart, currentEnd, previousStart, previousEnd } =
+    buildPeriod(period);
 
   const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("sales")
-    .select("delivered_at,total_profit")
+    .select("delivered_at,total_profit,total_amount")
     .eq("record_type", "sale")
     .eq("delivery_status", "delivered")
     .neq("general_status", "cancelled")
@@ -273,13 +285,16 @@ export async function GET(request: NextRequest) {
   const pointMap = new Map(points.map((point) => [point.key, point]));
 
   let currentTotal = 0;
+  let currentRevenue = 0;
+  let currentSales = 0;
   let previousTotal = 0;
 
   for (const row of rows) {
     if (!row.delivered_at) continue;
 
     const deliveredDate = localDateFromTimestamp(row.delivered_at);
-    const value = numberValue(row.total_profit);
+    const profit = numberValue(row.total_profit);
+    const revenue = numberValue(row.total_amount);
 
     const deliveredTime = toUtcDate(deliveredDate).getTime();
     const currentStartTime = toUtcDate(currentStart).getTime();
@@ -288,22 +303,31 @@ export async function GET(request: NextRequest) {
     const previousEndTime = toUtcDate(previousEnd).getTime();
 
     if (deliveredTime >= currentStartTime && deliveredTime < currentEndTime) {
-      currentTotal += value;
+      currentTotal += profit;
+      currentRevenue += revenue;
+      currentSales += 1;
+
       const key = bucketKey(config.bucket, deliveredDate, currentStart);
       const point = pointMap.get(key);
 
-      if (point) point.profit += value;
+      if (point) {
+        point.profit += profit;
+        point.revenue += revenue;
+        point.salesCount += 1;
+      }
+
       continue;
     }
 
     if (deliveredTime >= previousStartTime && deliveredTime < previousEndTime) {
-      previousTotal += value;
+      previousTotal += profit;
     }
   }
 
   const roundedPoints = points.map((point) => ({
     ...point,
     profit: Number(point.profit.toFixed(2)),
+    revenue: Number(point.revenue.toFixed(2)),
   }));
 
   const bestPoint = roundedPoints.reduce<ProfitPoint | null>(
@@ -314,7 +338,8 @@ export async function GET(request: NextRequest) {
   const activeBuckets = roundedPoints.filter((point) => point.profit > 0);
   const averageActive =
     activeBuckets.length > 0
-      ? activeBuckets.reduce((sum, point) => sum + point.profit, 0) / activeBuckets.length
+      ? activeBuckets.reduce((sum, point) => sum + point.profit, 0) /
+        activeBuckets.length
       : 0;
 
   const percentageChange =
@@ -326,6 +351,8 @@ export async function GET(request: NextRequest) {
       periodLabel: config.label,
       bucket: config.bucket,
       currentTotal: Number(currentTotal.toFixed(2)),
+      currentRevenue: Number(currentRevenue.toFixed(2)),
+      currentSales,
       previousTotal: Number(previousTotal.toFixed(2)),
       percentageChange:
         percentageChange === null ? null : Number(percentageChange.toFixed(1)),
