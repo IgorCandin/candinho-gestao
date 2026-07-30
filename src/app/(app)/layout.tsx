@@ -8,6 +8,7 @@ import { DesktopSidebarController } from "@/components/desktop-sidebar-controlle
 import { NexusActivityTracker } from "@/components/nexus-activity-tracker";
 import { NexusCopilotDock } from "@/components/nexus-copilot-dock";
 import { OperationToolSearch } from "@/components/operation-tool-search";
+import { ProductPublicPageShortcutPortal } from "@/components/product-public-page-shortcut-portal";
 import { PurchasingNavigation } from "@/components/purchasing-navigation";
 import { getCurrentUserAccess } from "@/lib/data";
 
@@ -33,6 +34,10 @@ export default async function ProtectedLayout({
     access.canAccessSupplements &&
     (access.role === "admin" || access.canWriteSupplements);
 
+  const canManagePublicProducts =
+    access.active &&
+    (access.role === "admin" || access.canWriteSupplements);
+
   return (
     <DesktopSidebarController>
       <DesktopEscapeBack />
@@ -43,6 +48,7 @@ export default async function ProtectedLayout({
       <AutoPartnershipSaleUX enabled={canUseNexusOperating} />
       <CustomerRelationshipsPortal enabled={canUseNexusOperating} />
       <NexusCopilotDock enabled={canUseNexusOperating} />
+      <ProductPublicPageShortcutPortal enabled={canManagePublicProducts} />
 
       <AppShell access={access}>
         <CentralKnowledgeNav

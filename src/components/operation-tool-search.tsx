@@ -1,7 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Bot, CalendarDays, Search, UserRoundPlus } from "lucide-react";
+import {
+  Bot,
+  CalendarDays,
+  PackageSearch,
+  Search,
+  UserRoundPlus,
+} from "lucide-react";
 import { createPortal } from "react-dom";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
@@ -22,6 +28,17 @@ type ToolItem = {
   href: string;
   operation: OperationKey;
   keywords: string;
+};
+
+type ProductSearchItem = {
+  operation: "supplements" | "fitness";
+  id: string;
+  name: string;
+  category: string | null;
+  brand: string | null;
+  available_quantity: number;
+  href: string;
+  subtitle: string | null;
 };
 
 const TOOLS: ToolItem[] = [
@@ -62,6 +79,7 @@ const TOOLS: ToolItem[] = [
   { label: "Suplementos · Gestão", href: "/suplementos/painel", operation: "supplements", keywords: "painel gerencial faturamento lucro indicadores" },
 
   { label: "Fitness · Início", href: "/fitness", operation: "fitness", keywords: "fitness home" },
+  { label: "Fitness · Nexus", href: "/fitness/nexus", operation: "fitness", keywords: "nexus inteligência estoque promoção campanha giro sugestão" },
   { label: "Fitness · Painel Gerencial", href: "/fitness/painel", operation: "fitness", keywords: "gestão indicadores" },
   { label: "Fitness · Comercial", href: "/fitness/vendas", operation: "fitness", keywords: "vendas comercial" },
   { label: "Fitness · Nova venda", href: "/fitness/vendas/nova", operation: "fitness", keywords: "vender roupa pedido" },
@@ -111,29 +129,53 @@ function operationForPath(pathname: string): OperationKey {
 function canSee(tool: ToolItem, access: UserAccess) {
   if (tool.operation === "company") return true;
   if (tool.operation === "partner") return access.role === "partner";
-  if (tool.operation === "physique") return access.role === "admin" || access.canManageUsers;
-  if (tool.operation === "supplements") return access.canAccessSupplements || access.role === "admin";
-  if (tool.operation === "fitness") return access.canAccessFitness || access.role === "admin";
-  if (tool.operation === "bank") return access.canAccessBank || access.role === "admin";
-  if (tool.operation === "marketing") return access.canAccessMarketing || access.role === "admin";
-  return access.role === "admin" || access.canAccessSupplements || access.canAccessFitness || access.canAccessMarketing;
+  if (tool.operation === "physique") {
+    return access.role === "admin" || access.canManageUsers;
+  }
+  if (tool.operation === "supplements") {
+    return access.canAccessSupplements || access.role === "admin";
+  }
+  if (tool.operation === "fitness") {
+    return access.canAccessFitness || access.role === "admin";
+  }
+  if (tool.operation === "bank") {
+    return access.canAccessBank || access.role === "admin";
+  }
+  if (tool.operation === "marketing") {
+    return access.canAccessMarketing || access.role === "admin";
+  }
+
+  return (
+    access.role === "admin" ||
+    access.canAccessSupplements ||
+    access.canAccessFitness ||
+    access.canAccessMarketing
+  );
 }
 
 function SearchBox({
   query,
   setQuery,
-  results,
+  tools,
+  products,
+  loadingProducts,
   mobile = false,
 }: {
   query: string;
   setQuery: (value: string) => void;
-  results: ToolItem[];
+  tools: ToolItem[];
+  products: ProductSearchItem[];
+  loadingProducts: boolean;
   mobile?: boolean;
 }) {
   const closeMobile = () => {
     setQuery("");
-    document.querySelector<HTMLDetailsElement>(".mobile-menu")?.removeAttribute("open");
+    document
+      .querySelector<HTMLDetailsElement>(".mobile-menu")
+      ?.removeAttribute("open");
   };
+
+  const onNavigate = mobile ? closeMobile : () => setQuery("");
 
   return (
     <div
@@ -157,12 +199,13 @@ function SearchBox({
             pointerEvents: "none",
           }}
         />
+
         <input
-          aria-label="Buscar ferramenta"
+          aria-label="Buscar ferramenta ou produto"
           className="input"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Buscar ferramenta..."
+          placeholder="Buscar ferramenta ou produto..."
           style={{
             display: "block",
             width: "100%",
@@ -180,36 +223,131 @@ function SearchBox({
           style={{
             marginTop: 7,
             display: "grid",
-            gap: 4,
-            maxHeight: mobile ? 260 : 320,
+            gap: 6,
+            maxHeight: mobile ? 330 : 390,
             overflowY: "auto",
             overflowX: "hidden",
-            padding: 4,
+            padding: 5,
             boxSizing: "border-box",
             border: "1px solid var(--line)",
             borderRadius: 10,
             background: "var(--panel)",
           }}
         >
-          {results.length === 0 ? (
-            <small style={{ padding: 10, color: "var(--muted)" }}>
-              Nenhuma ferramenta encontrada.
-            </small>
-          ) : (
-            results.map((tool) => (
-              <Link
-                className="nav-link"
-                href={tool.href}
-                key={`${tool.operation}-${tool.href}-${tool.label}`}
-                onClick={mobile ? closeMobile : () => setQuery("")}
-                style={{ minHeight: 36 }}
+          {products.length > 0 && (
+            <div style={{ display: "grid", gap: 3 }}>
+              <small
+                style={{
+                  padding: "4px 7px 2px",
+                  color: "var(--muted)",
+                  fontSize: 7,
+                  fontWeight: 900,
+                  letterSpacing: ".08em",
+                  textTransform: "uppercase",
+                }}
               >
-                <Search size={14} />
-                <span className="nav-label" style={{ lineHeight: 1.2 }}>
-                  {tool.label}
-                </span>
-              </Link>
-            ))
+                Produtos
+              </small>
+
+              {products.map((product) => (
+                <Link
+                  className="nav-link"
+                  href={product.href}
+                  key={`${product.operation}-${product.id}`}
+                  onClick={onNavigate}
+                  style={{
+                    minHeight: 42,
+                    alignItems: "center",
+                    border:
+                      product.available_quantity > 0
+                        ? "1px solid rgba(67,202,120,.13)"
+                        : undefined,
+                    background:
+                      product.available_quantity > 0
+                        ? "rgba(67,202,120,.025)"
+                        : undefined,
+                  }}
+                >
+                  <PackageSearch
+                    size={15}
+                    style={{
+                      color:
+                        product.available_quantity > 0
+                          ? "#67d69a"
+                          : undefined,
+                    }}
+                  />
+
+                  <span
+                    className="nav-label"
+                    style={{
+                      lineHeight: 1.2,
+                      minWidth: 0,
+                      display: "grid",
+                      gap: 2,
+                    }}
+                  >
+                    <strong style={{ fontSize: 9 }}>{product.name}</strong>
+                    <small
+                      style={{
+                        color: "var(--muted)",
+                        fontSize: 7,
+                        whiteSpace: "normal",
+                      }}
+                    >
+                      {product.subtitle ?? product.category ?? "Produto"}
+                      {product.available_quantity > 0
+                        ? ` · ${product.available_quantity} disponível(is)`
+                        : " · sem estoque"}
+                    </small>
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {tools.length > 0 && (
+            <div style={{ display: "grid", gap: 3 }}>
+              <small
+                style={{
+                  padding: "4px 7px 2px",
+                  color: "var(--muted)",
+                  fontSize: 7,
+                  fontWeight: 900,
+                  letterSpacing: ".08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                Ferramentas
+              </small>
+
+              {tools.map((tool) => (
+                <Link
+                  className="nav-link"
+                  href={tool.href}
+                  key={`${tool.operation}-${tool.href}-${tool.label}`}
+                  onClick={onNavigate}
+                  style={{ minHeight: 36 }}
+                >
+                  <Search size={14} />
+                  <span className="nav-label" style={{ lineHeight: 1.2 }}>
+                    {tool.label}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {loadingProducts && query.trim().length >= 2 && (
+            <small style={{ padding: 8, color: "var(--muted)" }}>
+              Procurando produtos...
+            </small>
+          )}
+
+          {!loadingProducts && products.length === 0 && tools.length === 0 && (
+            <small style={{ padding: 10, color: "var(--muted)" }}>
+              Nada encontrado.
+            </small>
           )}
         </div>
       )}
@@ -217,17 +355,24 @@ function SearchBox({
   );
 }
 
-function SupplementExtraLinks({
+function OperationExtraLinks({
   pathname,
+  operation,
   mobile = false,
 }: {
   pathname: string;
+  operation: "supplements" | "fitness";
   mobile?: boolean;
 }) {
-  const items = [
-    { href: "/suplementos/nexus", label: "Nexus IA", icon: Bot },
-    { href: "/agenda", label: "Agenda", icon: CalendarDays },
-  ];
+  const items =
+    operation === "fitness"
+      ? [
+          { href: "/fitness/nexus", label: "Nexus Fitness", icon: Bot },
+        ]
+      : [
+          { href: "/suplementos/nexus", label: "Nexus IA", icon: Bot },
+          { href: "/agenda", label: "Agenda", icon: CalendarDays },
+        ];
 
   return (
     <>
@@ -242,7 +387,10 @@ function SupplementExtraLinks({
           }
           onClick={
             mobile
-              ? () => document.querySelector<HTMLDetailsElement>(".mobile-menu")?.removeAttribute("open")
+              ? () =>
+                  document
+                    .querySelector<HTMLDetailsElement>(".mobile-menu")
+                    ?.removeAttribute("open")
               : undefined
           }
         >
@@ -257,31 +405,104 @@ function SupplementExtraLinks({
 export function OperationToolSearch({ access }: { access: UserAccess }) {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
-  const [desktopSearchHost, setDesktopSearchHost] = useState<HTMLElement | null>(null);
-  const [mobileSearchHost, setMobileSearchHost] = useState<HTMLElement | null>(null);
-  const [desktopExtraHost, setDesktopExtraHost] = useState<HTMLElement | null>(null);
-  const [mobileExtraHost, setMobileExtraHost] = useState<HTMLElement | null>(null);
+  const [products, setProducts] = useState<ProductSearchItem[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [desktopSearchHost, setDesktopSearchHost] =
+    useState<HTMLElement | null>(null);
+  const [mobileSearchHost, setMobileSearchHost] =
+    useState<HTMLElement | null>(null);
+  const [desktopExtraHost, setDesktopExtraHost] =
+    useState<HTMLElement | null>(null);
+  const [mobileExtraHost, setMobileExtraHost] =
+    useState<HTMLElement | null>(null);
   const [leadHost, setLeadHost] = useState<HTMLElement | null>(null);
+
   const currentOperation = operationForPath(pathname);
 
-  const results = useMemo(() => {
+  const tools = useMemo(() => {
     const needle = normalize(query.trim());
     if (!needle) return [];
 
     return TOOLS.filter((tool) => canSee(tool, access))
       .map((tool) => ({
         tool,
-        score: normalize(`${tool.label} ${tool.keywords} ${tool.operation}`).includes(needle) ? 1 : 0,
+        score: normalize(
+          `${tool.label} ${tool.keywords} ${tool.operation}`,
+        ).includes(needle)
+          ? 1
+          : 0,
       }))
       .filter((entry) => entry.score > 0)
       .sort((a, b) => {
         const aCurrent = a.tool.operation === currentOperation ? 1 : 0;
         const bCurrent = b.tool.operation === currentOperation ? 1 : 0;
-        return bCurrent - aCurrent || a.tool.label.localeCompare(b.tool.label, "pt-BR");
+
+        return (
+          bCurrent - aCurrent ||
+          a.tool.label.localeCompare(b.tool.label, "pt-BR")
+        );
       })
-      .slice(0, 12)
+      .slice(0, 9)
       .map((entry) => entry.tool);
   }, [access, currentOperation, query]);
+
+  useEffect(() => {
+    const value = query.trim();
+
+    if (value.length < 2) {
+      setProducts([]);
+      setLoadingProducts(false);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const timer = window.setTimeout(async () => {
+      setLoadingProducts(true);
+
+      try {
+        const response = await fetch(
+          `/api/operation-search/products?q=${encodeURIComponent(value)}`,
+          {
+            cache: "no-store",
+            signal: controller.signal,
+          },
+        );
+
+        const payload = (await response.json()) as {
+          results?: ProductSearchItem[];
+        };
+
+        if (!controller.signal.aborted) {
+          const rows = Array.isArray(payload.results) ? payload.results : [];
+
+          rows.sort((a, b) => {
+            const aCurrent = a.operation === currentOperation ? 1 : 0;
+            const bCurrent = b.operation === currentOperation ? 1 : 0;
+            const aStock = a.available_quantity > 0 ? 1 : 0;
+            const bStock = b.available_quantity > 0 ? 1 : 0;
+
+            return (
+              bCurrent - aCurrent ||
+              bStock - aStock ||
+              a.name.localeCompare(b.name, "pt-BR")
+            );
+          });
+
+          setProducts(rows.slice(0, 10));
+        }
+      } catch {
+        if (!controller.signal.aborted) setProducts([]);
+      } finally {
+        if (!controller.signal.aborted) setLoadingProducts(false);
+      }
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [currentOperation, query]);
 
   useEffect(() => {
     const desktopNav = document.querySelector<HTMLElement>(".sidebar .nav");
@@ -304,15 +525,19 @@ export function OperationToolSearch({ access }: { access: UserAccess }) {
       desktopNav.prepend(desktopSearch);
       setDesktopSearchHost(desktopSearch);
 
-      if (currentOperation === "supplements") {
-        const firstNavLink = desktopNav.querySelector<HTMLElement>(":scope > a.nav-link");
+      if (currentOperation === "supplements" || currentOperation === "fitness") {
+        const firstNavLink =
+          desktopNav.querySelector<HTMLElement>(":scope > a.nav-link");
+
         if (firstNavLink) {
           firstNavLink.after(desktopExtras);
           setDesktopExtraHost(desktopExtras);
         }
 
-        if (pathname === "/agenda") {
-          const crmLink = desktopNav.querySelector<HTMLElement>('a.nav-link[href="/clientes"]');
+        if (currentOperation === "supplements" && pathname === "/agenda") {
+          const crmLink = desktopNav.querySelector<HTMLElement>(
+            'a.nav-link[href="/clientes"]',
+          );
           crmLink?.classList.remove("primary");
         }
       }
@@ -322,8 +547,10 @@ export function OperationToolSearch({ access }: { access: UserAccess }) {
       mobilePanel.prepend(mobileSearch);
       setMobileSearchHost(mobileSearch);
 
-      if (currentOperation === "supplements") {
-        const firstMobileLink = mobilePanel.querySelector<HTMLElement>(":scope > a.mobile-menu-link");
+      if (currentOperation === "supplements" || currentOperation === "fitness") {
+        const firstMobileLink =
+          mobilePanel.querySelector<HTMLElement>(":scope > a.mobile-menu-link");
+
         if (firstMobileLink) {
           firstMobileLink.after(mobileExtras);
           setMobileExtraHost(mobileExtras);
@@ -354,29 +581,58 @@ export function OperationToolSearch({ access }: { access: UserAccess }) {
     };
   }, [pathname, currentOperation, access.canWriteSupplements]);
 
+  const extraOperation =
+    currentOperation === "fitness"
+      ? "fitness"
+      : currentOperation === "supplements"
+        ? "supplements"
+        : null;
+
   return (
     <>
       {desktopSearchHost &&
         createPortal(
-          <SearchBox query={query} setQuery={setQuery} results={results} />,
+          <SearchBox
+            query={query}
+            setQuery={setQuery}
+            tools={tools}
+            products={products}
+            loadingProducts={loadingProducts}
+          />,
           desktopSearchHost,
         )}
 
       {mobileSearchHost &&
         createPortal(
-          <SearchBox query={query} setQuery={setQuery} results={results} mobile />,
+          <SearchBox
+            query={query}
+            setQuery={setQuery}
+            tools={tools}
+            products={products}
+            loadingProducts={loadingProducts}
+            mobile
+          />,
           mobileSearchHost,
         )}
 
       {desktopExtraHost &&
+        extraOperation &&
         createPortal(
-          <SupplementExtraLinks pathname={pathname} />,
+          <OperationExtraLinks
+            pathname={pathname}
+            operation={extraOperation}
+          />,
           desktopExtraHost,
         )}
 
       {mobileExtraHost &&
+        extraOperation &&
         createPortal(
-          <SupplementExtraLinks pathname={pathname} mobile />,
+          <OperationExtraLinks
+            pathname={pathname}
+            operation={extraOperation}
+            mobile
+          />,
           mobileExtraHost,
         )}
 

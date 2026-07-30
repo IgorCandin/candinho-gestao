@@ -1,0 +1,145 @@
+{
+  "package": "candinho-nexus-fitness-vitrine-v2",
+  "date": "2026-07-30",
+  "file_count": 33,
+  "database_migrations": [
+    "20260730182000_nexus_fitness_public_catalog_v1.sql",
+    "20260730182100_public_product_recommendations_safe_v1.sql",
+    "20260730182200_public_catalog_copy_review_v1.sql"
+  ],
+  "production_database": "migrations applied during package preparation",
+  "files": [
+    {
+      "path": "README_NEXUS_FITNESS_VITRINE_V2.md",
+      "sha256": "e2f3bbcb4a005367c3f008de32cd0e2903ec6c2c552e11e3129562dfcbd78ff4"
+    },
+    {
+      "path": "TESTE_NEXUS_FITNESS_VITRINE_V2.md",
+      "sha256": "db050806ce3b557645015907dd9e61af7a834f12dd01d2e471ce1523d28a51db"
+    },
+    {
+      "path": "src/app/(app)/fitness/nexus/page.tsx",
+      "sha256": "8f213786f569c3062313219df19093ef987d9e7ea8b04047fdceb70937afcf85"
+    },
+    {
+      "path": "src/app/(app)/fitness/page.tsx",
+      "sha256": "4c4186ab08fa2f7bf10e3ab28818bc975e57abcb9992c68c41a0b71c8d070c38"
+    },
+    {
+      "path": "src/app/(app)/layout.tsx",
+      "sha256": "b82cb28444746153b8092bb3cf8689cf355d6aeb5ba7b15f58162b13020c2cfa"
+    },
+    {
+      "path": "src/app/(app)/produtos/[id]/pagina-publica/page.tsx",
+      "sha256": "1dc44cd5ed8e69e2980dab71e71346184846f03fbeda07cdae0e07847b70ab59"
+    },
+    {
+      "path": "src/app/api/catalogo/event/route.ts",
+      "sha256": "808ec2bc774b4f2ae4f3400690949102acbbd128b4d58fa857dc035abee81e64"
+    },
+    {
+      "path": "src/app/api/catalogo/interesse/route.ts",
+      "sha256": "68056786f10e1a92c316046aaa176ce1348f46b1c529c9ea55f76401fe608d53"
+    },
+    {
+      "path": "src/app/api/catalogo/nexus/route.ts",
+      "sha256": "69a33c508f45520a6a9be43031190a2c15802897fd4038fd4964cf1b0b1e4c98"
+    },
+    {
+      "path": "src/app/api/fitness/nexus/ask/route.ts",
+      "sha256": "23ddf2bf58dae4ab050192abcc739c7bf39795a2cd0647dd66cce0d0a0ccf602"
+    },
+    {
+      "path": "src/app/api/fitness/nexus/campanha/route.ts",
+      "sha256": "8d8bc03bbb843ca3f7b67c40f0a1e21cb517a9f3aada59f52a8c0fd75cc0d9a1"
+    },
+    {
+      "path": "src/app/api/operation-search/products/route.ts",
+      "sha256": "549f9c26cd0b12d8ddbce2b8f02ebfb9eb060bacb98b7bab275b2ccbfaa064f7"
+    },
+    {
+      "path": "src/app/api/products/[id]/public-page/generate/route.ts",
+      "sha256": "07be3da3d133894ef0f9e86924d30c498580b538ea322e4b3331941e7c30df62"
+    },
+    {
+      "path": "src/app/api/products/[id]/public-page/route.ts",
+      "sha256": "41f55a337444c3837720c57645b7353fb03c4435d56d1798b9208d60ef27d0b6"
+    },
+    {
+      "path": "src/app/catalogo/[slug]/page.tsx",
+      "sha256": "a76b3012bb0bf1fc5375dd9a7e49f69ec66c49936d7ab0cd13a3ab3d79beebbd"
+    },
+    {
+      "path": "src/app/catalogo/page.tsx",
+      "sha256": "07dbaeb602a2fcbbb135f57bba325d15a1492a9241b71bfdee3bdd9e30778fa6"
+    },
+    {
+      "path": "src/components/fitness-nexus-center.tsx",
+      "sha256": "64ab82b1e69fb1fc7b80cae567a7f2448df39517d0a429060d53567d2de999f1"
+    },
+    {
+      "path": "src/components/fitness-nexus-home.tsx",
+      "sha256": "0ac35df89698fee894a25318a311f504c5860dfd39ba06774b995342160845e9"
+    },
+    {
+      "path": "src/components/fitness-nexus.module.css",
+      "sha256": "6dbc09e6debd9a4ec832b422cb0a2e032a43f8f8f0d1c60a8fee6a9005db3191"
+    },
+    {
+      "path": "src/components/operation-tool-search.tsx",
+      "sha256": "5c3c2fdc3e069bf71574bc46542af55f51d8af277799ba7429067175489d58ca"
+    },
+    {
+      "path": "src/components/product-public-page-shortcut-portal.tsx",
+      "sha256": "c3ab34b161351805eeb418d89e79bb9f25a5c4771dc73535cde894dbd6688d62"
+    },
+    {
+      "path": "src/components/public-catalog-card-links.tsx",
+      "sha256": "e2689f2c47dff3b0a10924e52e732de6af3795ad1e1d78c276124aa2666a4ae4"
+    },
+    {
+      "path": "src/components/public-catalog-experience.module.css",
+      "sha256": "ed0802112cabce614db11b193b92a007a4bade62c2dca2e9ac9c98e0ec9cbd7b"
+    },
+    {
+      "path": "src/components/public-catalog-guide.tsx",
+      "sha256": "decc11884ec07ce08383532b41d66f0506f591498d39198502a46dc2bf0d09af"
+    },
+    {
+      "path": "src/components/public-nexus-advisor.tsx",
+      "sha256": "9eca9c9fd273acd81bba12ad056df305eaf6271ccc5beaf9f6edb7e5ce453f79"
+    },
+    {
+      "path": "src/components/public-product-buy-panel.tsx",
+      "sha256": "0461f99a92b74b0777f8df83a857f778e087cd9cb76143f83f4a4d2f0e72efa1"
+    },
+    {
+      "path": "src/components/public-product-page-editor.tsx",
+      "sha256": "b9869c1fb1185dab9f200395736630665441cde9e1a02f3be2827f4235f98243"
+    },
+    {
+      "path": "src/components/public-product-view-tracker.tsx",
+      "sha256": "b1daea682f6c76d6d013dab1f54d84c5c83d8f94a4f5394f079caacd60d9b48c"
+    },
+    {
+      "path": "src/lib/fitness-nexus-data.ts",
+      "sha256": "d0d6f2045858fb1dd308399a4b75294fe89230f93a3ca432c4c5d680a23f7469"
+    },
+    {
+      "path": "src/lib/public-product-page-data.ts",
+      "sha256": "4aedd195913c0ee6ee62670851229b135e4907931be183173045b19f38c9989f"
+    },
+    {
+      "path": "supabase/migrations/20260730182000_nexus_fitness_public_catalog_v1.sql",
+      "sha256": "be6aec41ebff330894899689b5d02d57d7963427ad6a272510a6e3e1aeea3432"
+    },
+    {
+      "path": "supabase/migrations/20260730182100_public_product_recommendations_safe_v1.sql",
+      "sha256": "140dccb389cb82b37302289ead8dc3e625a6123a5bb35781a243293bf0eaa46b"
+    },
+    {
+      "path": "supabase/migrations/20260730182200_public_catalog_copy_review_v1.sql",
+      "sha256": "84c1938326113f4f3f4335d75b769619d19a83d278a95ef3d0c9824d71bc1a13"
+    }
+  ]
+}

@@ -1,0 +1,313 @@
+.home {
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid rgba(236, 72, 153, .18);
+  border-radius: 17px;
+  background:
+    linear-gradient(110deg, rgba(236,72,153,.07), transparent 42%),
+    rgba(255,255,255,.012);
+}
+
+.homeHead,
+.centerHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #f08ab7;
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+
+.home h2,
+.center h2 {
+  margin: 5px 0 0;
+}
+
+.home p,
+.center p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.signalGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+}
+
+.signal {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,.012);
+}
+
+.signal span,
+.signal strong,
+.signal small {
+  display: block;
+}
+
+.signal span {
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #f08ab7;
+}
+
+.signal strong {
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+.signal small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.center {
+  display: grid;
+  gap: 14px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(4,minmax(0,1fr));
+  gap: 8px;
+}
+
+.summaryCard {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,.012);
+}
+
+.summaryCard span,
+.summaryCard strong,
+.summaryCard small {
+  display: block;
+}
+
+.summaryCard span {
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.summaryCard strong {
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+.summaryCard small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 7px;
+}
+
+.productList {
+  display: grid;
+  gap: 8px;
+}
+
+.productCard {
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: 50px minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  background: rgba(255,255,255,.01);
+}
+
+.productImage {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: rgba(255,255,255,.025);
+}
+
+.productCopy {
+  min-width: 0;
+}
+
+.productCopy strong,
+.productCopy span,
+.productCopy small {
+  display: block;
+}
+
+.productCopy strong {
+  font-size: 10px;
+}
+
+.productCopy span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.productCopy small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 7px;
+  line-height: 1.45;
+}
+
+.productActions {
+  display: grid;
+  gap: 6px;
+  justify-items: stretch;
+}
+
+.badge {
+  padding: 5px 7px;
+  border-radius: 999px;
+  text-align: center;
+  font-size: 7px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.opportunity {
+  color: #f08ab7;
+  background: rgba(236,72,153,.08);
+}
+
+.attention {
+  color: #f4b35b;
+  background: rgba(244,179,91,.08);
+}
+
+.urgent {
+  color: #e8878b;
+  background: rgba(232,135,139,.08);
+}
+
+.positive {
+  color: #67d69a;
+  background: rgba(103,214,154,.08);
+}
+
+.neutral {
+  color: var(--muted);
+  background: rgba(255,255,255,.035);
+}
+
+.askBox,
+.campaign {
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.012);
+  display: grid;
+  gap: 10px;
+}
+
+.quickPrompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.askForm {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 7px;
+}
+
+.askForm textarea,
+.campaign textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.015);
+  color: var(--text);
+  padding: 9px 10px;
+  font: inherit;
+  outline: 0;
+}
+
+.answer {
+  padding: 11px;
+  border: 1px solid rgba(236,72,153,.16);
+  border-radius: 11px;
+  background: rgba(236,72,153,.035);
+  white-space: pre-wrap;
+  font-size: 9px;
+  line-height: 1.6;
+}
+
+.campaignResult {
+  display: grid;
+  gap: 9px;
+}
+
+.frames {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 7px;
+}
+
+.frame {
+  padding: 10px;
+  min-height: 96px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255,255,255,.012);
+  font-size: 8px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+@media(max-width:900px){
+  .signalGrid,
+  .summaryGrid,
+  .frames {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+}
+
+@media(max-width:650px){
+  .homeHead,
+  .centerHead {
+    display: grid;
+  }
+
+  .signalGrid,
+  .summaryGrid,
+  .frames,
+  .askForm {
+    grid-template-columns: 1fr;
+  }
+
+  .productCard {
+    grid-template-columns: 44px minmax(0,1fr);
+  }
+
+  .productActions {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .productImage {
+    width: 44px;
+    height: 44px;
+  }
+}
