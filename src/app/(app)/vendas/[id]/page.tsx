@@ -1,10 +1,15 @@
 import { notFound } from "next/navigation";
 import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
+import { SaleCorrectionShortcut } from "@/components/sale-correction-shortcut";
 import { SaleDetailsView } from "@/components/sale-details-view";
 import { getEntitySwipeNavigation, getSaleDetails } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function SaleDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function SaleDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   const supabase = await createClient();
 
@@ -22,13 +27,31 @@ export default async function SaleDetailsPage({ params }: { params: Promise<{ id
 
   const flavorByItem = Object.fromEntries(
     (flavorResult.data ?? [])
-      .filter((row) => typeof row.flavor_summary === "string" && row.flavor_summary)
-      .map((row) => [String(row.sale_item_id), String(row.flavor_summary)]),
+      .filter(
+        (row) =>
+          typeof row.flavor_summary === "string" &&
+          row.flavor_summary,
+      )
+      .map((row) => [
+        String(row.sale_item_id),
+        String(row.flavor_summary),
+      ]),
   );
 
   return (
     <>
-      <EntitySwipeNavigator previous={swipe.previous} next={swipe.next}/>
+      <EntitySwipeNavigator
+        previous={swipe.previous}
+        next={swipe.next}
+      />
+
+      <SaleCorrectionShortcut
+        saleId={sale.id}
+        generalStatus={sale.general_status}
+        paymentStatus={sale.payment_status}
+        deliveryStatus={sale.delivery_status}
+      />
+
       <SaleDetailsView
         sale={sale}
         backHref="/vendas"
