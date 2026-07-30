@@ -15,7 +15,7 @@ import {
   fitnessSignalCopy,
   type FitnessNexusProduct,
   type FitnessNexusSnapshot,
-} from "@/lib/fitness-nexus-data";
+} from "@/lib/fitness-nexus-shared";
 import { formatCurrency } from "@/lib/format";
 import styles from "./fitness-nexus.module.css";
 
