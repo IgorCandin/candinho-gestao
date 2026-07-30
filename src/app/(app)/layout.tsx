@@ -8,8 +8,10 @@ import { DesktopSidebarController } from "@/components/desktop-sidebar-controlle
 import { NexusActivityTracker } from "@/components/nexus-activity-tracker";
 import { NexusCopilotDock } from "@/components/nexus-copilot-dock";
 import { OperationToolSearch } from "@/components/operation-tool-search";
+import { PartnerUxOverlay } from "@/components/partner-ux-overlay";
 import { ProductPublicPageShortcutPortal } from "@/components/product-public-page-shortcut-portal";
 import { PurchasingNavigation } from "@/components/purchasing-navigation";
+import { SaleProductStockUX } from "@/components/sale-product-stock-ux";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +40,10 @@ export default async function ProtectedLayout({
     access.active &&
     (access.role === "admin" || access.canWriteSupplements);
 
+  const canUseSupplementUx =
+    access.active &&
+    (access.canAccessSupplements || access.role === "admin");
+
   return (
     <DesktopSidebarController>
       <DesktopEscapeBack />
@@ -49,6 +55,9 @@ export default async function ProtectedLayout({
       <CustomerRelationshipsPortal enabled={canUseNexusOperating} />
       <NexusCopilotDock enabled={canUseNexusOperating} />
       <ProductPublicPageShortcutPortal enabled={canManagePublicProducts} />
+
+      <SaleProductStockUX enabled={canUseSupplementUx} />
+      <PartnerUxOverlay enabled={canUseSupplementUx} />
 
       <AppShell access={access}>
         <CentralKnowledgeNav
