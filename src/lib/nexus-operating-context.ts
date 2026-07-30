@@ -166,7 +166,7 @@ export async function getNexusBrief({
   }
 
   if (!usageResult.error) {
-    brief.usage = (usageResult.data ?? []).map((value) => {
+    brief.usage = (usageResult.data ?? []).map((value: unknown) => {
       const row = obj(value);
       return {
         route: String(row.route ?? "/"),
@@ -178,7 +178,7 @@ export async function getNexusBrief({
   }
 
   if (!transitionResult.error) {
-    brief.transitions = (transitionResult.data ?? []).map((value) => {
+    brief.transitions = (transitionResult.data ?? []).map((value: unknown) => {
       const row = obj(value);
       return {
         fromRoute: String(row.from_route ?? "/"),
@@ -244,7 +244,7 @@ export async function getCustomerNetworkContext(
 
   return {
     customerId,
-    relationships: relationships.map((value): CustomerRelationship => {
+    relationships: relationships.map((value: unknown): CustomerRelationship => {
       const row = obj(value);
       return {
         id: String(row.id ?? ""),
@@ -257,7 +257,7 @@ export async function getCustomerNetworkContext(
         active: row.active !== false,
       };
     }),
-    affiliations: affiliations.map((value): CustomerPartnerAffiliation => {
+    affiliations: affiliations.map((value: unknown): CustomerPartnerAffiliation => {
       const row = obj(value);
       return {
         id: String(row.id ?? ""),

@@ -355,7 +355,7 @@ ${message}`;
     const parsed = parseJson(result.text);
     const actions = Array.isArray(parsed.next_actions)
       ? parsed.next_actions
-          .map((value) => {
+          .map((value: unknown) => {
             const row =
               value && typeof value === "object"
                 ? (value as Record<string, unknown>)
