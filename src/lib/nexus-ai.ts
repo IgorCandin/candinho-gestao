@@ -48,8 +48,29 @@ export class NexusAIError extends Error {
   }
 }
 
+const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
+
+const LEGACY_GEMINI_MODELS = new Set([
+  "gemini-2.5-flash-lite",
+  "models/gemini-2.5-flash-lite",
+]);
+
 function safeString(value: unknown) {
   return typeof value === "string" ? value : "";
+}
+
+function normalizeGeminiModel(value?: string | null) {
+  const requested = value?.trim();
+
+  if (!requested) {
+    return DEFAULT_GEMINI_MODEL;
+  }
+
+  if (LEGACY_GEMINI_MODELS.has(requested)) {
+    return DEFAULT_GEMINI_MODEL;
+  }
+
+  return requested.replace(/^models\//, "");
 }
 
 async function safeJson(response: Response): Promise<JsonRecord> {
@@ -88,8 +109,10 @@ function geminiText(raw: JsonRecord) {
   return candidates
     .flatMap((candidate) => {
       if (!candidate || typeof candidate !== "object") return [];
+
       const content = (candidate as JsonRecord).content;
       if (!content || typeof content !== "object") return [];
+
       const parts = (content as JsonRecord).parts;
       return Array.isArray(parts) ? parts : [];
     })
@@ -111,15 +134,16 @@ function geminiSources(raw: JsonRecord) {
 
   for (const candidate of candidates) {
     if (!candidate || typeof candidate !== "object") continue;
+
     const metadata = (candidate as JsonRecord).groundingMetadata;
-
     if (!metadata || typeof metadata !== "object") continue;
-    const chunks = (metadata as JsonRecord).groundingChunks;
 
+    const chunks = (metadata as JsonRecord).groundingChunks;
     if (!Array.isArray(chunks)) continue;
 
     for (const chunk of chunks) {
       if (!chunk || typeof chunk !== "object") continue;
+
       const web = (chunk as JsonRecord).web;
 
       if (
@@ -144,7 +168,7 @@ function geminiError(
       ? (raw.error as JsonRecord)
       : null;
 
-  const message = safeString(error?.message);
+  const detail = safeString(error?.message);
   const statusText = safeString(error?.status);
 
   if (
@@ -152,7 +176,7 @@ function geminiError(
     statusText === "RESOURCE_EXHAUSTED"
   ) {
     return new NexusAIError(
-      "O limite gratuito do Nexus foi atingido temporariamente. Aguarde a renovação da cota do Gemini ou tente novamente mais tarde.",
+      "O limite gratuito do Nexus foi atingido temporariamente. Tente novamente mais tarde.",
       "AI_FREE_TIER_LIMIT",
       503,
       "gemini",
@@ -161,19 +185,30 @@ function geminiError(
 
   if (status === 401 || status === 403) {
     return new NexusAIError(
-      "A chave gratuita do Gemini precisa ser configurada ou revisada pelo administrador.",
+      "A integração do Nexus com a inteligência artificial precisa ser revisada.",
       "AI_AUTH",
       503,
       "gemini",
     );
   }
 
+  if (
+    /no longer available|not found|deprecated|unsupported model|model.*unavailable/i.test(
+      detail,
+    )
+  ) {
+    return new NexusAIError(
+      "O modelo de inteligência artificial do Nexus está temporariamente indisponível.",
+      "AI_MODEL_UNAVAILABLE",
+      503,
+      "gemini",
+    );
+  }
+
   return new NexusAIError(
-    message
-      ? `Gemini indisponível: ${message}`
-      : `Gemini indisponível (${status}).`,
+    "O Gemini está temporariamente indisponível.",
     "AI_UNAVAILABLE",
-    502,
+    status >= 500 ? 502 : 503,
     "gemini",
   );
 }
@@ -192,19 +227,15 @@ async function callGemini(
     );
   }
 
-  const model =
+  const model = normalizeGeminiModel(
     options.geminiModel ||
-    process.env.GEMINI_NEXUS_MODEL ||
-    "gemini-2.5-flash-lite";
+      process.env.GEMINI_NEXUS_MODEL,
+  );
 
-  const parts: JsonRecord[] = [
-    { text: options.prompt },
-  ];
+  const parts: JsonRecord[] = [{ text: options.prompt }];
 
   for (const item of options.files ?? []) {
-    const bytes = Buffer.from(
-      await item.file.arrayBuffer(),
-    );
+    const bytes = Buffer.from(await item.file.arrayBuffer());
 
     parts.push({
       inline_data: {
@@ -252,9 +283,7 @@ async function callGemini(
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(
-        options.timeoutMs ?? 50_000,
-      ),
+      signal: AbortSignal.timeout(options.timeoutMs ?? 50_000),
     },
   );
 
@@ -279,9 +308,7 @@ async function callGemini(
     text,
     provider: "gemini",
     model,
-    sources: options.webSearch
-      ? geminiSources(raw)
-      : [],
+    sources: options.webSearch ? geminiSources(raw) : [],
   };
 }
 
@@ -297,6 +324,7 @@ function openAIText(raw: JsonRecord) {
   return output
     .flatMap((item) => {
       if (!item || typeof item !== "object") return [];
+
       const content = (item as JsonRecord).content;
       return Array.isArray(content) ? content : [];
     })
@@ -306,9 +334,7 @@ function openAIText(raw: JsonRecord) {
         typeof item === "object" &&
         (item as JsonRecord).type === "output_text",
     )
-    .map((item) =>
-      safeString((item as JsonRecord).text),
-    )
+    .map((item) => safeString((item as JsonRecord).text))
     .filter(Boolean)
     .join("\n")
     .trim();
@@ -322,29 +348,27 @@ function openAISources(raw: JsonRecord) {
 
   for (const item of output) {
     if (!item || typeof item !== "object") continue;
+
     const record = item as JsonRecord;
 
-    if (record.type === "web_search_call") {
-      const action =
-        record.action &&
-        typeof record.action === "object"
-          ? (record.action as JsonRecord)
-          : null;
+    if (record.type !== "web_search_call") continue;
 
-      const sources = action?.sources;
+    const action =
+      record.action && typeof record.action === "object"
+        ? (record.action as JsonRecord)
+        : null;
 
-      if (Array.isArray(sources)) {
-        for (const source of sources) {
-          if (
-            source &&
-            typeof source === "object" &&
-            typeof (source as JsonRecord).url === "string"
-          ) {
-            result.add(
-              String((source as JsonRecord).url),
-            );
-          }
-        }
+    const sources = action?.sources;
+
+    if (!Array.isArray(sources)) continue;
+
+    for (const source of sources) {
+      if (
+        source &&
+        typeof source === "object" &&
+        typeof (source as JsonRecord).url === "string"
+      ) {
+        result.add(String((source as JsonRecord).url));
       }
     }
   }
@@ -390,7 +414,7 @@ function openAIError(
 
   if (status === 401 || status === 403) {
     return new NexusAIError(
-      "A integração com a OpenAI precisa ser revisada.",
+      "A integração do Nexus com a OpenAI precisa ser revisada.",
       "AI_AUTH",
       503,
       "openai",
@@ -398,9 +422,9 @@ function openAIError(
   }
 
   return new NexusAIError(
-    detail || `OpenAI indisponível (${status}).`,
+    "A OpenAI está temporariamente indisponível.",
     "AI_UNAVAILABLE",
-    502,
+    status >= 500 ? 502 : 503,
     "openai",
   );
 }
@@ -448,6 +472,7 @@ async function callOpenAI(
           apiKey,
           item.file,
         );
+
         uploadedFiles.push(id);
         content.push({
           type: "input_file",
@@ -457,6 +482,7 @@ async function callOpenAI(
         const bytes = Buffer.from(
           await item.file.arrayBuffer(),
         );
+
         content.push({
           type: "input_image",
           image_url: `data:${mime};base64,${bytes.toString("base64")}`,
@@ -465,6 +491,7 @@ async function callOpenAI(
         const bytes = Buffer.from(
           await item.file.arrayBuffer(),
         );
+
         content.push({
           type: "input_text",
           text: `Conteúdo do arquivo ${item.file.name}:\n${bytes
@@ -588,6 +615,7 @@ export async function generateNexus(
             );
 
       errors.push(normalized);
+
       console.warn(
         `[Nexus] ${provider} falhou:`,
         normalized.code,
@@ -598,7 +626,7 @@ export async function generateNexus(
 
   if (errors.length === 0) {
     throw new NexusAIError(
-      "Nenhum provedor de inteligência artificial está configurado. Configure GEMINI_API_KEY para usar o Nexus gratuitamente.",
+      "Nenhum provedor de inteligência artificial está configurado.",
       "AI_NOT_CONFIGURED",
       503,
     );
@@ -628,6 +656,31 @@ export async function generateNexus(
 
 export function nexusErrorResponse(error: unknown) {
   if (error instanceof NexusAIError) {
+    if (
+      error.code === "AI_MODEL_UNAVAILABLE" ||
+      error.code === "AI_UNAVAILABLE" ||
+      error.code === "AI_EMPTY_RESPONSE"
+    ) {
+      return {
+        error:
+          "O Nexus está temporariamente indisponível. Tente novamente em instantes.",
+        code: error.code,
+        status: error.status,
+      };
+    }
+
+    if (
+      error.code === "AI_AUTH" ||
+      error.code === "AI_NOT_CONFIGURED"
+    ) {
+      return {
+        error:
+          "A inteligência do Nexus precisa de uma revisão de configuração.",
+        code: error.code,
+        status: error.status,
+      };
+    }
+
     return {
       error: error.message,
       code: error.code,
@@ -637,9 +690,7 @@ export function nexusErrorResponse(error: unknown) {
 
   return {
     error:
-      error instanceof Error
-        ? error.message
-        : "Não foi possível consultar o Nexus agora.",
+      "Não foi possível consultar o Nexus agora. Tente novamente em instantes.",
     code: "AI_UNAVAILABLE",
     status: 500,
   };

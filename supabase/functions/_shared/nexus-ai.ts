@@ -40,10 +40,42 @@ export type GenerateResult = {
   sources: string[];
 };
 
+const DEFAULT_GEMINI_MODEL =
+  "gemini-3.5-flash-lite";
+
+const LEGACY_GEMINI_MODELS =
+  new Set([
+    "gemini-2.5-flash-lite",
+    "models/gemini-2.5-flash-lite",
+  ]);
+
 function stringValue(value: unknown) {
   return typeof value === "string"
     ? value
     : "";
+}
+
+function normalizeGeminiModel(
+  value?: string | null,
+) {
+  const requested = value?.trim();
+
+  if (!requested) {
+    return DEFAULT_GEMINI_MODEL;
+  }
+
+  if (
+    LEGACY_GEMINI_MODELS.has(
+      requested,
+    )
+  ) {
+    return DEFAULT_GEMINI_MODEL;
+  }
+
+  return requested.replace(
+    /^models\//,
+    "",
+  );
 }
 
 async function safeJson(
@@ -82,7 +114,9 @@ function order(): NexusEdgeProvider[] {
     : ["gemini"];
 }
 
-function geminiText(raw: JsonRecord) {
+function geminiText(
+  raw: JsonRecord,
+) {
   const candidates = Array.isArray(
     raw.candidates,
   )
@@ -93,8 +127,7 @@ function geminiText(raw: JsonRecord) {
     .flatMap((candidate) => {
       if (
         !candidate ||
-        typeof candidate !==
-          "object"
+        typeof candidate !== "object"
       ) {
         return [];
       }
@@ -105,8 +138,7 @@ function geminiText(raw: JsonRecord) {
 
       if (
         !content ||
-        typeof content !==
-          "object"
+        typeof content !== "object"
       ) {
         return [];
       }
@@ -123,8 +155,7 @@ function geminiText(raw: JsonRecord) {
       part &&
       typeof part === "object"
         ? stringValue(
-            (part as JsonRecord)
-              .text,
+            (part as JsonRecord).text,
           )
         : "",
     )
@@ -136,7 +167,9 @@ function geminiText(raw: JsonRecord) {
 function geminiSources(
   raw: JsonRecord,
 ) {
-  const sources = new Set<string>();
+  const sources =
+    new Set<string>();
+
   const candidates = Array.isArray(
     raw.candidates,
   )
@@ -201,6 +234,70 @@ function geminiSources(
   return [...sources].slice(0, 8);
 }
 
+function geminiFailure(
+  status: number,
+  raw: JsonRecord,
+) {
+  const error =
+    raw.error &&
+    typeof raw.error === "object"
+      ? (raw.error as JsonRecord)
+      : null;
+
+  const detail = stringValue(
+    error?.message,
+  );
+
+  const statusText = stringValue(
+    error?.status,
+  );
+
+  if (
+    status === 429 ||
+    statusText ===
+      "RESOURCE_EXHAUSTED"
+  ) {
+    return new NexusEdgeError(
+      "O limite gratuito do Nexus foi atingido temporariamente. Tente novamente mais tarde.",
+      "AI_FREE_TIER_LIMIT",
+      503,
+      "gemini",
+    );
+  }
+
+  if (
+    status === 401 ||
+    status === 403
+  ) {
+    return new NexusEdgeError(
+      "A integração do Nexus com a inteligência artificial precisa ser revisada.",
+      "AI_AUTH",
+      503,
+      "gemini",
+    );
+  }
+
+  if (
+    /no longer available|not found|deprecated|unsupported model|model.*unavailable/i.test(
+      detail,
+    )
+  ) {
+    return new NexusEdgeError(
+      "O modelo de inteligência artificial do Nexus está temporariamente indisponível.",
+      "AI_MODEL_UNAVAILABLE",
+      503,
+      "gemini",
+    );
+  }
+
+  return new NexusEdgeError(
+    "O Gemini está temporariamente indisponível.",
+    "AI_UNAVAILABLE",
+    status >= 500 ? 502 : 503,
+    "gemini",
+  );
+}
+
 async function gemini(
   options: GenerateOptions,
 ): Promise<GenerateResult> {
@@ -218,11 +315,12 @@ async function gemini(
   }
 
   const model =
-    options.geminiModel ||
-    Deno.env.get(
-      "GEMINI_NEXUS_MODEL",
-    ) ||
-    "gemini-2.5-flash-lite";
+    normalizeGeminiModel(
+      options.geminiModel ||
+        Deno.env.get(
+          "GEMINI_NEXUS_MODEL",
+        ),
+    );
 
   const payload: JsonRecord = {
     contents: [
@@ -280,46 +378,13 @@ async function gemini(
     },
   );
 
-  const raw = await safeJson(response);
+  const raw =
+    await safeJson(response);
 
   if (!response.ok) {
-    const error =
-      raw.error &&
-      typeof raw.error === "object"
-        ? (raw.error as JsonRecord)
-        : null;
-
-    const detail = stringValue(
-      error?.message,
-    );
-
-    if (response.status === 429) {
-      throw new NexusEdgeError(
-        "O limite gratuito do Nexus foi atingido temporariamente. Aguarde a renovação da cota do Gemini ou tente novamente mais tarde.",
-        "AI_FREE_TIER_LIMIT",
-        503,
-        "gemini",
-      );
-    }
-
-    if (
-      response.status === 401 ||
-      response.status === 403
-    ) {
-      throw new NexusEdgeError(
-        "A chave gratuita do Gemini precisa ser configurada ou revisada.",
-        "AI_AUTH",
-        503,
-        "gemini",
-      );
-    }
-
-    throw new NexusEdgeError(
-      detail ||
-        `Gemini indisponível (${response.status}).`,
-      "AI_UNAVAILABLE",
-      502,
-      "gemini",
+    throw geminiFailure(
+      response.status,
+      raw,
     );
   }
 
@@ -344,7 +409,9 @@ async function gemini(
   };
 }
 
-function openAIText(raw: JsonRecord) {
+function openAIText(
+  raw: JsonRecord,
+) {
   if (
     typeof raw.output_text ===
     "string"
@@ -395,7 +462,9 @@ function openAIText(raw: JsonRecord) {
 function openAISources(
   raw: JsonRecord,
 ) {
-  const sources = new Set<string>();
+  const sources =
+    new Set<string>();
+
   const output = Array.isArray(
     raw.output,
   )
@@ -414,38 +483,44 @@ function openAISources(
       item as JsonRecord;
 
     if (
-      record.type ===
+      record.type !==
       "web_search_call"
     ) {
-      const action =
-        record.action &&
-        typeof record.action ===
-          "object"
-          ? (record.action as JsonRecord)
-          : null;
+      continue;
+    }
 
-      const rows =
-        action?.sources;
+    const action =
+      record.action &&
+      typeof record.action ===
+        "object"
+        ? (
+            record.action as JsonRecord
+          )
+        : null;
 
-      if (Array.isArray(rows)) {
-        for (const source of rows) {
-          if (
-            source &&
-            typeof source ===
-              "object" &&
-            typeof (
+    const rows =
+      action?.sources;
+
+    if (!Array.isArray(rows)) {
+      continue;
+    }
+
+    for (const source of rows) {
+      if (
+        source &&
+        typeof source ===
+          "object" &&
+        typeof (
+          source as JsonRecord
+        ).url === "string"
+      ) {
+        sources.add(
+          String(
+            (
               source as JsonRecord
-            ).url === "string"
-          ) {
-            sources.add(
-              String(
-                (
-                  source as JsonRecord
-                ).url,
-              ),
-            );
-          }
-        }
+            ).url,
+          ),
+        );
       }
     }
   }
@@ -519,6 +594,7 @@ async function openai(
         type: "web_search",
       },
     ];
+
     payload.include = [
       "web_search_call.action.sources",
     ];
@@ -541,30 +617,33 @@ async function openai(
     },
   );
 
-  const raw = await safeJson(response);
+  const raw =
+    await safeJson(response);
 
   if (!response.ok) {
     const error =
       raw.error &&
       typeof raw.error === "object"
-        ? (raw.error as JsonRecord)
+        ? (
+            raw.error as JsonRecord
+          )
         : null;
 
-    const detail = stringValue(
-      error?.message,
-    );
+    const detail =
+      stringValue(error?.message);
 
-    const code = stringValue(
-      error?.code,
-    );
+    const code =
+      stringValue(error?.code);
 
     if (
       response.status === 429 &&
-      (code ===
-        "insufficient_quota" ||
+      (
+        code ===
+          "insufficient_quota" ||
         /quota|billing|current plan|exceeded your current quota/i.test(
           detail,
-        ))
+        )
+      )
     ) {
       throw new NexusEdgeError(
         "A cota da OpenAI foi atingida.",
@@ -574,16 +653,30 @@ async function openai(
       );
     }
 
+    if (
+      response.status === 401 ||
+      response.status === 403
+    ) {
+      throw new NexusEdgeError(
+        "A integração do Nexus com a OpenAI precisa ser revisada.",
+        "AI_AUTH",
+        503,
+        "openai",
+      );
+    }
+
     throw new NexusEdgeError(
-      detail ||
-        `OpenAI indisponível (${response.status}).`,
+      "A OpenAI está temporariamente indisponível.",
       "AI_UNAVAILABLE",
-      502,
+      response.status >= 500
+        ? 502
+        : 503,
       "openai",
     );
   }
 
-  const text = openAIText(raw);
+  const text =
+    openAIText(raw);
 
   if (!text) {
     throw new NexusEdgeError(
@@ -634,7 +727,9 @@ export async function generateNexusEdge(
         continue;
       }
 
-      return await openai(options);
+      return await openai(
+        options,
+      );
     } catch (error) {
       const normalized =
         error instanceof NexusEdgeError
@@ -653,13 +748,14 @@ export async function generateNexusEdge(
       console.warn(
         `[Nexus] ${provider} falhou`,
         normalized.code,
+        normalized.message,
       );
     }
   }
 
   if (errors.length === 0) {
     throw new NexusEdgeError(
-      "Nenhum provedor de inteligência artificial está configurado. Configure GEMINI_API_KEY para usar o Nexus gratuitamente.",
+      "Nenhum provedor de inteligência artificial está configurado.",
       "AI_NOT_CONFIGURED",
       503,
     );
@@ -678,7 +774,15 @@ export async function generateNexusEdge(
     throw geminiLimit;
   }
 
-  throw errors[
-    errors.length - 1
-  ];
+  const last =
+    errors[errors.length - 1];
+
+  throw new NexusEdgeError(
+    errors.length > 1
+      ? "Os provedores de inteligência artificial do Nexus estão temporariamente indisponíveis."
+      : last.message,
+    last.code,
+    last.status,
+    last.provider,
+  );
 }
