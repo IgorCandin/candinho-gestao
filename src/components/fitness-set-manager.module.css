@@ -1,0 +1,151 @@
+.panel {
+  border-color: rgba(236,72,153,.14);
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--fitness);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.setup,
+.ready {
+  display: grid;
+  gap: 13px;
+}
+
+.explain strong,
+.splitBox > div:first-child > strong {
+  font-size: 11px;
+}
+
+.explain p,
+.splitBox > div:first-child > p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 150px 1fr 150px;
+  gap: 8px;
+}
+
+.setupFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.setupFooter > span {
+  max-width: 520px;
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.parts {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+}
+
+.part {
+  padding: 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,.012);
+}
+
+.part span,
+.part strong,
+.part small {
+  display: block;
+}
+
+.part span {
+  color: var(--fitness);
+  font-size: 7.5px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.part strong {
+  margin-top: 4px;
+  font-size: 11px;
+}
+
+.part small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.splitBox {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(420px,.9fr);
+  gap: 14px;
+  align-items: end;
+  padding: 12px;
+  border: 1px solid rgba(236,72,153,.11);
+  border-radius: 13px;
+  background: rgba(236,72,153,.025);
+}
+
+.splitFields {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 78px auto;
+  gap: 7px;
+  align-items: end;
+}
+
+.message {
+  margin: 0 14px 14px;
+  padding: 9px 10px;
+  border-radius: 10px;
+  background: rgba(236,72,153,.05);
+  color: var(--text);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+@media(max-width:900px){
+  .grid {
+    grid-template-columns: 1fr 130px;
+  }
+
+  .splitBox {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media(max-width:650px){
+  .grid,
+  .parts,
+  .splitFields {
+    grid-template-columns: 1fr;
+  }
+
+  .setupFooter {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .explain p,
+  .splitBox > div:first-child > p,
+  .setupFooter > span,
+  .message {
+    font-size: 10px;
+  }
+}

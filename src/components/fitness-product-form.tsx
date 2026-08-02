@@ -22,6 +22,7 @@ import type {
   FitnessSupplierRow,
 } from "@/lib/types";
 import styles from "./fitness-product-form.module.css";
+import { FitnessAiModelPhotoGenerator } from "@/components/fitness-ai-model-photo-generator";
 
 type VariantDraft = {
   id: string | null;
@@ -224,9 +225,24 @@ export function FitnessProductForm({
       }
     }
 
-    return [...byColor.values()].sort((a, b) =>
-      a.color.localeCompare(b.color, "pt-BR"),
-    );
+    return [...byColor.values()].sort((a, b) => {
+      const rank = (value: string) => {
+        const normalized = value
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .trim()
+          .toLocaleLowerCase("pt-BR");
+
+        return ["preto", "preta", "black"].includes(normalized)
+          ? 0
+          : 1;
+      };
+
+      return (
+        rank(a.color) - rank(b.color) ||
+        a.color.localeCompare(b.color, "pt-BR")
+      );
+    });
   }, [rows]);
 
   function update(key: string, change: Partial<VariantDraft>) {
@@ -632,6 +648,31 @@ export function FitnessProductForm({
               JPG, PNG ou WEBP · até 10 MB por foto. Não precisa mais copiar
               URL manualmente.
             </small>
+
+            {product?.id && (
+              <FitnessAiModelPhotoGenerator
+                productId={product.id}
+                productName={name || product.name}
+                sources={[
+                  ...(imageUrl
+                    ? [
+                        {
+                          url: imageUrl,
+                          color: null,
+                          label: "Foto principal",
+                        },
+                      ]
+                    : []),
+                  ...colorGroups
+                    .filter((group) => Boolean(group.imageUrl))
+                    .map((group) => ({
+                      url: group.imageUrl,
+                      color: group.color,
+                      label: `Cor ${group.color}`,
+                    })),
+                ]}
+              />
+            )}
           </div>
         </article>
 

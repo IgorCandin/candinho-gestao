@@ -5,6 +5,7 @@ import { CentralKnowledgeNav } from "@/components/central-knowledge-nav";
 import { CustomerRelationshipsPortal } from "@/components/customer-relationships-portal";
 import { DesktopEscapeBack } from "@/components/desktop-escape-back";
 import { DesktopSidebarController } from "@/components/desktop-sidebar-controller";
+import { FitnessUxScope } from "@/components/fitness-ux-scope";
 import { NexusActivityTracker } from "@/components/nexus-activity-tracker";
 import { NexusCopilotDock } from "@/components/nexus-copilot-dock";
 import { OperationToolSearch } from "@/components/operation-tool-search";
@@ -34,15 +35,18 @@ export default async function ProtectedLayout({
   const canUseNexusOperating =
     access.active &&
     access.canAccessSupplements &&
-    (access.role === "admin" || access.canWriteSupplements);
+    (access.role === "admin" ||
+      access.canWriteSupplements);
 
   const canManagePublicProducts =
     access.active &&
-    (access.role === "admin" || access.canWriteSupplements);
+    (access.role === "admin" ||
+      access.canWriteSupplements);
 
   const canUseSupplementUx =
     access.active &&
-    (access.canAccessSupplements || access.role === "admin");
+    (access.canAccessSupplements ||
+      access.role === "admin");
 
   return (
     <DesktopSidebarController>
@@ -50,11 +54,20 @@ export default async function ProtectedLayout({
       <OperationToolSearch access={access} />
       <CentralCostsShortcut enabled={canAccessSharedCosts} />
 
+      <FitnessUxScope />
       <NexusActivityTracker enabled={access.active} />
-      <AutoPartnershipSaleUX enabled={canUseNexusOperating} />
-      <CustomerRelationshipsPortal enabled={canUseNexusOperating} />
-      <NexusCopilotDock enabled={canUseNexusOperating} />
-      <ProductPublicPageShortcutPortal enabled={canManagePublicProducts} />
+      <AutoPartnershipSaleUX
+        enabled={canUseNexusOperating}
+      />
+      <CustomerRelationshipsPortal
+        enabled={canUseNexusOperating}
+      />
+      <NexusCopilotDock
+        enabled={canUseNexusOperating}
+      />
+      <ProductPublicPageShortcutPortal
+        enabled={canManagePublicProducts}
+      />
 
       <SaleProductStockUX enabled={canUseSupplementUx} />
       <PartnerUxOverlay enabled={canUseSupplementUx} />

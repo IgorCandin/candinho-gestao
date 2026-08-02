@@ -6,6 +6,7 @@ import "./ux-homologation.css";
 import "./refino-navegacao-vitrine.css";
 import "./bank-ux-refino.css";
 import "./ux-lapidacao-v2.css";
+import "./fitness-ux-v4.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",

@@ -3,9 +3,9 @@ import { FitnessQuoteForm } from "@/components/fitness-quote-form";
 import { PageHeader } from "@/components/page-header";
 import {
   getCurrentUserAccess,
-  getFitnessCustomers,
   getFitnessStock,
 } from "@/lib/data";
+import { getFitnessCompanyCustomerDirectory } from "@/lib/fitness-customer-directory-data";
 import {
   applyFitnessStockPromotions,
   getActivePromotionRows,
@@ -13,23 +13,30 @@ import {
 
 export default async function Page() {
   const access = await getCurrentUserAccess();
-  if (!access.canWriteFitness) redirect("/fitness");
+
+  if (!access.canWriteFitness) {
+    redirect("/fitness");
+  }
 
   const [baseStock, customers, promotionRows] = await Promise.all([
     getFitnessStock(),
-    getFitnessCustomers(),
+    getFitnessCompanyCustomerDirectory(),
     getActivePromotionRows(),
   ]);
 
-  const stock = applyFitnessStockPromotions(baseStock, promotionRows);
+  const stock = applyFitnessStockPromotions(
+    baseStock,
+    promotionRows,
+  );
 
   return (
     <>
       <PageHeader
         eyebrow="Candinho Fitness · Comercial"
         title="Novo orçamento"
-        description="Monte a proposta por peça, tamanho e cor. As promoções ativas entram automaticamente no preço antes de gerar o PDF ou converter em venda."
+        description="Use a mesma base de clientes da Company e monte a proposta por peça, tamanho e cor."
       />
+
       <FitnessQuoteForm
         stock={stock}
         customers={customers}

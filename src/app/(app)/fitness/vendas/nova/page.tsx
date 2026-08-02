@@ -3,9 +3,9 @@ import { FitnessSaleForm } from "@/components/fitness-sale-form";
 import { PageHeader } from "@/components/page-header";
 import {
   getCurrentUserAccess,
-  getFitnessCustomers,
   getFitnessStock,
 } from "@/lib/data";
+import { getFitnessCompanyCustomerDirectory } from "@/lib/fitness-customer-directory-data";
 import {
   applyFitnessStockPromotions,
   getActivePromotionRows,
@@ -13,23 +13,30 @@ import {
 
 export default async function Page() {
   const access = await getCurrentUserAccess();
-  if (!access.canWriteFitness) redirect("/fitness");
+
+  if (!access.canWriteFitness) {
+    redirect("/fitness");
+  }
 
   const [baseStock, customers, promotionRows] = await Promise.all([
     getFitnessStock(),
-    getFitnessCustomers(),
+    getFitnessCompanyCustomerDirectory(),
     getActivePromotionRows(),
   ]);
 
-  const stock = applyFitnessStockPromotions(baseStock, promotionRows);
+  const stock = applyFitnessStockPromotions(
+    baseStock,
+    promotionRows,
+  );
 
   return (
     <>
       <PageHeader
         eyebrow="Candinho Fitness · Comercial"
         title="Nova venda"
-        description="Venda por produto, tamanho e cor. Promoções ativas entram automaticamente no preço e o estoque é reservado até a entrega."
+        description="Clientes da Candinho Company aparecem aqui automaticamente; selecione a pessoa e siga com produto, tamanho e cor."
       />
+
       <FitnessSaleForm
         stock={stock}
         customers={customers}

@@ -5,6 +5,7 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
 import { PublicStorefrontBrowser } from "@/components/public-storefront-browser";
+import { PublicStorefrontVisualEnhancer } from "@/components/public-storefront-visual-enhancer";
 import {
   getPublicStorefrontSlugMap,
 } from "@/lib/public-product-page-data";
@@ -23,6 +24,7 @@ export default async function PublicCatalogPage() {
   return (
     <main className="public-storefront-page">
       <PublicCatalogCardLinks links={productLinks} />
+      <PublicStorefrontVisualEnhancer snapshot={snapshot} />
 
       <header className="public-storefront-header">
         <div className="public-storefront-header-top">
@@ -46,8 +48,8 @@ export default async function PublicCatalogPage() {
           </span>
           <h1>Encontre o produto certo sem complicar.</h1>
           <p>
-            Veja o que está disponível agora, abra a página completa de cada
-            suplemento ou converse com o Nexus para filtrar as opções.
+            Veja o que está disponível agora, amplie as fotos, navegue pelas
+            cores e converse com o Nexus para filtrar as opções.
           </p>
           <span>
             <Sparkles size={14} /> Estoque e promoções vêm diretamente do ERP.
