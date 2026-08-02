@@ -115,14 +115,18 @@ export function PublicStorefrontVisualEnhancer({
 
       if (!image || slides.length === 0) return;
 
+      // Mantém a referência já validada para callbacks internos.
+      // O TypeScript não preserva o narrowing de uma variável capturada
+      // dentro das funções abaixo.
+      const productImage = image;
       let index = 0;
 
       function renderSlide() {
         const slide = slides[index] ?? slides[0];
         if (!slide) return;
 
-        image.src = slide.url;
-        image.alt = [
+        productImage.src = slide.url;
+        productImage.alt = [
           item.name,
           slide.color || slide.label,
         ].filter(Boolean).join(" · ");
@@ -183,11 +187,11 @@ export function PublicStorefrontVisualEnhancer({
         setOpen({ item, index });
       };
 
-      image.style.cursor = "zoom-in";
-      image.addEventListener("click", onImageClick);
+      productImage.style.cursor = "zoom-in";
+      productImage.addEventListener("click", onImageClick);
 
       cleanup.push(() => {
-        image.removeEventListener("click", onImageClick);
+        productImage.removeEventListener("click", onImageClick);
       });
 
       const label = document.createElement("span");
