@@ -449,7 +449,10 @@ export function PublicStorefrontVisualEnhancer({
           </button>
         </div>
 
-        <div className={styles.lightboxStage}>
+        <div
+          className={styles.lightboxStage}
+          data-multiple={slides.length > 1 ? "true" : "false"}
+        >
           {slides.length > 1 && (
             <button
               className={styles.lightboxArrow}
