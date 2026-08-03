@@ -14,6 +14,12 @@ import { useMemo, useState } from "react";
 import { formatCurrency } from "@/lib/format";
 import type { FitnessProductRow } from "@/lib/types";
 
+export type FitnessAvailabilityOption = {
+  size: string;
+  color: string;
+  available_quantity: number;
+};
+
 type FitnessCatalogProduct = FitnessProductRow & {
   regular_min_sale_price?: number;
   regular_max_sale_price?: number;
@@ -22,6 +28,7 @@ type FitnessCatalogProduct = FitnessProductRow & {
   promotion_name?: string | null;
   promotion_ends_on?: string | null;
   promotion_variant_count?: number;
+  available_options?: FitnessAvailabilityOption[];
 };
 
 type ViewMode = "deck" | "gallery";
@@ -97,6 +104,53 @@ function PromotionBadge({ product }: { product: FitnessCatalogProduct }) {
   );
 }
 
+function AvailabilityCard({
+  options,
+  compact = false,
+}: {
+  options: FitnessAvailabilityOption[] | undefined;
+  compact?: boolean;
+}) {
+  const available = (options ?? []).filter(
+    (option) => option.available_quantity > 0,
+  );
+
+  if (available.length === 0) return null;
+
+  const visible = available.slice(0, compact ? 4 : 6);
+  const remaining = available.length - visible.length;
+
+  return (
+    <div
+      className={`fitness-availability-card ${
+        compact ? "compact" : ""
+      }`}
+      aria-label="Tamanhos e cores disponíveis"
+    >
+      <span className="fitness-availability-label">
+        Tamanhos e cores
+      </span>
+
+      <div className="fitness-availability-chips">
+        {visible.map((option) => (
+          <span
+            className="fitness-availability-chip"
+            key={`${option.size}:${option.color}`}
+          >
+            {option.size} · {option.color}
+          </span>
+        ))}
+
+        {remaining > 0 && (
+          <span className="fitness-availability-chip more">
+            +{remaining}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function FitnessProductCatalog({
   products,
   salesMode = false,
@@ -124,7 +178,9 @@ export function FitnessProductCatalog({
       .filter(
         (product) =>
           !q ||
-          `${product.name} ${product.category} ${product.description ?? ""} ${product.promotion_name ?? ""}`
+          `${product.name} ${product.category} ${product.description ?? ""} ${product.promotion_name ?? ""} ${(product.available_options ?? [])
+            .map((option) => `${option.size} ${option.color}`)
+            .join(" ")}`
             .toLocaleLowerCase("pt-BR")
             .includes(q),
       )
@@ -161,7 +217,7 @@ export function FitnessProductCatalog({
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar peça, modelo ou categoria"
+            placeholder="Buscar peça, modelo, tamanho, cor ou categoria"
           />
         </label>
 
@@ -215,7 +271,9 @@ export function FitnessProductCatalog({
       {salesMode && (
         <div className="sales-profile-note">
           <strong>Perfil Vendas</strong>
-          <span>Consulta rápida de foto, preço e disponibilidade.</span>
+          <span>
+            Consulta rápida de foto, preço, tamanho, cor e disponibilidade.
+          </span>
         </div>
       )}
 
@@ -267,6 +325,8 @@ export function FitnessProductCatalog({
                     <strong>{priceLabel(product)}</strong>
                   </div>
 
+                  <AvailabilityCard options={product.available_options} />
+
                   <div className="product-gallery-stock">
                     <span>
                       Disponível <b>{product.available_quantity}</b>
@@ -305,7 +365,11 @@ export function FitnessProductCatalog({
 
                 return (
                   <tr
-                    className={hasPromotion(product) ? "has-operation-promotion" : ""}
+                    className={
+                      hasPromotion(product)
+                        ? "has-operation-promotion"
+                        : ""
+                    }
                     key={product.id}
                   >
                     <td>
@@ -334,7 +398,13 @@ export function FitnessProductCatalog({
                             {product.name}
                             <PromotionBadge product={product} />
                           </div>
-                          <div className="cell-sub">{product.category}</div>
+                          <div className="cell-sub">
+                            {product.category}
+                          </div>
+                          <AvailabilityCard
+                            options={product.available_options}
+                            compact
+                          />
                         </div>
                       </Link>
                     </td>

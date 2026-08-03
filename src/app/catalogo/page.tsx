@@ -6,18 +6,22 @@ import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
 import { PublicStorefrontBrowser } from "@/components/public-storefront-browser";
 import { PublicStorefrontVisualEnhancer } from "@/components/public-storefront-visual-enhancer";
+import { PublicFitnessAvailabilityEnhancer } from "@/components/public-fitness-availability-enhancer";
 import {
   getPublicStorefrontSlugMap,
 } from "@/lib/public-product-page-data";
 import { getPublicStorefrontSnapshot } from "@/lib/public-storefront-data";
+import { getPublicFitnessAvailabilityMap } from "@/lib/public-fitness-availability-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function PublicCatalogPage() {
-  const [snapshot, productLinks] = await Promise.all([
-    getPublicStorefrontSnapshot(),
-    getPublicStorefrontSlugMap(),
-  ]);
+  const [snapshot, productLinks, fitnessAvailability] =
+    await Promise.all([
+      getPublicStorefrontSnapshot(),
+      getPublicStorefrontSlugMap(),
+      getPublicFitnessAvailabilityMap(),
+    ]);
 
   const company = BRAND_ASSETS.company.complete;
 
@@ -25,6 +29,10 @@ export default async function PublicCatalogPage() {
     <main className="public-storefront-page">
       <PublicCatalogCardLinks links={productLinks} />
       <PublicStorefrontVisualEnhancer snapshot={snapshot} />
+      <PublicFitnessAvailabilityEnhancer
+        snapshot={snapshot}
+        availability={fitnessAvailability}
+      />
 
       <header className="public-storefront-header">
         <div className="public-storefront-header-top">
@@ -36,7 +44,10 @@ export default async function PublicCatalogPage() {
             priority
           />
 
-          <Link className="public-storefront-login" href="/login">
+          <Link
+            className="public-storefront-login"
+            href="/login"
+          >
             <LogIn size={16} />
             Área interna
           </Link>
@@ -46,13 +57,18 @@ export default async function PublicCatalogPage() {
           <span>
             <Store size={15} /> Vitrine Candinho
           </span>
-          <h1>Encontre o produto certo sem complicar.</h1>
+          <h1>
+            Encontre o produto certo sem complicar.
+          </h1>
           <p>
-            Veja o que está disponível agora, amplie as fotos, navegue pelas
-            cores e converse com o Nexus para filtrar as opções.
+            Veja o que está disponível agora, amplie as
+            fotos, confira tamanho e cor, navegue pelas
+            opções e converse com o Nexus para filtrar o
+            catálogo.
           </p>
           <span>
-            <Sparkles size={14} /> Estoque e promoções vêm diretamente do ERP.
+            <Sparkles size={14} /> Estoque e promoções vêm
+            diretamente do ERP.
           </span>
         </div>
       </header>

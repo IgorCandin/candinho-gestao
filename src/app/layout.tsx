@@ -8,6 +8,7 @@ import "./bank-ux-refino.css";
 import "./ux-lapidacao-v2.css";
 import "./fitness-ux-v4.css";
 import "./nexus-company-gray.css";
+import "./fitness-availability-v1.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",

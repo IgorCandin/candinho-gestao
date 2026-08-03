@@ -1,0 +1,104 @@
+/* =========================================================
+   FITNESS · TAMANHOS E CORES DISPONÍVEIS
+   Cinza Company: informação operacional sem competir com
+   verde de disponibilidade e rosa da Fitness.
+   ========================================================= */
+
+.fitness-availability-card,
+.public-fitness-availability-card {
+  margin-top: 8px;
+  padding: 7px 8px;
+  border: 1px solid rgba(174, 181, 194, .22);
+  border-radius: 10px;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(174, 181, 194, .065),
+      rgba(174, 181, 194, .018)
+    );
+}
+
+.fitness-availability-card.compact {
+  margin-top: 6px;
+  max-width: 420px;
+  padding: 5px 6px;
+  border-radius: 8px;
+}
+
+.fitness-availability-label {
+  display: block;
+  margin-bottom: 5px;
+  color: #aeb5c2;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .055em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.fitness-availability-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fitness-availability-chip {
+  min-height: 21px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 6px;
+  border: 1px solid rgba(174, 181, 194, .19);
+  border-radius: 999px;
+  background: rgba(174, 181, 194, .065);
+  color: #d2d7df;
+  font-size: 7.5px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.fitness-availability-chip.more {
+  color: #aeb5c2;
+  background: rgba(174, 181, 194, .025);
+}
+
+.product-gallery-card .fitness-availability-card {
+  width: 100%;
+}
+
+.public-storefront-card-copy
+  .public-fitness-availability-card {
+  width: 100%;
+}
+
+/* O card cinza fica entre preço e disponibilidade visual,
+   sem competir com o selo verde/vermelho. */
+.public-fitness-availability-card {
+  margin-bottom: 1px;
+}
+
+@media (max-width: 680px) {
+  .fitness-availability-card,
+  .public-fitness-availability-card {
+    margin-top: 9px;
+    padding: 8px 9px;
+    border-radius: 11px;
+  }
+
+  .fitness-availability-label {
+    margin-bottom: 6px;
+    font-size: 8.5px;
+  }
+
+  .fitness-availability-chip {
+    min-height: 25px;
+    padding: 0 8px;
+    font-size: 9.5px;
+  }
+
+  .fitness-availability-card.compact
+    .fitness-availability-chip {
+    min-height: 23px;
+    font-size: 9px;
+  }
+}
