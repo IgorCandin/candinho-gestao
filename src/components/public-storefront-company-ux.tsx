@@ -232,13 +232,14 @@ export function PublicStorefrontCompanyUX({
     );
 
     if (!host) return;
+    const storefrontHost = host;
 
     let observer: MutationObserver | null = null;
     let frame = 0;
 
     function enhanceOperationFilter() {
       const toolbar =
-        host.querySelector<HTMLElement>(
+        storefrontHost.querySelector<HTMLElement>(
           ".public-storefront-toolbar",
         );
 
@@ -248,8 +249,9 @@ export function PublicStorefrontCompanyUX({
         );
 
       if (!toolbar || !operationSelect) return;
+      const operationControl = operationSelect;
 
-      operationSelect.dataset.companyOperationSelect =
+      operationControl.dataset.companyOperationSelect =
         "true";
 
       let control =
@@ -294,7 +296,7 @@ export function PublicStorefrontCompanyUX({
 
         buttons.append(supplements, fitness);
         control.append(label, buttons);
-        operationSelect.before(control);
+        operationControl.before(control);
       }
 
       const supplementsButton =
@@ -309,9 +311,11 @@ export function PublicStorefrontCompanyUX({
       if (!supplementsButton || !fitnessButton) {
         return;
       }
+      const supplementsToggle = supplementsButton;
+      const fitnessToggle = fitnessButton;
 
       function sync() {
-        const value = operationSelect.value;
+        const value = operationControl.value;
         const supplementsActive =
           value === "all" ||
           value === "supplements";
@@ -319,40 +323,40 @@ export function PublicStorefrontCompanyUX({
           value === "all" ||
           value === "fitness";
 
-        supplementsButton.dataset.active =
+        supplementsToggle.dataset.active =
           supplementsActive
             ? "true"
             : "false";
-        fitnessButton.dataset.active =
+        fitnessToggle.dataset.active =
           fitnessActive ? "true" : "false";
 
-        supplementsButton.setAttribute(
+        supplementsToggle.setAttribute(
           "aria-pressed",
           String(supplementsActive),
         );
-        fitnessButton.setAttribute(
+        fitnessToggle.setAttribute(
           "aria-pressed",
           String(fitnessActive),
         );
       }
 
-      supplementsButton.onclick = () => {
-        const value = operationSelect.value;
+      supplementsToggle.onclick = () => {
+        const value = operationControl.value;
 
         if (value === "all") {
           setSelectValue(
-            operationSelect,
+            operationControl,
             "fitness",
           );
         } else if (value === "fitness") {
           setSelectValue(
-            operationSelect,
+            operationControl,
             "all",
           );
         } else {
           // Evita deixar a vitrine sem operação ativa.
           setSelectValue(
-            operationSelect,
+            operationControl,
             "supplements",
           );
         }
@@ -360,22 +364,22 @@ export function PublicStorefrontCompanyUX({
         window.requestAnimationFrame(sync);
       };
 
-      fitnessButton.onclick = () => {
-        const value = operationSelect.value;
+      fitnessToggle.onclick = () => {
+        const value = operationControl.value;
 
         if (value === "all") {
           setSelectValue(
-            operationSelect,
+            operationControl,
             "supplements",
           );
         } else if (value === "supplements") {
           setSelectValue(
-            operationSelect,
+            operationControl,
             "all",
           );
         } else {
           setSelectValue(
-            operationSelect,
+            operationControl,
             "fitness",
           );
         }
@@ -388,7 +392,7 @@ export function PublicStorefrontCompanyUX({
 
     function enhancePromotionGroups() {
       const activeView =
-        host.querySelector<HTMLButtonElement>(
+        storefrontHost.querySelector<HTMLButtonElement>(
           ".public-storefront-view-toggle button.active",
         )?.textContent ?? "";
 
@@ -397,7 +401,7 @@ export function PublicStorefrontCompanyUX({
       }
 
       const sections = Array.from(
-        host.querySelectorAll<HTMLElement>(
+        storefrontHost.querySelectorAll<HTMLElement>(
           ".public-storefront-blocks > section",
         ),
       );
@@ -511,6 +515,8 @@ export function PublicStorefrontCompanyUX({
           }
 
           const first = promotions[0];
+          if (!first) continue;
+
           const product =
             first.product_id
               ? productById.get(
@@ -801,7 +807,7 @@ export function PublicStorefrontCompanyUX({
       enhanceOperationFilter();
       enhancePromotionGroups();
 
-      observer?.observe(host, {
+      observer?.observe(storefrontHost, {
         childList: true,
         subtree: true,
       });

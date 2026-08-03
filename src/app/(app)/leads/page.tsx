@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { CommercialInboxPanel } from "@/components/commercial-inbox-panel";
 import { CommercialPagination } from "@/components/commercial-pagination";
 import { CommercialSearchForm } from "@/components/commercial-search-form";
 import { DemoBanner } from "@/components/demo-banner";
 import { LeadsTable } from "@/components/leads-table";
 import { NexusLeadQueue } from "@/components/nexus-lead-queue";
 import { PageHeader } from "@/components/page-header";
+import { getCommercialInboxItems } from "@/lib/commercial-inbox-data";
 import { getLeadsPage } from "@/lib/commercial-scale-data";
 import { formatMonthYear } from "@/lib/format";
 import { getNexusBrief } from "@/lib/nexus-operating-context";
@@ -35,7 +37,7 @@ export default async function LeadsPage({
   const q = params.q?.trim() ?? "";
   const month = params.month?.trim() ?? "";
 
-  const [result, nexus] = await Promise.all([
+  const [result, nexus, inbox] = await Promise.all([
     getLeadsPage({
       page,
       pageSize: 30,
@@ -43,6 +45,7 @@ export default async function LeadsPage({
       month,
     }),
     getNexusBrief({ refresh: true, signalLimit: 45 }),
+    getCommercialInboxItems(),
   ]);
 
   const groups = groupByMonth(result.rows);
@@ -53,8 +56,8 @@ export default async function LeadsPage({
 
       <PageHeader
         eyebrow="Comercial"
-        title="Leads"
-        description="A fila do Nexus mostra quem realmente merece retomada; a lista completa abaixo continua sendo o histórico comercial."
+        title="Leads + Inbox"
+        description="A Inbox mostra o que chegou da vitrine e ainda pede ação. O Nexus prioriza retomadas; a lista completa continua como histórico comercial."
       />
 
       <nav className="period-tabs">
@@ -62,6 +65,8 @@ export default async function LeadsPage({
         <Link className="period-tab" href="/orcamentos">Orçamentos</Link>
         <Link className="period-tab active" href="/leads">Leads</Link>
       </nav>
+
+      <CommercialInboxPanel initialItems={inbox} />
 
       <NexusLeadQueue signals={nexus.signals} />
 

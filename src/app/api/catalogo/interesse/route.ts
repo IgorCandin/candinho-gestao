@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc(
-    "public_create_catalog_lead_v1",
+    "public_create_catalog_lead_v2",
     {
       p_name: name,
       p_phone: phone,
@@ -58,6 +58,8 @@ export async function POST(request: Request) {
   );
 
   if (error) {
+    console.warn("[Catalog Inbox]", error.message);
+
     return NextResponse.json(
       { error: "Não foi possível solicitar atendimento agora." },
       { status: 500 },
@@ -67,5 +69,6 @@ export async function POST(request: Request) {
   return NextResponse.json({
     ok: true,
     lead_id: typeof data === "string" ? data : null,
+    inbox: true,
   });
 }
