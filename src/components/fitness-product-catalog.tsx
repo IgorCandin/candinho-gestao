@@ -117,18 +117,18 @@ function AvailabilityCard({
 
   if (available.length === 0) return null;
 
-  const visible = available.slice(0, compact ? 4 : 6);
+  const visible = available.slice(0, compact ? 3 : 4);
   const remaining = available.length - visible.length;
 
   return (
     <div
-      className={`fitness-availability-card ${
+      className={`fitness-availability-strip ${
         compact ? "compact" : ""
       }`}
       aria-label="Tamanhos e cores disponíveis"
     >
       <span className="fitness-availability-label">
-        Tamanhos e cores
+        Disponível em
       </span>
 
       <div className="fitness-availability-chips">

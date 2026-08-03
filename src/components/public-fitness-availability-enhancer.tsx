@@ -104,20 +104,29 @@ export function PublicFitnessAvailabilityEnhancer({
             document.createElement("div");
           container.dataset.fitnessAvailabilityCard = "true";
           container.className =
-            "public-fitness-availability-card";
+            "public-fitness-availability-strip";
 
           const label =
             document.createElement("span");
           label.className =
             "fitness-availability-label";
-          label.textContent = "Tamanhos e cores";
+          label.textContent = "Disponível em";
 
           const chips =
             document.createElement("div");
           chips.className =
             "fitness-availability-chips";
 
-          const visible = options.slice(0, 6);
+          const uniqueOptions = Array.from(
+            new Map(
+              options.map((option) => [
+                `${normalize(option.size)}:${normalize(option.color)}`,
+                option,
+              ]),
+            ).values(),
+          );
+
+          const visible = uniqueOptions.slice(0, 4);
 
           for (const option of visible) {
             const chip =
@@ -129,28 +138,40 @@ export function PublicFitnessAvailabilityEnhancer({
             chips.appendChild(chip);
           }
 
-          if (options.length > visible.length) {
+          if (uniqueOptions.length > visible.length) {
             const more =
               document.createElement("span");
             more.className =
               "fitness-availability-chip more";
             more.textContent =
-              `+${options.length - visible.length}`;
+              `+${uniqueOptions.length - visible.length}`;
             chips.appendChild(more);
           }
 
           container.append(label, chips);
 
-          const price =
-            copy.querySelector(
-              ".public-storefront-product-effective-price",
-            ) ??
+          const promoNote =
             copy.querySelector(
               ".public-storefront-product-promo-note",
             );
+          const effectivePrice =
+            copy.querySelector(
+              ".public-storefront-product-effective-price",
+            );
+          const regularPrice =
+            Array.from(copy.children).find(
+              (element) =>
+                element.tagName === "STRONG",
+            );
 
-          if (price?.parentElement === copy) {
-            price.insertAdjacentElement(
+          const anchor =
+            promoNote ??
+            effectivePrice ??
+            regularPrice ??
+            copy.querySelector("h3");
+
+          if (anchor?.parentElement === copy) {
+            anchor.insertAdjacentElement(
               "afterend",
               container,
             );
