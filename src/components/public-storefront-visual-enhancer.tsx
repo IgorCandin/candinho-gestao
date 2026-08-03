@@ -38,18 +38,41 @@ export function PublicStorefrontVisualEnhancer({
 }) {
   const [open, setOpen] = useState<OpenGallery | null>(null);
 
-  const productMap = useMemo(() => {
-    const map = new Map<string, PublicStorefrontProduct>();
+  const productIndex = useMemo(() => {
+    const byName = new Map<string, PublicStorefrontProduct>();
+    const byId = new Map<string, PublicStorefrontProduct>();
+    const byOperation: Record<
+      "supplements" | "fitness",
+      PublicStorefrontProduct[]
+    > = {
+      supplements: [],
+      fitness: [],
+    };
 
     for (const item of snapshot.products.supplements) {
-      map.set(`supplements:${normalize(item.name)}`, item);
+      byName.set(`supplements:${normalize(item.name)}`, item);
+      byId.set(`supplements:${item.id}`, item);
+      byOperation.supplements.push(item);
     }
 
     for (const item of snapshot.products.fitness) {
-      map.set(`fitness:${normalize(item.name)}`, item);
+      byName.set(`fitness:${normalize(item.name)}`, item);
+      byId.set(`fitness:${item.id}`, item);
+      byOperation.fitness.push(item);
     }
 
-    return map;
+    byOperation.supplements.sort(
+      (a, b) => b.name.length - a.name.length,
+    );
+    byOperation.fitness.sort(
+      (a, b) => b.name.length - a.name.length,
+    );
+
+    return {
+      byName,
+      byId,
+      byOperation,
+    };
   }, [snapshot.products]);
 
   useEffect(() => {
@@ -61,15 +84,32 @@ export function PublicStorefrontVisualEnhancer({
       operation: "supplements" | "fitness",
     ) {
       if (card.dataset.visualEnhanced === "true") return;
-      if (card.classList.contains("public-storefront-promotion-card")) return;
 
       const name =
         card.querySelector<HTMLElement>(".public-storefront-card-copy h3")
           ?.textContent ?? "";
 
-      const item = productMap.get(
-        `${operation}:${normalize(name)}`,
-      );
+      const productId =
+        card.dataset.storefrontProductId ?? "";
+
+      const normalizedName = normalize(name);
+
+      const item =
+        (productId
+          ? productIndex.byId.get(
+              `${operation}:${productId}`,
+            )
+          : null) ??
+        productIndex.byName.get(
+          `${operation}:${normalizedName}`,
+        ) ??
+        productIndex.byOperation[
+          operation
+        ].find((candidate) =>
+          normalizedName.startsWith(
+            normalize(candidate.name),
+          ),
+        );
 
       if (!item) return;
       const product = item;
@@ -153,22 +193,13 @@ export function PublicStorefrontVisualEnhancer({
           counter.textContent = `${index + 1}/${productSlides.length}`;
         }
 
-        const dots = wrapper.querySelectorAll<HTMLElement>(
-          "[data-storefront-slide-dot]",
-        );
-
-        dots.forEach((dot, dotIndex) => {
-          dot.dataset.active =
-            dotIndex === index ? "true" : "false";
-        });
       }
 
       const zoom = document.createElement("button");
       zoom.type = "button";
       zoom.className = styles.zoomButton;
       zoom.setAttribute("aria-label", `Ampliar foto de ${product.name}`);
-      zoom.innerHTML =
-        '<span aria-hidden="true">↗</span><span>Ver foto</span>';
+      zoom.textContent = "Ver";
 
       const onZoom = (event: Event) => {
         event.preventDefault();
@@ -218,34 +249,6 @@ export function PublicStorefrontVisualEnhancer({
         counter.dataset.storefrontSlideCounter = "true";
         counter.className = styles.counter;
 
-        const dots = document.createElement("div");
-        dots.className = styles.dots;
-
-        productSlides.forEach((_, dotIndex) => {
-          const dot = document.createElement("button");
-          dot.type = "button";
-          dot.dataset.storefrontSlideDot = "true";
-          dot.className = styles.dot;
-          dot.setAttribute(
-            "aria-label",
-            `Abrir foto ${dotIndex + 1}`,
-          );
-
-          const onDot = (event: Event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            index = dotIndex;
-            renderSlide();
-          };
-
-          dot.addEventListener("click", onDot);
-          dots.appendChild(dot);
-
-          cleanup.push(() => {
-            dot.removeEventListener("click", onDot);
-          });
-        });
-
         const onPrevious = (event: Event) => {
           event.preventDefault();
           event.stopPropagation();
@@ -265,7 +268,7 @@ export function PublicStorefrontVisualEnhancer({
         previous.addEventListener("click", onPrevious);
         next.addEventListener("click", onNext);
 
-        wrapper.append(previous, next, counter, dots);
+        wrapper.append(previous, next, counter);
 
         cleanup.push(() => {
           previous.removeEventListener("click", onPrevious);
@@ -338,7 +341,7 @@ export function PublicStorefrontVisualEnhancer({
 
       cleanup.forEach((fn) => fn());
     };
-  }, [productMap]);
+  }, [productIndex]);
 
   useEffect(() => {
     if (!open) return;

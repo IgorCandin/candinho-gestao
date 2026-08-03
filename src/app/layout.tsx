@@ -9,6 +9,7 @@ import "./ux-lapidacao-v2.css";
 import "./fitness-ux-v4.css";
 import "./nexus-company-gray.css";
 import "./fitness-availability-v1.css";
+import "./public-storefront-company-v7.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",

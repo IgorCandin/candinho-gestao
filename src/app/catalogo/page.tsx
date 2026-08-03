@@ -6,6 +6,7 @@ import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
 import { PublicStorefrontBrowser } from "@/components/public-storefront-browser";
 import { PublicStorefrontVisualEnhancer } from "@/components/public-storefront-visual-enhancer";
+import { PublicStorefrontCompanyUX } from "@/components/public-storefront-company-ux";
 import { PublicFitnessAvailabilityEnhancer } from "@/components/public-fitness-availability-enhancer";
 import {
   getPublicStorefrontSlugMap,
@@ -28,6 +29,7 @@ export default async function PublicCatalogPage() {
   return (
     <main className="public-storefront-page">
       <PublicCatalogCardLinks links={productLinks} />
+      <PublicStorefrontCompanyUX snapshot={snapshot} />
       <PublicStorefrontVisualEnhancer snapshot={snapshot} />
       <PublicFitnessAvailabilityEnhancer
         snapshot={snapshot}

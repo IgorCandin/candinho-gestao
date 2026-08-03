@@ -1,0 +1,529 @@
+/* =========================================================
+   VITRINE COMPANY V7
+   A vitrine pertence à Candinho Company.
+   Suplementos e Fitness aparecem como operações, não como
+   identidade visual da página inteira.
+   ========================================================= */
+
+.public-storefront-page {
+  --company-ui: #aeb5c2;
+  --company-ui-strong: #e8ebef;
+  --company-ui-soft: rgba(174,181,194,.075);
+  --company-ui-line: rgba(174,181,194,.18);
+  --supplements-ui: #d8aa48;
+  --fitness-ui: #ec4899;
+
+  background:
+    radial-gradient(
+      circle at 22% -8%,
+      rgba(174,181,194,.075),
+      transparent 31%
+    ),
+    radial-gradient(
+      circle at 88% 8%,
+      rgba(174,181,194,.035),
+      transparent 28%
+    ),
+    #080b10;
+}
+
+.public-storefront-header {
+  border-bottom-color: rgba(174,181,194,.08);
+}
+
+.public-storefront-hero > span {
+  color: var(--company-ui);
+}
+
+.public-storefront-login {
+  border-color: var(--company-ui-line);
+  color: #aeb5c2;
+}
+
+.public-storefront-login:hover {
+  border-color: rgba(174,181,194,.34);
+  background: rgba(174,181,194,.055);
+  color: #eef1f5;
+}
+
+/* -----------------------------
+   Filtros
+------------------------------ */
+
+.public-storefront-toolbar {
+  position: sticky;
+  top: 10px;
+  z-index: 20;
+  grid-template-columns:
+    minmax(230px, .72fr)
+    minmax(250px, 1fr)
+    minmax(190px, .62fr);
+  gap: 10px;
+  padding: 12px;
+  border-color: var(--company-ui-line);
+  background: rgba(9,12,17,.95);
+  box-shadow: 0 14px 40px rgba(0,0,0,.18);
+  backdrop-filter: blur(16px);
+}
+
+.public-storefront-view-toggle {
+  grid-column: 1;
+  min-width: 0;
+  border-color: var(--company-ui-line);
+  background: #0b0f15;
+}
+
+.public-storefront-view-toggle button {
+  color: #8f98a7;
+}
+
+.public-storefront-view-toggle button.active {
+  border-color: rgba(174,181,194,.3);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(174,181,194,.12),
+      rgba(174,181,194,.065)
+    );
+  color: #eef1f5;
+  box-shadow:
+    inset 0 0 0 1px rgba(174,181,194,.12);
+}
+
+.public-storefront-search {
+  grid-column: 2 / 4;
+  min-width: 0;
+  border-color: var(--company-ui-line);
+  background: #0b0f15;
+}
+
+.public-storefront-search svg {
+  color: #8f98a7;
+}
+
+.public-storefront-search:focus-within,
+.public-storefront-toolbar > select:focus {
+  border-color: rgba(174,181,194,.42);
+  box-shadow: 0 0 0 3px rgba(174,181,194,.075);
+}
+
+.public-storefront-toolbar
+  select[data-company-operation-select="true"] {
+  display: none !important;
+}
+
+.public-storefront-operation-toggle-company {
+  grid-column: 1;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.public-storefront-company-filter-label {
+  color: #7f8998;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.public-storefront-operation-buttons {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 7px;
+}
+
+.public-storefront-operation-buttons button {
+  min-width: 0;
+  min-height: 42px;
+  padding: 0 11px;
+  display: grid;
+  grid-template-columns: 9px minmax(0,1fr) 16px;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--company-ui-line);
+  border-radius: 11px;
+  background: #0b0f15;
+  color: #8e97a5;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color .14s ease,
+    background .14s ease,
+    color .14s ease,
+    transform .14s ease;
+}
+
+.public-storefront-operation-buttons button > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #5d6673;
+}
+
+.public-storefront-operation-buttons button > strong {
+  overflow: hidden;
+  font-size: 10px;
+  font-weight: 850;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-storefront-operation-buttons button > b {
+  opacity: 0;
+  font-size: 11px;
+  text-align: right;
+}
+
+.public-storefront-operation-buttons
+  .supplements[data-active="true"] {
+  border-color: rgba(216,170,72,.38);
+  background: rgba(216,170,72,.085);
+  color: #efd083;
+}
+
+.public-storefront-operation-buttons
+  .supplements[data-active="true"] > span {
+  background: var(--supplements-ui);
+  box-shadow: 0 0 0 3px rgba(216,170,72,.09);
+}
+
+.public-storefront-operation-buttons
+  .supplements[data-active="true"] > b {
+  opacity: 1;
+  color: var(--supplements-ui);
+}
+
+.public-storefront-operation-buttons
+  .fitness[data-active="true"] {
+  border-color: rgba(236,72,153,.34);
+  background: rgba(236,72,153,.075);
+  color: #f08ab9;
+}
+
+.public-storefront-operation-buttons
+  .fitness[data-active="true"] > span {
+  background: var(--fitness-ui);
+  box-shadow: 0 0 0 3px rgba(236,72,153,.08);
+}
+
+.public-storefront-operation-buttons
+  .fitness[data-active="true"] > b {
+  opacity: 1;
+  color: var(--fitness-ui);
+}
+
+@media (hover:hover) and (pointer:fine) {
+  .public-storefront-operation-buttons button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(174,181,194,.28);
+  }
+}
+
+.public-storefront-toolbar
+  > select[aria-label="Filtrar por categoria"] {
+  grid-column: 2;
+}
+
+.public-storefront-toolbar
+  > select[aria-label="Ordenar produtos"] {
+  grid-column: 3;
+}
+
+.public-storefront-toolbar > select {
+  min-height: 42px;
+  border-color: var(--company-ui-line);
+  background-color: #0b0f15;
+  color: #d8dce2;
+}
+
+/* -----------------------------
+   Cards: Company neutra
+------------------------------ */
+
+.public-storefront-blocks > section > header h2 {
+  color: #eef1f5;
+}
+
+.public-storefront-blocks > section > header span {
+  color: #858f9e;
+}
+
+.public-storefront-card {
+  border-color: rgba(174,181,194,.14);
+  background: rgba(255,255,255,.014);
+}
+
+.public-storefront-card.has-active-promotion {
+  border-color: rgba(174,181,194,.24);
+  box-shadow:
+    inset 0 -2px 0 rgba(174,181,194,.09);
+}
+
+.public-storefront-card-copy small {
+  color: #939caa;
+}
+
+.public-storefront-card-copy > strong,
+.public-storefront-product-effective-price strong,
+.public-storefront-promotion-price strong {
+  color: #f0f2f5;
+}
+
+.public-storefront-product-effective-price span,
+.public-storefront-promotion-price span {
+  color: #7f8998;
+}
+
+.public-storefront-product-promo-note {
+  color: #aeb5c2;
+}
+
+.public-storefront-product-promo-note b {
+  color: #d7dce4;
+}
+
+.public-storefront-promo-badge {
+  border-color: rgba(174,181,194,.25);
+  background: rgba(8,11,16,.86);
+  color: #d9dde3;
+}
+
+.public-storefront-discount {
+  background: #c8cdd5;
+  color: #101318;
+}
+
+/* Em promoções agrupadas o contador da galeria ocupa o topo direito.
+   O desconto já está claro no preço; removemos o selo redundante. */
+.company-promotion-grouped
+  .public-storefront-discount {
+  display: none;
+}
+
+/* -----------------------------
+   Promoções agrupadas por produto
+------------------------------ */
+
+.public-storefront-promotion-card.company-promotion-grouped {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border-color: rgba(174,181,194,.20);
+}
+
+.public-storefront-promotion-card.company-promotion-grouped
+  .public-storefront-card-copy {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.public-storefront-promotion-card.company-promotion-grouped
+  .public-storefront-card-copy h3 {
+  min-height: 36px;
+}
+
+.public-promotion-options-strip {
+  width: 100%;
+  margin-top: 9px;
+  padding-top: 8px;
+  display: grid;
+  gap: 5px;
+  border-top: 1px solid rgba(174,181,194,.10);
+}
+
+.public-promotion-options-strip > span {
+  color: #8f98a7;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .055em;
+  text-transform: uppercase;
+}
+
+.public-promotion-options-strip > div {
+  max-height: 48px;
+  overflow: hidden;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.public-promotion-option-chip {
+  min-height: 21px;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 7px;
+  overflow: hidden;
+  border: 1px solid rgba(174,181,194,.18);
+  border-radius: 999px;
+  background: rgba(174,181,194,.065);
+  color: #cbd1d9;
+  font-size: 7.5px;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.public-promotion-option-chip.more {
+  border-style: dashed;
+  color: #98a1af;
+  background: rgba(174,181,194,.025);
+}
+
+.company-promotion-grouped
+  .promotion-stock-copy,
+.company-promotion-grouped
+  .sold-out-copy {
+  display: block;
+  margin-top: auto;
+  padding-top: 9px;
+  color: #8f98a7;
+  font-size: 8px;
+  font-style: normal;
+  line-height: 1.4;
+}
+
+.company-promotion-grouped
+  .sold-out-copy {
+  color: #cc7e86;
+}
+
+/* Esconde os irmãos agrupados sem deixar buraco no grid. */
+.public-storefront-promotion-card[hidden] {
+  display: none !important;
+}
+
+/* -----------------------------
+   Mobile
+------------------------------ */
+
+@media (max-width: 900px) {
+  .public-storefront-toolbar {
+    grid-template-columns:
+      minmax(210px,.72fr)
+      minmax(0,1fr);
+  }
+
+  .public-storefront-view-toggle {
+    grid-column: 1;
+  }
+
+  .public-storefront-search {
+    grid-column: 2;
+  }
+
+  .public-storefront-operation-toggle-company {
+    grid-column: 1 / -1;
+  }
+
+  .public-storefront-toolbar
+    > select[aria-label="Filtrar por categoria"] {
+    grid-column: 1;
+  }
+
+  .public-storefront-toolbar
+    > select[aria-label="Ordenar produtos"] {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 720px) {
+  .public-storefront-toolbar {
+    position: static;
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 11px;
+    border-radius: 16px;
+  }
+
+  .public-storefront-view-toggle,
+  .public-storefront-search,
+  .public-storefront-operation-toggle-company,
+  .public-storefront-toolbar
+    > select[aria-label="Filtrar por categoria"],
+  .public-storefront-toolbar
+    > select[aria-label="Ordenar produtos"] {
+    grid-column: 1;
+  }
+
+  .public-storefront-view-toggle {
+    min-height: 48px;
+  }
+
+  .public-storefront-view-toggle button {
+    min-height: 40px;
+    font-size: 12px;
+  }
+
+  .public-storefront-search {
+    min-height: 48px;
+  }
+
+  .public-storefront-search input {
+    font-size: 16px;
+  }
+
+  .public-storefront-company-filter-label {
+    font-size: 9px;
+  }
+
+  .public-storefront-operation-buttons {
+    gap: 8px;
+  }
+
+  .public-storefront-operation-buttons button {
+    min-height: 48px;
+    padding-inline: 12px;
+  }
+
+  .public-storefront-operation-buttons button > strong {
+    font-size: 12px;
+  }
+
+  .public-storefront-toolbar > select {
+    min-height: 48px;
+    font-size: 14px;
+  }
+
+  .public-promotion-options-strip > span {
+    font-size: 8.5px;
+  }
+
+  .public-promotion-option-chip {
+    min-height: 25px;
+    padding-inline: 8px;
+    font-size: 9px;
+  }
+
+  .company-promotion-grouped
+    .promotion-stock-copy,
+  .company-promotion-grouped
+    .sold-out-copy {
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 430px) {
+  .public-storefront-operation-buttons button {
+    grid-template-columns: 8px minmax(0,1fr) 14px;
+    gap: 6px;
+  }
+
+  .public-storefront-operation-buttons button > strong {
+    font-size: 11px;
+  }
+
+  .public-storefront-promotion-card.company-promotion-grouped
+    .public-storefront-card-copy h3 {
+    min-height: 0;
+  }
+
+  .public-promotion-options-strip > div {
+    max-height: 58px;
+  }
+}
