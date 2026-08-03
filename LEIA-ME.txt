@@ -1,26 +1,26 @@
-Candinho Company — Custos por momento real de consumo
+CANDINHO · MARKETING + GOOGLE AGENDA · BLACK DE AGOSTO V1
 
-O pacote implementa:
-- editar cadastro de materiais;
-- corrigir saldo e custo médio com motivo/auditoria;
-- Etiqueta: baixa quando produto entra no estoque e entra no custo médio do produto recebido;
-- Sacola/Cartão: escolha manual no momento da entrega da venda;
-- quantidade por pedido pode ser 0, 1 ou várias unidades;
-- sugestão opcional por capacidade, ex.: 1 sacola a cada 2 produtos;
-- vendas antigas não são recalculadas.
+O backend de produção (Supabase + Edge Function) já foi atualizado e a campanha já foi cadastrada na Agenda Marketing.
+
+Este ZIP é para COMMITAR no repositório e manter o código alinhado com produção.
 
 Arquivos:
-- src/components/operational-costs-page.tsx
-- src/app/(app)/estoque/custos/materiais/page.tsx
-- src/components/operational-supplies-admin.tsx
-- src/components/operational-supplies-admin.module.css
-- src/components/sale-status-actions.tsx
-- src/components/sale-delivery-supplies.module.css
-- supabase/migrations/20260725173000_operational_supplies_consumption_stages.sql
-- supabase/migrations/20260725173500_operational_supply_defaults.sql
-- supabase/migrations/20260725174000_protect_manual_delivery_supplies.sql
+- src/app/(app)/marketing/planejamento/page.tsx
+- supabase/functions/google-calendar-sync/index.ts
+- supabase/migrations/20260803154500_marketing_google_calendar_sync.sql
+- docs/marketing/BLACK_AGOSTO_MARKETING_CALENDAR_V1.md
 
-As migrations já foram aplicadas no Supabase de produção. Elas estão no ZIP para sincronizar o repositório.
+Depois do commit/deploy, na página Marketing > Planejamento você poderá:
+- ver pendentes;
+- marcar como Concluir;
+- manter o item em Histórico;
+- reabrir se necessário.
+
+A conclusão dispara a remoção do compromisso correspondente do Google Agenda, sem apagar o histórico do site.
+
+IMPORTANTE:
+- Não há segredo/API key neste pacote.
+- As tarefas da Black de Agosto já foram inseridas em produção; não existe seed aqui para não duplicar.
 
 Commit sugerido:
-feat: separa custos de entrada e materiais escolhidos na entrega
+feat: sincroniza agenda do Marketing com Google Calendar
