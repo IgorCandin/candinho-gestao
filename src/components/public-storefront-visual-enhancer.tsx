@@ -72,22 +72,24 @@ export function PublicStorefrontVisualEnhancer({
       );
 
       if (!item) return;
+      const product = item;
 
       const imageWrap =
         card.querySelector<HTMLElement>(".public-storefront-card-image");
 
       if (!imageWrap) return;
+      const wrapper = imageWrap;
 
       const image =
-        imageWrap.querySelector<HTMLImageElement>("img");
+        wrapper.querySelector<HTMLImageElement>("img");
 
       const slides =
-        item.images.length > 0
-          ? item.images
-          : item.image_url
+        product.images.length > 0
+          ? product.images
+          : product.image_url
             ? [
                 {
-                  url: item.image_url,
+                  url: product.image_url,
                   color: null,
                   label: null,
                   kind: "product" as const,
@@ -97,9 +99,9 @@ export function PublicStorefrontVisualEnhancer({
             : [];
 
       card.dataset.visualEnhanced = "true";
-      imageWrap.classList.add(styles.imageWrap);
+      wrapper.classList.add(styles.imageWrap);
 
-      if (item.notes?.trim()) {
+      if (product.notes?.trim()) {
         const copy =
           card.querySelector<HTMLElement>(".public-storefront-card-copy");
 
@@ -107,32 +109,32 @@ export function PublicStorefrontVisualEnhancer({
           const notes = document.createElement("p");
           notes.dataset.storefrontNotes = "true";
           notes.className = styles.notes;
-          notes.textContent = item.notes.trim();
-          notes.title = item.notes.trim();
+          notes.textContent = product.notes.trim();
+          notes.title = product.notes.trim();
           copy.appendChild(notes);
         }
       }
 
       if (!image || slides.length === 0) return;
 
-      // Mantém a referência já validada para callbacks internos.
-      // O TypeScript não preserva o narrowing de uma variável capturada
-      // dentro das funções abaixo.
+      // Referências não-nulas estabilizadas antes dos callbacks.
+      // O TS não mantém o narrowing original dentro de closures.
       const productImage = image;
+      const productSlides = slides;
       let index = 0;
 
       function renderSlide() {
-        const slide = slides[index] ?? slides[0];
+        const slide = productSlides[index] ?? productSlides[0];
         if (!slide) return;
 
         productImage.src = slide.url;
         productImage.alt = [
-          item.name,
+          product.name,
           slide.color || slide.label,
         ].filter(Boolean).join(" · ");
 
         const label =
-          imageWrap.querySelector<HTMLElement>(
+          wrapper.querySelector<HTMLElement>(
             "[data-storefront-slide-label]",
           );
 
@@ -143,15 +145,15 @@ export function PublicStorefrontVisualEnhancer({
         }
 
         const counter =
-          imageWrap.querySelector<HTMLElement>(
+          wrapper.querySelector<HTMLElement>(
             "[data-storefront-slide-counter]",
           );
 
         if (counter) {
-          counter.textContent = `${index + 1}/${slides.length}`;
+          counter.textContent = `${index + 1}/${productSlides.length}`;
         }
 
-        const dots = imageWrap.querySelectorAll<HTMLElement>(
+        const dots = wrapper.querySelectorAll<HTMLElement>(
           "[data-storefront-slide-dot]",
         );
 
@@ -164,18 +166,18 @@ export function PublicStorefrontVisualEnhancer({
       const zoom = document.createElement("button");
       zoom.type = "button";
       zoom.className = styles.zoomButton;
-      zoom.setAttribute("aria-label", `Ampliar foto de ${item.name}`);
+      zoom.setAttribute("aria-label", `Ampliar foto de ${product.name}`);
       zoom.innerHTML =
         '<span aria-hidden="true">↗</span><span>Ver foto</span>';
 
       const onZoom = (event: Event) => {
         event.preventDefault();
         event.stopPropagation();
-        setOpen({ item, index });
+        setOpen({ item: product, index });
       };
 
       zoom.addEventListener("click", onZoom);
-      imageWrap.appendChild(zoom);
+      wrapper.appendChild(zoom);
 
       cleanup.push(() => {
         zoom.removeEventListener("click", onZoom);
@@ -184,7 +186,7 @@ export function PublicStorefrontVisualEnhancer({
       const onImageClick = (event: Event) => {
         event.preventDefault();
         event.stopPropagation();
-        setOpen({ item, index });
+        setOpen({ item: product, index });
       };
 
       productImage.style.cursor = "zoom-in";
@@ -197,9 +199,9 @@ export function PublicStorefrontVisualEnhancer({
       const label = document.createElement("span");
       label.dataset.storefrontSlideLabel = "true";
       label.className = styles.slideLabel;
-      imageWrap.appendChild(label);
+      wrapper.appendChild(label);
 
-      if (slides.length > 1) {
+      if (productSlides.length > 1) {
         const previous = document.createElement("button");
         previous.type = "button";
         previous.className = `${styles.arrow} ${styles.previous}`;
@@ -219,7 +221,7 @@ export function PublicStorefrontVisualEnhancer({
         const dots = document.createElement("div");
         dots.className = styles.dots;
 
-        slides.forEach((_, dotIndex) => {
+        productSlides.forEach((_, dotIndex) => {
           const dot = document.createElement("button");
           dot.type = "button";
           dot.dataset.storefrontSlideDot = "true";
@@ -248,22 +250,22 @@ export function PublicStorefrontVisualEnhancer({
           event.preventDefault();
           event.stopPropagation();
           index =
-            (index - 1 + slides.length) %
-            slides.length;
+            (index - 1 + productSlides.length) %
+            productSlides.length;
           renderSlide();
         };
 
         const onNext = (event: Event) => {
           event.preventDefault();
           event.stopPropagation();
-          index = (index + 1) % slides.length;
+          index = (index + 1) % productSlides.length;
           renderSlide();
         };
 
         previous.addEventListener("click", onPrevious);
         next.addEventListener("click", onNext);
 
-        imageWrap.append(previous, next, counter, dots);
+        wrapper.append(previous, next, counter, dots);
 
         cleanup.push(() => {
           previous.removeEventListener("click", onPrevious);
