@@ -1,0 +1,44 @@
+/* Nexus flutuante · identidade Company
+   Troca o destaque dourado/laranja por cinza neutro da Candinho Company,
+   sem alterar os demais elementos dourados do Nexus dentro das telas. */
+
+.nexus-dock-trigger {
+  --nexus-company-gray: #aeb5c2;
+  --nexus-company-gray-strong: #d7dce4;
+
+  color: var(--nexus-company-gray);
+  border-color: rgba(174, 181, 194, .34);
+  background:
+    radial-gradient(
+      circle at 38% 28%,
+      rgba(174, 181, 194, .09),
+      transparent 58%
+    ),
+    rgba(9, 13, 20, .96);
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.35),
+    inset 0 0 20px rgba(174, 181, 194, .035);
+}
+
+.nexus-dock-trigger:hover,
+.nexus-dock-trigger:focus-visible {
+  color: var(--nexus-company-gray-strong);
+  border-color: rgba(174, 181, 194, .52);
+  background:
+    radial-gradient(
+      circle at 38% 28%,
+      rgba(174, 181, 194, .13),
+      transparent 58%
+    ),
+    rgba(12, 16, 23, .98);
+}
+
+.nexus-dock-trigger.open {
+  color: var(--nexus-company-gray);
+  border-color: rgba(174, 181, 194, .28);
+}
+
+.nexus-dock-trigger > span {
+  /* Mantém alerta legível, mas sem transformar o botão todo em dourado. */
+  box-shadow: 0 0 0 2px rgba(9, 13, 20, .96);
+}
