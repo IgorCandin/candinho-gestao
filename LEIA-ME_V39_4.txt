@@ -1,0 +1,33 @@
+BANK V39.4 — UX + HISTÓRICO ANTIGO
+
+O QUE FOI CORRIGIDO
+- Home do Bank mais compacto.
+- Os 4 números principais ficam em destaque sem os cards gigantes.
+- Notinhas pendentes ficam numa faixa separada e compacta.
+- Valor negativo da projeção não quebra mais o "-" em uma linha.
+- Lista de empréstimos/notinhas fica mais enxuta.
+- Histórico antigo do Empréstimo Ian é reconstruído pelos meses verdes do print.
+- Histórico do empréstimo Sicoob CNPJ também é reconstruído pelos meses verdes do print.
+
+HISTÓRICO IMPORTADO
+Ian — pagos:
+09/2024, 10/2024, 11/2024, 12/2024,
+01/2025, 02/2025, 05/2025, 06/2025, 07/2025, 09/2025, 11/2025,
+01/2026, 02/2026, 07/2026.
+Total: 14 parcelas de R$ 200,00 = R$ 2.800,00.
+
+Sicoob CNPJ (empréstimo do Sicoob) — pagos:
+03/2026, 04/2026, 05/2026, 06/2026, 07/2026.
+Total: 5 parcelas de R$ 418,60 = R$ 2.093,00.
+
+COMO APLICAR
+1. Extraia o ZIP na raiz do candinho-gestao e aceite substituir.
+2. GitHub Desktop: commit + Push origin.
+3. No Supabase > SQL Editor > New query:
+   abra RODAR_NO_SUPABASE_V39_4.sql, copie tudo e clique Run.
+
+O SQL NÃO muda total pago nem saldo restante.
+Ele só informa ao calendário QUAIS meses antigos já estavam pagos.
+
+Commit sugerido:
+V39.4 - melhora UX do Bank e importa histórico de empréstimos

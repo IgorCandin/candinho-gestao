@@ -1,0 +1,173 @@
+/* Candinho Company · Bank V39.4
+   Compacta a leitura do Bank sem mudar as regras financeiras.
+   O foco é reduzir "balões" altos e deixar o Home escaneável rapidamente. */
+
+.theme-bank .bank-income-list {
+  gap: 8px !important;
+}
+
+.theme-bank .bank-income-list-item {
+  min-height: 0 !important;
+  padding: 12px 14px !important;
+  border-radius: 14px !important;
+}
+
+.theme-bank .bank-income-list-item .button {
+  min-height: 36px !important;
+  padding-inline: 12px !important;
+}
+
+.theme-bank .bank-income-list-item .bank-header-actions {
+  gap: 6px !important;
+}
+
+.theme-bank .bank-charge-payment-summary {
+  gap: 8px !important;
+}
+
+.theme-bank .bank-charge-payment-summary > div {
+  min-height: 0 !important;
+  padding: 11px 13px !important;
+  border-radius: 12px !important;
+}
+
+.theme-bank .bank-stats-grid {
+  gap: 12px !important;
+  align-items: start !important;
+}
+
+.theme-bank .bank-stats-grid > .stat-card {
+  min-height: 124px !important;
+  padding: 16px 18px !important;
+}
+
+.theme-bank .bank-stats-grid > .stat-card .stat-value {
+  margin-top: 12px !important;
+  font-size: clamp(23px, 2.1vw, 29px) !important;
+  line-height: 1.05 !important;
+}
+
+.theme-bank .bank-stats-grid > .stat-card .stat-note {
+  margin-top: 7px !important;
+  line-height: 1.35 !important;
+}
+
+/* Home: hero menor e mais informativo, sem ocupar metade da primeira dobra. */
+.bank-dashboard .bank-balance-hero {
+  min-height: 0 !important;
+  padding: 20px 26px !important;
+  border-radius: 20px !important;
+}
+
+.bank-dashboard .bank-balance-hero strong {
+  font-size: clamp(34px, 3.5vw, 50px) !important;
+  line-height: 1 !important;
+}
+
+.bank-dashboard .bank-balance-hero small {
+  margin-top: 7px !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Quatro números principais em uma linha. A notinha vira faixa separada. */
+@media (min-width: 1101px) {
+  .bank-dashboard .bank-stats-grid.bank-v39-stats-with-notes {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card {
+    grid-column: 1 / -1 !important;
+    min-height: 72px !important;
+    padding: 13px 17px !important;
+    display: grid !important;
+    grid-template-columns: minmax(180px, .65fr) auto minmax(300px, 1.35fr) !important;
+    align-items: center !important;
+    gap: 18px !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card .stat-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card .stat-value {
+    margin: 0 !important;
+    font-size: 25px !important;
+    white-space: nowrap !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card .stat-note {
+    margin: 0 !important;
+    max-width: 560px !important;
+  }
+}
+
+@media (min-width: 821px) and (max-width: 1100px) {
+  .bank-dashboard .bank-stats-grid.bank-v39-stats-with-notes {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card {
+    grid-column: 1 / -1 !important;
+    min-height: 88px !important;
+  }
+}
+
+/* Evita o sinal negativo quebrando em uma linha e o valor em outra. */
+.bank-dashboard .bank-difference-card .stat-value {
+  white-space: nowrap !important;
+}
+
+/* Lista de empréstimos/notinhas: vira linha operacional, não um card gigante. */
+@media (min-width: 821px) {
+  .theme-bank .bank-income-list-item {
+    grid-template-columns:
+      minmax(220px, 1.45fr)
+      minmax(145px, .62fr)
+      auto
+      auto !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+
+  .theme-bank .bank-income-list-item > div:first-child > strong,
+  .theme-bank .bank-income-list-item > div:nth-child(2) > strong {
+    font-size: 13px !important;
+  }
+
+  .theme-bank .bank-income-list-item > div:first-child > span,
+  .theme-bank .bank-income-list-item > div:nth-child(2) > span {
+    font-size: 10px !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .bank-dashboard .bank-balance-hero {
+    padding: 16px 17px !important;
+    border-radius: 17px !important;
+  }
+
+  .bank-dashboard .bank-balance-hero strong {
+    font-size: clamp(28px, 9vw, 38px) !important;
+  }
+
+  .theme-bank .bank-stats-grid > .stat-card {
+    min-height: 108px !important;
+    padding: 14px 15px !important;
+  }
+
+  .theme-bank .bank-stats-grid > .stat-card .stat-value {
+    font-size: 25px !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card {
+    min-height: 104px !important;
+  }
+
+  .theme-bank .bank-income-list-item {
+    padding: 12px !important;
+  }
+}
