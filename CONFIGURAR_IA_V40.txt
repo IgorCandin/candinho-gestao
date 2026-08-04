@@ -1,0 +1,21 @@
+NEXUS BANK V40 — CONFIGURAR IA (UMA VEZ)
+
+O código usa a OpenAI Responses API no SERVIDOR.
+A chave nunca vai para o navegador.
+
+No Vercel do candinho-gestao, adicione:
+OPENAI_API_KEY = sua chave da OpenAI Platform
+
+Opcional:
+OPENAI_BANK_MODEL = gpt-5
+
+Depois faça Redeploy.
+
+Se OPENAI_API_KEY não estiver configurada, o Bank continua normal,
+mas o Nexus mostra que a IA ainda não foi ativada.
+
+IMPORTANTE:
+- O request usa store=false.
+- A IA NÃO escreve no banco.
+- Ela só monta uma prévia estruturada.
+- O banco só muda depois de "Confirmar tudo".

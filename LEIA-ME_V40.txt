@@ -1,0 +1,66 @@
+CANDINHO BANK V40 — NEXUS BANK
+
+FILOSOFIA
+Fale para organizar. Clique para pagar.
+
+O QUE ENTRA NESTE PACOTE
+- Tudo da V39.5 (Bank mais prático).
+- Nexus Bank em /bank/nexus.
+- Chat em linguagem natural.
+- Preview obrigatório antes de alterar.
+- Confirmar tudo.
+- Auditoria das alterações.
+- Desfazer o último batch aplicado.
+- Nexus no menu lateral desktop.
+- Nexus no menu inferior do celular.
+- Histórico das últimas atualizações do Nexus.
+
+COMANDOS SUPORTADOS NO V40
+- Fatura de cartão:
+  "Nubank Igor esse mês ficou 843,27"
+- Várias faturas:
+  "Nubank 843,27 e BB 110"
+- Copiar mês passado:
+  "Tudo igual mês passado, só Nubank 950"
+- Saldo:
+  "Saldo da conta X é 1.250"
+- Entrada recebida:
+  "Recebi o salário Igor de 3.000 hoje"
+- Entrada pendente:
+  "O vale ainda não caiu"
+- Adiar empréstimo:
+  "Adia o Ian este mês"
+- Alterar mensalidade:
+  "Psicóloga agora é 450"
+- Alterar valor fixo futuro:
+  "Meu salário passou a ser 3.200"
+
+O QUE O CHAT NÃO FAZ
+- Não paga empréstimo automaticamente.
+- Não marca notinha como paga.
+- Não altera nada sem confirmação.
+- Não inventa entidades que não existem no Bank.
+
+APLICAÇÃO RÁPIDA
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. Aceite substituir.
+3. GitHub Desktop:
+   Commit: V40 - adiciona Nexus Bank com preview e auditoria
+   Push origin
+4. Supabase > SQL Editor:
+   abra RODAR_NO_SUPABASE_V40.sql
+   copie tudo
+   Run
+5. Configure OPENAI_API_KEY no Vercel (uma única vez).
+6. Redeploy.
+
+NÃO PRECISA
+- terminal
+- supabase db push
+- migration repair
+- npm install
+
+SEGURANÇA
+A IA recebe somente o contexto necessário do Bank e o request usa store=false.
+A resposta da IA é uma prévia. A aplicação é validada novamente no Supabase
+por uma função SECURITY DEFINER com tipos de ações limitados.

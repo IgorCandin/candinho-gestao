@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  Bot,
   Building2,
   ChartNoAxesCombined,
   CircleDollarSign,
@@ -124,6 +125,8 @@ export function BankV39Shell() {
   const [incomeFixedHost, setIncomeFixedHost] =
     useState<HTMLElement | null>(null);
   const [incomeStatsHost, setIncomeStatsHost] =
+    useState<HTMLElement | null>(null);
+  const [desktopBankNavHost, setDesktopBankNavHost] =
     useState<HTMLElement | null>(null);
 
   const [noteSummary, setNoteSummary] = useState<NoteSummary | null>(null);
@@ -434,8 +437,21 @@ export function BankV39Shell() {
     };
   }, [pathname]);
 
+  useEffect(() => {
+    if (!pathname.startsWith("/bank")) {
+      setDesktopBankNavHost(null);
+      return;
+    }
+
+    const host = document.querySelector<HTMLElement>(".sidebar .nav");
+    setDesktopBankNavHost(host);
+
+    return () => setDesktopBankNavHost(null);
+  }, [pathname]);
+
   const items = [
     { href: "/bank", label: "Mês", icon: ChartNoAxesCombined },
+    { href: "/bank/nexus", label: "Nexus", icon: Bot },
     { href: "/bank/entradas", label: "Entradas", icon: CircleDollarSign },
     { href: "/bank/faturas", label: "Faturas", icon: History },
     { href: "/bank/organizar", label: "Mais", icon: Building2 },
@@ -443,6 +459,20 @@ export function BankV39Shell() {
 
   return (
     <>
+      {desktopBankNavHost &&
+        createPortal(
+          <Link
+            className={`nav-link ${
+              pathname.startsWith("/bank/nexus") ? "primary" : ""
+            }`}
+            href="/bank/nexus"
+          >
+            <Bot size={18} />
+            <span className="nav-label">Nexus Bank</span>
+          </Link>,
+          desktopBankNavHost,
+        )}
+
       <nav
         className="bank-v39-mobile-nav"
         aria-label="Atalhos do Candinho Bank"
