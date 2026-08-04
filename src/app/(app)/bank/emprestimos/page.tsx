@@ -2,6 +2,8 @@ import Link from "next/link";
 import {
   CalendarClock,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   History,
   Plus,
   Save,
@@ -10,6 +12,7 @@ import {
 } from "lucide-react";
 import { BankPaymentSubmitButton } from "@/components/bank-payment-submit-button";
 import { getBankAccounts, getBankDebts } from "@/lib/bank-data";
+import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/format";
 import {
   adjustBankDebtHistory,
@@ -19,6 +22,72 @@ import {
 } from "./actions";
 import { correctBankDebtTotalPaid } from "./correction-actions";
 
+
+
+type BankDebtHistoryData = {
+  payments: Array<{
+    dueDate: string | null;
+    actionType: string;
+    amount: number;
+    paidOn: string | null;
+    previousDueDate: string | null;
+    newDueDate: string | null;
+    notes: string | null;
+  }>;
+  resolutions: Array<{
+    referenceMonth: string;
+    resolution: string;
+    amountOverride: number | null;
+    resolvedOn: string | null;
+    notes: string | null;
+  }>;
+};
+
+function nullableText(value: unknown) {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+async function getBankDebtHistory(debtId: string): Promise<BankDebtHistoryData> {
+  const supabase = await createClient();
+  const [paymentsResult, resolutionsResult] = await Promise.all([
+    supabase
+      .from("bank_debt_payments")
+      .select("due_date,action_type,amount,paid_on,previous_due_date,new_due_date,notes")
+      .eq("debt_id", debtId)
+      .order("due_date", { ascending: true }),
+    supabase
+      .from("bank_month_commitment_resolutions")
+      .select("reference_month,resolution,amount_override,resolved_on,notes")
+      .eq("commitment_key", `debt:${debtId}`)
+      .order("reference_month", { ascending: true }),
+  ]);
+
+  if (paymentsResult.error) throw paymentsResult.error;
+  if (resolutionsResult.error) throw resolutionsResult.error;
+
+  return {
+    payments: (paymentsResult.data ?? []).map((row) => ({
+      dueDate: nullableText(row.due_date),
+      actionType: String(row.action_type ?? ""),
+      amount: Number(row.amount ?? 0),
+      paidOn: nullableText(row.paid_on),
+      previousDueDate: nullableText(row.previous_due_date),
+      newDueDate: nullableText(row.new_due_date),
+      notes: nullableText(row.notes),
+    })),
+    resolutions: (resolutionsResult.data ?? []).map((row) => ({
+      referenceMonth: String(row.reference_month ?? ""),
+      resolution: String(row.resolution ?? ""),
+      amountOverride:
+        row.amount_override === null || row.amount_override === undefined
+          ? null
+          : Number(row.amount_override),
+      resolvedOn: nullableText(row.resolved_on),
+      notes: nullableText(row.notes),
+    })),
+  };
+}
+
 function todayInBrazil() {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
@@ -26,6 +95,15 @@ function todayInBrazil() {
     month: "2-digit",
     day: "2-digit",
   }).format(new Date());
+}
+
+function currentYearInBrazil() {
+  return Number(
+    new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+      year: "numeric",
+    }).format(new Date()),
+  );
 }
 
 function debtTypeLabel(value: unknown) {
@@ -56,6 +134,159 @@ function statusClass(value: unknown) {
 function referenceMonth(value: unknown) {
   const date = typeof value === "string" ? value : "";
   return date.length >= 7 ? date.slice(0, 7) : "";
+}
+
+const monthNames = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
+
+type DebtCalendarMonth = {
+  key: string;
+  label: string;
+  status: "paid" | "pending" | "future" | "postponed" | "inactive";
+  amount: number | null;
+  paidOn: string | null;
+};
+
+function buildDebtCalendar(
+  debt: Record<string, unknown>,
+  history: BankDebtHistoryData,
+  year: number,
+): DebtCalendarMonth[] {
+  const todayMonth = todayInBrazil().slice(0, 7);
+  const startMonth = referenceMonth(debt.start_date || debt.next_due_date);
+  const debtStatus = effectiveStatus(debt);
+  const plannedAmount = Number(debt.monthly_amount ?? 0);
+
+  const paidByMonth = new Map<string, { amount: number; paidOn: string | null }>();
+  const postponedMonths = new Set<string>();
+
+  for (const payment of history.payments) {
+    const month = referenceMonth(payment.dueDate ?? payment.paidOn);
+    if (!month) continue;
+
+    if (payment.actionType === "paid") {
+      const current = paidByMonth.get(month) ?? { amount: 0, paidOn: null };
+      paidByMonth.set(month, {
+        amount: current.amount + Number(payment.amount ?? 0),
+        paidOn: payment.paidOn ?? current.paidOn,
+      });
+    } else if (payment.actionType.includes("postpon") || payment.actionType.includes("adi")) {
+      postponedMonths.add(month);
+    }
+  }
+
+  for (const resolution of history.resolutions) {
+    if (resolution.resolution !== "paid") continue;
+    const month = referenceMonth(resolution.referenceMonth);
+    if (!month || paidByMonth.has(month)) continue;
+    paidByMonth.set(month, {
+      amount: Number(resolution.amountOverride ?? plannedAmount ?? 0),
+      paidOn: resolution.resolvedOn,
+    });
+  }
+
+  const paidKeys = [...paidByMonth.keys()].sort();
+  const lastPaidMonth = paidKeys.length > 0 ? paidKeys[paidKeys.length - 1] : null;
+
+  return monthNames.map((label, index) => {
+    const key = `${year}-${String(index + 1).padStart(2, "0")}`;
+    const paid = paidByMonth.get(key);
+
+    if (paid) {
+      return {
+        key,
+        label,
+        status: "paid",
+        amount: paid.amount > 0 ? paid.amount : plannedAmount || null,
+        paidOn: paid.paidOn,
+      };
+    }
+
+    if (postponedMonths.has(key)) {
+      return {
+        key,
+        label,
+        status: "postponed",
+        amount: null,
+        paidOn: null,
+      };
+    }
+
+    if (startMonth && key < startMonth) {
+      return {
+        key,
+        label,
+        status: "inactive",
+        amount: null,
+        paidOn: null,
+      };
+    }
+
+    if (debtStatus === "paid" && lastPaidMonth && key > lastPaidMonth) {
+      return {
+        key,
+        label,
+        status: "inactive",
+        amount: null,
+        paidOn: null,
+      };
+    }
+
+    if (key <= todayMonth && !["paid", "cancelled"].includes(debtStatus)) {
+      return {
+        key,
+        label,
+        status: "pending",
+        amount: plannedAmount || null,
+        paidOn: null,
+      };
+    }
+
+    if (key > todayMonth && !["paid", "cancelled"].includes(debtStatus)) {
+      return {
+        key,
+        label,
+        status: "future",
+        amount: plannedAmount || null,
+        paidOn: null,
+      };
+    }
+
+    return {
+      key,
+      label,
+      status: "inactive",
+      amount: null,
+      paidOn: null,
+    };
+  });
+}
+
+function calendarStatusLabel(status: DebtCalendarMonth["status"]) {
+  if (status === "paid") return "Pago";
+  if (status === "pending") return "Pendente";
+  if (status === "postponed") return "Adiado";
+  if (status === "future") return "Previsto";
+  return "—";
+}
+
+function calendarStatusClass(status: DebtCalendarMonth["status"]) {
+  if (status === "paid") return "green";
+  if (status === "pending") return "red";
+  if (status === "postponed") return "blue";
+  return "gray";
 }
 
 function DebtList({
@@ -96,8 +327,7 @@ function DebtList({
                   <div>
                     <strong>{String(debt.name ?? "Dívida")}</strong>
                     <span>
-                      {debtTypeLabel(debt.debt_type)} ·{" "}
-                      {String(debt.creditor_name ?? debt.origin ?? "Sem credor")}
+                      {debtTypeLabel(debt.debt_type)} · {String(debt.creditor_name ?? debt.origin ?? "Sem credor")}
                     </span>
                   </div>
 
@@ -111,35 +341,21 @@ function DebtList({
                   </span>
 
                   <div className="bank-header-actions">
-                    {open && (
-                      <>
-                        <Link
-                          className="button ghost compact-button"
-                          href={`/bank/emprestimos?pagar=${encodeURIComponent(String(debt.id))}`}
-                        >
-                          Pagar
-                        </Link>
-                        <Link
-                          className="button ghost compact-button"
-                          href={`/bank/emprestimos?adiar=${encodeURIComponent(String(debt.id))}`}
-                        >
-                          Adiar
-                        </Link>
-                      </>
-                    )}
+                    <Link
+                      className="button ghost compact-button"
+                      href={`/bank/emprestimos?detalhes=${encodeURIComponent(String(debt.id))}`}
+                    >
+                      Detalhes
+                    </Link>
 
-                    <Link
-                      className="button ghost compact-button"
-                      href={`/bank/emprestimos?ajustar=${encodeURIComponent(String(debt.id))}`}
-                    >
-                      Ajustar
-                    </Link>
-                    <Link
-                      className="button ghost compact-button"
-                      href={`/bank/emprestimos?corrigir=${encodeURIComponent(String(debt.id))}`}
-                    >
-                      Corrigir
-                    </Link>
+                    {open && (
+                      <Link
+                        className="button gold compact-button"
+                        href={`/bank/emprestimos?pagar=${encodeURIComponent(String(debt.id))}`}
+                      >
+                        Pagar
+                      </Link>
+                    )}
                   </div>
                 </div>
               );
@@ -157,6 +373,8 @@ export default async function BankDebtsPage({
   searchParams: Promise<{
     acao?: string;
     salvo?: string;
+    detalhes?: string;
+    ano?: string;
     pagar?: string;
     adiar?: string;
     ajustar?: string;
@@ -171,6 +389,9 @@ export default async function BankDebtsPage({
   const paidDebts = debts.filter((debt) => effectiveStatus(debt) === "paid");
   const cancelledDebts = debts.filter((debt) => effectiveStatus(debt) === "cancelled");
 
+  const selectedDetailDebt = params.detalhes
+    ? debts.find((debt) => String(debt.id) === params.detalhes) ?? null
+    : null;
   const selectedPaymentDebt = params.pagar
     ? openDebts.find((debt) => String(debt.id) === params.pagar) ?? null
     : null;
@@ -184,16 +405,20 @@ export default async function BankDebtsPage({
     ? debts.find((debt) => String(debt.id) === params.corrigir) ?? null
     : null;
 
+  const calendarYear = /^\d{4}$/.test(String(params.ano ?? ""))
+    ? Number(params.ano)
+    : currentYearInBrazil();
+  const detailHistory = selectedDetailDebt
+    ? await getBankDebtHistory(String(selectedDetailDebt.id))
+    : { payments: [], resolutions: [] };
+  const detailCalendar = selectedDetailDebt
+    ? buildDebtCalendar(selectedDetailDebt, detailHistory, calendarYear)
+    : [];
+
   const today = todayInBrazil();
-  const totalOriginal = debts.reduce(
-    (sum, debt) => sum + Number(debt.original_amount ?? 0),
-    0,
-  );
+  const totalOriginal = debts.reduce((sum, debt) => sum + Number(debt.original_amount ?? 0), 0);
   const totalPaid = debts.reduce((sum, debt) => sum + Number(debt.total_paid ?? 0), 0);
-  const totalRemaining = debts.reduce(
-    (sum, debt) => sum + Number(debt.remaining_amount ?? 0),
-    0,
-  );
+  const totalRemaining = debts.reduce((sum, debt) => sum + Number(debt.remaining_amount ?? 0), 0);
 
   return (
     <section>
@@ -201,7 +426,9 @@ export default async function BankDebtsPage({
         <div>
           <div className="eyebrow">Candinho Bank</div>
           <h1>Empréstimos e Notinhas</h1>
-          <p>Acompanhe saldo restante, pagamentos, próximos vencimentos e correções auditadas.</p>
+          <p>
+            Veja o saldo restante e abra os detalhes para acompanhar mês a mês o que já foi pago.
+          </p>
         </div>
 
         {!creating && (
@@ -312,12 +539,152 @@ export default async function BankDebtsPage({
         </article>
       )}
 
+      {selectedDetailDebt && (
+        <article className="panel" style={{ marginTop: 18 }}>
+          <div className="panel-head">
+            <div>
+              <h2>{String(selectedDetailDebt.name ?? "Dívida")}</h2>
+              <p>Calendário mensal do que foi pago, está pendente ou ainda está previsto.</p>
+            </div>
+            <Link className="icon-link" href="/bank/emprestimos" aria-label="Fechar detalhes">
+              <X size={17} />
+            </Link>
+          </div>
+
+          <div className="bank-charge-payment-summary">
+            <div>
+              <span>Total</span>
+              <strong>{formatCurrency(Number(selectedDetailDebt.original_amount ?? 0))}</strong>
+            </div>
+            <div>
+              <span>Pago</span>
+              <strong>{formatCurrency(Number(selectedDetailDebt.total_paid ?? 0))}</strong>
+            </div>
+            <div>
+              <span>Restante</span>
+              <strong>{formatCurrency(Number(selectedDetailDebt.remaining_amount ?? 0))}</strong>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 10,
+              marginTop: 18,
+              marginBottom: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <strong>Pagamentos de {calendarYear}</strong>
+            <div className="bank-header-actions">
+              <Link
+                className="button ghost compact-button"
+                href={`/bank/emprestimos?detalhes=${encodeURIComponent(String(selectedDetailDebt.id))}&ano=${calendarYear - 1}`}
+                aria-label="Ano anterior"
+              >
+                <ChevronLeft size={15} />
+                {calendarYear - 1}
+              </Link>
+              <Link
+                className="button ghost compact-button"
+                href={`/bank/emprestimos?detalhes=${encodeURIComponent(String(selectedDetailDebt.id))}&ano=${calendarYear + 1}`}
+                aria-label="Próximo ano"
+              >
+                {calendarYear + 1}
+                <ChevronRight size={15} />
+              </Link>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit,minmax(118px,1fr))",
+              gap: 10,
+            }}
+          >
+            {detailCalendar.map((month) => (
+              <div
+                key={month.key}
+                style={{
+                  border: "1px solid var(--border)",
+                  borderRadius: 14,
+                  padding: 12,
+                  minHeight: 104,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 7,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                  <strong>{month.label}</strong>
+                  <span className={`badge ${calendarStatusClass(month.status)}`}>
+                    {calendarStatusLabel(month.status)}
+                  </span>
+                </div>
+
+                {month.amount ? (
+                  <strong>{formatCurrency(month.amount)}</strong>
+                ) : (
+                  <span style={{ opacity: 0.6 }}>Sem valor no mês</span>
+                )}
+
+                <small style={{ opacity: 0.7 }}>
+                  {month.paidOn
+                    ? `Pago em ${month.paidOn.split("-").reverse().join("/")}`
+                    : month.status === "pending"
+                      ? "Ainda não confirmado"
+                      : month.status === "future"
+                        ? "Pagamento futuro"
+                        : month.status === "postponed"
+                          ? "Parcela adiada"
+                          : ""}
+                </small>
+              </div>
+            ))}
+          </div>
+
+          <div className="bank-balance-update-actions" style={{ marginTop: 18 }}>
+            {!["paid", "cancelled"].includes(effectiveStatus(selectedDetailDebt)) && (
+              <>
+                <Link
+                  className="button gold"
+                  href={`/bank/emprestimos?pagar=${encodeURIComponent(String(selectedDetailDebt.id))}`}
+                >
+                  Pagar parcela
+                </Link>
+                <Link
+                  className="button ghost"
+                  href={`/bank/emprestimos?adiar=${encodeURIComponent(String(selectedDetailDebt.id))}`}
+                >
+                  Adiar
+                </Link>
+              </>
+            )}
+            <Link
+              className="button ghost"
+              href={`/bank/emprestimos?ajustar=${encodeURIComponent(String(selectedDetailDebt.id))}`}
+            >
+              Ajustar histórico
+            </Link>
+            <Link
+              className="button ghost"
+              href={`/bank/emprestimos?corrigir=${encodeURIComponent(String(selectedDetailDebt.id))}`}
+            >
+              Correção auditada
+            </Link>
+          </div>
+        </article>
+      )}
+
       {selectedPaymentDebt && (
         <article className="panel bank-debt-action-panel">
           <div className="panel-head">
             <div>
               <h2>Registrar pagamento</h2>
-              <p>Ao confirmar, o botão fica bloqueado até o servidor responder. Se a dívida for quitada, ela desce automaticamente para Quitados.</p>
+              <p>Se a dívida for quitada, ela desce automaticamente para Quitados.</p>
             </div>
             <Link className="icon-link" href="/bank/emprestimos"><X size={17} /></Link>
           </div>
@@ -462,14 +829,14 @@ export default async function BankDebtsPage({
 
       <DebtList
         title="Em aberto"
-        description="Notinhas e empréstimos que ainda têm saldo. Pagamentos quitados saem daqui automaticamente."
+        description="Abra Detalhes para ver o calendário mensal; use Pagar só quando for registrar uma parcela."
         debts={openDebts}
         allowPayment
       />
 
       <DebtList
         title="Quitados"
-        description="Histórico das notinhas e empréstimos já pagos. Não há botão Pagar nesta área."
+        description="Histórico das notinhas e empréstimos já pagos. O calendário continua disponível."
         debts={paidDebts}
         allowPayment={false}
       />
