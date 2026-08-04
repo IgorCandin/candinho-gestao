@@ -1,0 +1,17 @@
+V41.1 — HOTFIX DO BUILD DOS CATÁLOGOS
+
+ERRO CORRIGIDO
+TypeScript: 'host' is possibly 'null'
+Arquivo: src/components/public-catalog-operation-lock.tsx
+
+COMO APLICAR
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. Aceite substituir 1 arquivo.
+3. GitHub Desktop:
+   Commit: V41.1 - corrige build dos catalogos isolados
+4. Push origin.
+
+NÃO precisa:
+- SQL
+- Supabase
+- Vercel Environment Variables

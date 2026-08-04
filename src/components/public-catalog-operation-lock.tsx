@@ -15,6 +15,7 @@ export function PublicCatalogOperationLock({
     );
 
     if (!host) return;
+    const storefrontHost = host;
 
     let frame = 0;
 
@@ -22,7 +23,7 @@ export function PublicCatalogOperationLock({
       window.cancelAnimationFrame(frame);
 
       frame = window.requestAnimationFrame(() => {
-        const select = host.querySelector<HTMLSelectElement>(
+        const select = storefrontHost.querySelector<HTMLSelectElement>(
           'select[aria-label="Filtrar por operação"]',
         );
 
@@ -41,7 +42,7 @@ export function PublicCatalogOperationLock({
           }
         }
 
-        const companyToggle = host.querySelector<HTMLElement>(
+        const companyToggle = storefrontHost.querySelector<HTMLElement>(
           "[data-company-operation-toggle]",
         );
 
@@ -56,7 +57,7 @@ export function PublicCatalogOperationLock({
 
     const observer = new MutationObserver(enforce);
 
-    observer.observe(host, {
+    observer.observe(storefrontHost, {
       childList: true,
       subtree: true,
     });
