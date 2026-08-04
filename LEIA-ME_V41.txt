@@ -1,0 +1,35 @@
+V41 — CATÁLOGO POR OPERAÇÃO
+
+NOVAS ROTAS PÚBLICAS
+- /catalogo
+  Continua exatamente como está hoje, com Suplementos + Fitness.
+
+- /catalogo/fitness
+  Abre somente a Candinho Fitness.
+  Usa logo Fitness.
+  Mostra apenas produtos/promoções Fitness.
+  O visitante não recebe controle para trocar para Suplementos.
+
+- /catalogo/suplementos
+  Abre somente a Candinho Suplementos.
+  Usa logo Suplementos.
+  Mostra apenas produtos/promoções de Suplementos.
+  O visitante não recebe controle para trocar para Fitness.
+
+IMPORTANTE
+- Não altera /catalogo.
+- Não precisa SQL.
+- Não precisa Supabase.
+- Não precisa variável no Vercel.
+- Não mexe ainda no título das abas nem favicon.
+  Esse fica para o próximo passo, como combinado.
+
+COMO APLICAR
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. GitHub Desktop:
+   Commit: V41 - cria catalogos isolados Fitness e Suplementos
+3. Push origin.
+4. Depois do Vercel ficar verde, teste:
+   /catalogo
+   /catalogo/fitness
+   /catalogo/suplementos
