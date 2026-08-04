@@ -7,6 +7,7 @@ import {
   CircleDollarSign,
   HandCoins,
   History,
+  ShoppingBag,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
@@ -19,13 +20,24 @@ type NoteSummary = {
   totalRemaining: number;
 };
 
+type MonthSummary = {
+  fixedExpected: number;
+  fixedReceived: number;
+  fixedPending: number;
+  fixedPendingCount: number;
+  fixedReceivedCount: number;
+  operationsTotal: number;
+  operationsCount: number;
+  manualTotal: number;
+  manualCount: number;
+};
+
 function setText(element: Element | null, text: string, undo: Undo[]) {
   if (!element) return;
   const previous = element.textContent;
   if (previous === text) return;
 
   element.textContent = text;
-
   undo.push(() => {
     element.textContent = previous;
   });
@@ -52,6 +64,29 @@ function setHref(element: HTMLAnchorElement | null, href: string, undo: Undo[]) 
   });
 }
 
+function setTrailingText(
+  element: HTMLElement | null,
+  text: string,
+  undo: Undo[],
+) {
+  if (!element) return;
+
+  const textNode = Array.from(element.childNodes).find(
+    (node) =>
+      node.nodeType === Node.TEXT_NODE &&
+      Boolean(node.textContent?.trim()),
+  );
+
+  if (!textNode) return;
+
+  const previous = textNode.textContent;
+  textNode.textContent = ` ${text}`;
+
+  undo.push(() => {
+    textNode.textContent = previous;
+  });
+}
+
 function pathnameOf(anchor: HTMLAnchorElement) {
   try {
     return new URL(anchor.href, window.location.origin).pathname;
@@ -67,10 +102,32 @@ function currency(value: number) {
   }).format(Number(value ?? 0));
 }
 
+function findStatCard(label: string) {
+  return Array.from(
+    document.querySelectorAll<HTMLElement>(".stat-card"),
+  ).find((card) => {
+    const text = card
+      .querySelector<HTMLElement>(".stat-head > span:first-child")
+      ?.textContent?.trim()
+      .toLowerCase();
+
+    return text?.includes(label.toLowerCase());
+  });
+}
+
 export function BankV39Shell() {
   const pathname = usePathname();
+
   const [statsHost, setStatsHost] = useState<HTMLElement | null>(null);
+  const [homeReceivableHost, setHomeReceivableHost] =
+    useState<HTMLElement | null>(null);
+  const [incomeFixedHost, setIncomeFixedHost] =
+    useState<HTMLElement | null>(null);
+  const [incomeStatsHost, setIncomeStatsHost] =
+    useState<HTMLElement | null>(null);
+
   const [noteSummary, setNoteSummary] = useState<NoteSummary | null>(null);
+  const [monthSummary, setMonthSummary] = useState<MonthSummary | null>(null);
 
   useEffect(() => {
     const undo: Undo[] = [];
@@ -118,11 +175,9 @@ export function BankV39Shell() {
     if (oldMobileNav) setDisplay(oldMobileNav, "none", undo);
 
     if (pathname === "/bank") {
-      const cards = Array.from(
+      for (const card of Array.from(
         document.querySelectorAll<HTMLElement>(".stat-card"),
-      );
-
-      for (const card of cards) {
+      )) {
         const label = card.querySelector<HTMLElement>(
           ".stat-head > span:first-child",
         );
@@ -130,31 +185,18 @@ export function BankV39Shell() {
         const currentLabel = label?.textContent?.trim();
 
         if (currentLabel === "Projeção até o fim do mês") {
-          setText(label, "Projeção confirmada até o fim do mês", undo);
+          setText(label, "Projeção confirmada", undo);
           setText(
             note,
-            "Saldo + entradas ainda a receber − compromissos obrigatórios. Notinhas ficam fora e só entram quando você decidir pagar.",
-            undo,
-          );
-        }
-
-        if (currentLabel === "A receber neste mês") {
-          setText(
-            note,
-            "Inclui valores pontuais, salário, vale e outras entradas mensais ainda não recebidas.",
+            "Saldo + valores a receber − compromissos obrigatórios. Notinhas ficam fora.",
             undo,
           );
         }
 
         if (currentLabel === "A pagar até o fim do mês" && note) {
           const original = note.textContent?.trim() ?? "";
-
           if (original && !original.includes("Notinhas")) {
-            setText(
-              note,
-              `${original} Notinhas ficam separadas.`,
-              undo,
-            );
+            setText(note, `${original} Notinhas ficam separadas.`, undo);
           }
         }
       }
@@ -192,7 +234,6 @@ export function BankV39Shell() {
         ),
       )) {
         const strong = anchor.querySelector("strong");
-
         if (strong?.textContent?.trim() !== "Fechar o mês") continue;
 
         setHref(anchor, "/bank/organizar", undo);
@@ -205,54 +246,191 @@ export function BankV39Shell() {
       }
     }
 
+    if (pathname === "/bank/entradas") {
+      const manualCard = findStatCard("A receber pendente");
+      const fixedCard = findStatCard("Entradas mensais previstas");
+
+      setText(
+        manualCard?.querySelector(".stat-head > span:first-child") ?? null,
+        "Avulsos a receber",
+        undo,
+      );
+      setText(
+        manualCard?.querySelector(".stat-note") ?? null,
+        "Valores lançados manualmente, fora das vendas das operações.",
+        undo,
+      );
+
+      setText(
+        fixedCard?.querySelector(".stat-head > span:first-child") ?? null,
+        "Entradas fixas do mês",
+        undo,
+      );
+    }
+
+    if (pathname === "/bank/faturas") {
+      const launchLink = document.querySelector<HTMLAnchorElement>(
+        'a[href="/bank/faturas?acao=atualizar"]',
+      );
+
+      if (launchLink) {
+        setHref(launchLink, "/bank/faturas/rapido", undo);
+        setTrailingText(launchLink, "Lançar faturas", undo);
+      }
+
+      const advancedPanel =
+        document.querySelector<HTMLElement>(".bank-invoice-update-panel");
+
+      if (advancedPanel) {
+        setText(
+          advancedPanel.querySelector(".panel-head h2"),
+          "Edição avançada de faturas",
+          undo,
+        );
+        setText(
+          advancedPanel.querySelector(".panel-head p"),
+          "Use esta tela somente quando precisar editar meses futuros ou vários meses do mesmo cartão.",
+          undo,
+        );
+      }
+    }
+
     return () => {
       for (const restore of undo.reverse()) restore();
     };
   }, [pathname]);
 
   useEffect(() => {
-    if (pathname !== "/bank") {
-      setStatsHost(null);
-      setNoteSummary(null);
-      return;
-    }
-
-    const host = document.querySelector<HTMLElement>(
-      ".bank-dashboard .bank-stats-grid",
-    );
-
-    if (!host) return;
-
-    host.classList.add("bank-v39-stats-with-notes");
-    setStatsHost(host);
+    if (!pathname.startsWith("/bank")) return;
 
     const controller = new AbortController();
 
-    void fetch("/api/bank/notes-summary", {
-      cache: "no-store",
-      signal: controller.signal,
-    })
-      .then(async (response) => {
-        if (!response.ok) return null;
-
-        return (await response.json()) as NoteSummary;
+    if (pathname === "/bank") {
+      void fetch("/api/bank/notes-summary", {
+        cache: "no-store",
+        signal: controller.signal,
       })
-      .then((payload) => {
-        if (!controller.signal.aborted && payload) {
-          setNoteSummary({
-            count: Number(payload.count ?? 0),
-            totalRemaining: Number(payload.totalRemaining ?? 0),
+        .then(async (response) =>
+          response.ok ? ((await response.json()) as NoteSummary) : null,
+        )
+        .then((payload) => {
+          if (!controller.signal.aborted && payload) {
+            setNoteSummary({
+              count: Number(payload.count ?? 0),
+              totalRemaining: Number(payload.totalRemaining ?? 0),
+            });
+          }
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setNoteSummary(null);
+        });
+    }
+
+    if (pathname === "/bank" || pathname === "/bank/entradas") {
+      void fetch("/api/bank/month-summary", {
+        cache: "no-store",
+        signal: controller.signal,
+      })
+        .then(async (response) =>
+          response.ok ? ((await response.json()) as MonthSummary) : null,
+        )
+        .then((payload) => {
+          if (!controller.signal.aborted && payload) {
+            setMonthSummary({
+              fixedExpected: Number(payload.fixedExpected ?? 0),
+              fixedReceived: Number(payload.fixedReceived ?? 0),
+              fixedPending: Number(payload.fixedPending ?? 0),
+              fixedPendingCount: Number(payload.fixedPendingCount ?? 0),
+              fixedReceivedCount: Number(payload.fixedReceivedCount ?? 0),
+              operationsTotal: Number(payload.operationsTotal ?? 0),
+              operationsCount: Number(payload.operationsCount ?? 0),
+              manualTotal: Number(payload.manualTotal ?? 0),
+              manualCount: Number(payload.manualCount ?? 0),
+            });
+          }
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setMonthSummary(null);
+        });
+    }
+
+    return () => controller.abort();
+  }, [pathname]);
+
+  useEffect(() => {
+    const created: HTMLElement[] = [];
+    const restored: Array<() => void> = [];
+
+    setStatsHost(null);
+    setHomeReceivableHost(null);
+    setIncomeFixedHost(null);
+    setIncomeStatsHost(null);
+
+    if (pathname === "/bank") {
+      const stats = document.querySelector<HTMLElement>(
+        ".bank-dashboard .bank-stats-grid",
+      );
+
+      if (stats) {
+        stats.classList.add("bank-v39-stats-with-notes");
+        setStatsHost(stats);
+        restored.push(() =>
+          stats.classList.remove("bank-v39-stats-with-notes"),
+        );
+      }
+
+      const receivableCard = findStatCard("A receber neste mês");
+      const note = receivableCard?.querySelector<HTMLElement>(".stat-note");
+
+      if (receivableCard) {
+        if (note) {
+          const previous = note.style.display;
+          note.style.display = "none";
+          restored.push(() => {
+            note.style.display = previous;
           });
         }
-      })
-      .catch(() => {
-        if (!controller.signal.aborted) setNoteSummary(null);
-      });
+
+        const host = document.createElement("div");
+        host.dataset.bankReceivableBreakdown = "home";
+        receivableCard.append(host);
+        created.push(host);
+        setHomeReceivableHost(host);
+      }
+    }
+
+    if (pathname === "/bank/entradas") {
+      const stats = document.querySelector<HTMLElement>(".bank-income-stats");
+      if (stats) setIncomeStatsHost(stats);
+
+      const fixedCard = findStatCard("Entradas fixas do mês");
+      const note = fixedCard?.querySelector<HTMLElement>(".stat-note");
+
+      if (fixedCard) {
+        if (note) {
+          const previous = note.style.display;
+          note.style.display = "none";
+          restored.push(() => {
+            note.style.display = previous;
+          });
+        }
+
+        const host = document.createElement("div");
+        host.dataset.bankReceivableBreakdown = "fixed";
+        fixedCard.append(host);
+        created.push(host);
+        setIncomeFixedHost(host);
+      }
+    }
 
     return () => {
-      controller.abort();
-      host.classList.remove("bank-v39-stats-with-notes");
+      for (const restore of restored.reverse()) restore();
+      for (const host of created) host.remove();
+
       setStatsHost(null);
+      setHomeReceivableHost(null);
+      setIncomeFixedHost(null);
+      setIncomeStatsHost(null);
     };
   }, [pathname]);
 
@@ -288,6 +466,65 @@ export function BankV39Shell() {
         })}
       </nav>
 
+      {homeReceivableHost &&
+        monthSummary &&
+        createPortal(
+          <div className="bank-receivable-breakdown">
+            <div>
+              <span>Fixos a receber</span>
+              <strong>{currency(monthSummary.fixedPending)}</strong>
+            </div>
+            <div>
+              <span>Operações</span>
+              <strong>{currency(monthSummary.operationsTotal)}</strong>
+            </div>
+            {monthSummary.manualTotal > 0 && (
+              <div>
+                <span>Avulsos</span>
+                <strong>{currency(monthSummary.manualTotal)}</strong>
+              </div>
+            )}
+          </div>,
+          homeReceivableHost,
+        )}
+
+      {incomeFixedHost &&
+        monthSummary &&
+        createPortal(
+          <div className="bank-receivable-breakdown fixed-breakdown">
+            <div>
+              <span>A receber</span>
+              <strong>{currency(monthSummary.fixedPending)}</strong>
+            </div>
+            <div>
+              <span>Já recebido</span>
+              <strong>{currency(monthSummary.fixedReceived)}</strong>
+            </div>
+          </div>,
+          incomeFixedHost,
+        )}
+
+      {incomeStatsHost &&
+        monthSummary &&
+        createPortal(
+          <article className="stat-card bank-operation-receivable-card">
+            <div className="stat-head">
+              <span>Operações a receber</span>
+              <span className="stat-icon">
+                <ShoppingBag size={17} />
+              </span>
+            </div>
+            <div className="stat-value">
+              {currency(monthSummary.operationsTotal)}
+            </div>
+            <div className="stat-note">
+              {monthSummary.operationsCount} venda(s) da Suplementos/Fitness
+              aguardando recebimento neste mês.
+            </div>
+          </article>,
+          incomeStatsHost,
+        )}
+
       {statsHost &&
         noteSummary &&
         noteSummary.count > 0 &&
@@ -309,30 +546,12 @@ export function BankV39Shell() {
             </div>
 
             <div className="stat-note">
-              {noteSummary.count} aberta(s) · fora da projeção confirmada.
-              Pague somente quando houver sobra.
+              {noteSummary.count} aberta(s) · fora da projeção. Pague somente
+              quando houver sobra.
             </div>
           </Link>,
           statsHost,
         )}
-
-      <style>{`
-        .bank-note-projection-card {
-          text-decoration: none;
-          color: inherit;
-          border-color: rgba(240, 168, 79, .28);
-        }
-
-        .bank-note-projection-card:hover {
-          border-color: rgba(240, 168, 79, .48);
-        }
-
-        @media (min-width: 1081px) {
-          .bank-dashboard .bank-stats-grid.bank-v39-stats-with-notes {
-            grid-template-columns: repeat(5, minmax(0, 1fr));
-          }
-        }
-      `}</style>
     </>
   );
 }

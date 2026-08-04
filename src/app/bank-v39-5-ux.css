@@ -1,0 +1,344 @@
+/* Candinho Company · Bank V39.5
+   Home mais limpo, entradas separadas por origem, vencimentos compactos
+   no desktop e lançamento rápido de faturas. */
+
+/* ---------- HOME ---------- */
+
+@media (min-width: 821px) {
+  .bank-dashboard .bank-balance-hero {
+    min-height: 0 !important;
+    padding: 14px 20px !important;
+    border-radius: 16px !important;
+  }
+
+  .bank-dashboard .bank-balance-hero strong {
+    font-size: clamp(28px, 2.8vw, 38px) !important;
+    line-height: 1 !important;
+  }
+
+  .bank-dashboard .bank-balance-hero small {
+    margin-top: 5px !important;
+    font-size: 11px !important;
+  }
+
+  .bank-dashboard .bank-balance-hero > svg {
+    width: 30px !important;
+    height: 30px !important;
+  }
+
+  .bank-dashboard .bank-stats-grid.bank-v39-stats-with-notes {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+
+  .bank-dashboard .bank-stats-grid > .stat-card {
+    min-height: 116px !important;
+    padding: 14px 16px !important;
+  }
+
+  .bank-dashboard .bank-stats-grid > .stat-card .stat-value {
+    margin-top: 10px !important;
+    font-size: clamp(22px, 2vw, 28px) !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card {
+    grid-column: 1 / -1 !important;
+    min-height: 62px !important;
+    padding: 10px 15px !important;
+    display: grid !important;
+    grid-template-columns: minmax(180px, .7fr) auto minmax(280px, 1.3fr) !important;
+    align-items: center !important;
+    gap: 16px !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card .stat-head {
+    justify-content: flex-start !important;
+    align-items: center !important;
+    gap: 9px !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card .stat-value {
+    margin: 0 !important;
+    font-size: 23px !important;
+    white-space: nowrap !important;
+  }
+
+  .bank-dashboard .bank-note-projection-card .stat-note {
+    margin: 0 !important;
+  }
+}
+
+.bank-receivable-breakdown {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.bank-receivable-breakdown > div {
+  min-width: 0;
+  flex: 1 1 92px;
+  padding: 6px 8px;
+  border: 1px solid rgba(103, 169, 255, .13);
+  border-radius: 9px;
+  background: rgba(103, 169, 255, .035);
+}
+
+.bank-receivable-breakdown span,
+.bank-receivable-breakdown strong {
+  display: block;
+}
+
+.bank-receivable-breakdown span {
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.2;
+}
+
+.bank-receivable-breakdown strong {
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.1;
+}
+
+/* ---------- ENTRADAS ---------- */
+
+@media (min-width: 821px) {
+  .bank-income-stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+.bank-income-stats .stat-card {
+  min-height: 118px !important;
+}
+
+.bank-operation-receivable-card {
+  border-color: rgba(70, 195, 123, .22) !important;
+}
+
+.fixed-breakdown > div:last-child {
+  border-color: rgba(70, 195, 123, .16);
+  background: rgba(70, 195, 123, .035);
+}
+
+/* ---------- VENCIMENTOS DO HOME ---------- */
+
+@media (min-width: 821px) {
+  .bank-dashboard .bank-charge-list {
+    display: grid !important;
+    gap: 0 !important;
+  }
+
+  .bank-dashboard .bank-charge-item {
+    min-height: 64px !important;
+    padding: 9px 13px !important;
+    display: grid !important;
+    grid-template-columns:
+      68px
+      minmax(220px, 1fr)
+      minmax(135px, auto)
+      auto !important;
+    align-items: center !important;
+    gap: 12px !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+  }
+
+  .bank-dashboard .bank-charge-item + .bank-charge-item {
+    border-top: 1px solid rgba(37, 43, 55, .72) !important;
+  }
+
+  .bank-dashboard .bank-charge-date,
+  .bank-dashboard .bank-charge-main,
+  .bank-dashboard .bank-charge-value {
+    min-width: 0 !important;
+  }
+
+  .bank-dashboard .bank-charge-date strong,
+  .bank-dashboard .bank-charge-main strong,
+  .bank-dashboard .bank-charge-value strong {
+    font-size: 12px !important;
+  }
+
+  .bank-dashboard .bank-charge-date span,
+  .bank-dashboard .bank-charge-main span {
+    margin-top: 2px !important;
+    font-size: 9px !important;
+  }
+
+  .bank-dashboard .bank-charge-value {
+    justify-items: end !important;
+    text-align: right !important;
+  }
+
+  .bank-dashboard .bank-header-actions {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 5px !important;
+  }
+
+  .bank-dashboard .bank-header-actions .button {
+    min-height: 32px !important;
+    padding: 0 9px !important;
+    font-size: 10px !important;
+  }
+
+  .bank-dashboard .bank-header-actions .icon-link {
+    width: 32px !important;
+    height: 32px !important;
+  }
+}
+
+/* ---------- EMPRÉSTIMOS ---------- */
+
+.theme-bank .bank-income-list-item {
+  box-shadow: none !important;
+}
+
+@media (min-width: 821px) {
+  .theme-bank .bank-income-list-item {
+    min-height: 62px !important;
+    padding: 10px 13px !important;
+  }
+}
+
+/* ---------- FATURAS: TELA PRINCIPAL ---------- */
+
+.bank-invoice-update-panel .bank-invoice-mode-row {
+  opacity: .72;
+}
+
+.bank-invoice-update-panel .bank-invoice-card-summary {
+  padding-block: 10px !important;
+}
+
+@media (min-width: 821px) {
+  .bank-invoice-update-panel .bank-invoice-month-list {
+    max-height: 540px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .bank-invoice-update-panel .bank-invoice-month-row {
+    min-height: 66px !important;
+    padding: 9px 12px !important;
+  }
+}
+
+/* ---------- FATURAS: LANÇAMENTO RÁPIDO ---------- */
+
+.bank-quick-invoice-panel {
+  overflow: hidden;
+}
+
+.bank-quick-invoice-list {
+  display: grid;
+}
+
+.bank-quick-invoice-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.15fr) minmax(220px, .8fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 12px 18px;
+  border-top: 1px solid var(--line);
+}
+
+.bank-quick-invoice-row:first-child {
+  border-top: 0;
+}
+
+.bank-quick-invoice-card {
+  min-width: 0;
+}
+
+.bank-quick-invoice-card strong,
+.bank-quick-invoice-card span {
+  display: block;
+}
+
+.bank-quick-invoice-card strong {
+  font-size: 13px;
+}
+
+.bank-quick-invoice-card span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.bank-quick-invoice-row .field {
+  gap: 5px;
+}
+
+.bank-quick-invoice-row .field > span {
+  font-size: 9px;
+}
+
+.bank-quick-invoice-row .bank-money-input .input {
+  min-width: 0;
+}
+
+.bank-quick-invoice-status {
+  min-width: 112px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.bank-quick-invoice-savebar {
+  position: sticky;
+  bottom: 12px;
+  z-index: 25;
+  margin-top: 14px;
+  padding: 10px 12px 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(70, 195, 123, .2);
+  border-radius: 15px;
+  background: rgba(9, 14, 20, .96);
+  box-shadow: 0 14px 42px rgba(0,0,0,.38);
+  backdrop-filter: blur(18px);
+}
+
+.bank-quick-invoice-savebar > span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+/* ---------- MOBILE ---------- */
+
+@media (max-width: 820px) {
+  .bank-receivable-breakdown {
+    gap: 5px;
+  }
+
+  .bank-receivable-breakdown > div {
+    padding: 6px 7px;
+  }
+
+  .bank-quick-invoice-row {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 13px 14px;
+  }
+
+  .bank-quick-invoice-status {
+    min-width: 0;
+    justify-content: flex-start;
+  }
+
+  .bank-quick-invoice-savebar {
+    bottom: 82px;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .bank-quick-invoice-savebar .button {
+    width: 100%;
+  }
+}

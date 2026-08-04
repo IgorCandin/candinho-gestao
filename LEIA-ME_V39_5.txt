@@ -1,0 +1,49 @@
+CANDINHO BANK V39.5 — BANK MAIS PRÁTICO
+
+O QUE MUDA
+
+1) ADIAR EMPRÉSTIMO
+- Os meses vermelhos antigos do Ian passam a aparecer como ADIADO, não PENDENTE.
+- O botão Adiar já funciona como você descreveu: pega a próxima parcela e joga 1 mês para frente.
+- O SQL deste pacote só reconstrói os adiamentos antigos; não mexe em total pago nem saldo.
+
+2) HOME DO BANK
+- Hero de "pendências" menor.
+- Cards superiores mais compactos.
+- "A receber neste mês" passa a mostrar por dentro:
+  • Fixos a receber
+  • Operações
+  • Avulsos, quando houver
+- Notinhas continuam numa faixa separada e fora da projeção.
+
+3) ENTRADAS
+- "A receber pendente" passa a chamar "Avulsos a receber".
+- "Entradas mensais previstas" vira "Entradas fixas do mês".
+- Mostra dentro dela quanto ainda falta receber e quanto já entrou.
+- Novo card "Operações a receber" mostra vendas pendentes de Suplementos/Fitness.
+
+4) VENCIMENTOS
+- No desktop, as linhas ficam compactas.
+- No telefone continua o formato confortável atual.
+
+5) FATURAS
+- O botão principal passa a abrir "Lançar faturas".
+- Nessa tela você vê TODOS os cartões do mês atual numa lista simples.
+- Digita só o valor de cada fatura e salva tudo de uma vez.
+- Campo vazio não altera nada.
+- Fatura paga fica bloqueada.
+- A tela antiga continua disponível em "Edição avançada" para mexer em meses futuros.
+
+COMO APLICAR
+
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. Aceite substituir os arquivos.
+3. GitHub Desktop:
+   Commit: V39.5 - simplifica Bank, entradas e faturas
+   Push origin
+4. Supabase > SQL Editor:
+   abra RODAR_NO_SUPABASE_V39_5.sql
+   copie tudo
+   Run
+
+NÃO PRECISA terminal, db push ou migration repair.

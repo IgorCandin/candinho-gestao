@@ -1,18 +1,4 @@
--- Candinho Company · Bank V39.4
--- Reconstrói SOMENTE o mapa histórico visual dos empréstimos Ian e Sicoob CNPJ
--- a partir dos prints do sistema antigo enviados em 04/08/2026.
---
--- IMPORTANTE:
--- - NÃO soma dinheiro ao total pago.
--- - NÃO altera o saldo restante.
--- - NÃO cria novas parcelas.
--- - Apenas registra quais competências antigas já estavam pagas e corrige
---   a data inicial usada pelo calendário.
---
--- O total pago atual já está correto no Bank:
--- Ian = R$ 2.800,00 (14 parcelas de R$ 200,00)
--- Sicoob CNPJ = R$ 2.093,00 (5 parcelas de R$ 418,60)
-
+rollback;
 begin;
 
 -- Ian: o sistema antigo começa em 09/2024.
@@ -67,7 +53,7 @@ select
   paid_months.reference_month,
   'paid',
   paid_months.amount,
-  null,
+  paid_months.reference_month,
   'V39.4 · Histórico importado do sistema anterior a partir do print fornecido pelo usuário.',
   null,
   now()
@@ -118,7 +104,7 @@ select
   paid_months.reference_month,
   'paid',
   paid_months.amount,
-  null,
+  paid_months.reference_month,
   'V39.4 · Histórico importado do sistema anterior a partir do print fornecido pelo usuário.',
   null,
   now()
@@ -128,7 +114,7 @@ on conflict (commitment_key, reference_month) do nothing;
 
 commit;
 
--- Conferência: estes valores NÃO são alterados pelo script acima.
+-- Conferência
 select
   name,
   original_amount as total,
