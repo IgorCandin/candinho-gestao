@@ -1,9 +1,11 @@
+import { BankNexusMobileMenuLink } from "@/components/bank-nexus-mobile-menu-link";
 import { BankV39Shell } from "@/components/bank-v39-shell";
 
 export default function BankLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <BankV39Shell />
+      <BankNexusMobileMenuLink />
       {children}
       <style>{`
         .bank-v39-mobile-nav { display: none; }
@@ -44,6 +46,20 @@ export default function BankLayout({ children }: { children: React.ReactNode }) 
           .bank-v39-mobile-nav a.active {
             color: var(--text);
             background: color-mix(in srgb, var(--gold) 16%, transparent);
+          }
+
+          [data-bank-nexus-mobile-slot="true"] {
+            width: 100%;
+            min-height: 52px;
+            height: 52px;
+            flex: 0 0 52px;
+            margin: 0;
+          }
+
+          [data-bank-nexus-mobile-slot="true"] > .mobile-menu-link {
+            width: 100%;
+            min-height: 52px;
+            height: 52px;
           }
 
           .content { padding-bottom: 88px; }

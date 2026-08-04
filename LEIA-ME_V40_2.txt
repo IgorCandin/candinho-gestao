@@ -1,0 +1,23 @@
+V40.2 — NEXUS NO MENU MOBILE
+
+CAUSA
+O AppShell usa dois menus diferentes:
+- Desktop: .sidebar .nav
+- Celular: .mobile-menu-panel
+
+O V40 adicionava Nexus Bank somente no menu desktop.
+
+CORREÇÃO
+- Insere "Nexus Bank" na gaveta lateral do telefone.
+- O item entra antes de "Sair".
+- Fecha a gaveta automaticamente ao tocar.
+- Mantém a barra inferior de 5 itens: Mês | Nexus | Entradas | Faturas | Mais.
+
+COMO APLICAR
+1. Extraia o ZIP na raiz do candinho-gestao.
+2. Aceite substituir o layout e adicionar o novo componente.
+3. GitHub Desktop:
+   Commit: V40.2 - corrige Nexus no menu mobile
+4. Push origin.
+
+NÃO precisa de SQL, Supabase nem variável no Vercel.
