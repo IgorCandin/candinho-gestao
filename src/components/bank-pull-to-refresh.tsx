@@ -1,18 +1,20 @@
 "use client";
 
 import { RefreshCcw } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const TRIGGER_DISTANCE = 72;
 const MAX_DISTANCE = 110;
+
+function scrollTop() {
+  return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+}
 
 export function BankPullToRefresh({
   enabled,
 }: {
   enabled: boolean;
 }) {
-  const router = useRouter();
   const startYRef = useRef<number | null>(null);
   const distanceRef = useRef(0);
   const [distance, setDistance] = useState(0);
@@ -21,11 +23,11 @@ export function BankPullToRefresh({
   useEffect(() => {
     if (!enabled) return;
 
-    const mobile = window.matchMedia(
-      "(max-width: 900px) and (pointer: coarse)",
-    ).matches;
+    const narrowScreen = window.matchMedia("(max-width: 900px)").matches;
+    const touchCapable =
+      "ontouchstart" in window || navigator.maxTouchPoints > 0;
 
-    if (!mobile) return;
+    if (!narrowScreen || !touchCapable) return;
 
     function setPullDistance(value: number) {
       const next = Math.max(0, Math.min(MAX_DISTANCE, value));
@@ -34,14 +36,14 @@ export function BankPullToRefresh({
     }
 
     function handleTouchStart(event: TouchEvent) {
-      if (refreshing || window.scrollY > 0) return;
+      if (refreshing || scrollTop() > 1) return;
       startYRef.current = event.touches[0]?.clientY ?? null;
     }
 
     function handleTouchMove(event: TouchEvent) {
       if (startYRef.current === null) return;
 
-      if (window.scrollY > 0) {
+      if (scrollTop() > 1) {
         startYRef.current = null;
         setPullDistance(0);
         return;
@@ -51,10 +53,14 @@ export function BankPullToRefresh({
       if (currentY === undefined) return;
 
       const rawDistance = currentY - startYRef.current;
+
       if (rawDistance <= 0) {
         setPullDistance(0);
         return;
       }
+
+      // Evita o navegador consumir o gesto e deixa o refresh do Bank previsível.
+      event.preventDefault();
 
       // Resistência de 55% deixa o gesto natural e evita disparos acidentais.
       setPullDistance(rawDistance * 0.55);
@@ -73,16 +79,15 @@ export function BankPullToRefresh({
 
       setRefreshing(true);
       setPullDistance(TRIGGER_DISTANCE);
-      router.refresh();
 
+      // Aqui queremos reload de verdade, não apenas refresh do Server Component.
       window.setTimeout(() => {
-        setRefreshing(false);
-        setPullDistance(0);
-      }, 700);
+        window.location.reload();
+      }, 120);
     }
 
     window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", handleTouchEnd, { passive: true });
     window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
 
@@ -92,7 +97,7 @@ export function BankPullToRefresh({
       window.removeEventListener("touchend", handleTouchEnd);
       window.removeEventListener("touchcancel", handleTouchEnd);
     };
-  }, [enabled, refreshing, router]);
+  }, [enabled, refreshing]);
 
   if (!enabled || (!refreshing && distance < 4)) return null;
 
