@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Building2, ChartNoAxesCombined, CircleDollarSign, History } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
-import { BankPullToRefresh } from "@/components/bank-pull-to-refresh";
 
 type Undo = () => void;
 
@@ -143,19 +142,16 @@ export function BankV39Shell() {
   ];
 
   return (
-    <>
-      <BankPullToRefresh enabled />
-      <nav className="bank-v39-mobile-nav" aria-label="Atalhos do Candinho Bank">
-        {items.map(({ href, label, icon: Icon }) => {
-          const active = href === "/bank" ? pathname === "/bank" : pathname.startsWith(href);
-          return (
-            <Link className={active ? "active" : ""} href={href} key={href}>
-              <Icon size={19} />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </>
+    <nav className="bank-v39-mobile-nav" aria-label="Atalhos do Candinho Bank">
+      {items.map(({ href, label, icon: Icon }) => {
+        const active = href === "/bank" ? pathname === "/bank" : pathname.startsWith(href);
+        return (
+          <Link className={active ? "active" : ""} href={href} key={href}>
+            <Icon size={19} />
+            <span>{label}</span>
+          </Link>
+        );
+      })}
+    </nav>
   );
 }

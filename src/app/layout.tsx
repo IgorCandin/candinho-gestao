@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { BankPullToRefresh } from "@/components/bank-pull-to-refresh";
 import "./globals.css";
 import "./ux-homologation.css";
 import "./refino-navegacao-vitrine.css";
@@ -32,6 +33,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body>
+        <BankPullToRefresh enabled />
         {children}
         <Analytics />
         <SpeedInsights />

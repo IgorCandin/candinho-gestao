@@ -5,9 +5,22 @@ import { useEffect, useRef, useState } from "react";
 
 const TRIGGER_DISTANCE = 72;
 const MAX_DISTANCE = 110;
+const DIRECTION_LOCK_DISTANCE = 10;
+
+type GestureMode = "pending" | "pull" | "cancelled";
 
 function scrollTop() {
   return document.scrollingElement?.scrollTop ?? window.scrollY ?? 0;
+}
+
+function shouldIgnoreTouch(target: EventTarget | null) {
+  if (!(target instanceof Element)) return false;
+
+  return Boolean(
+    target.closest(
+      'input, textarea, select, [contenteditable="true"], .mobile-menu-panel',
+    ),
+  );
 }
 
 export function BankPullToRefresh({
@@ -15,8 +28,10 @@ export function BankPullToRefresh({
 }: {
   enabled: boolean;
 }) {
-  const startYRef = useRef<number | null>(null);
+  const startRef = useRef<{ x: number; y: number } | null>(null);
+  const modeRef = useRef<GestureMode>("pending");
   const distanceRef = useRef(0);
+  const refreshingRef = useRef(false);
   const [distance, setDistance] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -35,69 +50,126 @@ export function BankPullToRefresh({
       setDistance(next);
     }
 
+    function resetGesture() {
+      startRef.current = null;
+      modeRef.current = "pending";
+    }
+
+    function cancelGesture() {
+      startRef.current = null;
+      modeRef.current = "cancelled";
+      setPullDistance(0);
+    }
+
     function handleTouchStart(event: TouchEvent) {
-      if (refreshing || scrollTop() > 1) return;
-      startYRef.current = event.touches[0]?.clientY ?? null;
+      if (
+        refreshingRef.current ||
+        scrollTop() > 1 ||
+        document.querySelector(".mobile-menu[open]") ||
+        shouldIgnoreTouch(event.target)
+      ) {
+        return;
+      }
+
+      const touch = event.touches[0];
+      if (!touch) return;
+
+      startRef.current = { x: touch.clientX, y: touch.clientY };
+      modeRef.current = "pending";
     }
 
     function handleTouchMove(event: TouchEvent) {
-      if (startYRef.current === null) return;
+      const start = startRef.current;
+      const touch = event.touches[0];
+
+      if (!start || !touch || modeRef.current === "cancelled") return;
 
       if (scrollTop() > 1) {
-        startYRef.current = null;
-        setPullDistance(0);
+        cancelGesture();
         return;
       }
 
-      const currentY = event.touches[0]?.clientY;
-      if (currentY === undefined) return;
+      const deltaX = touch.clientX - start.x;
+      const deltaY = touch.clientY - start.y;
+      const horizontal = Math.abs(deltaX);
+      const vertical = Math.abs(deltaY);
 
-      const rawDistance = currentY - startYRef.current;
+      if (modeRef.current === "pending") {
+        // Mantém livre o gesto lateral nativo de voltar para a tela anterior.
+        if (
+          horizontal >= DIRECTION_LOCK_DISTANCE &&
+          horizontal > vertical
+        ) {
+          cancelGesture();
+          return;
+        }
 
-      if (rawDistance <= 0) {
-        setPullDistance(0);
-        return;
+        if (deltaY < 0) {
+          cancelGesture();
+          return;
+        }
+
+        if (
+          deltaY >= DIRECTION_LOCK_DISTANCE &&
+          deltaY > horizontal * 1.15
+        ) {
+          modeRef.current = "pull";
+        } else {
+          return;
+        }
       }
 
-      // Evita o navegador consumir o gesto e deixa o refresh do Bank previsível.
+      if (modeRef.current !== "pull" || deltaY <= 0) return;
+
+      // Depois que o gesto vertical foi reconhecido, evitamos o navegador
+      // consumir o movimento e deixamos a atualização visual previsível.
       event.preventDefault();
 
       // Resistência de 55% deixa o gesto natural e evita disparos acidentais.
-      setPullDistance(rawDistance * 0.55);
+      setPullDistance(deltaY * 0.55);
     }
 
     function handleTouchEnd() {
-      if (startYRef.current === null) return;
+      if (modeRef.current !== "pull") {
+        resetGesture();
+        return;
+      }
 
       const shouldRefresh = distanceRef.current >= TRIGGER_DISTANCE;
-      startYRef.current = null;
+      resetGesture();
 
       if (!shouldRefresh) {
         setPullDistance(0);
         return;
       }
 
+      refreshingRef.current = true;
       setRefreshing(true);
       setPullDistance(TRIGGER_DISTANCE);
 
-      // Aqui queremos reload de verdade, não apenas refresh do Server Component.
+      // Reload real para buscar novamente os dados em qualquer área do sistema.
       window.setTimeout(() => {
         window.location.reload();
       }, 120);
     }
 
+    function handleTouchCancel() {
+      resetGesture();
+      setPullDistance(0);
+    }
+
     window.addEventListener("touchstart", handleTouchStart, { passive: true });
     window.addEventListener("touchmove", handleTouchMove, { passive: false });
     window.addEventListener("touchend", handleTouchEnd, { passive: true });
-    window.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    window.addEventListener("touchcancel", handleTouchCancel, { passive: true });
 
     return () => {
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
       window.removeEventListener("touchend", handleTouchEnd);
-      window.removeEventListener("touchcancel", handleTouchEnd);
+      window.removeEventListener("touchcancel", handleTouchCancel);
     };
-  }, [enabled, refreshing]);
+  }, [enabled]);
 
   if (!enabled || (!refreshing && distance < 4)) return null;
 
@@ -108,8 +180,8 @@ export function BankPullToRefresh({
       aria-live="polite"
       style={{
         position: "fixed",
-        zIndex: 90,
-        top: 58,
+        zIndex: 120,
+        top: "max(70px, calc(env(safe-area-inset-top) + 54px))",
         left: "50%",
         transform: `translate(-50%, ${Math.max(0, distance - 56)}px)`,
         pointerEvents: "none",
@@ -124,9 +196,9 @@ export function BankPullToRefresh({
           gap: 8,
           padding: "8px 12px",
           borderRadius: 999,
-          border: "1px solid var(--border)",
+          border: "1px solid var(--line)",
           background: "var(--panel)",
-          boxShadow: "0 10px 30px rgba(0,0,0,.18)",
+          boxShadow: "0 10px 30px rgba(0,0,0,.28)",
           fontSize: 12,
           fontWeight: 700,
         }}
