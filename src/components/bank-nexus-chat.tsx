@@ -166,13 +166,15 @@ export function BankNexusChat() {
         return;
       }
 
+      const plan = payload.plan;
+
       setMessages((current) => [
         ...current,
         {
           id: id(),
           role: "assistant",
-          text: payload.plan.reply,
-          plan: payload.plan,
+          text: plan.reply,
+          plan,
           originalMessage: clean,
           status: "draft",
         },
