@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import {
   BarChart3,
   Boxes,
+  MessageCircle,
   PackageSearch,
   PackageX,
   ShoppingCart,
@@ -29,6 +30,25 @@ const priorityLabels: Record<string, string> = {
   high: "Alta",
   extreme: "Extrema",
 };
+
+const sourceLabels: Record<string, string> = {
+  manual: "Registro manual",
+  catalog_backorder: "Vitrine · Sob encomenda",
+  catalog_missing_search: "Vitrine · Produto procurado",
+};
+
+function whatsappHref(phone: string | null) {
+  if (!phone) return null;
+
+  let digits = phone.replace(/\D/g, "");
+  if (!digits) return null;
+
+  if ((digits.length === 10 || digits.length === 11) && !digits.startsWith("55")) {
+    digits = `55${digits}`;
+  }
+
+  return `https://wa.me/${digits}`;
+}
 
 export default async function DemandGapsPage() {
   const access = await getCurrentUserAccess();
@@ -60,12 +80,16 @@ export default async function DemandGapsPage() {
       ),
   ).length;
 
+  const storefrontRequests = recent.filter(
+    (item) => item.source.startsWith("catalog_"),
+  ).length;
+
   return (
     <>
       <PageHeader
         eyebrow="Candinho Central"
         title="Rupturas e demanda perdida"
-        description="Registre o que clientes procuram e você não tem. A Central acumula os sinais para transformar procura perdida em decisão de compra e mix."
+        description="O que clientes procuram e você não tem. A vitrine agora alimenta este painel automaticamente para transformar procura perdida em decisão de compra e mix."
       />
 
       <section className="stats-grid demand-gap-stats">
@@ -95,9 +119,9 @@ export default async function DemandGapsPage() {
 
         <StatCard
           href="/central/rupturas"
-          label="Sinais registrados"
-          value={String(recent.length)}
-          note="Últimos registros carregados"
+          label="Vindas da vitrine"
+          value={String(storefrontRequests)}
+          note="Sob encomenda ou busca sem resultado"
           icon={BarChart3}
         />
       </section>
@@ -107,7 +131,7 @@ export default async function DemandGapsPage() {
           <div>
             <h2>Registrar procura não atendida</h2>
             <p>
-              Digite o produto e use o Nexus para pesquisar até 3 imagens na web antes de salvar.
+              Para pedidos recebidos fora da vitrine, registre manualmente aqui.
             </p>
           </div>
           <PackageX size={20} />
@@ -121,7 +145,8 @@ export default async function DemandGapsPage() {
           <div>
             <h2>Produtos mais procurados</h2>
             <p>
-              Quanto mais vezes um produto aparece aqui, maior a evidência para estudar compra ou inclusão no mix.
+              Quanto mais vezes um produto aparece aqui, maior a evidência
+              para estudar compra ou inclusão no mix.
             </p>
           </div>
           <BarChart3 size={20} />
@@ -145,6 +170,7 @@ export default async function DemandGapsPage() {
                 >
                   <div className="demand-gap-ranking-image">
                     {item.image_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={item.image_url}
                         alt={item.product_name}
@@ -194,125 +220,149 @@ export default async function DemandGapsPage() {
           <div>
             <h2>Registros recentes</h2>
             <p>
-              Acompanhe até virar compra, estoque ou decisão de não trabalhar com o item.
+              Agora você vê de onde veio a procura e consegue chamar
+              diretamente no WhatsApp.
             </p>
           </div>
           <PackageX size={20} />
         </div>
 
         <div className="demand-gap-recent-list">
-          {recent.map((item) => (
-            <article
-              className="demand-gap-recent-row"
-              key={item.id}
-            >
-              <div>
-                <strong>
-                  {item.product_name}
-                </strong>
+          {recent.map((item) => {
+            const whatsapp = whatsappHref(item.customer_phone);
 
-                <span>
-                  {item.customer_name ??
-                    "Cliente não informado"}
-                  {item.city
-                    ? ` · ${item.city}`
-                    : ""}
-                  {" · "}
-                  {formatDateOnly(
-                    item.requested_on,
+            return (
+              <article
+                className="demand-gap-recent-row"
+                key={item.id}
+              >
+                <div>
+                  <strong>
+                    {item.product_name}
+                  </strong>
+
+                  <span>
+                    {item.customer_name ??
+                      "Cliente não informado"}
+                    {item.city
+                      ? ` · ${item.city}`
+                      : ""}
+                    {" · "}
+                    {formatDateOnly(
+                      item.requested_on,
+                    )}
+                  </span>
+
+                  <small>
+                    {sourceLabels[item.source] ?? item.source}
+                    {item.customer_phone
+                      ? ` · ${item.customer_phone}`
+                      : ""}
+                  </small>
+                </div>
+
+                <div className="demand-gap-badges">
+                  <span className={`badge demand-priority-${item.priority}`}>
+                    {priorityLabels[item.priority]}
+                  </span>
+
+                  <span className="badge blue">
+                    {statusLabels[item.status]}
+                  </span>
+                </div>
+
+                <div className="demand-gap-status-actions">
+                  {whatsapp && (
+                    <a
+                      className="button ghost compact-button"
+                      href={whatsapp}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <MessageCircle size={15} />
+                      WhatsApp
+                    </a>
                   )}
-                </span>
-              </div>
 
-              <div className="demand-gap-badges">
-                <span className={`badge demand-priority-${item.priority}`}>
-                  {priorityLabels[item.priority]}
-                </span>
-
-                <span className="badge blue">
-                  {statusLabels[item.status]}
-                </span>
-              </div>
-
-              <div className="demand-gap-status-actions">
-                {item.status !==
-                  "planned_purchase" && (
-                  <form
-                    action={
-                      updateDemandGapStatus
-                    }
-                  >
-                    <input
-                      type="hidden"
-                      name="id"
-                      value={item.id}
-                    />
-                    <input
-                      type="hidden"
-                      name="status"
-                      value="planned_purchase"
-                    />
-                    <button
-                      className="button ghost compact-button"
-                      type="submit"
+                  {item.status !==
+                    "planned_purchase" && (
+                    <form
+                      action={
+                        updateDemandGapStatus
+                      }
                     >
-                      Planejar compra
-                    </button>
-                  </form>
-                )}
+                      <input
+                        type="hidden"
+                        name="id"
+                        value={item.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="status"
+                        value="planned_purchase"
+                      />
+                      <button
+                        className="button ghost compact-button"
+                        type="submit"
+                      >
+                        Planejar compra
+                      </button>
+                    </form>
+                  )}
 
-                {item.status !== "ordered" && (
-                  <form
-                    action={
-                      updateDemandGapStatus
-                    }
-                  >
-                    <input
-                      type="hidden"
-                      name="id"
-                      value={item.id}
-                    />
-                    <input
-                      type="hidden"
-                      name="status"
-                      value="ordered"
-                    />
-                    <button
-                      className="button ghost compact-button"
-                      type="submit"
+                  {item.status !== "ordered" && (
+                    <form
+                      action={
+                        updateDemandGapStatus
+                      }
                     >
-                      Pedido feito
-                    </button>
-                  </form>
-                )}
+                      <input
+                        type="hidden"
+                        name="id"
+                        value={item.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="status"
+                        value="ordered"
+                      />
+                      <button
+                        className="button ghost compact-button"
+                        type="submit"
+                      >
+                        Pedido feito
+                      </button>
+                    </form>
+                  )}
 
-                {item.status !== "stocked" && (
-                  <form
-                    action={
-                      updateDemandGapStatus
-                    }
-                  >
-                    <input
-                      type="hidden"
-                      name="id"
-                      value={item.id}
-                    />
-                    <input
-                      type="hidden"
-                      name="status"
-                      value="stocked"
-                    />
-                    <button
-                      className="button gold compact-button"
-                      type="submit"
+                  {item.status !== "stocked" && (
+                    <form
+                      action={
+                        updateDemandGapStatus
+                      }
                     >
-                      Resolvida
-                    </button>
-                  </form>
-                )}
-              </div>
-            </article>
-          ))}
+                      <input
+                        type="hidden"
+                        name="id"
+                        value={item.id}
+                      />
+                      <input
+                        type="hidden"
+                        name="status"
+                        value="stocked"
+                      />
+                      <button
+                        className="button gold compact-button"
+                        type="submit"
+                      >
+                        Resolvida
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       </article>
     </>

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { LogIn, Sparkles, Store } from "lucide-react";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
+import { PublicBackorderSection } from "@/components/public-backorder-section";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
 import { PublicStorefrontBrowser } from "@/components/public-storefront-browser";
@@ -13,16 +14,22 @@ import {
 } from "@/lib/public-product-page-data";
 import { getPublicStorefrontSnapshot } from "@/lib/public-storefront-data";
 import { getPublicFitnessAvailabilityMap } from "@/lib/public-fitness-availability-data";
+import { getPublicSupplementBackorders } from "@/lib/public-backorder-data";
 
 export const dynamic = "force-dynamic";
 
 export default async function PublicCatalogPage() {
-  const [snapshot, productLinks, fitnessAvailability] =
-    await Promise.all([
-      getPublicStorefrontSnapshot(),
-      getPublicStorefrontSlugMap(),
-      getPublicFitnessAvailabilityMap(),
-    ]);
+  const [
+    snapshot,
+    productLinks,
+    fitnessAvailability,
+    backorders,
+  ] = await Promise.all([
+    getPublicStorefrontSnapshot(),
+    getPublicStorefrontSlugMap(),
+    getPublicFitnessAvailabilityMap(),
+    getPublicSupplementBackorders(),
+  ]);
 
   const company = BRAND_ASSETS.company.complete;
 
@@ -78,6 +85,7 @@ export default async function PublicCatalogPage() {
       <section className="public-storefront-content">
         <PublicCatalogGuide />
         <PublicStorefrontBrowser snapshot={snapshot} />
+        <PublicBackorderSection products={backorders} />
       </section>
     </main>
   );

@@ -1,0 +1,72 @@
+V43 — OPERAÇÃO REAL: CAMPANHAS + SOB ENCOMENDA + RUPTURAS + NEXUS BANK
+
+BANCO DE DADOS
+A migration 20260805124207_v43_operational_promotions_backorders
+JÁ FOI APLICADA EM PRODUÇÃO pelo ChatGPT/Supabase nesta conversa.
+
+Portanto você NÃO precisa abrir o SQL Editor e NÃO precisa rodar db push agora.
+O arquivo de migration vai no pacote apenas para manter o Git sincronizado
+com o histórico remoto.
+
+O QUE MUDA
+
+1) /central/promocoes
+- Campanhas active/scheduled com data final vencida passam para ended
+  automaticamente.
+- Um job roda a cada 10 minutos.
+- A Esquenta Black já está encerrada.
+- A Black de Agosto continua ativa até 15/08/2026.
+
+2) /catalogo e /catalogo/suplementos
+- Nova seção SOB ENCOMENDA.
+- Hoje existem 34 suplementos ativos/comerciais zerados elegíveis.
+- Produto zerado não precisa mais simplesmente desaparecer.
+- Cliente informa nome + WhatsApp e a procura vai para Rupturas.
+- Se houver reposição a caminho, o card informa isso.
+
+3) "Não encontrou o produto?"
+- Campo livre no final da seção.
+- Nexus tenta reconhecer o produto entre o mix real.
+- Se reconhecer um produto já disponível, avisa para buscar pelo nome correto.
+- Se reconhecer um zerado, vincula àquele produto.
+- Se não reconhecer, registra a procura mesmo assim.
+- Se a IA estiver fora do ar, a procura NÃO é perdida: salva o texto bruto.
+
+4) /central/rupturas
+- Mostra quantos sinais vieram da vitrine.
+- Mostra origem:
+  Vitrine · Sob encomenda
+  Vitrine · Produto procurado
+  Registro manual
+- Mostra telefone.
+- Botão WhatsApp direto.
+- Ranking existente continua acumulando quantidade de procuras.
+
+5) /bank/nexus
+- Sai da chamada OpenAI isolada.
+- Passa a usar a infraestrutura Nexus compartilhada:
+  Gemini primeiro -> OpenAI fallback.
+- OpenAI fallback usa gpt-5-mini por padrão, não gpt-5.
+- Continua gerando apenas PRÉVIA; nada é alterado sem confirmação.
+
+COMO SUBIR O CÓDIGO
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. Aceite substituir os arquivos.
+3. Abra GitHub Desktop.
+4. Commit:
+   V43 - automatiza campanhas e adiciona sob encomenda
+5. Push origin.
+6. Aguarde o Vercel ficar verde.
+
+NÃO PRECISA
+- SQL Editor
+- npx supabase db push
+- nova variável no Vercel
+- terminal
+
+TESTES DEPOIS DO DEPLOY
+- /catalogo/suplementos -> procurar seção Sob encomenda.
+- Enviar um interesse de teste em um produto zerado.
+- /central/rupturas -> conferir origem + telefone + WhatsApp.
+- Digitar um produto inexistente no campo livre.
+- /bank/nexus -> testar "Nubank Igor deste mês é 100".

@@ -5,11 +5,16 @@ import {
   BANK_NEXUS_ACTION_TYPES,
   type BankNexusPlan,
 } from "@/lib/bank-nexus-types";
+import {
+  generateNexus,
+  nexusErrorResponse,
+  type JsonRecord,
+} from "@/lib/nexus-ai";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const planSchema = {
+const planSchema: JsonRecord = {
   type: "object",
   additionalProperties: false,
   properties: {
@@ -29,19 +34,11 @@ const planSchema = {
           },
           entity_id: { type: "string" },
           entity_name: { type: "string" },
-          amount: {
-            anyOf: [{ type: "number" }, { type: "null" }],
-          },
-          reference_month: {
-            anyOf: [{ type: "string" }, { type: "null" }],
-          },
-          date: {
-            anyOf: [{ type: "string" }, { type: "null" }],
-          },
+          amount: { type: ["number", "null"] },
+          reference_month: { type: ["string", "null"] },
+          date: { type: ["string", "null"] },
           label: { type: "string" },
-          before: {
-            anyOf: [{ type: "string" }, { type: "null" }],
-          },
+          before: { type: ["string", "null"] },
           after: { type: "string" },
           reason: { type: "string" },
           requires_attention: { type: "boolean" },
@@ -73,33 +70,16 @@ const planSchema = {
     "actions",
     "warnings",
   ],
-} as const;
+};
 
-function outputText(payload: Record<string, unknown>) {
-  const output = Array.isArray(payload.output) ? payload.output : [];
+function parseJson(value: string) {
+  const normalized = value
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/, "")
+    .replace(/```$/, "")
+    .trim();
 
-  for (const item of output) {
-    if (!item || typeof item !== "object") continue;
-    const content = Array.isArray(
-      (item as Record<string, unknown>).content,
-    )
-      ? ((item as Record<string, unknown>).content as unknown[])
-      : [];
-
-    for (const part of content) {
-      if (!part || typeof part !== "object") continue;
-      const row = part as Record<string, unknown>;
-
-      if (
-        row.type === "output_text" &&
-        typeof row.text === "string"
-      ) {
-        return row.text;
-      }
-    }
-  }
-
-  return null;
+  return JSON.parse(normalized) as unknown;
 }
 
 function validatePlan(value: unknown): value is BankNexusPlan {
@@ -126,19 +106,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       { error: "Sem acesso ao Candinho Bank." },
       { status: 403 },
-    );
-  }
-
-  const apiKey = process.env.OPENAI_API_KEY;
-
-  if (!apiKey) {
-    return NextResponse.json(
-      {
-        error:
-          "Nexus Bank ainda não possui OPENAI_API_KEY configurada no servidor.",
-        code: "OPENAI_NOT_CONFIGURED",
-      },
-      { status: 503 },
     );
   }
 
@@ -186,7 +153,7 @@ export async function POST(request: NextRequest) {
 
   const context = await getBankNexusContext();
 
-  const developerInstruction = `
+  const rules = `
 Você é o Nexus Bank, o interpretador financeiro da Candinho Company.
 
 MISSÃO:
@@ -194,27 +161,27 @@ Transformar a mensagem do usuário em um PLANO DE ALTERAÇÕES, nunca executar n
 O usuário sempre verá uma prévia e precisará clicar em Confirmar tudo.
 
 SEGURANÇA:
-1. Use SOMENTE entity_id que exista no CONTEXTO DO BANK enviado nesta requisição.
+1. Use SOMENTE entity_id que exista no CONTEXTO DO BANK.
 2. Nunca invente IDs, cartões, contas, dívidas, salários ou mensalidades.
 3. Se houver ambiguidade entre duas entidades, NÃO crie ação. Explique em warnings.
-4. Não faça cálculos escondidos nem suponha um valor que não foi dito e não exista claramente no contexto.
-5. Notinhas ficam fora da projeção. Frases como "deixa a Graça pra depois" normalmente não exigem ação.
-6. O chat é para ORGANIZAR o mês. Pagamentos de empréstimo devem continuar no botão Paguei do site.
+4. Não suponha valor que não foi dito e não exista claramente no contexto.
+5. Notinhas ficam fora da projeção.
+6. Pagamentos de empréstimo continuam no botão Paguei do site.
 7. A única ação em empréstimos permitida pelo chat é postpone_debt quando o usuário disser para adiar/pular/empurrar a parcela.
 8. Um adiamento significa mover a próxima parcela exatamente +1 mês.
 9. Valor de fatura de cartão é o TOTAL da fatura daquele mês.
-10. Se o usuário disser "tudo igual ao mês passado", copie as faturas do previous_month usando invoice_history e crie set_card_invoice para o current_month, exceto mudanças explicitamente informadas.
+10. "Tudo igual ao mês passado" copia as faturas de previous_month para current_month, exceto mudanças explicitamente informadas.
 11. "Recebi salário/vale" => mark_income_received.
-12. "Ainda não recebi" => mark_income_pending. Se já estiver pendente, pode omitir a ação e explicar.
+12. "Ainda não recebi" => mark_income_pending.
 13. "O salário passou a ser X / daqui pra frente X" => set_income_default_amount.
-14. Apenas mencionar "salário X" não significa alterar o valor padrão, a menos que a intenção permanente esteja clara.
+14. Apenas mencionar "salário X" não significa alterar o padrão.
 15. "Mensalidade/aluguel/psicóloga agora é X" => set_subscription_amount.
 16. "Saldo da conta/carteira é X" => set_account_balance.
 17. "Nubank/BB/Inter deste mês é X" => set_card_invoice.
-18. reference_month deve ser YYYY-MM-01. date deve ser YYYY-MM-DD.
-19. Use português brasileiro curto e prático.
-20. before/after devem ser textos amigáveis em R$ quando houver valor.
-21. can_apply só pode ser true quando não houver ambiguidade que impeça as ações.
+18. reference_month = YYYY-MM-01. date = YYYY-MM-DD.
+19. Português brasileiro curto e prático.
+20. before/after amigáveis em R$ quando houver valor.
+21. can_apply=true apenas quando as ações forem seguras.
 22. Se não houver ação real, actions=[] e can_apply=false.
 
 TIPOS PERMITIDOS:
@@ -225,116 +192,64 @@ TIPOS PERMITIDOS:
 - postpone_debt
 - set_subscription_amount
 - set_income_default_amount
-`.trim();
+  `.trim();
 
-  const input = [
-    {
-      role: "developer",
-      content: [
-        {
-          type: "input_text",
-          text: developerInstruction,
-        },
-      ],
-    },
-    ...history.map((item) => ({
-      role: item.role,
-      content: [
-        {
-          type: "input_text",
-          text: item.text,
-        },
-      ],
-    })),
-    {
-      role: "user",
-      content: [
-        {
-          type: "input_text",
-          text: `CONTEXTO DO BANK:\n${JSON.stringify(
-            context,
-          )}\n\nMENSAGEM DE AGORA:\n${message}`,
-        },
-      ],
-    },
-  ];
+  const prompt = `
+${rules}
 
-  const response = await fetch(
-    "https://api.openai.com/v1/responses",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_BANK_MODEL || "gpt-5",
-        store: false,
-        input,
-        max_output_tokens: 2200,
-        text: {
-          verbosity: "low",
-          format: {
-            type: "json_schema",
-            name: "candinho_bank_plan",
-            description:
-              "Plano seguro de alterações do Candinho Bank, sempre sujeito à confirmação humana.",
-            strict: true,
-            schema: planSchema,
-          },
-        },
-      }),
-    },
-  );
+HISTÓRICO RECENTE:
+${JSON.stringify(history)}
 
-  const payload = (await response.json().catch(() => null)) as
-    | Record<string, unknown>
-    | null;
+CONTEXTO REAL DO BANK:
+${JSON.stringify(context)}
 
-  if (!response.ok || !payload) {
-    console.error("Nexus Bank OpenAI error", {
-      status: response.status,
-      payload,
+MENSAGEM DE AGORA:
+${message}
+  `.trim();
+
+  try {
+    const result = await generateNexus({
+      system:
+        "Você é o Nexus Bank. Gere apenas o JSON solicitado e nunca aplique alterações.",
+      prompt,
+      schema: planSchema,
+      geminiModel:
+        process.env.GEMINI_BANK_MODEL ||
+        process.env.GEMINI_NEXUS_MODEL ||
+        "gemini-3.5-flash-lite",
+      openAIModel:
+        process.env.OPENAI_BANK_MODEL ||
+        process.env.OPENAI_NEXUS_MODEL ||
+        "gpt-5-mini",
+      timeoutMs: 40_000,
     });
+
+    const plan = parseJson(result.text);
+
+    if (!validatePlan(plan)) {
+      return NextResponse.json(
+        { error: "A prévia da IA não passou pela validação." },
+        { status: 502 },
+      );
+    }
+
+    return NextResponse.json({
+      message,
+      plan,
+      provider: result.provider,
+      model: result.model,
+    });
+  } catch (error) {
+    const normalized = nexusErrorResponse(error);
+
+    console.error("Nexus Bank AI error", error);
 
     return NextResponse.json(
       {
-        error:
-          "A IA não conseguiu interpretar a atualização agora. Tente novamente em alguns segundos.",
+        error: normalized.error,
+        code: normalized.code,
       },
-      { status: 502 },
+      { status: normalized.status },
     );
   }
-
-  const text = outputText(payload);
-
-  if (!text) {
-    return NextResponse.json(
-      { error: "A IA não retornou uma prévia utilizável." },
-      { status: 502 },
-    );
-  }
-
-  let plan: unknown;
-
-  try {
-    plan = JSON.parse(text);
-  } catch {
-    return NextResponse.json(
-      { error: "A prévia da IA veio em formato inválido." },
-      { status: 502 },
-    );
-  }
-
-  if (!validatePlan(plan)) {
-    return NextResponse.json(
-      { error: "A prévia da IA não passou pela validação." },
-      { status: 502 },
-    );
-  }
-
-  return NextResponse.json({
-    message,
-    plan,
-  });
 }
