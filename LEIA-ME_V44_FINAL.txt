@@ -1,0 +1,105 @@
+V44 — FECHAMENTO DE INFRAESTRUTURA / INTEGRAÇÕES
+
+Este pacote foi desenhado como a linha de corte desta etapa.
+Depois dele, o plano é parar de adicionar infraestrutura e trabalhar
+principalmente em UX, refinamento visual e correções pontuais.
+
+O ERRO DO ÚLTIMO DEPLOY
+Vercel V43 falhou em:
+src/app/api/catalogo/ruptura/route.ts:108
+Parameter 'candidate' implicitly has an 'any' type.
+
+V44 corrige exatamente essa tipagem e torna a lista de candidatos
+explicitamente tipada.
+
+FAVICONS
+Foram usados EXATAMENTE os seis arquivos novos enviados pelo usuário:
+CC  = Company
+CM  = Marketing
+CF  = Fitness
+CB  = Bank
+CCE = Central
+CS  = Suplementos
+
+Não houve regeneração visual.
+
+Foram criados nomes novos *-v44.png para evitar que Chrome/Safari
+continuem usando o cache dos favicons antigos.
+
+Mapeamento:
+Company      -> CC
+Marketing    -> CM
+Fitness      -> CF
+Bank         -> CB
+Central      -> CCE
+Suplementos  -> CS
+Physique     -> CC temporariamente (CP ainda não foi fornecido)
+
+TÍTULOS / ABAS
+Mantém a lógica V42:
+- /bank -> Candinho Bank + CB
+- /fitness -> Candinho Fitness + CF
+- /suplementos -> Candinho Suplementos + CS
+- /central -> Candinho Central + CCE
+- /marketing -> Candinho Marketing + CM
+- /catalogo/fitness -> Catálogo · Candinho Fitness + CF
+- /catalogo/suplementos -> Catálogo · Candinho Suplementos + CS
+- /agenda -> Agenda - Suplementos + CS
+- páginas internas herdam a operação.
+A rotina de favicon agora substitui todos os <link rel=icon> encontrados
+e reaplica após a navegação para evitar o ícone antigo.
+
+WEBAPP / PWA
+O layout já apontava para /manifest.webmanifest, mas esse arquivo não
+existia no repositório. V44 cria o manifest e usa CC como ícone geral
+do aplicativo instalado.
+
+GOOGLE CALENDAR
+Antes de gerar este pacote, o ChatGPT encontrou 7 sincronizações antigas
+presas em "processing" desde 03/08.
+Elas foram recolocadas na fila e processadas com sucesso.
+Ao final da conferência não havia registros pending/processing antigos.
+O retry existente de 15 minutos continua ativo.
+Não há SQL novo neste pacote.
+
+INTEGRAÇÕES — DECISÃO DE FECHAMENTO
+MANTER:
+- Supabase: banco/auth/realtime necessário.
+- Google Calendar: agenda operacional sincronizada.
+- Gemini: IA principal do Nexus.
+- OpenAI: fallback do Nexus.
+- Vercel Analytics + Speed Insights: já ativos.
+- WhatsApp: atalhos/contato operacional onde faz sentido.
+
+NÃO ABRIR AGORA:
+- Instagram Inbox
+- Facebook Inbox
+Esses canais constam como não conectados e o inbox realtime já havia
+sido pausado no projeto para reduzir carga/complexidade.
+Reativá-los agora seria ampliar manutenção sem necessidade para
+fechar a operação.
+
+COMO APLICAR
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. Aceite substituir os arquivos.
+3. GitHub Desktop:
+   Commit: V44 - fecha integracoes e estabiliza infraestrutura
+4. Push origin.
+5. Aguarde o Vercel.
+
+NÃO PRECISA
+- SQL Editor
+- Supabase db push
+- terminal
+- nova variável de ambiente
+
+DEPOIS DO DEPLOY
+Testar rapidamente:
+1. /dashboard -> CC + Candinho Company
+2. /bank -> CB + Candinho Bank
+3. /fitness -> CF + Candinho Fitness
+4. /agenda -> CS + Agenda - Suplementos
+5. /central/rupturas -> CCE + Rupturas - Central
+6. /marketing -> CM + Candinho Marketing
+7. /catalogo/suplementos -> Sob encomenda
+8. /bank/nexus -> uma prévia simples, sem confirmar

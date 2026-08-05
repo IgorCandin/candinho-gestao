@@ -16,39 +16,39 @@ const OPERATION = {
   company: {
     suffix: "Company",
     brandTitle: "Candinho Company",
-    icon: "/favicons/cc.png",
+    icon: "/favicons/cc-v44.png",
   },
   bank: {
     suffix: "Bank",
     brandTitle: "Candinho Bank",
-    icon: "/favicons/cb.png",
+    icon: "/favicons/cb-v44.png",
   },
   fitness: {
     suffix: "Fitness",
     brandTitle: "Candinho Fitness",
-    icon: "/favicons/cf.png",
+    icon: "/favicons/cf-v44.png",
   },
   supplements: {
     suffix: "Suplementos",
     brandTitle: "Candinho Suplementos",
-    icon: "/favicons/cs.png",
+    icon: "/favicons/cs-v44.png",
   },
   central: {
     suffix: "Central",
     brandTitle: "Candinho Central",
-    icon: "/favicons/cce.png",
+    icon: "/favicons/cce-v44.png",
   },
   marketing: {
     suffix: "Marketing",
     brandTitle: "Candinho Marketing",
-    icon: "/favicons/cm.png",
+    icon: "/favicons/cm-v44.png",
   },
   physique: {
     suffix: "Physique",
     brandTitle: "Candinho Physique",
     // CP ainda não foi fornecido. Até lá, usa a identidade Company
     // em vez de inventar uma sigla/cor.
-    icon: "/favicons/cc.png",
+    icon: "/favicons/cc-v44.png",
   },
 } satisfies Record<
   Operation,
@@ -261,21 +261,28 @@ function resolveIdentity(
 }
 
 function setFavicon(href: string) {
-  let icon = document.querySelector<HTMLLinkElement>(
-    'link[data-candinho-route-favicon="true"]',
+  const versionedHref = `${href}?v=44`;
+  const icons = Array.from(
+    document.querySelectorAll<HTMLLinkElement>(
+      'link[rel="icon"], link[rel="shortcut icon"]',
+    ),
   );
 
-  if (!icon) {
-    icon = document.createElement("link");
+  if (icons.length === 0) {
+    const icon = document.createElement("link");
     icon.rel = "icon";
     icon.type = "image/png";
+    icon.href = versionedHref;
     icon.dataset.candinhoRouteFavicon = "true";
     document.head.appendChild(icon);
+    return;
   }
 
-  if (icon.getAttribute("href") !== href) {
-    icon.href = href;
-  }
+  icons.forEach((icon) => {
+    icon.type = "image/png";
+    icon.href = versionedHref;
+    icon.dataset.candinhoRouteFavicon = "true";
+  });
 }
 
 export function RouteTabIdentity() {
@@ -291,8 +298,22 @@ export function RouteTabIdentity() {
       marketingScope,
     );
 
-    document.title = identity.brandTitle;
-    setFavicon(identity.icon);
+    const applyIdentity = () => {
+      document.title = identity.brandTitle;
+      setFavicon(identity.icon);
+    };
+
+    applyIdentity();
+
+    // Next pode atualizar o <head> logo depois da navegação/hidratação.
+    // Reaplicamos uma vez no próximo frame e outra após um curto atraso.
+    const frame = window.requestAnimationFrame(applyIdentity);
+    const timer = window.setTimeout(applyIdentity, 180);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
   }, [pathname, searchParams]);
 
   return null;

@@ -21,8 +21,9 @@ export const metadata: Metadata = {
   applicationName: "Candinho Company",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/favicons/cc.png",
-    shortcut: "/favicons/cc.png",
+    icon: "/favicons/cc-v44.png",
+    shortcut: "/favicons/cc-v44.png",
+    apple: "/favicons/cc-v44-180.png",
   },
 };
 

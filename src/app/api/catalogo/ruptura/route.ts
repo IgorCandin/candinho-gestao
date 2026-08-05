@@ -8,6 +8,15 @@ import { createClient } from "@/lib/supabase/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+type CatalogMatchCandidate = {
+  id: string;
+  name: string;
+  category: string | null;
+  brand: string | null;
+  available_quantity: number;
+  incoming_quantity: number;
+};
+
 const MATCH_SCHEMA: JsonRecord = {
   type: "object",
   properties: {
@@ -92,8 +101,10 @@ export async function POST(request: Request) {
       });
 
     if (!candidatesError) {
-      const candidates = (candidateRows ?? []).map(
-        (row: Record<string, unknown>) => ({
+      const candidates: CatalogMatchCandidate[] = (
+        (candidateRows ?? []) as Array<Record<string, unknown>>
+      ).map(
+        (row): CatalogMatchCandidate => ({
           id: String(row.product_id ?? ""),
           name: String(row.name ?? ""),
           category:
@@ -104,7 +115,7 @@ export async function POST(request: Request) {
         }),
       );
 
-      const byId = new Map(
+      const byId = new Map<string, CatalogMatchCandidate>(
         candidates.map((candidate) => [candidate.id, candidate]),
       );
 
