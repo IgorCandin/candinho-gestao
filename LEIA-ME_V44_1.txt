@@ -1,0 +1,71 @@
+V44.1 — NOVO SABOR DENTRO DO PEDIDO DE FORNECEDOR
+
+PROBLEMA
+Ao montar um pedido em lote, se o sabor ainda não existia no cadastro do
+produto era necessário:
+1. abandonar o pedido;
+2. editar o produto;
+3. cadastrar o sabor;
+4. voltar para compras;
+5. começar o pedido novamente.
+
+CORREÇÃO
+Agora, em produtos que já possuem controle por sabor ativo, aparece:
+
++ Cadastrar novo sabor
+
+Ao clicar:
+- abre o campo no próprio item do pedido;
+- digita o nome do novo sabor;
+- Salvar e selecionar;
+- o sabor é cadastrado;
+- entra com saldo inicial 0 nos locais de estoque;
+- é selecionado automaticamente naquele item;
+- fornecedor, datas, produtos, quantidades, custos e demais itens do lote
+  continuam exatamente como estavam.
+
+DUPLICADOS
+Se digitar um sabor que já existe (ignorando maiúsculas/minúsculas),
+o sistema usa o sabor existente em vez de criar duplicado.
+Se o mesmo sabor estava inativo, ele é reativado.
+
+PROTEÇÃO
+A criação inline SOMENTE funciona quando o produto já possui controle por
+sabor ativo.
+
+Se for um produto que nunca trabalhou com sabores, o sistema não ativa
+silenciosamente, porque a ativação inicial exige conciliação de estoque,
+reservas e pedidos pendentes.
+
+BANCO DE DADOS
+A migration:
+20260805150000_v44_1_inline_flavor_purchase_order
+
+JÁ FOI APLICADA EM PRODUÇÃO pelo ChatGPT nesta conversa.
+
+Portanto NÃO precisa abrir o SQL Editor e NÃO precisa rodar db push agora.
+O arquivo vai no ZIP apenas para manter o repositório sincronizado com o
+histórico do Supabase.
+
+COMO APLICAR
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. Aceite substituir:
+   src/components/new-supplier-order-form.tsx
+3. GitHub Desktop.
+4. Commit:
+   V44.1 - permite cadastrar sabor no pedido
+5. Push origin.
+6. Aguarde o Vercel.
+
+NÃO PRECISA
+- SQL Editor
+- terminal
+- nova variável no Vercel
+
+TESTE
+/pedidos-fornecedor/novo
+→ Pedido em lote
+→ escolha produto que usa sabores
+→ clique "Cadastrar novo sabor"
+→ cadastre um sabor que ainda não existe
+→ confirme que ele fica selecionado sem perder o restante do pedido.
