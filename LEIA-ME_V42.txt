@@ -1,0 +1,88 @@
+V42 — ABAS E FAVICONS POR OPERAÇÃO
+
+OBJETIVO
+Parar de ter várias abas chamadas "Candinho Company" e identificar
+imediatamente cada parte do sistema pelo nome e pelo favicon.
+
+PADRÃO DE IDENTIDADE
+CB  = Candinho Bank
+CF  = Candinho Fitness
+CS  = Candinho Suplementos
+CCE = Candinho Central
+CM  = Candinho Marketing
+CC  = Candinho Company
+
+PHYSIQUE
+O usuário ainda não forneceu um ícone CP.
+Por enquanto:
+- título: Candinho Physique / Página - Physique
+- favicon temporário: CC
+Quando o CP for criado, basta trocar um arquivo/referência.
+
+EXEMPLOS
+/bank
+  Candinho Bank + CB
+
+/bank/faturas
+  Faturas - Bank + CB
+
+/fitness
+  Candinho Fitness + CF
+
+/fitness/produtos
+  Produtos - Fitness + CF
+
+/suplementos
+  Candinho Suplementos + CS
+
+/agenda
+  Agenda - Suplementos + CS
+
+/clientes
+  CRM e relacionamento - Suplementos + CS
+
+/catalogo/fitness
+  Catálogo · Candinho Fitness + CF
+
+/catalogo/suplementos
+  Catálogo · Candinho Suplementos + CS
+
+/central
+  Candinho Central + CCE
+
+/central/agenda
+  Agenda - Central + CCE
+
+/marketing
+  Candinho Marketing + CM
+
+/central/midia?scope=marketing
+  Ideias e arquivos - Marketing + CM
+
+/central/agenda?scope=marketing
+  Planejamento - Marketing + CM
+
+/dashboard e Home geral
+  Candinho Company + CC
+
+TRATAMENTO DOS ÍCONES
+Os favicons são exatamente os arquivos enviados pelo usuário.
+Foi feito SOMENTE preparo técnico:
+- recorte da transparência excessiva;
+- centralização;
+- escala uniforme para 256x256;
+- preservação do desenho, cores e brilho.
+Nenhum ícone foi regenerado.
+
+COMO APLICAR
+1. Extraia este ZIP na raiz do candinho-gestao.
+2. Aceite substituir src/app/layout.tsx.
+3. GitHub Desktop:
+   Commit: V42 - identifica abas e favicons por operacao
+4. Push origin.
+
+NÃO PRECISA
+- SQL
+- Supabase
+- variável no Vercel
+- terminal
