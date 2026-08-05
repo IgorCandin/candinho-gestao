@@ -1,0 +1,206 @@
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+  display: block;
+}
+
+.photoManager {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,.07);
+}
+
+.photoPreview {
+  width: 92px;
+  height: 92px;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid rgba(87,216,184,.2);
+  background: rgba(87,216,184,.05);
+  display: grid;
+  place-items: center;
+  color: #8fe9cd;
+}
+
+.photoPreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.photoActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.fileLabel {
+  min-height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 10px;
+  color: rgba(232,239,247,.78);
+  background: rgba(255,255,255,.025);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.fileLabel input {
+  display: none;
+}
+
+.message {
+  margin: 0;
+  color: #9ff1d8;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.shapeBox {
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid rgba(87,216,184,.16);
+  border-radius: 16px;
+  background: rgba(87,216,184,.025);
+  display: grid;
+  gap: 14px;
+}
+
+.shapeHead {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.shapeHead svg {
+  flex: 0 0 auto;
+  color: #8fe9cd;
+}
+
+.shapeHead strong,
+.shapeHead span {
+  display: block;
+}
+
+.shapeHead span {
+  margin-top: 4px;
+  color: rgba(232,239,247,.6);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.shapeFiles {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 8px;
+}
+
+.shapeFiles label {
+  min-height: 76px;
+  padding: 10px;
+  border: 1px dashed rgba(255,255,255,.14);
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  gap: 5px;
+  color: rgba(232,239,247,.7);
+  text-align: center;
+  cursor: pointer;
+  font-size: 9px;
+}
+
+.shapeFiles input {
+  display: none;
+}
+
+.shapeFiles b {
+  color: #8fe9cd;
+  font-size: 10px;
+}
+
+.analysis {
+  padding: 14px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 13px;
+  background: rgba(0,0,0,.14);
+}
+
+.analysis h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.analysis p {
+  margin: 0;
+  color: rgba(232,239,247,.72);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.analysisGrid {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.analysisGrid section {
+  padding: 11px;
+  border-radius: 11px;
+  background: rgba(255,255,255,.025);
+}
+
+.analysisGrid strong {
+  display: block;
+  color: #dcc46c;
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.analysisGrid ul {
+  margin: 8px 0 0;
+  padding-left: 16px;
+  color: rgba(232,239,247,.7);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.history {
+  display: grid;
+  gap: 8px;
+}
+
+.history article {
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 12px;
+  background: rgba(255,255,255,.012);
+}
+
+.history small {
+  color: #dcc46c;
+  font-size: 8px;
+  font-weight: 800;
+}
+
+.history p {
+  margin: 5px 0 0;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+@media (max-width: 700px) {
+  .shapeFiles,
+  .analysisGrid {
+    grid-template-columns: 1fr;
+  }
+}

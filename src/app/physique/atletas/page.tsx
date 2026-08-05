@@ -1,10 +1,20 @@
 import Link from "next/link";
-import { ArrowUpRight, Dumbbell, Plus, UserRound } from "lucide-react";
+import {
+  ArrowUpRight,
+  Dumbbell,
+  Plus,
+  UserRound,
+} from "lucide-react";
 import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { getPhysiqueAthletes } from "@/lib/physique-data";
+import { getPhysiqueAthleteAvatarMap } from "@/lib/physique-visual-data";
+import styles from "@/components/physique-v45.module.css";
 
 export default async function PhysiqueAthletesPage() {
   const athletes = await getPhysiqueAthletes();
+  const avatars = await getPhysiqueAthleteAvatarMap(
+    athletes.map((athlete) => athlete.id),
+  );
 
   return (
     <section className="physique-page physique-ux-page">
@@ -14,10 +24,16 @@ export default async function PhysiqueAthletesPage() {
         <div>
           <span>ACOMPANHAMENTO</span>
           <h1>Atletas</h1>
-          <p>Perfis acompanhados, objetivos e acesso rápido ao dossiê, evolução e treino.</p>
+          <p>
+            Perfis acompanhados, objetivos e acesso rápido ao dossiê,
+            evolução e treino.
+          </p>
         </div>
 
-        <Link className="physique-action-button secondary" href="/physique/atletas/novo">
+        <Link
+          className="physique-action-button secondary"
+          href="/physique/atletas/novo"
+        >
           <Plus size={15} />
           Novo atleta
         </Link>
@@ -31,29 +47,50 @@ export default async function PhysiqueAthletesPage() {
         </div>
       ) : (
         <div className="physique-ux-athlete-grid">
-          {athletes.map((athlete) => (
-            <Link className="physique-ux-athlete-card" href={`/physique/atletas/${athlete.id}`} key={athlete.id}>
-              <div className="physique-ux-athlete-card-top">
-                <span className="physique-ux-status active">{athlete.status}</span>
-                <ArrowUpRight size={17} />
-              </div>
+          {athletes.map((athlete) => {
+            const avatar = avatars[athlete.id]?.avatar_url ?? null;
 
-              <div className="physique-ux-athlete-avatar">
-                <UserRound size={24} />
-              </div>
+            return (
+              <Link
+                className="physique-ux-athlete-card"
+                href={`/physique/atletas/${athlete.id}`}
+                key={athlete.id}
+              >
+                <div className="physique-ux-athlete-card-top">
+                  <span className="physique-ux-status active">
+                    {athlete.status}
+                  </span>
+                  <ArrowUpRight size={17} />
+                </div>
 
-              <strong>{athlete.display_name}</strong>
-              <p>{athlete.primary_goal ?? "Objetivo ainda não informado"}</p>
+                <div className="physique-ux-athlete-avatar">
+                  {avatar ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      className={styles.avatarImage}
+                      src={avatar}
+                      alt={athlete.display_name}
+                    />
+                  ) : (
+                    <UserRound size={24} />
+                  )}
+                </div>
 
-              <div className="physique-ux-athlete-numbers">
-                <span>
-                  <Dumbbell size={14} />
-                  <b>{athlete.active_training_plan_count}</b> ativa(s)
-                </span>
-                <span>{athlete.training_plan_count} ficha(s) no histórico</span>
-              </div>
-            </Link>
-          ))}
+                <strong>{athlete.display_name}</strong>
+                <p>
+                  {athlete.primary_goal ?? "Objetivo ainda não informado"}
+                </p>
+
+                <div className="physique-ux-athlete-numbers">
+                  <span>
+                    <Dumbbell size={14} />
+                    <b>{athlete.active_training_plan_count}</b> ativa(s)
+                  </span>
+                  <span>{athlete.training_plan_count} ficha(s) no histórico</span>
+                </div>
+              </Link>
+            );
+          })}
         </div>
       )}
     </section>

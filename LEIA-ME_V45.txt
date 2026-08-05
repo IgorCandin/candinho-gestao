@@ -1,0 +1,132 @@
+V45 — PHYSIQUE VISUAL + INSTITUCIONAL INTELIGENTE
+
+BASE
+Este pacote parte do main:
+d208d428acd34a2b76d433cacba9bdcc253c5718
+V44.1 - permite cadastrar sabor no pedido
+
+O V44.1 já está READY em produção no Vercel.
+
+BANCO
+A migration abaixo JÁ FOI APLICADA em produção:
+20260805185149_v44_2_physique_media_company_sources
+
+Não abra SQL Editor e não rode db push agora.
+O arquivo está no ZIP somente para manter o Git sincronizado.
+
+PHYSIQUE
+
+1. FOTO PRINCIPAL
+- Novo atleta agora aceita Foto principal.
+- O perfil mostra a foto no topo.
+- A lista de atletas mostra a foto nos cards.
+- Dentro do perfil é possível substituir a foto sem recriar o atleta.
+- A foto é reduzida para WebP antes do upload.
+
+2. AVALIAR SHAPE COM NEXUS
+Na aba Fotos:
+- escolha 1, 2 ou 3 fotos: frente, lateral, costas;
+- clique manualmente Avaliar shape;
+- nada é analisado automaticamente;
+- fotos são reduzidas para no máximo 1280 px antes do envio;
+- Gemini 2.5 Flash-Lite é o modelo principal;
+- OpenAI gpt-5-mini é somente fallback;
+- resultado fica salvo no histórico.
+
+O Nexus pode falar de:
+- desenvolvimento muscular aparente;
+- equilíbrio visual;
+- simetria aparente;
+- grupos que parecem mais fortes;
+- áreas que poderiam receber prioridade;
+- qualidade de pose, iluminação e ângulo.
+
+O Nexus NÃO deve:
+- estimar percentual de gordura;
+- inventar peso ou medidas;
+- diagnosticar doença/lesão;
+- inferir raça, idade, hormônios ou uso de substâncias;
+- identificar a pessoa.
+
+3. ECONOMIA
+O recurso só gasta IA quando o botão é clicado.
+Não existe análise automática nem monitoramento.
+O endpoint antigo de PDF da Physique também passa a usar gpt-5-mini
+como fallback, em vez de gpt-5.
+
+APRESENTAÇÃO / SUPLEMENTOS
+
+1. CNPJ MAIS APARENTE
+A página /apresentacao ganha um bloco legal grande:
+CNPJ: 65.293.608/0001-05
+Abertura: 24/02/2026
+Sede: Caparaó · MG
+Porte: ME
+
+O CNPJ fica em estrutura própria e pública.
+Ele continua proibido nos textos livres do Nexus para evitar espalhar
+dados fiscais desnecessariamente em parágrafos.
+
+2. DADOS LEGAIS EDITÁVEIS
+/central/apresentacao ganha uma área:
+- nome público
+- CNPJ
+- abertura
+- porte
+- cidade
+- UF
+- situação pública
+
+3. MATÉRIAS / LINKS
+/central/apresentacao ganha:
+Adicionar matéria / link
+
+Fluxo:
+- cola a URL;
+- nosso servidor abre SOMENTE aquele endereço;
+- valida que é uma fonte pública e bloqueia IPs privados/localhost;
+- Nexus lê a matéria;
+- mostra uma prévia;
+- você clica Aprovar e atualizar apresentação;
+- a fonte fica registrada no histórico;
+- se aprovada, pode aparecer em Candinho na mídia.
+
+O Nexus NÃO pesquisa a web sozinho.
+Não existe API de busca nova e não há assinatura nova.
+
+4. PROTEÇÃO DE FONTE
+A página externa é tratada como conteúdo não confiável.
+Instruções que estejam dentro da matéria não viram comandos para o Nexus.
+Redirecionamentos também são validados.
+
+COMO SUBIR
+1. Extraia o ZIP na raiz do candinho-gestao.
+2. Aceite substituir os arquivos.
+3. GitHub Desktop.
+4. Commit:
+   V45 - adiciona physique visual e institucional inteligente
+5. Push origin.
+6. Aguarde o Vercel.
+
+NÃO PRECISA
+- SQL Editor
+- terminal
+- nova variável no Vercel
+- nova API paga
+- novo serviço
+
+TESTES DEPOIS DO DEPLOY
+1. /physique/atletas/novo
+   -> criar atleta com foto principal.
+2. Perfil do atleta
+   -> confirmar foto no topo e trocar foto.
+3. Perfil > Fotos
+   -> enviar 1 foto e clicar Avaliar shape.
+4. /central/apresentacao
+   -> confirmar CNPJ destacado.
+5. Adicionar um link de matéria.
+   -> analisar
+   -> revisar prévia
+   -> aprovar.
+6. /apresentacao
+   -> conferir dados legais e, após aprovação, Candinho na mídia.
