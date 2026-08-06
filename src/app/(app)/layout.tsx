@@ -13,6 +13,7 @@ import { PartnerUxOverlay } from "@/components/partner-ux-overlay";
 import { ProductPublicPageShortcutPortal } from "@/components/product-public-page-shortcut-portal";
 import { PurchasingNavigation } from "@/components/purchasing-navigation";
 import { SaleProductStockUX } from "@/components/sale-product-stock-ux";
+import { UxIssueReporter } from "@/components/ux-issue-reporter";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -56,6 +57,7 @@ export default async function ProtectedLayout({
 
       <FitnessUxScope />
       <NexusActivityTracker enabled={access.active} />
+      <UxIssueReporter enabled={access.active} />
       <AutoPartnershipSaleUX
         enabled={canUseNexusOperating}
       />

@@ -38,7 +38,7 @@ export default async function CustomersPage() {
           <div className="page-header-actions">
             <Link className="button ghost" href="/clientes/relacionamentos">
               <UsersRound size={16} />
-              Relacionamentos
+              Vínculos
             </Link>
             <Link className="button gold" href="/clientes/novo">
               <Plus size={16} />

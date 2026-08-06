@@ -49,8 +49,6 @@ const RELATIONS = [
   ["sibling", "Irmão/irmã de"],
   ["friend", "Amigo(a) de"],
   ["colleague", "Colega de"],
-  ["trainer", "Professor(a)/treinador(a) de"],
-  ["student", "Aluno(a) de"],
   ["referred_by", "Foi indicado(a) por"],
   ["referred", "Indicou"],
   ["family", "Familiar de"],
@@ -143,7 +141,6 @@ export function NewCustomerForm({
           partnerRelation === "other" ? partnerCustom.trim() || null : null,
         counts_for_partnership: true,
         auto_attribute_sales: true,
-        // O vínculo adicionado por último vira o principal; os anteriores são mantidos como contexto.
         is_primary: true,
         priority: 200,
       },
@@ -228,23 +225,46 @@ export function NewCustomerForm({
         <div className="panel-body form-grid-two">
           <label className="field">
             <span>Nome</span>
-            <input className="input" required value={name} onChange={(event) => setName(event.target.value)} />
+            <input
+              className="input"
+              required
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
           </label>
           <label className="field">
             <span>Telefone</span>
-            <input className="input" value={phone} onChange={(event) => setPhone(event.target.value)} />
+            <input
+              className="input"
+              value={phone}
+              onChange={(event) => setPhone(event.target.value)}
+            />
           </label>
           <label className="field">
             <span>Cidade</span>
-            <input className="input" value={city} onChange={(event) => setCity(event.target.value)} />
+            <input
+              className="input"
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+            />
           </label>
           <label className="field">
             <span>Referência</span>
-            <input className="input" value={reference} onChange={(event) => setReference(event.target.value)} placeholder="Academia, indicação, bairro..." />
+            <input
+              className="input"
+              value={reference}
+              onChange={(event) => setReference(event.target.value)}
+              placeholder="Academia, indicação, bairro..."
+            />
           </label>
           <label className="field field-span-two">
             <span>Observações</span>
-            <textarea className="textarea" rows={4} value={notes} onChange={(event) => setNotes(event.target.value)} />
+            <textarea
+              className="textarea"
+              rows={4}
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+            />
           </label>
         </div>
       </article>
@@ -252,52 +272,152 @@ export function NewCustomerForm({
       <article className="panel customer-create-network-card">
         <div className="panel-head">
           <div>
-            <h2><UsersRound size={18} /> Relacionamentos</h2>
-            <p>Opcional. Uma pessoa pode ter vários vínculos ao mesmo tempo; não precisa escolher só um.</p>
+            <h2><UsersRound size={18} /> Vínculos</h2>
+            <p>
+              Opcional. Escolha se o vínculo é com uma parceria ou com outra pessoa.
+              “Aluno(a)” existe apenas em Parceria.
+            </p>
           </div>
         </div>
 
         <div className="panel-body customer-create-network-body">
           <div className="customer-create-network-block">
-            <div><Link2 size={16} /><span><strong>Com outra pessoa</strong><small>Ex.: cônjuge, mãe, amigo, indicação.</small></span></div>
-            <select className="select" value={relatedCustomerId} onChange={(event) => setRelatedCustomerId(event.target.value)}>
+            <div>
+              <Link2 size={16} />
+              <span>
+                <strong>Relacionado</strong>
+                <small>Ex.: cônjuge, mãe, amigo, indicação.</small>
+              </span>
+            </div>
+            <select
+              className="select"
+              value={relatedCustomerId}
+              onChange={(event) => setRelatedCustomerId(event.target.value)}
+            >
               <option value="">Selecione um cliente já cadastrado</option>
               {customers.map((customer) => (
-                <option value={customer.id} key={customer.id}>{customer.name}{customer.city ? ` · ${customer.city}` : ""}</option>
+                <option value={customer.id} key={customer.id}>
+                  {customer.name}
+                  {customer.city ? ` · ${customer.city}` : ""}
+                </option>
               ))}
             </select>
-            <select className="select" value={relationType} onChange={(event) => setRelationType(event.target.value)}>
-              {RELATIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+            <select
+              className="select"
+              value={relationType}
+              onChange={(event) => setRelationType(event.target.value)}
+            >
+              {RELATIONS.map(([value, label]) => (
+                <option value={value} key={value}>{label}</option>
+              ))}
             </select>
-            {relationType === "other" && <input className="input" value={relationCustom} onChange={(event) => setRelationCustom(event.target.value)} placeholder="Nome do vínculo" />}
-            <button className="button ghost compact-button" type="button" disabled={!relatedCustomerId} onClick={addRelationship}><Plus size={14} /> Adicionar</button>
+            {relationType === "other" && (
+              <input
+                className="input"
+                value={relationCustom}
+                onChange={(event) => setRelationCustom(event.target.value)}
+                placeholder="Nome do vínculo"
+              />
+            )}
+            <button
+              className="button ghost compact-button"
+              type="button"
+              disabled={!relatedCustomerId}
+              onClick={addRelationship}
+            >
+              <Plus size={14} /> Adicionar
+            </button>
 
             {relationships.map((item) => (
               <div className="customer-create-draft" key={item.key}>
-                <span><strong>{customerName.get(item.related_customer_id) ?? "Cliente"}</strong><small>{RELATIONS.find(([value]) => value === item.relation_type)?.[1] ?? item.relation_label ?? item.relation_type}</small></span>
-                <button className="icon-button" type="button" onClick={() => setRelationships((current) => current.filter((row) => row.key !== item.key))}><Trash2 size={13} /></button>
+                <span>
+                  <strong>
+                    {customerName.get(item.related_customer_id) ?? "Cliente"}
+                  </strong>
+                  <small>
+                    {RELATIONS.find(([value]) => value === item.relation_type)?.[1] ??
+                      item.relation_label ??
+                      item.relation_type}
+                  </small>
+                </span>
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={() =>
+                    setRelationships((current) =>
+                      current.filter((row) => row.key !== item.key),
+                    )
+                  }
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
             ))}
           </div>
 
           <div className="customer-create-network-block partner">
-            <div><Handshake size={16} /><span><strong>Com uma parceria</strong><small>Ex.: aluno(a) da Pâmela. Isso pode eliminar a marcação manual na venda.</small></span></div>
-            <select className="select" value={partnerId} onChange={(event) => setPartnerId(event.target.value)}>
+            <div>
+              <Handshake size={16} />
+              <span>
+                <strong>Parceria</strong>
+                <small>Ex.: aluno(a) da Pâmela. Pode automatizar a próxima venda.</small>
+              </span>
+            </div>
+            <select
+              className="select"
+              value={partnerId}
+              onChange={(event) => setPartnerId(event.target.value)}
+            >
               <option value="">Selecione o parceiro</option>
               {partners.map((partner) => (
-                <option value={partner.id} key={partner.id}>{partner.name} · {partner.partner_type}</option>
+                <option value={partner.id} key={partner.id}>
+                  {partner.name} · {partner.partner_type}
+                </option>
               ))}
             </select>
-            <select className="select" value={partnerRelation} onChange={(event) => setPartnerRelation(event.target.value)}>
-              {PARTNER_RELATIONS.map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+            <select
+              className="select"
+              value={partnerRelation}
+              onChange={(event) => setPartnerRelation(event.target.value)}
+            >
+              {PARTNER_RELATIONS.map(([value, label]) => (
+                <option value={value} key={value}>{label}</option>
+              ))}
             </select>
-            {partnerRelation === "other" && <input className="input" value={partnerCustom} onChange={(event) => setPartnerCustom(event.target.value)} placeholder="Nome do vínculo" />}
-            <button className="button ghost compact-button" type="button" disabled={!partnerId} onClick={addPartner}><Plus size={14} /> Vincular e automatizar</button>
+            {partnerRelation === "other" && (
+              <input
+                className="input"
+                value={partnerCustom}
+                onChange={(event) => setPartnerCustom(event.target.value)}
+                placeholder="Nome do vínculo"
+              />
+            )}
+            <button
+              className="button ghost compact-button"
+              type="button"
+              disabled={!partnerId}
+              onClick={addPartner}
+            >
+              <Plus size={14} /> Vincular e automatizar
+            </button>
 
             {partnerDrafts.map((item) => (
               <div className="customer-create-draft partner" key={item.key}>
-                <span><strong>{partnerName.get(item.partner_id) ?? "Parceiro"}</strong><small>Conta na parceria · atribuição automática</small></span>
-                <button className="icon-button" type="button" onClick={() => setPartnerDrafts((current) => current.filter((row) => row.key !== item.key))}><Trash2 size={13} /></button>
+                <span>
+                  <strong>{partnerName.get(item.partner_id) ?? "Parceiro"}</strong>
+                  <small>Conta na parceria · atribuição automática</small>
+                </span>
+                <button
+                  className="icon-button"
+                  type="button"
+                  onClick={() =>
+                    setPartnerDrafts((current) =>
+                      current.filter((row) => row.key !== item.key),
+                    )
+                  }
+                >
+                  <Trash2 size={13} />
+                </button>
               </div>
             ))}
           </div>
