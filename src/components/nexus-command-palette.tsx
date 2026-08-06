@@ -7,23 +7,44 @@ import {
   CheckCircle2,
   Command,
   CornerDownLeft,
+  Keyboard,
   LoaderCircle,
+  Pin,
   Search,
   Sparkles,
   X,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { UserAccess } from "@/lib/access";
 import { NexusActionPreviewButton } from "@/components/nexus-action-preview-button";
+import { NexusPinShortcutButton } from "@/components/nexus-pin-shortcut-button";
 import { nexusCommandRoutesForAccess } from "@/lib/nexus-command-catalog";
 import type { NexusCommandResult } from "@/lib/nexus-command-types";
+import type {
+  NexusPersonalShortcut,
+  NexusPersonalWorkspace,
+} from "@/lib/nexus-personal-types";
+import { emptyNexusPersonalWorkspace } from "@/lib/nexus-personal-types";
 
 function normalize(value: string) {
   return value
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+async function recordUse(id: string) {
+  try {
+    await fetch("/api/nexus/personal", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "use", id }),
+      keepalive: true,
+    });
+  } catch {
+    // Navegação não depende disso.
+  }
 }
 
 export function NexusCommandPalette({
@@ -40,6 +61,9 @@ export function NexusCommandPalette({
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<NexusCommandResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [personal, setPersonal] = useState<NexusPersonalWorkspace>(
+    emptyNexusPersonalWorkspace(pathname),
+  );
 
   const routes = useMemo(() => nexusCommandRoutesForAccess(access), [access]);
 
@@ -54,11 +78,38 @@ export function NexusCommandPalette({
     return base.slice(0, 7);
   }, [query, routes]);
 
+  const pinned = useMemo(() => {
+    const q = normalize(query.trim());
+    if (!q) return personal.pinned.slice(0, 6);
+
+    return personal.pinned
+      .filter((item) =>
+        normalize(`${item.label} ${item.href}`).includes(q),
+      )
+      .slice(0, 6);
+  }, [personal.pinned, query]);
+
+  const loadPersonal = useCallback(async () => {
+    if (!enabled) return;
+
+    try {
+      const response = await fetch(
+        `/api/nexus/personal?route=${encodeURIComponent(pathname)}`,
+        { cache: "no-store" },
+      );
+      if (!response.ok) return;
+      setPersonal((await response.json()) as NexusPersonalWorkspace);
+    } catch {
+      // Personalização não bloqueia o Command.
+    }
+  }, [enabled, pathname]);
+
   useEffect(() => {
     if (!enabled) return;
 
     function show() {
       setOpen(true);
+      void loadPersonal();
       setTimeout(() => inputRef.current?.focus(), 0);
     }
 
@@ -75,12 +126,14 @@ export function NexusCommandPalette({
 
     window.addEventListener("keydown", onKey);
     window.addEventListener("nexus:command-open", show as EventListener);
+    window.addEventListener("nexus:shortcuts-changed", loadPersonal);
 
     return () => {
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("nexus:command-open", show as EventListener);
+      window.removeEventListener("nexus:shortcuts-changed", loadPersonal);
     };
-  }, [enabled]);
+  }, [enabled, loadPersonal]);
 
   if (!enabled) return null;
 
@@ -134,6 +187,7 @@ export function NexusCommandPalette({
         data-nexus-component="nexus_command"
         onClick={() => {
           setOpen(true);
+          void loadPersonal();
           setTimeout(() => inputRef.current?.focus(), 0);
         }}
       >
@@ -155,7 +209,7 @@ export function NexusCommandPalette({
                 <Bot size={20} />
               </span>
               <div>
-                <span className="eyebrow">Nexus Command · V45.4</span>
+                <span className="eyebrow">Nexus Command · V45.5</span>
                 <strong>O que você quer fazer?</strong>
               </div>
               <button
@@ -203,30 +257,87 @@ export function NexusCommandPalette({
 
             {!result && !error && (
               <div className="nexus-command-suggestions-v454">
+                {pinned.length > 0 && (
+                  <>
+                    <div className="nexus-command-suggestions-head-v454">
+                      <span><Pin size={11} /> Meus atalhos</span>
+                      <span className="nexus-command-alt-hint-v455">
+                        <Keyboard size={11} /> Alt+1…4
+                      </span>
+                    </div>
+
+                    {pinned.map((item: NexusPersonalShortcut, index) => (
+                      <div className="nexus-command-route-row-v455" key={item.id}>
+                        <Link
+                          href={item.href}
+                          onClick={() => {
+                            void recordUse(item.id);
+                            close();
+                          }}
+                        >
+                          <span>
+                            <strong>{item.label}</strong>
+                            <small>
+                              {item.context_route === "*" ? "Global" : "Nesta tela"}
+                              {index < 4 ? ` · Alt+${index + 1}` : ""}
+                            </small>
+                          </span>
+                          <ArrowRight size={13} />
+                        </Link>
+
+                        <NexusPinShortcutButton
+                          href={item.href}
+                          label={item.label}
+                          contextRoute={item.context_route}
+                          source={item.source}
+                          initialShortcutId={item.id}
+                          onChanged={() => void loadPersonal()}
+                        />
+                      </div>
+                    ))}
+                  </>
+                )}
+
                 <div className="nexus-command-suggestions-head-v454">
-                  <span>
-                    {query.trim()
-                      ? "Atalhos encontrados"
-                      : "Atalhos rápidos"}
-                  </span>
-                  <Link href="/nexus/fila" onClick={close}>
-                    Fila Única <ArrowRight size={12} />
+                  <span>{query.trim() ? "Atalhos encontrados" : "Rotas rápidas"}</span>
+                  <Link href="/nexus/foco" onClick={close}>
+                    Meu Dia <ArrowRight size={12} />
                   </Link>
                 </div>
 
-                {suggestions.map((item) => (
-                  <Link
-                    href={item.href}
-                    key={`${item.operation}-${item.href}`}
-                    onClick={close}
-                  >
-                    <span>
-                      <strong>{item.label}</strong>
-                      <small>{item.keywords.split(" ").slice(0, 4).join(" · ")}</small>
-                    </span>
-                    <ArrowRight size={13} />
-                  </Link>
-                ))}
+                {suggestions.map((item) => {
+                  const pinnedItem = personal.pinned.find(
+                    (shortcut) =>
+                      shortcut.href === item.href &&
+                      shortcut.context_route === "*",
+                  );
+
+                  return (
+                    <div
+                      className="nexus-command-route-row-v455"
+                      key={`${item.operation}-${item.href}`}
+                    >
+                      <Link href={item.href} onClick={close}>
+                        <span>
+                          <strong>{item.label}</strong>
+                          <small>
+                            {item.keywords.split(" ").slice(0, 4).join(" · ")}
+                          </small>
+                        </span>
+                        <ArrowRight size={13} />
+                      </Link>
+
+                      <NexusPinShortcutButton
+                        href={item.href}
+                        label={item.label}
+                        contextRoute="*"
+                        source="command"
+                        initialShortcutId={pinnedItem?.id ?? null}
+                        onChanged={() => void loadPersonal()}
+                      />
+                    </div>
+                  );
+                })}
 
                 {!query.trim() && (
                   <div className="nexus-command-examples-v454">
@@ -259,9 +370,28 @@ export function NexusCommandPalette({
 
                 <div className="nexus-command-result-actions-v454">
                   {result.intent === "navigate" && result.href && (
-                    <Link className="button gold" href={result.href} onClick={close}>
-                      Abrir tela <ArrowRight size={14} />
-                    </Link>
+                    <>
+                      <Link className="button gold" href={result.href} onClick={close}>
+                        Abrir tela <ArrowRight size={14} />
+                      </Link>
+                      <NexusPinShortcutButton
+                        href={result.href}
+                        label={
+                          routes.find((route) => route.href === result.href)?.label ??
+                          "Atalho"
+                        }
+                        contextRoute="*"
+                        source="command"
+                        initialShortcutId={
+                          personal.pinned.find(
+                            (shortcut) =>
+                              shortcut.href === result.href &&
+                              shortcut.context_route === "*",
+                          )?.id ?? null
+                        }
+                        onChanged={() => void loadPersonal()}
+                      />
+                    </>
                   )}
 
                   {result.intent === "create_task" &&
@@ -315,9 +445,7 @@ export function NexusCommandPalette({
             )}
 
             <footer>
-              <span>
-                Ações críticas continuam fora do comando automático.
-              </span>
+              <span>Ações críticas continuam fora do comando automático.</span>
               <kbd>Esc</kbd>
             </footer>
           </section>

@@ -18,6 +18,12 @@ export type NexusCommandRoute = {
 
 export const NEXUS_COMMAND_ROUTES: NexusCommandRoute[] = [
   {
+    label: "Nexus · Meu Dia",
+    href: "/nexus/foco",
+    operation: "company",
+    keywords: "meu dia foco começar agora atalhos rotina nexus",
+  },
+  {
     label: "Nexus · Fila única",
     href: "/nexus/fila",
     operation: "company",
@@ -160,18 +166,6 @@ export const NEXUS_COMMAND_ROUTES: NexusCommandRoute[] = [
     href: "/fitness/clientes",
     operation: "fitness",
     keywords: "fitness clientes crm",
-  },
-  {
-    label: "Fitness · Pós-venda",
-    href: "/fitness/pos-venda",
-    operation: "fitness",
-    keywords: "fitness pos venda retorno",
-  },
-  {
-    label: "Fitness · Nexus",
-    href: "/fitness/nexus",
-    operation: "fitness",
-    keywords: "fitness nexus giro estoque promoção",
   },
   {
     label: "Bank · Este mês",

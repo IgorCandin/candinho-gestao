@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   Activity,
+  Bot,
   LogOut,
   Store,
   UserRound,
@@ -108,6 +109,14 @@ export default async function DashboardPage() {
         className="company-home-selector-actions company-home-utility-row-v45"
         aria-label="Atalhos"
       >
+        <Link
+          className="company-home-selector-action nexus-focus-home-v455"
+          href="/nexus/foco"
+        >
+          <Bot size={16} />
+          <span>Meu Dia</span>
+        </Link>
+
         <Link
           className="company-home-selector-action storefront"
           href="/catalogo"

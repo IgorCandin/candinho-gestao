@@ -10,6 +10,7 @@ import { FitnessUxScope } from "@/components/fitness-ux-scope";
 import { NexusActivityTracker } from "@/components/nexus-activity-tracker";
 import { NexusCommandPalette } from "@/components/nexus-command-palette";
 import { NexusCopilotDock } from "@/components/nexus-copilot-dock";
+import { NexusPersonalKeyboard } from "@/components/nexus-personal-keyboard";
 import { OperationToolSearch } from "@/components/operation-tool-search";
 import { PartnerUxOverlay } from "@/components/partner-ux-overlay";
 import { ProductPublicPageShortcutPortal } from "@/components/product-public-page-shortcut-portal";
@@ -62,6 +63,7 @@ export default async function ProtectedLayout({
 
       <FitnessUxScope />
       <NexusActivityTracker enabled={access.active} />
+      <NexusPersonalKeyboard enabled={canUseNexusCommand} />
       <NexusCommandPalette
         access={access}
         enabled={canUseNexusCommand}

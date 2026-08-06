@@ -28,6 +28,8 @@ function operationScope(route: string) {
   if (route.startsWith("/bank")) return "bank";
   if (route.startsWith("/central")) return "central";
   if (route.startsWith("/marketing")) return "marketing";
+  if (route.startsWith("/physique")) return "physique";
+  if (route === "/dashboard" || route.startsWith("/nexus")) return "company";
   return "supplements";
 }
 
@@ -85,7 +87,6 @@ export async function POST(request: Request) {
     Math.min(Number(metadataSource.duration_ms ?? 0) || 0, 1_800_000),
   );
 
-  // Privacidade: só telemetria técnica. Nunca salva texto de campo/formulário.
   const metadata = {
     viewport:
       metadataSource.viewport === "mobile" ||
