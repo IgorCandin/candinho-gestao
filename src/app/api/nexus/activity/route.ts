@@ -31,6 +31,12 @@ function operationScope(route: string) {
   return "supplements";
 }
 
+function cleanKey(value: unknown) {
+  return typeof value === "string" && value.trim()
+    ? value.trim().slice(0, 120)
+    : null;
+}
+
 export async function POST(request: Request) {
   const access = await getCurrentUserAccess();
 
@@ -50,8 +56,20 @@ export async function POST(request: Request) {
 
   const previousRoute = normalizeRoute(body.previous_route);
   const targetRoute = normalizeRoute(body.target_route);
+
+  const allowedKinds = new Set([
+    "page_view",
+    "navigation_click",
+    "route_exit",
+    "action_click",
+    "form_submit",
+  ]);
+
   const actionKind =
-    body.action_kind === "navigation_click" ? "navigation_click" : "page_view";
+    typeof body.action_kind === "string" && allowedKinds.has(body.action_kind)
+      ? body.action_kind
+      : "page_view";
+
   const sessionId =
     typeof body.session_id === "string"
       ? body.session_id.slice(0, 120)
@@ -62,8 +80,12 @@ export async function POST(request: Request) {
       ? (body.metadata as Record<string, unknown>)
       : {};
 
-  // Deliberadamente só guardamos dados técnicos de navegação.
-  // Não são enviados textos digitados, nomes, valores de formulário ou conteúdo de páginas.
+  const duration = Math.max(
+    0,
+    Math.min(Number(metadataSource.duration_ms ?? 0) || 0, 1_800_000),
+  );
+
+  // Privacidade: só telemetria técnica. Nunca salva texto de campo/formulário.
   const metadata = {
     viewport:
       metadataSource.viewport === "mobile" ||
@@ -72,7 +94,14 @@ export async function POST(request: Request) {
         ? metadataSource.viewport
         : undefined,
     source:
-      metadataSource.source === "internal_link" ? "internal_link" : undefined,
+      typeof metadataSource.source === "string"
+        ? metadataSource.source.slice(0, 80)
+        : undefined,
+    component:
+      typeof metadataSource.component === "string"
+        ? metadataSource.component.slice(0, 120)
+        : undefined,
+    duration_ms: actionKind === "route_exit" ? duration : undefined,
   };
 
   const supabase = await createClient();
@@ -82,7 +111,7 @@ export async function POST(request: Request) {
     previous_route: previousRoute,
     target_route: targetRoute,
     action_kind: actionKind,
-    action_key: targetRoute,
+    action_key: cleanKey(body.action_key) ?? targetRoute ?? actionKind,
     operation_scope: operationScope(route),
     metadata,
   });

@@ -4,13 +4,14 @@ import Link from "next/link";
 import {
   ArrowRight,
   BellOff,
-  Check,
+  CheckCircle2,
   CircleAlert,
   Clock3,
   Lightbulb,
   Sparkles,
 } from "lucide-react";
 import { useState } from "react";
+import { NexusActionPreviewButton } from "@/components/nexus-action-preview-button";
 import type { NexusSignal } from "@/lib/nexus-operating-types";
 
 function iconFor(signal: NexusSignal) {
@@ -27,6 +28,19 @@ function labelFor(signal: NexusSignal) {
   return "Nexus";
 }
 
+function tomorrowAtTen() {
+  const date = new Date();
+  date.setDate(date.getDate() + 1);
+  date.setHours(10, 0, 0, 0);
+  return date.toISOString();
+}
+
+function priorityFor(signal: NexusSignal) {
+  if (signal.severity === "urgent") return "urgent";
+  if (signal.severity === "attention") return "attention";
+  return "normal";
+}
+
 export function NexusSignalCard({
   signal,
   compact = false,
@@ -37,29 +51,11 @@ export function NexusSignalCard({
   onChanged?: (id: string, action: string) => void;
 }) {
   const Icon = iconFor(signal);
-  const [loading, setLoading] = useState<string | null>(null);
   const [hidden, setHidden] = useState(false);
 
-  async function update(action: "snooze" | "resolve" | "dismiss") {
-    setLoading(action);
-
-    try {
-      const response = await fetch(`/api/nexus/signals/${signal.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action,
-          days: action === "snooze" ? 3 : undefined,
-        }),
-      });
-
-      if (!response.ok) return;
-
-      setHidden(true);
-      onChanged?.(signal.id, action);
-    } finally {
-      setLoading(null);
-    }
+  function changed(action: string) {
+    setHidden(true);
+    onChanged?.(signal.id, action);
   }
 
   if (hidden) return null;
@@ -88,7 +84,7 @@ export function NexusSignalCard({
         )}
       </div>
 
-      <div className="nexus-signal-actions">
+      <div className="nexus-signal-actions nexus-signal-actions-v453">
         {signal.actionHref && (
           <Link className="button gold compact-button" href={signal.actionHref}>
             {signal.actionLabel ?? "Abrir"}
@@ -96,28 +92,56 @@ export function NexusSignalCard({
           </Link>
         )}
 
-        <button
-          type="button"
-          className="button ghost compact-button"
-          disabled={Boolean(loading)}
-          title="Tira da fila por 3 dias. Útil quando você já tratou o assunto fora do sistema."
-          onClick={() => void update("snooze")}
-        >
-          <Check size={13} />
-          {loading === "snooze" ? "Salvando" : "Já tratei"}
-        </button>
+        {!compact && signal.customerId && (
+          <NexusActionPreviewButton
+            actionKind="schedule_customer_followup"
+            payload={{
+              customer_id: signal.customerId,
+              due_at: tomorrowAtTen(),
+              priority: priorityFor(signal),
+              notes: `[Nexus] ${signal.title}`,
+            }}
+            label="Retorno amanhã"
+            component="nexus_signal"
+          />
+        )}
+
+        <NexusActionPreviewButton
+          actionKind="signal_status"
+          payload={{
+            signal_id: signal.id,
+            action: "resolve",
+            snooze_days: 3,
+          }}
+          label={compact ? "Concluir" : "Concluir sinal"}
+          component="nexus_signal"
+          onExecuted={() => changed("resolve")}
+        />
+
+        <NexusActionPreviewButton
+          actionKind="signal_status"
+          payload={{
+            signal_id: signal.id,
+            action: "snooze",
+            snooze_days: 3,
+          }}
+          label="3 dias"
+          component="nexus_signal"
+          onExecuted={() => changed("snooze")}
+        />
 
         {!compact && (
-          <button
-            type="button"
-            className="nexus-signal-dismiss"
-            disabled={Boolean(loading)}
-            title="Ignorar este tipo de ocorrência específica."
-            onClick={() => void update("dismiss")}
-          >
-            <BellOff size={12} />
-            Ignorar
-          </button>
+          <NexusActionPreviewButton
+            actionKind="signal_status"
+            payload={{
+              signal_id: signal.id,
+              action: "dismiss",
+              snooze_days: 3,
+            }}
+            label="Ignorar"
+            component="nexus_signal"
+            onExecuted={() => changed("dismiss")}
+          />
         )}
       </div>
     </article>

@@ -6,24 +6,10 @@ import {
   Route,
   Sparkles,
 } from "lucide-react";
+import { NexusDailyFocus } from "@/components/nexus-daily-focus";
 import { NexusSignalCard } from "@/components/nexus-signal-card";
 import type { NexusBrief, NexusSignal } from "@/lib/nexus-operating-types";
-
-function routeLabel(route: string) {
-  if (route.startsWith("/pedidos-pendentes")) return "Pendências";
-  if (route.startsWith("/vendas")) return "Vendas";
-  if (route.startsWith("/leads")) return "Leads";
-  if (route.startsWith("/clientes")) return "Clientes / CRM";
-  if (route.startsWith("/agenda")) return "Agenda";
-  if (route.startsWith("/pos-venda")) return "Pós-venda";
-  if (route.startsWith("/estoque")) return "Estoque";
-  if (route.startsWith("/pedidos-fornecedor")) return "Compras";
-  if (route.startsWith("/produtos")) return "Produtos";
-  if (route.startsWith("/parceiros")) return "Parceiros";
-  if (route.startsWith("/suplementos/painel")) return "Gestão";
-  if (route === "/suplementos") return "Hoje";
-  return route;
-}
+import { nexusRouteLabel } from "@/lib/nexus-route-labels";
 
 function chooseStartSignals(signals: NexusSignal[]) {
   const byType = new Map<string, NexusSignal>();
@@ -72,8 +58,8 @@ export function NexusTodaySnapshot({ brief }: { brief: NexusBrief }) {
             <span className="eyebrow">Nexus · copiloto operacional</span>
             <h2>Comece por aqui</h2>
             <p>
-              O Nexus cruza a operação e mostra primeiro o que merece decisão.
-              A ideia é qualquer pessoa conseguir seguir o trabalho sem decorar o ERP inteiro.
+              O Nexus cruza a operação, aprende sua rotina e agora pode preparar
+              ações com preview antes da execução.
             </p>
           </div>
         </div>
@@ -84,10 +70,12 @@ export function NexusTodaySnapshot({ brief }: { brief: NexusBrief }) {
         </Link>
       </header>
 
+      <NexusDailyFocus />
+
       <div className="nexus-today-kpis">
         <div><span>Para agir</span><strong>{actionableCount}</strong><small>urgências, atenções e oportunidades</small></div>
         <div><span>Urgentes</span><strong>{brief.counts.urgent}</strong><small>cobrança, entrega, lead ou estoque</small></div>
-        <div><span>Oportunidades</span><strong>{brief.counts.opportunity}</strong><small>demanda que pode virar venda</small></div>
+        <div><span>Oportunidades</span><strong>{brief.counts.opportunity}</strong><small>podem virar venda</small></div>
         <div><span>A receber</span><strong>{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(brief.commercial.receivableTotal)}</strong><small>{brief.commercial.receivableSales} venda(s)</small></div>
       </div>
 
@@ -114,12 +102,14 @@ export function NexusTodaySnapshot({ brief }: { brief: NexusBrief }) {
             <strong>Padrão recente de uso</strong>
             <span>
               {mostUsed
-                .map((item) => `${routeLabel(item.route)} (${item.visits}×)`)
+                .map((item) => `${nexusRouteLabel(item.route)} (${item.visits}×)`)
                 .join(" · ")}
             </span>
           </div>
           <small>
-            <Sparkles size={12} /> O Nexus usa frequência de navegação só para organizar atalhos e contexto; não lê o que você digita nos formulários.
+            <Sparkles size={12} /> O Nexus registra apenas navegação técnica,
+            cliques explicitamente marcados e tempo de tela. Ele não lê o que
+            você digita nos formulários.
           </small>
         </div>
       )}

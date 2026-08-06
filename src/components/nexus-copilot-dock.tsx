@@ -6,16 +6,22 @@ import {
   ChevronRight,
   LoaderCircle,
   MessageSquareText,
+  Route,
   Send,
   Sparkles,
   X,
 } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
+import type { NexusDailySnapshot } from "@/lib/nexus-daily-types";
 import type { NexusBrief } from "@/lib/nexus-operating-types";
+import { nexusRouteHref, nexusRouteLabel } from "@/lib/nexus-route-labels";
 
 export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
+  const pathname = usePathname() || "/suplementos";
   const [open, setOpen] = useState(false);
   const [brief, setBrief] = useState<NexusBrief | null>(null);
+  const [daily, setDaily] = useState<NexusDailySnapshot | null>(null);
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [input, setInput] = useState("");
   const [answer, setAnswer] = useState("");
@@ -30,14 +36,30 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
 
   async function openDock() {
     setOpen(true);
-    if (brief || loadingBrief) return;
+    if ((brief && daily) || loadingBrief) return;
 
     setLoadingBrief(true);
     try {
-      const response = await fetch("/api/nexus/brief", { cache: "no-store" });
-      const payload = (await response.json()) as NexusBrief & { error?: string };
-      if (!response.ok) throw new Error(payload.error ?? "Nexus indisponível.");
-      setBrief(payload);
+      const [briefResponse, dailyResponse] = await Promise.all([
+        fetch("/api/nexus/brief", { cache: "no-store" }),
+        fetch(`/api/nexus/daily?route=${encodeURIComponent(pathname)}`, {
+          cache: "no-store",
+        }),
+      ]);
+
+      const briefPayload = (await briefResponse.json()) as NexusBrief & {
+        error?: string;
+      };
+
+      if (!briefResponse.ok) {
+        throw new Error(briefPayload.error ?? "Nexus indisponível.");
+      }
+
+      setBrief(briefPayload);
+
+      if (dailyResponse.ok) {
+        setDaily((await dailyResponse.json()) as NexusDailySnapshot);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nexus indisponível.");
     } finally {
@@ -59,8 +81,13 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: question, history: [] }),
       });
-      const payload = (await response.json()) as { message?: string; error?: string };
-      if (!response.ok) throw new Error(payload.error ?? "Não foi possível perguntar ao Nexus.");
+      const payload = (await response.json()) as {
+        message?: string;
+        error?: string;
+      };
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Não foi possível perguntar ao Nexus.");
+      }
       setAnswer(payload.message ?? "");
       setInput("");
     } catch (err) {
@@ -77,6 +104,8 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
       <button
         className={`nexus-dock-trigger ${open ? "open" : ""}`}
         type="button"
+        data-nexus-action={open ? "close_copilot" : "open_copilot"}
+        data-nexus-component="nexus_dock"
         aria-label={open ? "Fechar Nexus" : "Abrir Nexus"}
         onClick={() => (open ? setOpen(false) : void openDock())}
       >
@@ -112,11 +141,41 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
                   <div><span>Oportunidade</span><strong>{brief.counts.opportunity}</strong></div>
                 </div>
 
+                {daily?.shortcuts?.length ? (
+                  <div className="nexus-dock-smart-v453">
+                    <div>
+                      <Route size={13} />
+                      <strong>Atalhos aprendidos nesta tela</strong>
+                    </div>
+                    <nav>
+                      {daily.shortcuts.slice(0, 4).map((shortcut) => {
+                        const href = nexusRouteHref(shortcut.to_route);
+                        if (!href) return null;
+                        return (
+                          <Link href={href} key={shortcut.to_route}>
+                            {nexusRouteLabel(shortcut.to_route)}
+                            <small>{shortcut.transitions_30d}×</small>
+                          </Link>
+                        );
+                      })}
+                    </nav>
+                    <Link href="/suplementos/nexus/habitos">
+                      Como o Nexus aprendeu isso <ChevronRight size={12} />
+                    </Link>
+                  </div>
+                ) : null}
+
                 <div className="nexus-dock-signals">
                   {brief.signals.slice(0, 4).map((signal) => (
-                    <Link href={signal.actionHref ?? "/suplementos/nexus"} key={signal.id}>
+                    <Link
+                      href={signal.actionHref ?? "/suplementos/nexus"}
+                      key={signal.id}
+                    >
                       <Sparkles size={13} />
-                      <span><strong>{signal.title}</strong><small>{signal.summary}</small></span>
+                      <span>
+                        <strong>{signal.title}</strong>
+                        <small>{signal.summary}</small>
+                      </span>
                       <ChevronRight size={13} />
                     </Link>
                   ))}
@@ -137,10 +196,16 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
               <button
                 className="button gold compact-button"
                 type="button"
+                data-nexus-action="ask_copilot"
+                data-nexus-component="nexus_dock"
                 disabled={asking || !input.trim()}
                 onClick={() => void ask()}
               >
-                {asking ? <LoaderCircle className="spin" size={14} /> : <Send size={14} />}
+                {asking ? (
+                  <LoaderCircle className="spin" size={14} />
+                ) : (
+                  <Send size={14} />
+                )}
                 {asking ? "Analisando" : "Perguntar"}
               </button>
             </div>

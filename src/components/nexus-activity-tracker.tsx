@@ -32,24 +32,44 @@ async function send(payload: Record<string, unknown>) {
       keepalive: true,
     });
   } catch {
-    // Telemetria nunca deve interromper o trabalho da operação.
+    // Telemetria nunca interrompe a operação.
   }
 }
 
 export function NexusActivityTracker({ enabled = true }: { enabled?: boolean }) {
   const pathname = usePathname();
-  const previousRef = useRef<string | null>(null);
+  const currentRouteRef = useRef<string | null>(null);
+  const startedAtRef = useRef<number>(Date.now());
 
   useEffect(() => {
     if (!enabled || !pathname) return;
 
-    const previous = previousRef.current;
-    previousRef.current = pathname;
+    const previous = currentRouteRef.current;
+    const now = Date.now();
+
+    if (previous && previous !== pathname) {
+      void send({
+        route: previous,
+        target_route: pathname,
+        action_kind: "route_exit",
+        action_key: "route_exit",
+        session_id: sessionId(),
+        metadata: {
+          viewport: viewport(),
+          duration_ms: Math.max(0, now - startedAtRef.current),
+          source: "route_change",
+        },
+      });
+    }
+
+    currentRouteRef.current = pathname;
+    startedAtRef.current = now;
 
     void send({
       route: pathname,
       previous_route: previous,
       action_kind: "page_view",
+      action_key: "page_view",
       session_id: sessionId(),
       metadata: { viewport: viewport() },
     });
@@ -60,31 +80,92 @@ export function NexusActivityTracker({ enabled = true }: { enabled?: boolean }) 
 
     const onClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
-      const anchor = target?.closest("a[href]") as HTMLAnchorElement | null;
-      if (!anchor) return;
+      if (!target) return;
 
-      try {
-        const url = new URL(anchor.href, window.location.href);
-        if (url.origin !== window.location.origin) return;
-        if (!url.pathname.startsWith("/")) return;
+      const anchor = target.closest("a[href]") as HTMLAnchorElement | null;
+      if (anchor) {
+        try {
+          const url = new URL(anchor.href, window.location.href);
+          if (url.origin === window.location.origin && url.pathname.startsWith("/")) {
+            void send({
+              route: window.location.pathname,
+              target_route: url.pathname,
+              action_kind: "navigation_click",
+              action_key: url.pathname,
+              session_id: sessionId(),
+              metadata: {
+                viewport: viewport(),
+                source: "internal_link",
+              },
+            });
+          }
+        } catch {
+          // Link inválido não gera evento.
+        }
+      }
 
+      const button = target.closest(
+        "button[data-nexus-action]",
+      ) as HTMLButtonElement | null;
+
+      if (button?.dataset.nexusAction) {
         void send({
           route: window.location.pathname,
-          target_route: url.pathname,
-          action_kind: "navigation_click",
+          action_kind: "action_click",
+          action_key: button.dataset.nexusAction.slice(0, 120),
           session_id: sessionId(),
           metadata: {
             viewport: viewport(),
-            source: "internal_link",
+            source: "explicit_action",
+            component: button.dataset.nexusComponent?.slice(0, 120),
           },
         });
-      } catch {
-        // Ignora links não navegáveis.
       }
     };
 
+    const onSubmit = (event: SubmitEvent) => {
+      const form = event.target as HTMLFormElement | null;
+      const key = form?.dataset.nexusForm;
+      if (!key) return;
+
+      void send({
+        route: window.location.pathname,
+        action_kind: "form_submit",
+        action_key: key.slice(0, 120),
+        session_id: sessionId(),
+        metadata: {
+          viewport: viewport(),
+          source: "explicit_form",
+        },
+      });
+    };
+
+    const onPageHide = () => {
+      const route = currentRouteRef.current;
+      if (!route) return;
+
+      void send({
+        route,
+        action_kind: "route_exit",
+        action_key: "route_exit",
+        session_id: sessionId(),
+        metadata: {
+          viewport: viewport(),
+          duration_ms: Math.max(0, Date.now() - startedAtRef.current),
+          source: "page_hide",
+        },
+      });
+    };
+
     document.addEventListener("click", onClick, { capture: true });
-    return () => document.removeEventListener("click", onClick, { capture: true });
+    document.addEventListener("submit", onSubmit, { capture: true });
+    window.addEventListener("pagehide", onPageHide);
+
+    return () => {
+      document.removeEventListener("click", onClick, { capture: true });
+      document.removeEventListener("submit", onSubmit, { capture: true });
+      window.removeEventListener("pagehide", onPageHide);
+    };
   }, [enabled]);
 
   return null;
