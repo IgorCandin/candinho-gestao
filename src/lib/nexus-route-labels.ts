@@ -1,5 +1,6 @@
 const ROUTES: Array<[string, string]> = [
   ["/nexus/foco", "Nexus · Meu Dia"],
+  ["/nexus/qualidade", "Nexus · Qualidade"],
   ["/nexus/rotinas", "Nexus · Rotinas"],
   ["/nexus/fila", "Nexus · Fila Única"],
   ["/pedidos-pendentes", "Pedidos pendentes"],

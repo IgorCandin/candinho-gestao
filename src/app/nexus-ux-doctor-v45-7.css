@@ -1,0 +1,101 @@
+/* V45.7 · UX Doctor + fechamento responsivo */
+.nexus-ux-doctor-v457{display:grid;gap:12px;min-width:0}
+.nexus-ux-doctor-hero-v457{padding:14px;border:1px solid rgba(217,164,65,.2);border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:radial-gradient(circle at 8% 0%,rgba(217,164,65,.07),transparent 32%),rgba(255,255,255,.01)}
+.nexus-ux-doctor-hero-v457 h1{margin:4px 0 0;font-size:16px}
+.nexus-ux-doctor-hero-v457 p{max-width:680px;margin:4px 0 0;color:var(--muted);font-size:7px;line-height:1.5}
+.nexus-ux-doctor-hero-actions-v457{display:flex;gap:6px;flex-wrap:wrap}
+.nexus-ux-doctor-score-v457{display:grid;grid-template-columns:1.15fr repeat(4,minmax(0,1fr));gap:7px}
+.nexus-ux-doctor-score-v457>div,.nexus-ux-doctor-score-v457>article{min-width:0;padding:10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.01)}
+.nexus-ux-doctor-score-v457 .score span,.nexus-ux-doctor-score-v457 .score strong,.nexus-ux-doctor-score-v457 .score small{display:block}
+.nexus-ux-doctor-score-v457 .score span{color:var(--muted);font-size:6px}
+.nexus-ux-doctor-score-v457 .score strong{margin-top:2px;font-size:20px;line-height:1}
+.nexus-ux-doctor-score-v457 .score small{margin-top:3px;color:var(--muted);font-size:5.7px}
+.nexus-ux-doctor-score-v457>article{display:flex;align-items:center;gap:8px}
+.nexus-ux-doctor-score-v457>article>svg{color:var(--gold)}
+.nexus-ux-doctor-score-v457>article span,.nexus-ux-doctor-score-v457>article small,.nexus-ux-doctor-score-v457>article strong{display:block}
+.nexus-ux-doctor-score-v457>article small{color:var(--muted);font-size:5.8px}
+.nexus-ux-doctor-score-v457>article strong{margin-top:2px;font-size:14px}
+.nexus-ux-doctor-grid-v457{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(220px,.65fr);gap:10px;align-items:start}
+.nexus-ux-doctor-routes-v457,.nexus-ux-doctor-device-v457,.nexus-ux-auto-panel-v457{min-width:0}
+.nexus-ux-route-v457{padding:7px 0;border-bottom:1px solid var(--line);display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:8px}
+.nexus-ux-route-v457:last-child{border-bottom:0}
+.nexus-ux-route-v457 .rank{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;color:var(--gold);background:rgba(217,164,65,.07);font-size:6px;font-weight:900}
+.nexus-ux-route-v457 .copy{min-width:0}
+.nexus-ux-route-v457 .copy strong,.nexus-ux-route-v457 .copy small{display:block}
+.nexus-ux-route-v457 .copy strong{font-size:7.2px}
+.nexus-ux-route-v457 .copy small{margin-top:2px;overflow:hidden;color:var(--muted);font-size:5.5px;text-overflow:ellipsis;white-space:nowrap}
+.nexus-ux-route-v457 .numbers{text-align:right}
+.nexus-ux-route-v457 .numbers b,.nexus-ux-route-v457 .numbers small{display:block}
+.nexus-ux-route-v457 .numbers b{font-size:8px}
+.nexus-ux-route-v457 .numbers small{margin-top:2px;color:var(--muted);font-size:5.4px}
+.nexus-ux-device-row-v457{padding:7px 0;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nexus-ux-device-row-v457:last-child{border-bottom:0}
+.nexus-ux-device-row-v457 span{color:var(--muted);font-size:6.2px;text-transform:capitalize}
+.nexus-ux-device-row-v457 strong{font-size:9px}
+.nexus-ux-auto-grid-v457{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.nexus-ux-auto-card-v457{min-width:0;padding:9px;border:1px solid var(--line);border-radius:9px;display:grid;gap:5px;background:rgba(255,255,255,.01)}
+.nexus-ux-auto-card-v457.high{border-top-color:rgba(229,91,91,.42)}
+.nexus-ux-auto-card-v457.attention{border-top-color:rgba(217,164,65,.34)}
+.nexus-ux-auto-card-v457 header{display:flex;align-items:center;justify-content:space-between;gap:7px}
+.nexus-ux-auto-card-v457 header small{color:var(--muted);font-size:5.5px}
+.nexus-ux-auto-card-v457>strong{font-size:7.3px}
+.nexus-ux-auto-card-v457 .route{overflow:hidden;color:#7f858f;font-size:5.3px;text-overflow:ellipsis;white-space:nowrap}
+.nexus-ux-auto-card-v457 p{margin:1px 0 0;color:#a0a5ae;font-size:6px;line-height:1.45;overflow-wrap:anywhere}
+.nexus-ux-auto-card-v457 footer{display:flex;gap:5px;flex-wrap:wrap;color:var(--muted);font-size:5.3px}
+.nexus-ux-auto-card-v457>a{margin-top:2px;color:var(--gold);font-size:5.8px;font-weight:850}
+
+/* Relatos manuais — substitui grid inline rígido antigo */
+.ux-issue-list-v457{min-width:0}
+.ux-issue-list-head-v457{align-items:flex-start}
+.ux-issue-list-body-v457{display:grid;gap:10px;min-width:0}
+.ux-issue-filters-v457{display:grid;grid-template-columns:minmax(220px,1fr) repeat(2,minmax(140px,190px));gap:8px;min-width:0}
+.ux-issue-filters-v457>*{min-width:0;max-width:100%}
+.ux-issue-count-v457{color:var(--muted)}
+.ux-issue-cards-v457{display:grid;gap:8px;min-width:0}
+.ux-issue-card-v457{min-width:0;padding:11px;border:1px solid var(--line);border-radius:11px;display:grid;gap:8px;background:rgba(255,255,255,.012)}
+.ux-issue-card-top-v457{min-width:0;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.ux-issue-card-top-v457>div{min-width:0}
+.ux-issue-card-top-v457>div>strong{display:block;margin-top:6px;font-size:8px;overflow-wrap:anywhere}
+.ux-issue-card-top-v457>small{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:5.7px}
+.ux-issue-badges-v457{display:flex;gap:5px;flex-wrap:wrap}
+.ux-issue-card-v457>p{margin:0;font-size:7px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.ux-issue-meta-v457{display:flex;gap:6px;flex-wrap:wrap;color:var(--muted);font-size:5.6px}
+.ux-issue-error-v457{padding:7px;border:1px solid rgba(229,91,91,.18);border-radius:8px;color:#ef9a9a;font-size:5.8px;overflow-wrap:anywhere}
+.ux-issue-actions-v457{display:flex;justify-content:flex-end;gap:5px;flex-wrap:wrap}
+
+/* Resiliência global: reduz causas comuns de corte sem esconder overflow real */
+.app-shell main,
+main,
+.panel,
+.panel-body,
+.page-header,
+.grid,
+.inventory-search,
+.field,
+.card,
+section,
+article{min-width:0}
+input,select,textarea{max-width:100%}
+.panel p,.panel strong,.page-header p,.page-header h1{overflow-wrap:anywhere}
+.table-wrap,.table-scroll,.responsive-table{max-width:100%;overflow-x:auto}
+
+/* O probe precisa enxergar overflow de documento; não usar overflow-x:hidden globalmente. */
+@media(max-width:1100px){
+  .nexus-ux-doctor-score-v457{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .nexus-ux-doctor-score-v457 .score{grid-column:span 2}
+  .nexus-ux-auto-grid-v457{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .nexus-ux-doctor-hero-v457{align-items:stretch;flex-direction:column}
+  .nexus-ux-doctor-hero-actions-v457 .button{flex:1 1 auto;justify-content:center}
+  .nexus-ux-doctor-score-v457{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .nexus-ux-doctor-score-v457 .score{grid-column:span 2}
+  .nexus-ux-doctor-grid-v457{grid-template-columns:1fr}
+  .nexus-ux-auto-grid-v457{grid-template-columns:1fr}
+  .ux-issue-list-head-v457{align-items:stretch;flex-direction:column}
+  .ux-issue-list-head-v457 .button{width:100%;justify-content:center}
+  .ux-issue-filters-v457{grid-template-columns:1fr}
+  .ux-issue-card-top-v457{flex-direction:column}
+  .ux-issue-actions-v457{justify-content:stretch}
+  .ux-issue-actions-v457 .button{flex:1 1 140px;justify-content:center}
+}

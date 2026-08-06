@@ -24,6 +24,12 @@ export const NEXUS_COMMAND_ROUTES: NexusCommandRoute[] = [
     keywords: "meu dia foco começar agora atalhos rotina nexus",
   },
   {
+    label: "Nexus · Qualidade",
+    href: "/nexus/qualidade",
+    operation: "company",
+    keywords: "qualidade ux erro quebra layout responsividade doctor diagnostico",
+  },
+  {
     label: "Nexus · Rotinas",
     href: "/nexus/rotinas",
     operation: "company",

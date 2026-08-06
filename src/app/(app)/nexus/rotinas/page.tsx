@@ -7,7 +7,7 @@ import {
 } from "@/lib/nexus-personal-types";
 import {
   emptyNexusRoutinesWorkspace,
-  type NexusRoutinesWorkspace,
+  type NexusRoutinesWorkspace as NexusRoutinesWorkspaceSnapshot,
 } from "@/lib/nexus-routine-types";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,7 +30,7 @@ export default async function NexusRoutinesPage() {
   ]);
 
   const workspace =
-    (routinesResult.data as NexusRoutinesWorkspace | null) ??
+    (routinesResult.data as NexusRoutinesWorkspaceSnapshot | null) ??
     emptyNexusRoutinesWorkspace();
 
   const personal =
