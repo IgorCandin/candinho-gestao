@@ -1,0 +1,66 @@
+/* V45.6 · Rotinas Nexus */
+.nexus-routines-workspace-v456{display:grid;gap:12px}
+.nexus-routines-hero-v456{padding:14px;border:1px solid rgba(217,164,65,.2);border-radius:14px;display:flex;align-items:center;justify-content:space-between;gap:14px;background:radial-gradient(circle at 10% 0%,rgba(217,164,65,.07),transparent 32%),rgba(255,255,255,.01)}
+.nexus-routines-hero-v456 h1{margin:5px 0 0;font-size:16px}
+.nexus-routines-hero-v456 p{max-width:650px;margin:4px 0 0;color:var(--muted);font-size:7px;line-height:1.5}
+.nexus-routines-hero-v456>div:last-child{display:flex;gap:6px;flex-wrap:wrap}
+.nexus-routines-stats-v456{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.nexus-routines-stats-v456 article{padding:10px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.01)}
+.nexus-routines-stats-v456 article.active{border-color:rgba(217,164,65,.3)}
+.nexus-routines-stats-v456 span,.nexus-routines-stats-v456 strong{display:block}
+.nexus-routines-stats-v456 span{color:var(--muted);font-size:6px}
+.nexus-routines-stats-v456 strong{margin-top:3px;font-size:15px}
+.nexus-routines-panel-v456 .panel-head h2{display:flex;align-items:center;gap:6px}
+.nexus-routines-panel-v456 .panel-head h2 svg{color:var(--gold)}
+.nexus-routine-active-v456{padding:12px;border:1px solid rgba(217,164,65,.28);border-radius:12px;display:grid;grid-template-columns:minmax(0,1fr) 170px auto auto;align-items:center;gap:9px;background:rgba(217,164,65,.025)}
+.nexus-routine-active-v456 h2{margin:3px 0 0;font-size:10px}
+.nexus-routine-active-v456 p{margin:3px 0 0;color:var(--muted);font-size:6px}
+.nexus-routine-active-progress-v456{height:5px;border-radius:999px;overflow:hidden;background:rgba(255,255,255,.05)}
+.nexus-routine-active-progress-v456 span{display:block;height:100%;border-radius:inherit;background:var(--gold)}
+.nexus-routine-suggestions-v456{display:grid;gap:6px}
+.nexus-routine-suggestion-v456{padding:9px;border:1px solid var(--line);border-radius:9px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:9px}
+.nexus-routine-suggestion-v456 small{color:var(--muted);font-size:5.8px}
+.nexus-routine-trail-v456{margin-top:5px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.nexus-routine-trail-v456>span{display:inline-flex;align-items:center;gap:4px}
+.nexus-routine-trail-v456 b{width:18px;height:18px;border-radius:6px;display:grid;place-items:center;color:var(--gold);background:rgba(217,164,65,.07);font-size:5.8px}
+.nexus-routine-trail-v456 em{max-width:180px;overflow:hidden;color:var(--text);font-size:6.2px;font-style:normal;text-overflow:ellipsis;white-space:nowrap}
+.nexus-routine-trail-v456 svg{color:#6f747d}
+.nexus-routine-builder-v456{margin:8px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.nexus-routine-builder-v456 button{min-width:0;padding:8px;border:1px solid var(--line);border-radius:9px;text-align:left;color:var(--text);background:rgba(255,255,255,.01);cursor:pointer}
+.nexus-routine-builder-v456 button.selected{border-color:rgba(217,164,65,.35);background:rgba(217,164,65,.035)}
+.nexus-routine-builder-v456 button>span{width:20px;height:20px;border-radius:6px;display:grid;place-items:center;color:var(--gold);background:rgba(217,164,65,.07);font-size:6px;font-weight:900}
+.nexus-routine-builder-v456 button strong,.nexus-routine-builder-v456 button small{display:block}
+.nexus-routine-builder-v456 button strong{margin-top:5px;font-size:7px}
+.nexus-routine-builder-v456 button small{margin-top:2px;overflow:hidden;color:var(--muted);font-size:5.4px;text-overflow:ellipsis;white-space:nowrap}
+.nexus-routine-builder-preview-v456{margin:7px 0 9px;padding:8px;border:1px dashed rgba(217,164,65,.2);border-radius:8px}
+.nexus-routine-builder-preview-v456>strong{font-size:6px}
+.nexus-routine-grid-v456{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.nexus-routine-card-v456{padding:10px;border:1px solid var(--line);border-radius:10px;display:grid;gap:8px;background:rgba(255,255,255,.01)}
+.nexus-routine-card-v456 header{display:flex;justify-content:space-between;gap:10px}
+.nexus-routine-card-v456 header small{color:var(--muted);font-size:5.6px}
+.nexus-routine-card-v456 h3{margin:3px 0 0;font-size:8px}
+.nexus-routine-card-v456 p{margin:3px 0 0;color:#9298a2;font-size:6px;line-height:1.45}
+.nexus-routine-card-v456 footer{display:flex;gap:6px;flex-wrap:wrap}
+.nexus-routine-history-v456{display:grid;gap:4px}
+.nexus-routine-history-v456>div{padding:7px;border:1px solid var(--line);border-radius:7px;display:flex;align-items:center;gap:7px}
+.nexus-routine-history-v456>div>svg{color:var(--gold)}
+.nexus-routine-history-v456 strong,.nexus-routine-history-v456 small{display:block}
+.nexus-routine-history-v456 strong{font-size:6.8px}
+.nexus-routine-history-v456 small{margin-top:2px;color:var(--muted);font-size:5.5px}
+
+/* Dock global da rotina */
+.nexus-routine-dock-v456{position:fixed;right:16px;bottom:78px;z-index:92;width:min(410px,calc(100vw - 32px));padding:9px;border:1px solid rgba(217,164,65,.28);border-radius:12px;background:rgba(13,14,17,.97);box-shadow:0 18px 48px rgba(0,0,0,.36);backdrop-filter:blur(18px)}
+.nexus-routine-dock-v456.completed{width:auto;min-width:260px;display:flex;align-items:center;gap:8px;color:#72d397}
+.nexus-routine-dock-v456.completed span,.nexus-routine-dock-v456.completed strong,.nexus-routine-dock-v456.completed small{display:block}
+.nexus-routine-dock-v456.completed strong{font-size:7px}.nexus-routine-dock-v456.completed small{margin-top:2px;color:var(--muted);font-size:5.7px}
+.nexus-routine-dock-v456>header{display:grid;grid-template-columns:29px minmax(0,1fr) auto;align-items:center;gap:7px}
+.nexus-routine-dock-v456>header>button{width:27px;height:27px;border:1px solid var(--line);border-radius:7px;display:grid;place-items:center;color:var(--muted);background:transparent;cursor:pointer}
+.nexus-routine-dock-icon-v456{width:29px;height:29px;border-radius:8px;display:grid;place-items:center;color:var(--gold);background:rgba(217,164,65,.07)}
+.nexus-routine-dock-v456 header small,.nexus-routine-dock-v456 header strong{display:block}.nexus-routine-dock-v456 header small{color:var(--muted);font-size:5.5px}.nexus-routine-dock-v456 header strong{margin-top:2px;font-size:7.2px}
+.nexus-routine-dock-progress-v456{margin-top:8px}.nexus-routine-dock-progress-v456>div{display:flex;justify-content:space-between;color:var(--muted);font-size:5.5px}.nexus-routine-dock-progress-v456>i{height:4px;margin-top:4px;border-radius:999px;display:block;overflow:hidden;background:rgba(255,255,255,.05)}.nexus-routine-dock-progress-v456>i>em{display:block;height:100%;border-radius:inherit;background:var(--gold)}
+.nexus-routine-dock-next-v456{margin-top:7px;padding:7px;border:1px solid var(--line);border-radius:8px}.nexus-routine-dock-next-v456 small,.nexus-routine-dock-next-v456 strong,.nexus-routine-dock-next-v456 span{display:block}.nexus-routine-dock-next-v456 small{color:var(--muted);font-size:5.4px}.nexus-routine-dock-next-v456 strong{margin-top:2px;font-size:7.2px}.nexus-routine-dock-next-v456 span{margin-top:2px;color:#7f858e;font-size:5.4px}
+.nexus-routine-dock-v456>footer{margin-top:7px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.nexus-routine-manage-v456{margin-left:auto;color:var(--muted);font-size:5.8px}
+.nexus-routine-dock-v456.collapsed{width:min(330px,calc(100vw - 32px))}
+@media(max-width:900px){.nexus-routine-builder-v456{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-routine-grid-v456{grid-template-columns:1fr}.nexus-routine-active-v456{grid-template-columns:minmax(0,1fr) 140px auto}}
+@media(max-width:720px){.nexus-routines-hero-v456{align-items:stretch;flex-direction:column}.nexus-routines-stats-v456{grid-template-columns:repeat(2,minmax(0,1fr))}.nexus-routine-suggestion-v456{grid-template-columns:1fr}.nexus-routine-builder-v456{grid-template-columns:1fr}.nexus-routine-active-v456{grid-template-columns:1fr}.nexus-routine-dock-v456{right:10px;bottom:96px;width:calc(100vw - 20px)}.nexus-routine-dock-v456.collapsed{width:calc(100vw - 20px)}}

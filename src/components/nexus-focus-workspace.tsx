@@ -10,6 +10,7 @@ import {
   Keyboard,
   Landmark,
   LoaderCircle,
+  ListChecks,
   Pin,
   RefreshCcw,
   Sparkles,
@@ -195,6 +196,9 @@ export function NexusFocusWorkspace({
         </div>
 
         <div className="nexus-focus-hero-actions-v455">
+          <Link className="button ghost compact-button" href="/nexus/rotinas">
+            <ListChecks size={13} /> Rotinas
+          </Link>
           <button
             className="button ghost compact-button"
             type="button"
