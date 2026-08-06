@@ -3,6 +3,7 @@ import { AutoPartnershipSaleUX } from "@/components/auto-partnership-sale-ux";
 import { CentralCostsShortcut } from "@/components/central-costs-shortcut";
 import { CentralKnowledgeNav } from "@/components/central-knowledge-nav";
 import { CustomerRelationshipsPortal } from "@/components/customer-relationships-portal";
+import { CustomerSalesAssistantPortal } from "@/components/customer-sales-assistant-portal";
 import { DesktopEscapeBack } from "@/components/desktop-escape-back";
 import { DesktopSidebarController } from "@/components/desktop-sidebar-controller";
 import { FitnessUxScope } from "@/components/fitness-ux-scope";
@@ -62,6 +63,9 @@ export default async function ProtectedLayout({
         enabled={canUseNexusOperating}
       />
       <CustomerRelationshipsPortal
+        enabled={canUseNexusOperating}
+      />
+      <CustomerSalesAssistantPortal
         enabled={canUseNexusOperating}
       />
       <NexusCopilotDock
