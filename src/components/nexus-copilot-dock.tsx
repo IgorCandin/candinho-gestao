@@ -4,6 +4,8 @@ import Link from "next/link";
 import {
   Bot,
   ChevronRight,
+  Command,
+  ListChecks,
   LoaderCircle,
   MessageSquareText,
   Route,
@@ -15,6 +17,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { NexusDailySnapshot } from "@/lib/nexus-daily-types";
 import type { NexusBrief } from "@/lib/nexus-operating-types";
+import type { NexusUnifiedQueueSnapshot } from "@/lib/nexus-unified-types";
 import { nexusRouteHref, nexusRouteLabel } from "@/lib/nexus-route-labels";
 
 export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
@@ -22,6 +25,7 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
   const [open, setOpen] = useState(false);
   const [brief, setBrief] = useState<NexusBrief | null>(null);
   const [daily, setDaily] = useState<NexusDailySnapshot | null>(null);
+  const [unified, setUnified] = useState<NexusUnifiedQueueSnapshot | null>(null);
   const [loadingBrief, setLoadingBrief] = useState(false);
   const [input, setInput] = useState("");
   const [answer, setAnswer] = useState("");
@@ -36,15 +40,16 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
 
   async function openDock() {
     setOpen(true);
-    if ((brief && daily) || loadingBrief) return;
+    if ((brief && daily && unified) || loadingBrief) return;
 
     setLoadingBrief(true);
     try {
-      const [briefResponse, dailyResponse] = await Promise.all([
+      const [briefResponse, dailyResponse, unifiedResponse] = await Promise.all([
         fetch("/api/nexus/brief", { cache: "no-store" }),
         fetch(`/api/nexus/daily?route=${encodeURIComponent(pathname)}`, {
           cache: "no-store",
         }),
+        fetch("/api/nexus/unified?limit=20", { cache: "no-store" }),
       ]);
 
       const briefPayload = (await briefResponse.json()) as NexusBrief & {
@@ -59,6 +64,10 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
 
       if (dailyResponse.ok) {
         setDaily((await dailyResponse.json()) as NexusDailySnapshot);
+      }
+
+      if (unifiedResponse.ok) {
+        setUnified((await unifiedResponse.json()) as NexusUnifiedQueueSnapshot);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Nexus indisponível.");
@@ -99,6 +108,11 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
     }
   }
 
+  function openCommand() {
+    setOpen(false);
+    window.dispatchEvent(new Event("nexus:command-open"));
+  }
+
   return (
     <>
       <button
@@ -111,7 +125,9 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
       >
         {open ? <X size={20} /> : <Bot size={21} />}
         <b>{open ? "Fechar" : "Nexus"}</b>
-        {!open && brief?.counts.urgent ? (
+        {!open && unified?.summary.urgent ? (
+          <span>{Math.min(unified.summary.urgent, 99)}</span>
+        ) : !open && brief?.counts.urgent ? (
           <span>{Math.min(brief.counts.urgent, 99)}</span>
         ) : null}
       </button>
@@ -123,8 +139,8 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
               <span className="eyebrow">Nexus</span>
               <strong>Copiloto da operação</strong>
             </div>
-            <Link href="/suplementos/nexus">
-              Central completa <ChevronRight size={13} />
+            <Link href="/nexus/fila">
+              Fila Única <ChevronRight size={13} />
             </Link>
           </div>
 
@@ -136,9 +152,37 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
             ) : brief ? (
               <>
                 <div className="nexus-dock-counts">
-                  <div><span>Agora</span><strong>{actionableCount}</strong></div>
-                  <div><span>Urgente</span><strong>{brief.counts.urgent}</strong></div>
-                  <div><span>Oportunidade</span><strong>{brief.counts.opportunity}</strong></div>
+                  <div>
+                    <span>Fila global</span>
+                    <strong>{unified?.summary.total ?? actionableCount}</strong>
+                  </div>
+                  <div>
+                    <span>Urgente</span>
+                    <strong>{unified?.summary.urgent ?? brief.counts.urgent}</strong>
+                  </div>
+                  <div>
+                    <span>Oportunidade</span>
+                    <strong>{brief.counts.opportunity}</strong>
+                  </div>
+                </div>
+
+                <div className="nexus-dock-global-v454">
+                  <Link href="/nexus/fila">
+                    <ListChecks size={14} />
+                    <span>
+                      <strong>Fila Única</strong>
+                      <small>Suplementos + Fitness + Bank + Central</small>
+                    </span>
+                    <ChevronRight size={13} />
+                  </Link>
+                  <button type="button" onClick={openCommand}>
+                    <Command size={14} />
+                    <span>
+                      <strong>Comando rápido</strong>
+                      <small>Ctrl+K em qualquer tela</small>
+                    </span>
+                    <ChevronRight size={13} />
+                  </button>
                 </div>
 
                 {daily?.shortcuts?.length ? (
@@ -166,7 +210,7 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
                 ) : null}
 
                 <div className="nexus-dock-signals">
-                  {brief.signals.slice(0, 4).map((signal) => (
+                  {brief.signals.slice(0, 3).map((signal) => (
                     <Link
                       href={signal.actionHref ?? "/suplementos/nexus"}
                       key={signal.id}
@@ -185,13 +229,13 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
 
             <div className="nexus-dock-ask">
               <label>
-                <MessageSquareText size={14} /> Pergunta rápida
+                <MessageSquareText size={14} /> Pergunta detalhada
               </label>
               <textarea
                 rows={3}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder="O que faço agora? Quem devo chamar?"
+                placeholder="Quem devo chamar? Qual produto oferecer?"
               />
               <button
                 className="button gold compact-button"

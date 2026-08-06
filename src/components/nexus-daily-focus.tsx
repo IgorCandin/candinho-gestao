@@ -5,6 +5,7 @@ import {
   ArrowRight,
   Bot,
   ChevronRight,
+  FastForward,
   LoaderCircle,
   Route,
   Sparkles,
@@ -60,7 +61,16 @@ export function NexusDailyFocus() {
   }, [load]);
 
   const next = snapshot.next_action;
-  const workflow = snapshot.workflows[0];
+  const matchingWorkflow =
+    snapshot.workflows.find(
+      (item) =>
+        item.repetitions >= 3 &&
+        item.step1 === snapshot.route &&
+        Boolean(nexusRouteHref(item.step3)),
+    ) ?? null;
+  const skipHref = matchingWorkflow
+    ? nexusRouteHref(matchingWorkflow.step3)
+    : null;
 
   return (
     <section className="nexus-daily-focus-v453">
@@ -69,9 +79,14 @@ export function NexusDailyFocus() {
           <span className="eyebrow">Nexus Daily · personalizado</span>
           <h3><Bot size={18} /> Próxima ação</h3>
         </div>
-        <Link href="/suplementos/nexus/habitos">
-          Ver o que aprendi <ChevronRight size={13} />
-        </Link>
+        <div className="nexus-daily-header-links-v454">
+          <Link href="/nexus/fila">
+            Fila Única <ChevronRight size={13} />
+          </Link>
+          <Link href="/suplementos/nexus/habitos">
+            Hábitos <ChevronRight size={13} />
+          </Link>
+        </div>
       </header>
 
       {loading ? (
@@ -129,7 +144,7 @@ export function NexusDailyFocus() {
           <Sparkles size={17} />
           <span>
             <strong>Nada crítico agora.</strong>
-            Use seus atalhos aprendidos ou revise a Agenda.
+            Use seus atalhos aprendidos ou revise a Fila Única.
           </span>
         </div>
       )}
@@ -166,16 +181,24 @@ export function NexusDailyFocus() {
         </div>
       )}
 
-      {workflow && workflow.repetitions >= 3 && (
-        <div className="nexus-workflow-hint-v453">
+      {matchingWorkflow && skipHref && (
+        <div className="nexus-workflow-hint-v453 nexus-workflow-skip-v454">
           <Sparkles size={13} />
           <span>
-            Percebi um fluxo repetido:{" "}
+            Você repete{" "}
             <strong>
-              {nexusWorkflowLabel([workflow.step1, workflow.step2, workflow.step3])}
+              {nexusWorkflowLabel([
+                matchingWorkflow.step1,
+                matchingWorkflow.step2,
+                matchingWorkflow.step3,
+              ])}
             </strong>{" "}
-            · {workflow.repetitions} vezes.
+            · {matchingWorkflow.repetitions} vezes.
           </span>
+          <Link className="button ghost compact-button" href={skipHref}>
+            <FastForward size={12} />
+            Ir direto para {nexusRouteLabel(matchingWorkflow.step3)}
+          </Link>
         </div>
       )}
     </section>

@@ -8,6 +8,7 @@ import { DesktopEscapeBack } from "@/components/desktop-escape-back";
 import { DesktopSidebarController } from "@/components/desktop-sidebar-controller";
 import { FitnessUxScope } from "@/components/fitness-ux-scope";
 import { NexusActivityTracker } from "@/components/nexus-activity-tracker";
+import { NexusCommandPalette } from "@/components/nexus-command-palette";
 import { NexusCopilotDock } from "@/components/nexus-copilot-dock";
 import { OperationToolSearch } from "@/components/operation-tool-search";
 import { PartnerUxOverlay } from "@/components/partner-ux-overlay";
@@ -40,6 +41,9 @@ export default async function ProtectedLayout({
     (access.role === "admin" ||
       access.canWriteSupplements);
 
+  const canUseNexusCommand =
+    access.active && access.role !== "partner";
+
   const canManagePublicProducts =
     access.active &&
     (access.role === "admin" ||
@@ -58,6 +62,10 @@ export default async function ProtectedLayout({
 
       <FitnessUxScope />
       <NexusActivityTracker enabled={access.active} />
+      <NexusCommandPalette
+        access={access}
+        enabled={canUseNexusCommand}
+      />
       <UxIssueReporter enabled={access.active} />
       <AutoPartnershipSaleUX
         enabled={canUseNexusOperating}
