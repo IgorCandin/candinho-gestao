@@ -11,6 +11,7 @@ import {
   getSaleStockOptions,
 } from "@/lib/data";
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function NewSalePage({
   searchParams,
@@ -19,6 +20,7 @@ export default async function NewSalePage({
 }) {
   const params = await searchParams;
   const quoteId = params.quote?.trim() || null;
+  const supabase = await createClient();
 
   const [
     customers,
@@ -28,6 +30,7 @@ export default async function NewSalePage({
     combos,
     initialQuote,
     promotionRows,
+    durationResult,
   ] = await Promise.all([
     getCustomerOptions(),
     getSaleLocations(),
@@ -36,28 +39,48 @@ export default async function NewSalePage({
     getProductComboSaleOptions(),
     quoteId ? getQuoteDraft(quoteId) : Promise.resolve(null),
     getActivePromotionRows(),
+    supabase
+      .from("products")
+      .select("id,duration_days")
+      .eq("active", true),
   ]);
 
   const regularPrices = Object.fromEntries(
-    stock.map((row) => [row.product_id, Number(row.sale_price ?? 0)]),
+    stock.map((row) => [
+      row.product_id,
+      Number(row.sale_price ?? 0),
+    ]),
+  );
+
+  const productDurations = Object.fromEntries(
+    (durationResult.data ?? []).map((row) => [
+      row.id,
+      Math.max(1, Number(row.duration_days ?? 30)),
+    ]),
   );
 
   return (
     <>
       <DemoBanner />
+
       <PageHeader
         eyebrow="Comercial"
-        title={initialQuote ? "Revisar Orçamento" : "Novo Orçamento"}
+        title={
+          initialQuote
+            ? "Revisar Orçamento"
+            : "Novo Orçamento"
+        }
         description={
           initialQuote
-            ? `Orçamento #${initialQuote.quote_number} salvo. Revise a proposta e, se o cliente confirmou, avance para a venda.`
-            : "Monte a proposta com o preço normal. Promoções ativas ficam disponíveis como escolha explícita em cada produto."
+            ? `Orçamento #${initialQuote.quote_number} salvo. Revise a proposta e confirme quando o cliente fechar.`
+            : "Monte a proposta. Se o cliente já fechou, escolha Orçamento confirmado para concluir pagamento, entrega e agenda inteligente no mesmo fluxo."
         }
       />
 
       <CommercialSaleRefinementUX
         promotions={promotionRows}
         regularPrices={regularPrices}
+        productDurations={productDurations}
         hasSavedQuote={Boolean(initialQuote)}
       />
 
