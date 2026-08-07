@@ -121,19 +121,40 @@ function inspectFixedClipping(pathname: string) {
 
   for (const element of elements) {
     const rect = element.getBoundingClientRect();
+    const style = window.getComputedStyle(element);
+
     if (rect.width <= 0 || rect.height <= 0) continue;
     if (rect.width > viewportWidth * 1.15 && rect.height > viewportHeight * 0.8) {
       continue;
     }
     if (hasScrollableAncestor(element)) continue;
 
-    const overflow = Math.max(
+    // Elementos inteiramente fora da viewport costumam estar em transição,
+    // recolhidos ou simplesmente foram ultrapassados pelo scroll. Não são
+    // quebra visual por si só.
+    const intersectsViewport =
+      rect.right > 0 &&
+      rect.left < viewportWidth &&
+      rect.bottom > 0 &&
+      rect.top < viewportHeight;
+
+    if (!intersectsViewport) continue;
+
+    const horizontalOverflow = Math.max(
       0,
       -rect.left,
       rect.right - viewportWidth,
-      -rect.top,
-      rect.bottom - viewportHeight,
     );
+
+    // Sticky acompanha o fluxo vertical da página. O V45.7 tratava qualquer
+    // parte acima/abaixo da viewport como clipping e gerava falsos positivos
+    // em sidebar, topbar, painel de venda e imagens de produto.
+    const verticalOverflow =
+      style.position === "fixed"
+        ? Math.max(0, -rect.top, rect.bottom - viewportHeight)
+        : 0;
+
+    const overflow = Math.max(horizontalOverflow, verticalOverflow);
 
     if (overflow > 12) {
       const hint = selectorHint(element);
@@ -142,6 +163,9 @@ function inspectFixedClipping(pathname: string) {
         dedupeKey: hint,
         payload: {
           element: hint,
+          position: style.position,
+          horizontal_overflow: Math.ceil(horizontalOverflow),
+          vertical_overflow: Math.ceil(verticalOverflow),
           rect: {
             left: Math.round(rect.left),
             top: Math.round(rect.top),
@@ -169,8 +193,13 @@ function inspectLayout(pathname: string) {
   );
 
   const overflow = Math.max(0, Math.ceil(docWidth - viewportWidth));
+  const visualScale = window.visualViewport?.scale ?? 1;
+  const nonDefaultVisualScale = Math.abs(visualScale - 1) > 0.12;
 
-  if (overflow > 8) {
+  // Browser/pinch zoom altera a geometria observada. O objetivo do Doctor é
+  // medir a interface em escala normal; caso contrário ele acaba atribuindo
+  // ao ERP um overflow criado pelo próprio zoom do navegador.
+  if (overflow > 8 && !nonDefaultVisualScale) {
     void sendSignal(pathname, "horizontal_overflow", {
       overflowPx: overflow,
       dedupeKey: `${Math.round(viewportWidth / 50) * 50}`,
@@ -178,7 +207,7 @@ function inspectLayout(pathname: string) {
         document_width: docWidth,
         viewport_width: viewportWidth,
         visual_viewport_width: window.visualViewport?.width ?? null,
-        visual_viewport_scale: window.visualViewport?.scale ?? null,
+        visual_viewport_scale: visualScale,
       },
     });
   }

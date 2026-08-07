@@ -1,0 +1,402 @@
+/* =========================================================
+   V45.9 · UI FOUNDATION
+   Legibilidade em 100% + responsividade previsível
+   ========================================================= */
+
+.v459-erp {
+  --ui-text-micro: 10px;
+  --ui-text-xs: 11px;
+  --ui-text-sm: 12px;
+  --ui-text-base: 13px;
+  --ui-text-md: 14px;
+  --ui-text-lg: 16px;
+  --ui-title-page: clamp(22px, 2vw, 30px);
+  --ui-control-height: 36px;
+  --ui-control-height-compact: 32px;
+  --ui-radius-control: 8px;
+  font-size: var(--ui-text-base);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.v459-erp :where(.page-header h1) {
+  font-size: var(--ui-title-page) !important;
+  line-height: 1.08 !important;
+}
+
+.v459-erp :where(.page-header p, .panel-head p, .card p, .form-message) {
+  font-size: var(--ui-text-base) !important;
+  line-height: 1.5 !important;
+}
+
+.v459-erp :where(.panel-head h2, .panel > header h2) {
+  font-size: var(--ui-text-lg) !important;
+  line-height: 1.25 !important;
+}
+
+.v459-erp :where(.eyebrow) {
+  font-size: var(--ui-text-micro) !important;
+  line-height: 1.2 !important;
+  letter-spacing: .08em;
+}
+
+.v459-erp :where(.badge) {
+  font-size: var(--ui-text-micro) !important;
+  line-height: 1.2 !important;
+}
+
+.v459-erp :where(small) {
+  font-size: var(--ui-text-xs);
+  line-height: 1.4;
+}
+
+.v459-erp :where(.field > span, .field > label, label.field > span) {
+  font-size: var(--ui-text-sm) !important;
+  line-height: 1.3 !important;
+}
+
+.v459-erp :where(input, select, textarea) {
+  max-width: 100%;
+  min-height: var(--ui-control-height);
+  font-size: var(--ui-text-base) !important;
+  line-height: 1.35;
+}
+
+.v459-erp textarea { min-height: 88px; }
+
+.v459-erp :where(.button, button:not(.icon-button)) {
+  min-height: var(--ui-control-height);
+  font-size: var(--ui-text-sm) !important;
+  line-height: 1.2;
+}
+
+.v459-erp :where(.compact-button) {
+  min-height: var(--ui-control-height-compact) !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.v459-erp :where(.icon-button) {
+  min-width: 34px;
+  min-height: 34px;
+}
+
+.v459-erp :where(table) { font-size: var(--ui-text-sm); }
+.v459-erp :where(th) { font-size: var(--ui-text-xs); line-height: 1.25; }
+.v459-erp :where(td) { font-size: var(--ui-text-sm); line-height: 1.4; }
+
+.v459-erp :where(.panel, .panel-body, .card, .grid, main, section, article) { min-width: 0; }
+
+.v459-erp :where(.table-wrap, .table-scroll, .responsive-table) {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.v459-erp :where(.panel, .card, .page-header, .field, td, th) :where(p, span, strong, small, a) {
+  overflow-wrap: anywhere;
+}
+
+/* V45.3–V45.8: elimina microfontes acumuladas. */
+
+.v459-erp .nexus-action-history-v453 small,
+.v459-erp .nexus-action-history-v453 strong,
+.v459-erp .nexus-action-inline-error,
+.v459-erp .nexus-action-preview-changes > div,
+.v459-erp .nexus-action-preview-modal p,
+.v459-erp .nexus-action-preview-safety,
+.v459-erp .nexus-command-alt-hint-v455,
+.v459-erp .nexus-command-confidence-v454,
+.v459-erp .nexus-command-error-v454 span,
+.v459-erp .nexus-command-error-v454 strong,
+.v459-erp .nexus-command-examples-v454,
+.v459-erp .nexus-command-input-v454 input,
+.v459-erp .nexus-command-modal-v454 > footer,
+.v459-erp .nexus-command-result-head-v454 p,
+.v459-erp .nexus-command-route-row-v455>a small,
+.v459-erp .nexus-command-route-row-v455>a strong,
+.v459-erp .nexus-command-suggestions-head-v454,
+.v459-erp .nexus-command-suggestions-v454 > a small,
+.v459-erp .nexus-command-suggestions-v454 > a strong,
+.v459-erp .nexus-command-tip-v454,
+.v459-erp .nexus-command-trigger-v454,
+.v459-erp .nexus-command-trigger-v454 kbd,
+.v459-erp .nexus-context-shortcuts-title-v453,
+.v459-erp .nexus-daily-clear-v453,
+.v459-erp .nexus-daily-focus-v453 > header > a,
+.v459-erp .nexus-daily-header-links-v454 a,
+.v459-erp .nexus-daily-loading-v453,
+.v459-erp .nexus-daily-next-copy-v453 small,
+.v459-erp .nexus-daily-next-copy-v453 span,
+.v459-erp .nexus-daily-next-copy-v453 strong,
+.v459-erp .nexus-daily-severity-v453,
+.v459-erp .nexus-dock-global-v454 small,
+.v459-erp .nexus-dock-global-v454 strong,
+.v459-erp .nexus-dock-smart-v453 > a,
+.v459-erp .nexus-dock-smart-v453 > div:first-child,
+.v459-erp .nexus-dock-smart-v453 nav a,
+.v459-erp .nexus-focus-hero-v455 p,
+.v459-erp .nexus-focus-keyboard-v455,
+.v459-erp .nexus-focus-now-v454 p,
+.v459-erp .nexus-focus-now-v454 small,
+.v459-erp .nexus-focus-onboarding-v455 span,
+.v459-erp .nexus-focus-onboarding-v455 strong,
+.v459-erp .nexus-focus-panel-v455>header p,
+.v459-erp .nexus-focus-priority-copy-v455 small,
+.v459-erp .nexus-focus-priority-copy-v455 span,
+.v459-erp .nexus-focus-priority-copy-v455 strong,
+.v459-erp .nexus-focus-rank-v455,
+.v459-erp .nexus-focus-recent-v455 small,
+.v459-erp .nexus-focus-recent-v455 strong,
+.v459-erp .nexus-focus-suggestion-v455 small,
+.v459-erp .nexus-focus-suggestion-v455 span,
+.v459-erp .nexus-focus-suggestion-v455 strong,
+.v459-erp .nexus-focus-summary-v455 small,
+.v459-erp .nexus-focus-summary-v455 span,
+.v459-erp .nexus-habits-intro-v453,
+.v459-erp .nexus-habits-stats-v453 small,
+.v459-erp .nexus-habits-stats-v453 span,
+.v459-erp .nexus-personal-card-head-v455 kbd,
+.v459-erp .nexus-personal-card-v455>a small,
+.v459-erp .nexus-personal-card-v455>a span,
+.v459-erp .nexus-personal-card-v455>a strong,
+.v459-erp .nexus-pin-error-v455,
+.v459-erp .nexus-privacy-note-v453,
+.v459-erp .nexus-queue-severity-v454,
+.v459-erp .nexus-routine-active-v456 p,
+.v459-erp .nexus-routine-builder-preview-v456>strong,
+.v459-erp .nexus-routine-builder-v456 button small,
+.v459-erp .nexus-routine-builder-v456 button strong,
+.v459-erp .nexus-routine-builder-v456 button>span,
+.v459-erp .nexus-routine-card-v456 h3,
+.v459-erp .nexus-routine-card-v456 header small,
+.v459-erp .nexus-routine-card-v456 p,
+.v459-erp .nexus-routine-dock-next-v456 small,
+.v459-erp .nexus-routine-dock-next-v456 span,
+.v459-erp .nexus-routine-dock-next-v456 strong,
+.v459-erp .nexus-routine-dock-progress-v456>div,
+.v459-erp .nexus-routine-dock-v456 header small,
+.v459-erp .nexus-routine-dock-v456 header strong,
+.v459-erp .nexus-routine-dock-v456.completed small,
+.v459-erp .nexus-routine-dock-v456.completed strong,
+.v459-erp .nexus-routine-history-v456 small,
+.v459-erp .nexus-routine-history-v456 strong,
+.v459-erp .nexus-routine-manage-v456,
+.v459-erp .nexus-routine-suggestion-v456 small,
+.v459-erp .nexus-routine-trail-v456 b,
+.v459-erp .nexus-routine-trail-v456 em,
+.v459-erp .nexus-routines-hero-v456 p,
+.v459-erp .nexus-routines-stats-v456 span,
+.v459-erp .nexus-smart-chip-v453,
+.v459-erp .nexus-smart-chip-v453 small,
+.v459-erp .nexus-unified-copy-v454 > div small,
+.v459-erp .nexus-unified-copy-v454 > p,
+.v459-erp .nexus-unified-copy-v454 > small,
+.v459-erp .nexus-unified-copy-v454 > strong,
+.v459-erp .nexus-unified-stats-v454 small,
+.v459-erp .nexus-unified-stats-v454 span,
+.v459-erp .nexus-unified-toolbar-v454 > div button,
+.v459-erp .nexus-usage-list-v453 > * > span,
+.v459-erp .nexus-usage-list-v453 b,
+.v459-erp .nexus-usage-list-v453 small,
+.v459-erp .nexus-usage-list-v453 strong,
+.v459-erp .nexus-ux-auto-card-v457 .route,
+.v459-erp .nexus-ux-auto-card-v457 footer,
+.v459-erp .nexus-ux-auto-card-v457 header small,
+.v459-erp .nexus-ux-auto-card-v457 p,
+.v459-erp .nexus-ux-auto-card-v457>a,
+.v459-erp .nexus-ux-auto-card-v457>strong,
+.v459-erp .nexus-ux-device-row-v457 span,
+.v459-erp .nexus-ux-device-row-v457 strong,
+.v459-erp .nexus-ux-doctor-hero-v457 p,
+.v459-erp .nexus-ux-doctor-score-v457 .score small,
+.v459-erp .nexus-ux-doctor-score-v457 .score span,
+.v459-erp .nexus-ux-doctor-score-v457>article small,
+.v459-erp .nexus-ux-route-v457 .copy small,
+.v459-erp .nexus-ux-route-v457 .copy strong,
+.v459-erp .nexus-ux-route-v457 .numbers b,
+.v459-erp .nexus-ux-route-v457 .numbers small,
+.v459-erp .nexus-ux-route-v457 .rank,
+.v459-erp .nexus-workflow-hint-v453,
+.v459-erp .nexus-workflow-list-v453 article a,
+.v459-erp .nexus-workflow-list-v453 article span,
+.v459-erp .nexus-workflow-list-v453 article strong,
+.v459-erp .ux-issue-card-top-v457>div>strong,
+.v459-erp .ux-issue-card-top-v457>small,
+.v459-erp .ux-issue-card-v457>p,
+.v459-erp .ux-issue-error-v457,
+.v459-erp .ux-issue-meta-v457,
+.v459-erp .v458-banner-manager-head h3,
+.v459-erp .v458-banner-manager-head p,
+.v459-erp .v458-banner-message,
+.v459-erp .v458-banner-preview > div,
+.v459-erp .v458-banner-slot-head small,
+.v459-erp .v458-banner-slot-head strong,
+.v459-erp .v458-budget-stage-note small,
+.v459-erp .v458-budget-stage-note span,
+.v459-erp .v458-budget-stage-note strong,
+.v459-erp .v458-promotion-copy small,
+.v459-erp .v458-promotion-copy span,
+.v459-erp .v458-promotion-copy strong,
+.v459-erp .v458-utility-link,
+.v459-erp .v458-utility-link kbd,
+.v459-erp .v458-utility-link.routine small,
+.v459-erp .v458-utility-mobile summary,
+.v459-erp .v458-utility-title {
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+
+
+/* Nexus continua denso, mas legível. */
+.v459-erp .nexus-daily-next-copy-v453 strong,
+.v459-erp .nexus-focus-priority-copy-v455 strong,
+.v459-erp .nexus-personal-card-v455 > a strong,
+.v459-erp .nexus-focus-suggestion-v455 strong,
+.v459-erp .nexus-routine-card-v456 h3,
+.v459-erp .nexus-ux-auto-card-v457 > strong {
+  font-size: 13px !important;
+  line-height: 1.3 !important;
+}
+
+.v459-erp .nexus-daily-focus-v453 > header h3,
+.v459-erp .nexus-focus-panel-v455 > header h2,
+.v459-erp .nexus-routines-panel-v456 .panel-head h2,
+.v459-erp .nexus-ux-doctor-v457 .panel-head h2 {
+  font-size: 15px !important;
+}
+
+/* Comercial / Orçamento. */
+.v459-erp .v458-promotion-choice { padding: 10px 11px; gap: 10px; }
+.v459-erp .v458-promotion-copy span { font-size: 10px !important; }
+.v459-erp .v458-promotion-copy strong { font-size: 13px !important; }
+.v459-erp .v458-promotion-copy small { font-size: 11px !important; }
+.v459-erp .v458-budget-stage-note { padding: 11px 12px; gap: 4px; }
+.v459-erp .v458-budget-stage-note span { font-size: 10px !important; }
+.v459-erp .v458-budget-stage-note strong { font-size: 14px !important; }
+.v459-erp .v458-budget-stage-note small { font-size: 12px !important; }
+
+.v459-erp :where(.new-sale-side, .sale-details-side) {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  align-self: start;
+}
+
+/* Produto / banners. */
+.v459-erp .v458-banner-manager-head h3 { font-size: 15px !important; }
+.v459-erp .v458-banner-manager-head p { font-size: 12px !important; }
+.v459-erp .v458-banner-slot-head strong { font-size: 13px !important; }
+.v459-erp .v458-banner-slot-head small,
+.v459-erp .v458-banner-message,
+.v459-erp .v458-banner-preview > div { font-size: 11px !important; }
+
+/* Barra de ferramentas. */
+.v459-erp .v458-utility-bar { min-height: 42px; padding: 6px 8px; gap: 4px 6px; }
+.v459-erp .v458-utility-title { font-size: 10px !important; }
+.v459-erp .v458-utility-link { min-height: 32px; padding-inline: 9px; font-size: 11px !important; }
+.v459-erp .v458-utility-link kbd,
+.v459-erp .v458-utility-link.routine small { font-size: 10px !important; }
+
+/* Navegação. */
+.v459-erp :where(.topbar, .sidebar) { font-size: 12px; }
+.v459-erp .mobile-menu-panel {
+  max-height: calc(100dvh - 132px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* Notebook / janela dividida: lateral passa para baixo. */
+@media (max-width: 1360px) {
+  .v459-erp :where(div, section, main):has(> .new-sale-side),
+  .v459-erp :where(div, section, main):has(> .sale-details-side) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    align-items: start !important;
+  }
+
+  .v459-erp :where(.new-sale-side, .sale-details-side) {
+    position: static !important;
+    inset: auto !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
+/* Produto: imagens deixam de competir por uma coluna estreita. */
+@media (max-width: 1180px) {
+  .v459-erp :where(div, section):has(> .product-images-panel) {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .v459-erp .product-images-panel {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .v459-erp .v458-banner-manager-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .v459-erp {
+    --ui-text-xs: 12px;
+    --ui-text-sm: 13px;
+    --ui-text-base: 14px;
+  }
+
+  .v459-erp :where(.button, button:not(.icon-button)) { min-height: 38px; }
+  .v459-erp :where(input, select, textarea) { min-height: 40px; }
+
+  .v459-erp .nexus-daily-next-v453 {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .v459-erp .nexus-daily-next-actions-v453 { justify-content: flex-start; }
+
+  .v459-erp .nexus-focus-summary-v455,
+  .v459-erp .nexus-routines-stats-v456,
+  .v459-erp .nexus-ux-doctor-score-v457 {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .v459-erp {
+    --ui-text-micro: 11px;
+    --ui-text-xs: 12px;
+    --ui-text-sm: 13px;
+    --ui-text-base: 14px;
+    --ui-control-height: 42px;
+    --ui-control-height-compact: 38px;
+  }
+
+  .v459-erp .page-header h1 { font-size: 23px !important; }
+  .v459-erp :where(.panel, .card) { border-radius: 11px; }
+  .v459-erp :where(.button, button:not(.icon-button)) { touch-action: manipulation; }
+  .v459-erp .v458-utility-mobile summary { min-height: 42px; font-size: 12px !important; }
+  .v459-erp .v458-utility-mobile nav { grid-template-columns: minmax(0, 1fr) !important; }
+
+  .v459-erp .nexus-personal-grid-v455,
+  .v459-erp .nexus-focus-suggestions-v455,
+  .v459-erp .nexus-routine-grid-v456,
+  .v459-erp .nexus-ux-auto-grid-v457 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .v459-erp .nexus-focus-summary-v455,
+  .v459-erp .nexus-routines-stats-v456,
+  .v459-erp .nexus-ux-doctor-score-v457 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}

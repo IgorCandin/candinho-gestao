@@ -21,6 +21,7 @@ import { ProductPublicPageShortcutPortal } from "@/components/product-public-pag
 import { PurchasingNavigation } from "@/components/purchasing-navigation";
 import { SaleProductStockUX } from "@/components/sale-product-stock-ux";
 import { UxIssueReporter } from "@/components/ux-issue-reporter";
+import { V459UiFoundationMarker } from "@/components/v459-ui-foundation-marker";
 import { getCurrentUserAccess } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
@@ -61,6 +62,7 @@ export default async function ProtectedLayout({
 
   return (
     <DesktopSidebarController>
+      <V459UiFoundationMarker />
       <DesktopEscapeBack />
       <OperationToolSearch access={access} />
       <CentralCostsShortcut enabled={canAccessSharedCosts} />
