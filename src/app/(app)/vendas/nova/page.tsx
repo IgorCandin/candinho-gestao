@@ -1,3 +1,4 @@
+import { CommercialSaleRefinementUX } from "@/components/commercial-sale-refinement-ux";
 import { DemoBanner } from "@/components/demo-banner";
 import { NewSaleForm } from "@/components/new-sale-form";
 import { PageHeader } from "@/components/page-header";
@@ -9,10 +10,7 @@ import {
   getSalePartners,
   getSaleStockOptions,
 } from "@/lib/data";
-import {
-  applySupplementSalePromotions,
-  getActivePromotionRows,
-} from "@/lib/active-promotion-data";
+import { getActivePromotionRows } from "@/lib/active-promotion-data";
 
 export default async function NewSalePage({
   searchParams,
@@ -21,11 +19,12 @@ export default async function NewSalePage({
 }) {
   const params = await searchParams;
   const quoteId = params.quote?.trim() || null;
+
   const [
     customers,
     locations,
     partners,
-    baseStock,
+    stock,
     combos,
     initialQuote,
     promotionRows,
@@ -39,9 +38,8 @@ export default async function NewSalePage({
     getActivePromotionRows(),
   ]);
 
-  const stock = applySupplementSalePromotions(
-    baseStock,
-    promotionRows,
+  const regularPrices = Object.fromEntries(
+    stock.map((row) => [row.product_id, Number(row.sale_price ?? 0)]),
   );
 
   return (
@@ -49,13 +47,20 @@ export default async function NewSalePage({
       <DemoBanner />
       <PageHeader
         eyebrow="Comercial"
-        title="Novo Orçamento"
+        title={initialQuote ? "Revisar Orçamento" : "Novo Orçamento"}
         description={
           initialQuote
-            ? `Revise o orçamento #${initialQuote.quote_number} e confirme quando o cliente fechar.`
-            : "Monte a proposta com os preços promocionais ativos, aplique desconto ou brinde e escolha entre confirmar a venda ou salvar apenas como cotação."
+            ? `Orçamento #${initialQuote.quote_number} salvo. Revise a proposta e, se o cliente confirmou, avance para a venda.`
+            : "Monte a proposta com o preço normal. Promoções ativas ficam disponíveis como escolha explícita em cada produto."
         }
       />
+
+      <CommercialSaleRefinementUX
+        promotions={promotionRows}
+        regularPrices={regularPrices}
+        hasSavedQuote={Boolean(initialQuote)}
+      />
+
       <NewSaleForm
         customers={customers}
         locations={locations}

@@ -77,7 +77,9 @@ export function NexusDailyFocus() {
       <header>
         <div>
           <span className="eyebrow">Nexus Daily · personalizado</span>
-          <h3><Bot size={18} /> Próxima ação</h3>
+          <h3>
+            <Bot size={18} /> Próxima ação
+          </h3>
         </div>
         <div className="nexus-daily-header-links-v454">
           <Link href="/nexus/fila">
@@ -96,18 +98,27 @@ export function NexusDailyFocus() {
       ) : next ? (
         <div className="nexus-daily-next-v453">
           <div className={`nexus-daily-severity-v453 ${next.severity}`}>
-            {next.severity === "urgent" ? "Agora" : next.severity === "opportunity" ? "Oportunidade" : "Próximo"}
+            {next.severity === "urgent"
+              ? "Agora"
+              : next.severity === "opportunity"
+                ? "Oportunidade"
+                : "Próximo"}
           </div>
 
           <div className="nexus-daily-next-copy-v453">
             <strong>{next.title}</strong>
             {next.summary && <span>{next.summary}</span>}
-            {next.recommended_action && <small>{next.recommended_action}</small>}
+            {next.recommended_action && (
+              <small>{next.recommended_action}</small>
+            )}
           </div>
 
           <div className="nexus-daily-next-actions-v453">
             {next.action_href && (
-              <Link className="button gold compact-button" href={next.action_href}>
+              <Link
+                className="button gold compact-button"
+                href={next.action_href}
+              >
                 Abrir <ArrowRight size={13} />
               </Link>
             )}
@@ -123,6 +134,7 @@ export function NexusDailyFocus() {
                 }}
                 label="Retorno amanhã"
                 component="nexus_daily"
+                onExecuted={() => void load()}
               />
             )}
 
@@ -157,9 +169,13 @@ export function NexusDailyFocus() {
           <div>
             {snapshot.shortcuts.slice(0, 5).map((shortcut) => {
               const href = nexusRouteHref(shortcut.to_route);
+
               if (!href) {
                 return (
-                  <span className="nexus-smart-chip-v453 disabled" key={shortcut.to_route}>
+                  <span
+                    className="nexus-smart-chip-v453 disabled"
+                    key={shortcut.to_route}
+                  >
                     {nexusRouteLabel(shortcut.to_route)}
                     <small>{shortcut.transitions_30d}×</small>
                   </span>
@@ -195,6 +211,7 @@ export function NexusDailyFocus() {
             </strong>{" "}
             · {matchingWorkflow.repetitions} vezes.
           </span>
+
           <Link className="button ghost compact-button" href={skipHref}>
             <FastForward size={12} />
             Ir direto para {nexusRouteLabel(matchingWorkflow.step3)}

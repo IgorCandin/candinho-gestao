@@ -12,9 +12,11 @@ import { NexusCommandPalette } from "@/components/nexus-command-palette";
 import { NexusCopilotDock } from "@/components/nexus-copilot-dock";
 import { NexusPersonalKeyboard } from "@/components/nexus-personal-keyboard";
 import { NexusRoutineDock } from "@/components/nexus-routine-dock";
+import { NexusUtilityBar } from "@/components/nexus-utility-bar";
 import { NexusUxDoctorProbe } from "@/components/nexus-ux-doctor-probe";
 import { OperationToolSearch } from "@/components/operation-tool-search";
 import { PartnerUxOverlay } from "@/components/partner-ux-overlay";
+import { ProductBannerPortal } from "@/components/product-banner-portal";
 import { ProductPublicPageShortcutPortal } from "@/components/product-public-page-shortcut-portal";
 import { PurchasingNavigation } from "@/components/purchasing-navigation";
 import { SaleProductStockUX } from "@/components/sale-product-stock-ux";
@@ -67,12 +69,22 @@ export default async function ProtectedLayout({
       <NexusActivityTracker enabled={access.active} />
       <NexusUxDoctorProbe enabled={access.active} />
       <NexusPersonalKeyboard enabled={canUseNexusCommand} />
+
+      {/*
+        Os componentes abaixo continuam montados porque carregam lógica
+        importante. O V45.8 apenas tira os gatilhos flutuantes da tela e
+        os aciona pela barra normal de utilidades.
+      */}
       <NexusRoutineDock enabled={canUseNexusCommand} />
       <NexusCommandPalette
         access={access}
         enabled={canUseNexusCommand}
       />
       <UxIssueReporter enabled={access.active} />
+      <NexusCopilotDock
+        enabled={canUseNexusOperating}
+      />
+
       <AutoPartnershipSaleUX
         enabled={canUseNexusOperating}
       />
@@ -82,17 +94,22 @@ export default async function ProtectedLayout({
       <CustomerSalesAssistantPortal
         enabled={canUseNexusOperating}
       />
-      <NexusCopilotDock
-        enabled={canUseNexusOperating}
-      />
       <ProductPublicPageShortcutPortal
         enabled={canManagePublicProducts}
+      />
+      <ProductBannerPortal
+        enabled={canUseSupplementUx}
+        canEdit={canManagePublicProducts}
       />
 
       <SaleProductStockUX enabled={canUseSupplementUx} />
       <PartnerUxOverlay enabled={canUseSupplementUx} />
 
       <AppShell access={access}>
+        <NexusUtilityBar
+          enabled={canUseNexusCommand}
+          canUseNexus={canUseNexusOperating}
+        />
         <CentralKnowledgeNav
           canManageUsers={canManageCentralKnowledge}
         />
