@@ -1,0 +1,352 @@
+/* =========================================================
+   V45.11 · Mobile nativo + Command Center
+   ========================================================= */
+
+/*
+  O antigo V45.8 colocou as ferramentas no conteúdo da página.
+  O V45.11 mantém a mesma lógica, mas o componente agora usa
+  portals para morar na navegação oficial.
+*/
+.v458-utility-bar-wrap {
+  display: none !important;
+}
+
+/* ---------- Desktop · Ferramentas dentro da sidebar ---------- */
+
+.v4511-tools-host-desktop {
+  flex: 0 0 auto;
+  padding: 8px 0 0;
+}
+
+.v4511-tools-details {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.v4511-tools-details > summary {
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  list-style: none;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+
+.v4511-tools-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+.v4511-tools-details > summary:hover,
+.v4511-tools-details[open] > summary {
+  color: var(--text);
+  background: rgba(255,255,255,.025);
+}
+
+.v4511-tools-summary-main,
+.v4511-tools-summary-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.v4511-tools-summary-main {
+  min-width: 0;
+}
+
+.v4511-tools-summary-main svg {
+  color: var(--gold);
+}
+
+.v4511-tools-summary-main strong {
+  font-size: 12px;
+}
+
+.v4511-tools-summary-side {
+  color: var(--muted);
+}
+
+.v4511-tools-summary-side small {
+  min-width: 28px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: var(--gold);
+  background: var(--gold-soft);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.v4511-tools-details[open] .v4511-tools-summary-side > svg:last-child {
+  transform: rotate(180deg);
+}
+
+.v4511-tools-panel {
+  max-height: 330px;
+  margin-top: 5px;
+  padding: 4px;
+  display: grid;
+  gap: 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.v4511-tool-item,
+.v4511-active-routine {
+  width: 100%;
+  min-width: 0;
+  min-height: 42px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.v4511-tool-item:hover,
+.v4511-active-routine:hover {
+  border-color: var(--line);
+  color: var(--text);
+  background: rgba(255,255,255,.022);
+}
+
+.v4511-tool-item > svg,
+.v4511-active-routine > svg {
+  color: var(--muted);
+}
+
+.v4511-tool-item.primary > svg,
+.v4511-tool-item.primary > span > strong,
+.v4511-active-routine > svg,
+.v4511-active-routine > span > strong {
+  color: var(--gold);
+}
+
+.v4511-tool-item.danger > svg,
+.v4511-tool-item.danger > span > strong {
+  color: #df8585;
+}
+
+.v4511-tool-item > span,
+.v4511-active-routine > span {
+  min-width: 0;
+}
+
+.v4511-tool-item strong,
+.v4511-tool-item small,
+.v4511-active-routine strong,
+.v4511-active-routine small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.v4511-tool-item strong,
+.v4511-active-routine strong {
+  color: var(--text);
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.v4511-tool-item small,
+.v4511-active-routine small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.v4511-tool-item kbd {
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  color: #7f8792;
+  font: inherit;
+  font-size: 8px;
+}
+
+/* A rotina ativa fica em destaque sem virar uma barra global. */
+.v4511-active-routine {
+  margin-bottom: 3px;
+  border-color: rgba(217,166,61,.16);
+  background: rgba(217,166,61,.025);
+}
+
+/* ---------- Mobile host fica escondido no desktop ---------- */
+
+.v4511-tools-host-mobile {
+  display: none;
+}
+
+/* =========================================================
+   MOBILE
+   A fundação V45.9 agora é desligada <= 820px pelo marker.
+   As regras mobile históricas voltam a ser a fonte principal.
+   ========================================================= */
+
+@media (max-width: 820px) {
+  /*
+    Segurança extra: garante o shell mobile mesmo se algum CSS
+    desktop futuro alterar display/grid.
+  */
+  .app-shell {
+    display: block !important;
+    min-width: 0 !important;
+    width: 100% !important;
+    overflow-x: clip;
+  }
+
+  .app-shell > .sidebar {
+    display: none !important;
+  }
+
+  .mobile-header {
+    display: flex !important;
+  }
+
+  .main,
+  .content {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /*
+    O portal desktop está dentro da sidebar escondida.
+    As ferramentas aparecem somente dentro do Menu móvel.
+  */
+  .v4511-tools-host-desktop {
+    display: none !important;
+  }
+
+  .v4511-tools-host-mobile {
+    width: 100%;
+    display: block;
+  }
+
+  .v4511-mobile-tools {
+    width: 100%;
+    margin: 4px 0;
+    padding-top: 4px;
+    border-top: 1px solid var(--line);
+  }
+
+  .v4511-mobile-tools > summary {
+    width: 100%;
+    min-height: 52px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: var(--muted);
+    background: transparent;
+    font-size: 14px;
+    font-weight: 800;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .v4511-mobile-tools > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .v4511-mobile-tools > summary > span:first-child,
+  .v4511-mobile-tools-side {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .v4511-mobile-tools > summary > span:first-child svg {
+    color: var(--gold);
+  }
+
+  .v4511-mobile-tools[open] > summary {
+    color: var(--accent-nav-text);
+    background: var(--gold-soft);
+  }
+
+  .v4511-mobile-tools[open] .v4511-mobile-tools-side > svg {
+    transform: rotate(180deg);
+  }
+
+  .v4511-mobile-tools-side small {
+    min-width: 30px;
+    min-height: 23px;
+    padding: 0 7px;
+    border-radius: 999px;
+    display: inline-grid;
+    place-items: center;
+    color: var(--gold);
+    background: var(--gold-soft);
+    font-size: 10px;
+    font-weight: 900;
+  }
+
+  .v4511-mobile-tools-panel {
+    padding: 4px 0;
+    display: grid;
+    gap: 3px;
+  }
+
+  .v4511-tool-item-mobile,
+  .v4511-active-routine.mobile {
+    min-height: 52px;
+    padding: 6px 14px;
+    grid-template-columns: 24px minmax(0, 1fr);
+    border-radius: 10px;
+  }
+
+  .v4511-tool-item-mobile > svg,
+  .v4511-active-routine.mobile > svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .v4511-tool-item-mobile strong,
+  .v4511-active-routine.mobile strong {
+    font-size: 13px;
+  }
+
+  .v4511-tool-item-mobile small,
+  .v4511-active-routine.mobile small {
+    font-size: 10px;
+  }
+
+  /*
+    O V45.9 não roda no telefone, então os cards, navegação,
+    espaçamento e densidade voltam ao comportamento mobile
+    que existia antes do pacote de Foundation.
+  */
+  body:not(.v459-erp) .mobile-menu-panel {
+    max-height: calc(100dvh - 62px);
+  }
+}
+
+@media (max-width: 560px) {
+  .v4511-mobile-tools > summary {
+    min-height: 50px;
+  }
+
+  .v4511-tool-item-mobile,
+  .v4511-active-routine.mobile {
+    min-height: 50px;
+  }
+}

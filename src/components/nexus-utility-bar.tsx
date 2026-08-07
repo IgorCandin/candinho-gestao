@@ -8,14 +8,22 @@ import {
   Command,
   Gauge,
   ShieldCheck,
+  Sparkles,
   Workflow,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import type { NexusActiveRoutine } from "@/lib/nexus-routine-types";
 import { nexusRouteLabel } from "@/lib/nexus-route-labels";
 
 function clickHidden(selector: string) {
   document.querySelector<HTMLButtonElement>(selector)?.click();
+}
+
+function closeMobileMenu() {
+  document
+    .querySelector<HTMLDetailsElement>("details.mobile-menu")
+    ?.removeAttribute("open");
 }
 
 export function NexusUtilityBar({
@@ -27,6 +35,10 @@ export function NexusUtilityBar({
 }) {
   const [activeRoutine, setActiveRoutine] =
     useState<NexusActiveRoutine | null>(null);
+  const [desktopHost, setDesktopHost] =
+    useState<HTMLElement | null>(null);
+  const [mobileHost, setMobileHost] =
+    useState<HTMLElement | null>(null);
 
   const loadRoutine = useCallback(async () => {
     if (!enabled) return;
@@ -37,11 +49,12 @@ export function NexusUtilityBar({
       });
 
       if (!response.ok) return;
+
       setActiveRoutine(
         (await response.json()) as NexusActiveRoutine | null,
       );
     } catch {
-      // A barra nunca pode bloquear a navegação.
+      // Ferramentas globais nunca devem bloquear o ERP.
     }
   }, [enabled]);
 
@@ -54,110 +67,267 @@ export function NexusUtilityBar({
     };
   }, [loadRoutine]);
 
+  useEffect(() => {
+    if (!enabled) return;
+
+    let desktop: HTMLDivElement | null = null;
+    let mobile: HTMLDivElement | null = null;
+
+    function attach() {
+      if (!desktop) {
+        const sidebarFooter =
+          document.querySelector<HTMLElement>(".sidebar-footer");
+
+        if (sidebarFooter?.parentElement) {
+          desktop = document.createElement("div");
+          desktop.className =
+            "v4511-tools-host v4511-tools-host-desktop";
+          desktop.dataset.v4511Tools = "desktop";
+
+          sidebarFooter.parentElement.insertBefore(
+            desktop,
+            sidebarFooter,
+          );
+
+          setDesktopHost(desktop);
+        }
+      }
+
+      if (!mobile) {
+        const mobilePanel =
+          document.querySelector<HTMLElement>(".mobile-menu-panel");
+
+        if (mobilePanel) {
+          mobile = document.createElement("div");
+          mobile.className =
+            "v4511-tools-host v4511-tools-host-mobile";
+          mobile.dataset.v4511Tools = "mobile";
+
+          const signout = mobilePanel.querySelector("form");
+          mobilePanel.insertBefore(mobile, signout ?? null);
+
+          setMobileHost(mobile);
+        }
+      }
+
+      return Boolean(desktop && mobile);
+    }
+
+    attach();
+
+    const observer = new MutationObserver(() => {
+      if (attach()) observer.disconnect();
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
+    return () => {
+      observer.disconnect();
+      desktop?.remove();
+      mobile?.remove();
+      setDesktopHost(null);
+      setMobileHost(null);
+    };
+  }, [enabled]);
+
   if (!enabled) return null;
 
   function openCommand() {
     window.dispatchEvent(new Event("nexus:command-open"));
+    closeMobileMenu();
   }
 
   function openNexus() {
     clickHidden(".nexus-dock-trigger");
+    closeMobileMenu();
   }
 
   function openReporter() {
     clickHidden(
       'button[aria-label="Registrar quebra na UX ou função"]',
     );
+    closeMobileMenu();
   }
 
-  const tools = (
-    <>
-      <Link className="v458-utility-link primary" href="/nexus/foco">
-        <Gauge size={14} />
-        <span>Meu Dia</span>
-      </Link>
+  function tools(mobile = false) {
+    const itemClass = mobile
+      ? "v4511-tool-item v4511-tool-item-mobile"
+      : "v4511-tool-item";
 
-      {canUseNexus && (
-        <button
-          className="v458-utility-link"
-          type="button"
-          onClick={openNexus}
-        >
-          <Bot size={14} />
-          <span>Nexus</span>
-        </button>
-      )}
-
-      <button
-        className="v458-utility-link"
-        type="button"
-        onClick={openCommand}
-      >
-        <Command size={14} />
-        <span>Comando</span>
-        <kbd>Ctrl K</kbd>
-      </button>
-
-      <Link className="v458-utility-link" href="/nexus/rotinas">
-        <Workflow size={14} />
-        <span>Rotinas</span>
-      </Link>
-
-      <Link className="v458-utility-link" href="/nexus/qualidade">
-        <ShieldCheck size={14} />
-        <span>Qualidade</span>
-      </Link>
-
-      <button
-        className="v458-utility-link danger"
-        type="button"
-        onClick={openReporter}
-      >
-        <Bug size={14} />
-        <span>Relatar problema</span>
-      </button>
-
-      {activeRoutine?.current && (
+    return (
+      <>
         <Link
-          className="v458-utility-link routine"
-          href={activeRoutine.current.href}
-          title={activeRoutine.title}
+          className={`${itemClass} primary`}
+          href="/nexus/foco"
+          onClick={mobile ? closeMobileMenu : undefined}
         >
-          <Workflow size={14} />
+          <Gauge size={16} />
           <span>
-            Rotina · {activeRoutine.progress_percent}%
+            <strong>Meu Dia</strong>
+            <small>Prioridades pessoais</small>
           </span>
-          <small>
-            {activeRoutine.current.label ||
-              nexusRouteLabel(activeRoutine.current.href)}
-          </small>
         </Link>
-      )}
-    </>
-  );
 
-  return (
-    <div className="v458-utility-bar-wrap">
-      <nav
-        className="v458-utility-bar v458-utility-desktop"
-        aria-label="Ferramentas rápidas"
-      >
-        <span className="v458-utility-title">Ferramentas</span>
-        {tools}
-      </nav>
+        {canUseNexus && (
+          <button
+            className={itemClass}
+            type="button"
+            onClick={openNexus}
+          >
+            <Bot size={16} />
+            <span>
+              <strong>Nexus</strong>
+              <small>Assistente operacional</small>
+            </span>
+          </button>
+        )}
 
-      <details className="v458-utility-mobile">
+        <button
+          className={itemClass}
+          type="button"
+          onClick={openCommand}
+        >
+          <Command size={16} />
+          <span>
+            <strong>Comando</strong>
+            <small>Busca e navegação rápida</small>
+          </span>
+          {!mobile && <kbd>Ctrl K</kbd>}
+        </button>
+
+        <Link
+          className={itemClass}
+          href="/nexus/rotinas"
+          onClick={mobile ? closeMobileMenu : undefined}
+        >
+          <Workflow size={16} />
+          <span>
+            <strong>Rotinas</strong>
+            <small>Fluxos guiados</small>
+          </span>
+        </Link>
+
+        <Link
+          className={itemClass}
+          href="/nexus/qualidade"
+          onClick={mobile ? closeMobileMenu : undefined}
+        >
+          <ShieldCheck size={16} />
+          <span>
+            <strong>Qualidade</strong>
+            <small>UX Doctor</small>
+          </span>
+        </Link>
+
+        <button
+          className={`${itemClass} danger`}
+          type="button"
+          onClick={openReporter}
+        >
+          <Bug size={16} />
+          <span>
+            <strong>Relatar problema</strong>
+            <small>Registrar uma quebra</small>
+          </span>
+        </button>
+      </>
+    );
+  }
+
+  const desktopPortal =
+    desktopHost &&
+    createPortal(
+      <details className="v4511-tools-details">
+        <summary>
+          <span className="v4511-tools-summary-main">
+            <Sparkles size={15} />
+            <strong>Ferramentas</strong>
+          </span>
+
+          <span className="v4511-tools-summary-side">
+            {activeRoutine?.current && (
+              <small>{activeRoutine.progress_percent}%</small>
+            )}
+            <ChevronDown size={14} />
+          </span>
+        </summary>
+
+        <div className="v4511-tools-panel">
+          {activeRoutine?.current && (
+            <Link
+              className="v4511-active-routine"
+              href={activeRoutine.current.href}
+            >
+              <Workflow size={15} />
+              <span>
+                <strong>
+                  Rotina · {activeRoutine.progress_percent}%
+                </strong>
+                <small>
+                  {activeRoutine.current.label ||
+                    nexusRouteLabel(activeRoutine.current.href)}
+                </small>
+              </span>
+            </Link>
+          )}
+
+          {tools(false)}
+        </div>
+      </details>,
+      desktopHost,
+    );
+
+  const mobilePortal =
+    mobileHost &&
+    createPortal(
+      <details className="v4511-mobile-tools">
         <summary>
           <span>
-            <Bot size={14} />
+            <Sparkles size={18} />
             Ferramentas
           </span>
-          <ChevronDown size={14} />
+
+          <span className="v4511-mobile-tools-side">
+            {activeRoutine?.current && (
+              <small>{activeRoutine.progress_percent}%</small>
+            )}
+            <ChevronDown size={16} />
+          </span>
         </summary>
-        <nav aria-label="Ferramentas rápidas">
-          {tools}
-        </nav>
-      </details>
-    </div>
+
+        <div className="v4511-mobile-tools-panel">
+          {activeRoutine?.current && (
+            <Link
+              className="v4511-active-routine mobile"
+              href={activeRoutine.current.href}
+              onClick={closeMobileMenu}
+            >
+              <Workflow size={17} />
+              <span>
+                <strong>
+                  Rotina ativa · {activeRoutine.progress_percent}%
+                </strong>
+                <small>
+                  {activeRoutine.current.label ||
+                    nexusRouteLabel(activeRoutine.current.href)}
+                </small>
+              </span>
+            </Link>
+          )}
+
+          {tools(true)}
+        </div>
+      </details>,
+      mobileHost,
+    );
+
+  return (
+    <>
+      {desktopPortal}
+      {mobilePortal}
+    </>
   );
 }
