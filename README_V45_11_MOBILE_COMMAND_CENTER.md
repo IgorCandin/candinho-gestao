@@ -151,4 +151,42 @@ Não há migration.
 
 ## Commit sugerido
 
-`V45.11 - recupera UX mobile e integra ferramentas na navegacao`
+`V45.11 - recupera UX mobile e corrige sidebar e fila Nexus`
+
+
+## Hotfix incluído · sidebar recolhida
+
+Ao ocultar a sidebar no desktop, o shell ainda mantinha a coluna original
+de 252 px reservada.
+
+Agora:
+- a coluna passa de 252 px para 0;
+- o conteúdo principal ocupa o espaço liberado;
+- a tela redimensiona de verdade;
+- a transição é curta e respeita `prefers-reduced-motion`.
+
+## Hotfix incluído · Nexus Fila
+
+O score continua existindo e continua sendo usado pelo Nexus para ordenar
+a Fila Única, porém não é mais exibido no card.
+
+Antes:
+`Urgente · Bank · score 97`
+
+Agora:
+`Urgente · Bank`
+
+Para `bank_invoice`, quando o resumo começava com valor zero apenas porque
+a fatura ainda não possuía valor consolidado:
+
+Antes:
+`R$ 0,00 · Banco do Brasil`
+
+Agora:
+`Banco do Brasil`
+
+Se houver valor real maior que zero, o valor continua aparecendo normalmente.
+
+A mesma limpeza é usada no card `Nexus · Faça primeiro`.
+
+Nenhuma regra de prioridade, vencimento ou ordenação foi alterada.

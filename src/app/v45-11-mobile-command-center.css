@@ -350,3 +350,32 @@
     min-height: 50px;
   }
 }
+
+
+/* ---------- Hotfix · sidebar recolhida ocupa zero espaço ---------- */
+
+@media (min-width: 821px) {
+  body.sidebar-collapsed .app-shell {
+    grid-template-columns: 0 minmax(0, 1fr) !important;
+  }
+
+  body.sidebar-collapsed .app-shell > .sidebar {
+    width: 0 !important;
+    min-width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border-right: 0 !important;
+    overflow: hidden !important;
+  }
+
+  body.sidebar-collapsed .app-shell > .main {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (min-width: 821px) and (prefers-reduced-motion: no-preference) {
+  .app-shell {
+    transition: grid-template-columns .18s ease;
+  }
+}

@@ -63,6 +63,26 @@ function severityLabel(value: string) {
   return "Info";
 }
 
+function visibleSummary(item: NexusUnifiedQueueItem) {
+  const summary = item.summary?.trim();
+  if (!summary) return null;
+
+  if (item.source_type !== "bank_invoice") {
+    return summary;
+  }
+
+  // Algumas faturas não possuem valor consolidado no momento em que entram
+  // na fila. "R$ 0,00" nesse caso é ruído visual, não informação financeira.
+  const withoutZeroAmount = summary
+    .replace(
+      /^R\$\s*0(?:[.,]00)?\s*(?:[·•|—–-]\s*)?/i,
+      "",
+    )
+    .trim();
+
+  return withoutZeroAmount || null;
+}
+
 function QueueRow({
   item,
   onSignalChanged,
@@ -71,6 +91,7 @@ function QueueRow({
   onSignalChanged: (queueId: string) => void;
 }) {
   const Icon = iconFor(item.operation_scope);
+  const summary = visibleSummary(item);
 
   return (
     <article className={`nexus-unified-row-v454 severity-${item.severity}`}>
@@ -84,10 +105,10 @@ function QueueRow({
             {severityLabel(item.severity)}
           </span>
           <small>{item.operation_label}</small>
-          <small>score {Math.round(item.score)}</small>
         </div>
+
         <strong>{item.title}</strong>
-        {item.summary && <p>{item.summary}</p>}
+        {summary && <p>{summary}</p>}
         {item.due_at && <small>Prazo: {dueLabel(item.due_at)}</small>}
       </div>
 
@@ -149,6 +170,7 @@ export function NexusUnifiedQueue({
   );
 
   const focus = visible[0] ?? null;
+  const focusSummary = focus ? visibleSummary(focus) : null;
 
   async function refresh() {
     setLoading(true);
@@ -224,7 +246,7 @@ export function NexusUnifiedQueue({
           <div>
             <span className="eyebrow">Nexus · Faça primeiro</span>
             <h2>{focus.title}</h2>
-            <p>{focus.summary}</p>
+            {focusSummary && <p>{focusSummary}</p>}
             <small>
               {focus.operation_label}
               {focus.due_at ? ` · ${dueLabel(focus.due_at)}` : ""}
