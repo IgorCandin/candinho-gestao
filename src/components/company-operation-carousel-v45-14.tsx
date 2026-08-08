@@ -9,6 +9,7 @@ import {
   type CSSProperties,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -28,9 +29,15 @@ const AUTOPLAY_MS = 2500;
 const DESKTOP_QUERY = "(min-width: 821px)";
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 
-function normalizedIndex(index: number, total: number) {
+type LoopSlide = CompanyOperationSlideV4514 & {
+  loopKey: string;
+  logicalIndex: number;
+  loopGroup: number;
+};
+
+function modulo(value: number, total: number) {
   if (!total) return 0;
-  return ((index % total) + total) % total;
+  return ((value % total) + total) % total;
 }
 
 export function CompanyOperationCarouselV4514({
@@ -40,21 +47,45 @@ export function CompanyOperationCarouselV4514({
 }) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const slideRefs = useRef<Array<HTMLAnchorElement | null>>([]);
+  const physicalIndexRef = useRef(0);
   const scrollFrame = useRef(0);
+  const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initializing = useRef(true);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [desktop, setDesktop] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
 
-  const goTo = useCallback(
+  const loopSlides = useMemo<LoopSlide[]>(() => {
+    if (operations.length <= 1) {
+      return operations.map((operation, logicalIndex) => ({
+        ...operation,
+        loopKey: `${operation.key}-single`,
+        logicalIndex,
+        loopGroup: 0,
+      }));
+    }
+
+    return [0, 1, 2].flatMap((loopGroup) =>
+      operations.map((operation, logicalIndex) => ({
+        ...operation,
+        loopKey: `${operation.key}-${loopGroup}`,
+        logicalIndex,
+        loopGroup,
+      })),
+    );
+  }, [operations]);
+
+  const middleStart = operations.length > 1 ? operations.length : 0;
+
+  const scrollPhysicalTo = useCallback(
     (
-      index: number,
+      physicalIndex: number,
       behavior: ScrollBehavior = reducedMotion ? "auto" : "smooth",
     ) => {
-      const total = operations.length;
-      const next = normalizedIndex(index, total);
       const track = trackRef.current;
-      const slide = slideRefs.current[next];
+      const slide = slideRefs.current[physicalIndex];
 
       if (!track || !slide) return;
 
@@ -62,14 +93,88 @@ export function CompanyOperationCarouselV4514({
         slide.offsetLeft -
         Math.max((track.clientWidth - slide.clientWidth) / 2, 0);
 
+      physicalIndexRef.current = physicalIndex;
+      setActiveIndex(loopSlides[physicalIndex]?.logicalIndex ?? 0);
+
       track.scrollTo({
         left: target,
         behavior,
       });
-
-      setActiveIndex(next);
     },
-    [operations.length, reducedMotion],
+    [loopSlides, reducedMotion],
+  );
+
+  const recenterIfNeeded = useCallback(() => {
+    if (operations.length <= 1) return;
+
+    const total = operations.length;
+    const current = physicalIndexRef.current;
+    let target = current;
+
+    // Keep the user inside the middle copy. The jump is invisible because
+    // the destination slide is pixel-identical to the current one.
+    if (current < total) target = current + total;
+    if (current >= total * 2) target = current - total;
+
+    if (target !== current) {
+      scrollPhysicalTo(target, "auto");
+    }
+  }, [operations.length, scrollPhysicalTo]);
+
+  const goBy = useCallback(
+    (amount: number) => {
+      if (!operations.length) return;
+
+      if (operations.length === 1) {
+        scrollPhysicalTo(0);
+        return;
+      }
+
+      recenterIfNeeded();
+
+      const next = physicalIndexRef.current + amount;
+      scrollPhysicalTo(next);
+    },
+    [
+      operations.length,
+      recenterIfNeeded,
+      scrollPhysicalTo,
+    ],
+  );
+
+  const goToLogical = useCallback(
+    (logicalIndex: number) => {
+      if (!operations.length) return;
+
+      const logical = modulo(logicalIndex, operations.length);
+
+      if (operations.length === 1) {
+        scrollPhysicalTo(0);
+        return;
+      }
+
+      recenterIfNeeded();
+
+      const current = physicalIndexRef.current;
+      const candidates = [
+        logical,
+        logical + operations.length,
+        logical + operations.length * 2,
+      ];
+
+      const nearest = candidates.reduce((best, candidate) =>
+        Math.abs(candidate - current) < Math.abs(best - current)
+          ? candidate
+          : best,
+      );
+
+      scrollPhysicalTo(nearest);
+    },
+    [
+      operations.length,
+      recenterIfNeeded,
+      scrollPhysicalTo,
+    ],
   );
 
   useEffect(() => {
@@ -92,6 +197,16 @@ export function CompanyOperationCarouselV4514({
   }, []);
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const initial = operations.length > 1 ? middleStart : 0;
+      scrollPhysicalTo(initial, "auto");
+      initializing.current = false;
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [middleStart, operations.length, scrollPhysicalTo]);
+
+  useEffect(() => {
     if (
       !desktop ||
       paused ||
@@ -102,34 +217,25 @@ export function CompanyOperationCarouselV4514({
     }
 
     const timer = window.setTimeout(() => {
-      goTo(activeIndex + 1);
+      goBy(1);
     }, AUTOPLAY_MS);
 
     return () => window.clearTimeout(timer);
   }, [
     activeIndex,
     desktop,
-    goTo,
+    goBy,
     operations.length,
     paused,
     reducedMotion,
   ]);
-
-  useEffect(() => {
-    // Center the first permitted operation after hydration.
-    const frame = window.requestAnimationFrame(() => {
-      goTo(0, "auto");
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [goTo]);
 
   function syncActiveFromScroll() {
     cancelAnimationFrame(scrollFrame.current);
 
     scrollFrame.current = requestAnimationFrame(() => {
       const track = trackRef.current;
-      if (!track || !operations.length) return;
+      if (!track || !loopSlides.length) return;
 
       const viewportCenter =
         track.scrollLeft + track.clientWidth / 2;
@@ -137,33 +243,49 @@ export function CompanyOperationCarouselV4514({
       let nearest = 0;
       let nearestDistance = Number.POSITIVE_INFINITY;
 
-      slideRefs.current.forEach((slide, index) => {
+      slideRefs.current.forEach((slide, physicalIndex) => {
         if (!slide) return;
 
         const center = slide.offsetLeft + slide.clientWidth / 2;
         const distance = Math.abs(center - viewportCenter);
 
         if (distance < nearestDistance) {
-          nearest = index;
+          nearest = physicalIndex;
           nearestDistance = distance;
         }
       });
 
-      setActiveIndex(nearest);
+      physicalIndexRef.current = nearest;
+      setActiveIndex(loopSlides[nearest]?.logicalIndex ?? 0);
+
+      if (settleTimer.current) {
+        clearTimeout(settleTimer.current);
+      }
+
+      settleTimer.current = setTimeout(() => {
+        if (!initializing.current) recenterIfNeeded();
+      }, 140);
     });
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      goTo(activeIndex + 1);
+      goBy(1);
     }
 
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      goTo(activeIndex - 1);
+      goBy(-1);
     }
   }
+
+  useEffect(() => {
+    return () => {
+      cancelAnimationFrame(scrollFrame.current);
+      if (settleTimer.current) clearTimeout(settleTimer.current);
+    };
+  }, []);
 
   if (!operations.length) return null;
 
@@ -193,7 +315,7 @@ export function CompanyOperationCarouselV4514({
             type="button"
             className="company-operation-arrow-v4514 previous"
             aria-label="Operação anterior"
-            onClick={() => goTo(activeIndex - 1)}
+            onClick={() => goBy(-1)}
           >
             <ChevronLeft size={25} />
           </button>
@@ -206,8 +328,13 @@ export function CompanyOperationCarouselV4514({
           tabIndex={0}
           aria-label="Deslize ou use as setas para trocar de operação"
         >
-          {operations.map((operation, index) => {
-            const active = index === activeIndex;
+          {loopSlides.map((operation, physicalIndex) => {
+            const active =
+              physicalIndexRef.current === physicalIndex ||
+              (
+                operation.logicalIndex === activeIndex &&
+                operations.length === 1
+              );
 
             const style = {
               "--operation-rgb": operation.rgb,
@@ -216,16 +343,15 @@ export function CompanyOperationCarouselV4514({
 
             return (
               <Link
-                key={operation.key}
+                key={operation.loopKey}
                 ref={(element) => {
-                  slideRefs.current[index] = element;
+                  slideRefs.current[physicalIndex] = element;
                 }}
                 href={operation.href}
                 className={`company-operation-slide-v4514 tone-${operation.tone}`}
                 data-active={active ? "true" : "false"}
                 data-desktop-fit={operation.desktopFit ?? "cover"}
                 aria-label={`Abrir Candinho ${operation.label}`}
-                aria-current={active ? "true" : undefined}
                 style={style}
               >
                 <picture>
@@ -236,7 +362,9 @@ export function CompanyOperationCarouselV4514({
                   <img
                     src={operation.desktopImage}
                     alt={`Candinho ${operation.label}`}
-                    loading={index === 0 ? "eager" : "lazy"}
+                    loading={
+                      operation.loopGroup === 1 ? "eager" : "lazy"
+                    }
                     draggable={false}
                   />
                 </picture>
@@ -255,7 +383,7 @@ export function CompanyOperationCarouselV4514({
             type="button"
             className="company-operation-arrow-v4514 next"
             aria-label="Próxima operação"
-            onClick={() => goTo(activeIndex + 1)}
+            onClick={() => goBy(1)}
           >
             <ChevronRight size={25} />
           </button>
@@ -274,16 +402,10 @@ export function CompanyOperationCarouselV4514({
               className={index === activeIndex ? "active" : ""}
               aria-label={`Ir para ${operation.label}`}
               aria-current={index === activeIndex ? "true" : undefined}
-              onClick={() => goTo(index)}
+              onClick={() => goToLogical(index)}
             />
           ))}
         </div>
-
-        <span className="company-operation-position-v4514">
-          {String(activeIndex + 1).padStart(2, "0")}
-          <i>/</i>
-          {String(operations.length).padStart(2, "0")}
-        </span>
       </div>
 
       {desktop && operations.length > 1 && !reducedMotion && (
@@ -298,7 +420,10 @@ export function CompanyOperationCarouselV4514({
         </div>
       )}
 
-      <span className="sr-only" aria-live="polite">
+      <span
+        className="company-operation-live-v4514"
+        aria-live="polite"
+      >
         {operations[activeIndex]?.label} selecionado.
       </span>
     </section>

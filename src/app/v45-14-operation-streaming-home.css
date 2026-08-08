@@ -1,7 +1,11 @@
 /* =========================================================
-   V45.14 · HOME DE OPERAÇÕES PREMIUM
-   Desktop = streaming/carrossel
-   Mobile = swipe nativo + scroll snap
+   V45.14.2 · HOME DE OPERAÇÕES PREMIUM
+   - loop infinito desktop + mobile
+   - autoplay desktop 2,5s
+   - hover pausa
+   - dots centralizados
+   - mobile sem moldura extra
+   - acesso rápido em dock alinhado
    ========================================================= */
 
 .company-home-streaming-v4514 {
@@ -133,8 +137,7 @@
   opacity: .48;
   transform: scale(.945);
   filter: saturate(.73) brightness(.66);
-  box-shadow:
-    0 24px 80px rgba(0,0,0,.32);
+  box-shadow: 0 24px 80px rgba(0,0,0,.32);
   transition:
     opacity .42s cubic-bezier(.2,.75,.2,1),
     transform .42s cubic-bezier(.2,.75,.2,1),
@@ -317,13 +320,13 @@
   margin: -6px auto 0;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
 }
 
 .company-operation-dots-v4514 {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
@@ -340,19 +343,6 @@
 .company-operation-dots-v4514 button.active {
   width: 42px;
   background: rgba(255,255,255,.78);
-}
-
-.company-operation-position-v4514 {
-  color: rgba(255,255,255,.62);
-  font-size: 9px;
-  font-weight: 850;
-  letter-spacing: .13em;
-}
-
-.company-operation-position-v4514 i {
-  margin-inline: 4px;
-  color: rgba(255,255,255,.24);
-  font-style: normal;
 }
 
 .company-operation-progress-v4514 {
@@ -384,6 +374,19 @@
 @keyframes v4514-operation-progress {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
+}
+
+/* Screen-reader live status. Must never appear visually. */
+.company-operation-live-v4514 {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .company-home-utility-row-v4514 {
@@ -454,7 +457,7 @@ button.company-home-utility-link-v4514 {
 @media (max-width: 820px) {
   .company-home-streaming-v4514 {
     min-height: calc(100dvh - 8px);
-    padding: 13px 0 28px;
+    padding: 13px 0 26px;
     overflow: hidden;
   }
 
@@ -491,44 +494,53 @@ button.company-home-utility-link-v4514 {
     padding:
       8px
       calc((100% - var(--slide-width)) / 2)
-      13px;
+      11px;
     gap: 12px;
     touch-action: pan-x pan-y;
   }
 
   .company-operation-slide-v4514 {
     aspect-ratio: 941 / 1672;
-    border-radius: 22px;
-    opacity: .58;
-    transform: scale(.965);
-    filter: saturate(.78) brightness(.74);
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+    background: transparent;
+    box-shadow: none;
+    opacity: .46;
+    transform: none;
+    filter: saturate(.76) brightness(.64);
   }
 
   .company-operation-slide-v4514[data-active="true"] {
-    transform: scale(1);
+    border: 0;
+    transform: none;
+    opacity: 1;
+    filter: saturate(1) brightness(1);
+    box-shadow: none;
+  }
+
+  .company-operation-slide-v4514 picture,
+  .company-operation-slide-v4514 img {
+    border-radius: 0;
   }
 
   .company-operation-slide-v4514 img,
   .company-operation-slide-v4514[data-desktop-fit="contain"] img {
-    object-fit: cover;
+    object-fit: contain;
   }
 
-  .company-operation-slide-v4514[data-desktop-fit="contain"]::before {
-    display: none;
-  }
-
+  .company-operation-slide-v4514[data-desktop-fit="contain"]::before,
   .company-operation-slide-v4514::after,
   .company-operation-enter-v4514,
   .company-operation-arrow-v4514,
-  .company-operation-progress-v4514,
-  .company-operation-position-v4514 {
+  .company-operation-progress-v4514 {
     display: none;
   }
 
   .company-operation-pager-v4514 {
     width: auto;
     min-height: 18px;
-    margin-top: -3px;
+    margin-top: 0;
     justify-content: center;
   }
 
@@ -547,24 +559,49 @@ button.company-home-utility-link-v4514 {
     border-radius: 999px;
   }
 
+  /* Compact 5-item dock: no orphan "Sair" button. */
   .company-home-utility-row-v4514 {
-    width: min(420px, calc(100% - 28px));
+    width: min(430px, calc(100% - 26px));
     margin-top: 15px;
+    gap: 7px;
   }
 
   .company-home-utility-links-v4514 {
     width: 100%;
+    padding: 5px;
+    border: 1px solid rgba(255,255,255,.075);
+    border-radius: 18px;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0,1fr));
-    gap: 6px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 3px;
+    background: rgba(255,255,255,.012);
   }
 
   .company-home-utility-link-v4514 {
     width: 100%;
     min-width: 0;
-    min-height: 42px;
-    padding: 0 8px;
-    font-size: 9px;
+    min-height: 58px;
+    padding: 6px 2px;
+    border: 0;
+    border-radius: 13px;
+    flex-direction: column;
+    gap: 5px;
+    background: transparent;
+    font-size: 8px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .company-home-utility-link-v4514 svg {
+    width: 17px;
+    height: 17px;
+  }
+
+  .company-home-utility-link-v4514:hover,
+  .company-home-utility-link-v4514:focus-visible {
+    border: 0;
+    background: rgba(255,255,255,.045);
+    transform: none;
   }
 }
 
@@ -573,8 +610,16 @@ button.company-home-utility-link-v4514 {
     --slide-width: min(80vw, 334px);
   }
 
+  .company-home-utility-row-v4514 {
+    width: calc(100% - 18px);
+  }
+
   .company-home-utility-links-v4514 {
-    grid-template-columns: repeat(2, minmax(0,1fr));
+    padding-inline: 3px;
+  }
+
+  .company-home-utility-link-v4514 {
+    font-size: 7.5px;
   }
 }
 
