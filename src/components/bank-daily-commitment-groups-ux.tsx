@@ -62,16 +62,37 @@ function isFixedDateList(list: HTMLElement) {
   return Boolean(title?.startsWith("Vencimentos de "));
 }
 
+function shortDate(offsetDays: number) {
+  const now = new Date();
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const year = Number(parts.find((p) => p.type === "year")?.value ?? 1970);
+  const month = Number(parts.find((p) => p.type === "month")?.value ?? 1);
+  const day = Number(parts.find((p) => p.type === "day")?.value ?? 1);
+
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + offsetDays);
+
+  return `${String(date.getUTCDate()).padStart(2, "0")}/${String(
+    date.getUTCMonth() + 1,
+  ).padStart(2, "0")}`;
+}
+
 function buildHeader({
   label,
   total,
   availableBefore,
-  firstGroup,
+  hasPriorCommitments,
 }: {
   label: string;
   total: number;
   availableBefore: number;
-  firstGroup: boolean;
+  hasPriorCommitments: boolean;
 }) {
   const header = document.createElement("header");
   header.className = "bank-day-group-head-v4512";
@@ -106,9 +127,9 @@ function buildHeader({
   }`;
 
   const statusLabel = document.createElement("span");
-  statusLabel.textContent = firstGroup
-    ? `Saldo atual ${money(availableBefore)}`
-    : `Saldo projetado ${money(availableBefore)}`;
+  statusLabel.textContent = hasPriorCommitments
+    ? `Saldo projetado ${money(availableBefore)}`
+    : `Saldo atual ${money(availableBefore)}`;
 
   const statusValue = document.createElement("strong");
   statusValue.textContent = covered
@@ -116,9 +137,9 @@ function buildHeader({
     : `Falta ${money(Math.abs(difference))}`;
 
   const note = document.createElement("small");
-  note.textContent = firstGroup
-    ? "Saldo disponível antes destes vencimentos."
-    : "Já desconta os vencimentos dos dias anteriores.";
+  note.textContent = hasPriorCommitments
+    ? "Já desconta os vencimentos dos dias anteriores."
+    : "Saldo disponível antes destes vencimentos.";
 
   status.append(statusLabel, statusValue, note);
   header.append(main, totalBlock, status);
@@ -146,30 +167,40 @@ function enhanceFixedDateList(list: HTMLElement, openingBalance: number) {
     groups.set(label, rows);
   }
 
+  const recentLabels = new Set([shortDate(0), shortDate(1)]);
   let runningBalance = openingBalance;
-  let groupIndex = 0;
+  let hasPriorCommitments = false;
 
   for (const [label, rows] of groups.entries()) {
-    const first = rows[0];
-    if (!first) continue;
-
     const total = rows.reduce(
       (sum, row) => sum + itemAmount(row),
       0,
     );
 
+    if (recentLabels.has(label)) {
+      rows.forEach((row) =>
+        row.classList.add("bank-day-row-moved-v4513"),
+      );
+      runningBalance -= total;
+      hasPriorCommitments = true;
+      continue;
+    }
+
+    const first = rows[0];
+    if (!first) continue;
+
     const header = buildHeader({
       label,
       total,
       availableBefore: runningBalance,
-      firstGroup: groupIndex === 0,
+      hasPriorCommitments,
     });
 
     header.dataset.v4512BankGroupHeader = "1";
     list.insertBefore(header, first);
 
     runningBalance -= total;
-    groupIndex += 1;
+    hasPriorCommitments = true;
   }
 }
 

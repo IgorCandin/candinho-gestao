@@ -1,0 +1,244 @@
+/* =========================================================
+   V45.13 · Bank com fluxo mensal mais natural
+   ========================================================= */
+
+/* A aba Entradas deixa de competir com "Este mês". A rota continua existindo
+   como editor quando o usuário abre uma ação específica. */
+.sidebar a[href="/bank/entradas"],
+.mobile-menu-panel a[href="/bank/entradas"],
+.bank-v39-mobile-nav a[href="/bank/entradas"] {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .bank-v39-mobile-nav {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+}
+
+/* Hoje e amanhã saem da lista longa, mas continuam participando do saldo
+   acumulado calculado pelo componente V45.12.1/V45.13. */
+.bank-day-row-moved-v4513 {
+  display: none !important;
+}
+
+[data-v4513-bank-recent-host="true"],
+[data-v4513-bank-income-host="true"] {
+  margin-top: 18px;
+}
+
+.bank-recent-panel-v4513 {
+  border-color: rgba(217, 166, 61, .22);
+}
+
+.bank-recent-list-v4513 {
+  display: grid;
+  gap: 6px;
+}
+
+.bank-recent-item-v4513 {
+  min-width: 0;
+  min-height: 54px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  background: rgba(255,255,255,.01);
+  text-decoration: none;
+}
+
+.bank-recent-item-v4513:hover {
+  border-color: rgba(217,166,61,.28);
+  background: rgba(217,166,61,.035);
+}
+
+.bank-recent-date-v4513 {
+  min-width: 66px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.bank-recent-item-v4513 > span:nth-child(2) {
+  min-width: 0;
+}
+
+.bank-recent-item-v4513 strong,
+.bank-recent-item-v4513 small {
+  display: block;
+}
+
+.bank-recent-item-v4513 strong {
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bank-recent-item-v4513 small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.bank-recent-item-v4513 > b {
+  color: var(--text);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* Empréstimo: parcela e saldo total deixam de parecer a mesma coisa. */
+.bank-debt-installment-v4513 {
+  margin-top: 4px !important;
+  color: var(--gold) !important;
+  font-size: 10px !important;
+  font-weight: 850 !important;
+}
+
+/* Entradas concentradas em Este mês. */
+.bank-month-income-v4513 {
+  border-color: rgba(70,195,123,.18);
+}
+
+.bank-income-summary-v4513 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0,1fr));
+  gap: 8px;
+}
+
+.bank-income-summary-v4513 > div {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.01);
+}
+
+.bank-income-summary-v4513 span,
+.bank-income-summary-v4513 strong,
+.bank-income-summary-v4513 small {
+  display: block;
+}
+
+.bank-income-summary-v4513 span {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.bank-income-summary-v4513 strong {
+  margin-top: 3px;
+  font-size: 15px;
+}
+
+.bank-income-summary-v4513 small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.bank-income-focus-lists-v4513 {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 10px;
+}
+
+.bank-income-focus-lists-v4513 > div {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 5px;
+}
+
+.bank-income-list-title-v4513 {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.bank-income-focus-row-v4513 {
+  min-width: 0;
+  padding: 8px 9px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  background: rgba(255,255,255,.008);
+  text-decoration: none;
+}
+
+a.bank-income-focus-row-v4513:hover {
+  border-color: rgba(70,195,123,.25);
+}
+
+.bank-income-focus-row-v4513 strong,
+.bank-income-focus-row-v4513 small {
+  display: block;
+}
+
+.bank-income-focus-row-v4513 strong {
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bank-income-focus-row-v4513 small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.bank-income-focus-row-v4513 > b {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.bank-income-actions-v4513 {
+  margin-top: 11px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 720px) {
+  .bank-recent-item-v4513 {
+    grid-template-columns: minmax(0,1fr) auto;
+  }
+
+  .bank-recent-date-v4513 {
+    grid-column: 1 / -1;
+  }
+
+  .bank-recent-item-v4513 > svg {
+    display: none;
+  }
+
+  .bank-income-summary-v4513,
+  .bank-income-focus-lists-v4513 {
+    grid-template-columns: 1fr;
+  }
+
+  .bank-income-actions-v4513 {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .bank-income-actions-v4513 .button {
+    width: 100%;
+    justify-content: center;
+  }
+}
