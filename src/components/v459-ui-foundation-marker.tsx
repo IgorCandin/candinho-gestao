@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
+import { BankDailyCommitmentGroupsUX } from "@/components/bank-daily-commitment-groups-ux";
+import { ErpHierarchyUX } from "@/components/erp-hierarchy-ux";
 
 const DESKTOP_QUERY = "(min-width: 821px)";
 
@@ -24,5 +26,10 @@ export function V459UiFoundationMarker() {
     };
   }, []);
 
-  return null;
+  return (
+    <>
+      <BankDailyCommitmentGroupsUX />
+      <ErpHierarchyUX />
+    </>
+  );
 }

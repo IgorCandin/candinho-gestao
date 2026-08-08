@@ -41,22 +41,24 @@ function routeLabel(route: string) {
     ["/suplementos", "Hoje"],
   ];
 
-  return map.find(([prefix]) => route === prefix || route.startsWith(`${prefix}/`))?.[1] ?? route;
+  return (
+    map.find(
+      ([prefix]) => route === prefix || route.startsWith(`${prefix}/`),
+    )?.[1] ?? route
+  );
 }
 
 function signalGroup(signal: NexusSignal): FilterKey {
-  if (["lead_followup", "quote_followup", "stock_lead_opportunity"].includes(signal.signalType)) {
+  if (
+    ["lead_followup", "quote_followup", "stock_lead_opportunity"].includes(
+      signal.signalType,
+    )
+  ) {
     return "commercial";
   }
+
   if (signal.signalType === "relationship_review") return "relationship";
   return "operation";
-}
-
-function money(value: number) {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
 }
 
 export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief }) {
@@ -91,7 +93,9 @@ export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief 
       setMessage("Leitura operacional atualizada.");
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "Não foi possível atualizar o Nexus.",
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar o Nexus.",
       );
     } finally {
       setLoading(false);
@@ -106,13 +110,27 @@ export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief 
       const counts = { ...current.counts };
       counts.open = Math.max(0, counts.open - 1);
 
-      if (signal.severity === "urgent") counts.urgent = Math.max(0, counts.urgent - 1);
-      if (signal.severity === "attention") counts.attention = Math.max(0, counts.attention - 1);
-      if (signal.severity === "opportunity") counts.opportunity = Math.max(0, counts.opportunity - 1);
-      if (signal.signalType === "lead_followup") counts.lead = Math.max(0, counts.lead - 1);
-      if (signal.signalType === "payment_due") counts.payment = Math.max(0, counts.payment - 1);
-      if (signal.signalType === "delivery_due") counts.delivery = Math.max(0, counts.delivery - 1);
-      if (signal.signalType === "post_sale") counts.postSale = Math.max(0, counts.postSale - 1);
+      if (signal.severity === "urgent") {
+        counts.urgent = Math.max(0, counts.urgent - 1);
+      }
+      if (signal.severity === "attention") {
+        counts.attention = Math.max(0, counts.attention - 1);
+      }
+      if (signal.severity === "opportunity") {
+        counts.opportunity = Math.max(0, counts.opportunity - 1);
+      }
+      if (signal.signalType === "lead_followup") {
+        counts.lead = Math.max(0, counts.lead - 1);
+      }
+      if (signal.signalType === "payment_due") {
+        counts.payment = Math.max(0, counts.payment - 1);
+      }
+      if (signal.signalType === "delivery_due") {
+        counts.delivery = Math.max(0, counts.delivery - 1);
+      }
+      if (signal.signalType === "post_sale") {
+        counts.postSale = Math.max(0, counts.postSale - 1);
+      }
       if (["stockout", "stock_lead_opportunity"].includes(signal.signalType)) {
         counts.stock = Math.max(0, counts.stock - 1);
       }
@@ -152,83 +170,121 @@ export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief 
   ];
 
   return (
-    <section className="nexus-command-center">
-      <header className="nexus-command-hero">
+    <section className="nexus-command-center nexus-command-center-v4512">
+      <header className="nexus-command-hero nexus-command-hero-v4512">
         <div className="nexus-command-brand">
-          <span className="nexus-command-orb"><Bot size={25} /></span>
+          <span className="nexus-command-orb">
+            <Bot size={25} />
+          </span>
           <div>
-            <span className="eyebrow">Nexus Operating Layer · V1</span>
-            <h2>O cérebro acima dos módulos</h2>
+            <span className="eyebrow">Nexus IA · Inbox</span>
+            <h2>O que chegou para decidir</h2>
             <p>
-              O ERP continua sendo a fonte de verdade. O Nexus cruza os fatos, aprende o caminho de uso e organiza a próxima decisão sem executar ações críticas sozinho.
+              Esta tela agora é a caixa de entrada do Nexus: sinais novos e
+              exceções que merecem sua decisão. Rotina diária, fila completa e
+              gestão continuam nos lugares próprios.
             </p>
           </div>
         </div>
 
-        <button className="button gold" type="button" disabled={loading} onClick={() => void refresh()}>
-          {loading ? <LoaderCircle className="spin" size={16} /> : <RefreshCcw size={16} />}
-          {loading ? "Atualizando" : "Atualizar leitura"}
+        <button
+          className="button gold"
+          type="button"
+          disabled={loading}
+          onClick={() => void refresh()}
+        >
+          {loading ? (
+            <LoaderCircle className="spin" size={16} />
+          ) : (
+            <RefreshCcw size={16} />
+          )}
+          {loading ? "Atualizando" : "Atualizar inbox"}
         </button>
       </header>
 
-      <div className="nexus-command-stats">
-        <article><span>Sinais ativos</span><strong>{brief.counts.open}</strong><small>inclui insights e revisões</small></article>
-        <article className="urgent"><span>Urgentes</span><strong>{brief.counts.urgent}</strong><small>merecem vir primeiro</small></article>
-        <article className="opportunity"><span>Oportunidades</span><strong>{brief.counts.opportunity}</strong><small>podem virar venda</small></article>
-        <article><span>Faturamento do mês</span><strong>{money(brief.commercial.currentMonthRevenue)}</strong><small>{brief.commercial.currentMonthSales} venda(s) entregues</small></article>
-        <article><span>Lucro do mês</span><strong>{money(brief.commercial.currentMonthProfit)}</strong><small>base operacional atual</small></article>
-        <article><span>A receber</span><strong>{money(brief.commercial.receivableTotal)}</strong><small>{brief.commercial.receivableSales} venda(s)</small></article>
+      <div className="nexus-command-stats nexus-command-stats-v4512">
+        <article>
+          <span>Sinais ativos</span>
+          <strong>{brief.counts.open}</strong>
+          <small>itens aguardando triagem</small>
+        </article>
+        <article className="urgent">
+          <span>Urgentes</span>
+          <strong>{brief.counts.urgent}</strong>
+          <small>exceções que merecem vir primeiro</small>
+        </article>
+        <article className="opportunity">
+          <span>Oportunidades</span>
+          <strong>{brief.counts.opportunity}</strong>
+          <small>podem virar ação comercial</small>
+        </article>
       </div>
 
-      <div className="nexus-command-layout">
-        <div className="nexus-command-main">
-          <article className="panel">
-            <div className="panel-head">
-              <div>
-                <h2><Sparkles size={18} /> Inbox do Nexus</h2>
-                <p>O que mudou no ERP e merece decisão, em vez de obrigar você a procurar módulo por módulo.</p>
-              </div>
+      <article className="panel nexus-inbox-primary-v4512">
+        <div className="panel-head">
+          <div>
+            <h2>
+              <Sparkles size={18} /> Inbox do Nexus
+            </h2>
+            <p>
+              Decida o que fazer com cada sinal. Para executar a rotina inteira,
+              use Hoje ou Fila Única.
+            </p>
+          </div>
 
-              <div className="nexus-signal-filters">
-                {FILTERS.map((item) => (
-                  <button
-                    type="button"
-                    key={item.key}
-                    className={filter === item.key ? "active" : ""}
-                    onClick={() => setFilter(item.key)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="panel-body nexus-command-signals">
-              {visible.length ? (
-                visible.slice(0, 20).map((signal) => (
-                  <NexusSignalCard
-                    signal={signal}
-                    key={signal.id}
-                    onChanged={(id) => removeSignal(id)}
-                  />
-                ))
-              ) : (
-                <div className="empty compact">
-                  <CheckCircle2 size={27} />
-                  <strong>Nada nesta categoria agora</strong>
-                  Troque o filtro ou atualize a leitura.
-                </div>
-              )}
-            </div>
-          </article>
+          <div className="nexus-signal-filters">
+            {FILTERS.map((item) => (
+              <button
+                type="button"
+                key={item.key}
+                className={filter === item.key ? "active" : ""}
+                onClick={() => setFilter(item.key)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <aside className="nexus-command-side">
+        <div className="panel-body nexus-command-signals">
+          {visible.length ? (
+            visible.slice(0, 20).map((signal) => (
+              <NexusSignalCard
+                signal={signal}
+                key={signal.id}
+                onChanged={(id) => removeSignal(id)}
+              />
+            ))
+          ) : (
+            <div className="empty compact">
+              <CheckCircle2 size={27} />
+              <strong>Nada nesta categoria agora</strong>
+              Troque o filtro ou atualize a leitura.
+            </div>
+          )}
+        </div>
+      </article>
+
+      <details className="nexus-command-context-v4512">
+        <summary>
+          <Bot size={18} />
+          <span>
+            <strong>Como o Nexus trabalha</strong>
+            <small>
+              Rotina guiada, páginas aprendidas e limites — abra somente quando
+              quiser consultar.
+            </small>
+          </span>
+        </summary>
+
+        <div className="nexus-command-context-grid-v4512">
           <article className="panel">
             <div className="panel-head">
               <div>
-                <h2><ClipboardList size={18} /> Rotina guiada</h2>
-                <p>Um novo operador pode seguir esta sequência sem conhecer todos os atalhos do ERP.</p>
+                <h2>
+                  <ClipboardList size={18} /> Rotina guiada
+                </h2>
+                <p>Sequência de referência para quem ainda não conhece o ERP.</p>
               </div>
             </div>
             <div className="panel-body nexus-playbook-list">
@@ -244,7 +300,9 @@ export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief 
           <article className="panel">
             <div className="panel-head">
               <div>
-                <h2><Route size={18} /> Rotina aprendida</h2>
+                <h2>
+                  <Route size={18} /> Rotina aprendida
+                </h2>
                 <p>Frequência de páginas abertas nos últimos 30 dias.</p>
               </div>
             </div>
@@ -253,15 +311,18 @@ export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief 
                 brief.usage.slice(0, 8).map((item, index) => (
                   <div key={item.route}>
                     <span>{index + 1}</span>
-                    <div><strong>{routeLabel(item.route)}</strong><small>{item.route}</small></div>
+                    <div>
+                      <strong>{routeLabel(item.route)}</strong>
+                      <small>{item.route}</small>
+                    </div>
                     <b>{item.visits}×</b>
                   </div>
                 ))
               ) : (
                 <div className="empty compact">
                   <Route size={24} />
-                  <strong>Ainda aprendendo a rotina</strong>
-                  A partir deste pacote, a navegação passa a alimentar este mapa.
+                  <strong>Ainda aprendendo a rotina</strong>A navegação alimenta
+                  este mapa automaticamente.
                 </div>
               )}
             </div>
@@ -270,25 +331,39 @@ export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief 
           <article className="panel nexus-guardrail-card">
             <div className="panel-head">
               <div>
-                <h2><ShieldCheck size={18} /> Limites do Nexus</h2>
+                <h2>
+                  <ShieldCheck size={18} /> Limites do Nexus
+                </h2>
                 <p>Inteligência com trilhos claros.</p>
               </div>
             </div>
             <div className="panel-body">
-              <p><strong>Pode:</strong> observar, cruzar dados, priorizar, sugerir, gerar mensagens e explicar o porquê.</p>
-              <p><strong>Não faz sozinho:</strong> enviar mensagem, receber pagamento, apagar registro, alterar financeiro ou dar baixa manual.</p>
-              <p><strong>Exceção configurável:</strong> a parceria pode ser atribuída automaticamente quando o vínculo do cliente foi cadastrado explicitamente.</p>
+              <p>
+                <strong>Pode:</strong> observar, cruzar dados, priorizar, sugerir,
+                gerar mensagens e explicar o porquê.
+              </p>
+              <p>
+                <strong>Não faz sozinho:</strong> enviar mensagem, receber
+                pagamento, apagar registro, alterar financeiro ou dar baixa
+                manual.
+              </p>
+              <p>
+                <strong>Exceção configurável:</strong> a parceria pode ser
+                atribuída automaticamente quando o vínculo do cliente foi
+                cadastrado explicitamente.
+              </p>
             </div>
           </article>
-        </aside>
-      </div>
+        </div>
 
-      <div className="nexus-command-footer-note">
-        <UserRoundCheck size={16} />
-        <span>
-          “Já tratei” apenas tira um sinal da fila por alguns dias. O registro original continua no módulo certo e o histórico não é apagado.
-        </span>
-      </div>
+        <div className="nexus-command-footer-note nexus-command-footer-note-v4512">
+          <UserRoundCheck size={16} />
+          <span>
+            “Já tratei” apenas tira um sinal da fila por alguns dias. O registro
+            original continua no módulo certo e o histórico não é apagado.
+          </span>
+        </div>
+      </details>
 
       {message && <p className="form-message">{message}</p>}
     </section>

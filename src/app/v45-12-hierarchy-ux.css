@@ -1,0 +1,295 @@
+/* =========================================================
+   V45.12 · HIERARQUIA UX + BANK POR DIA + CAIXA ATUAL
+   A tarefa principal ganha a tela; contexto fica depois.
+   ========================================================= */
+
+/* ---------- Bank · compromissos agrupados por vencimento ---------- */
+
+.bank-charge-list[data-v4512-daily-grouped="1"] {
+  display: grid;
+  gap: 0;
+}
+
+.bank-charge-list[data-v4512-daily-grouped="1"] > .bank-day-group-head-v4512:not(:first-child) {
+  margin-top: 14px;
+}
+
+.bank-day-group-head-v4512 {
+  display: grid;
+  grid-template-columns: minmax(150px,.7fr) minmax(150px,.8fr) minmax(230px,1.25fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px 14px 0 0;
+  background: rgba(255,255,255,.025);
+}
+
+.bank-day-group-title-v4512,
+.bank-day-total-v4512,
+.bank-day-coverage-v4512 {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.bank-day-group-title-v4512 > span,
+.bank-day-total-v4512 > span,
+.bank-day-coverage-v4512 > span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.bank-day-group-title-v4512 > strong {
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.bank-day-group-title-v4512 > small,
+.bank-day-coverage-v4512 > small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.bank-day-total-v4512 > strong,
+.bank-day-coverage-v4512 > strong {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.bank-day-coverage-v4512 {
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.bank-day-coverage-v4512.covered {
+  border-color: rgba(70,195,123,.28);
+  background: rgba(70,195,123,.065);
+}
+
+.bank-day-coverage-v4512.covered > strong { color: #78e6a3; }
+
+.bank-day-coverage-v4512.short {
+  border-color: rgba(238,100,100,.28);
+  background: rgba(238,100,100,.065);
+}
+
+.bank-day-coverage-v4512.short > strong { color: #ff8f8f; }
+
+.bank-charge-list[data-v4512-daily-grouped="1"] > .bank-day-group-head-v4512 + .bank-charge-item {
+  border-top-left-radius: 0 !important;
+  border-top-right-radius: 0 !important;
+}
+
+.bank-charge-list[data-v4512-daily-grouped="1"] > .bank-charge-item {
+  margin-top: 0 !important;
+}
+
+/* ---------- Novo orçamento · uma tarefa por largura ---------- */
+
+.new-sale-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+  align-items: start !important;
+}
+
+.new-sale-main {
+  width: 100%;
+  min-width: 0;
+}
+
+.new-sale-side {
+  position: static !important;
+  top: auto !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px !important;
+  align-items: start !important;
+}
+
+.new-sale-side > * { min-width: 0; }
+
+/* Informações operacionais primeiro; decisão e fechamento realmente no fim. */
+.new-sale-side .v458-budget-stage-note {
+  grid-column: 1 / -1;
+  order: 80;
+}
+
+.new-sale-side .v4510-followup-preview {
+  grid-column: 1 / -1;
+}
+
+.new-sale-side .sale-form-summary {
+  grid-column: 1 / -1;
+  order: 90;
+}
+
+.new-sale-side .sale-form-actions {
+  grid-column: 1 / -1;
+  order: 100;
+  justify-content: flex-end;
+}
+
+.new-sale-side .standalone-message {
+  grid-column: 1 / -1;
+  order: 110;
+}
+
+/* ---------- Nexus Inbox · inbox é o protagonista ---------- */
+
+.nexus-command-center-v4512 {
+  display: grid;
+  gap: 14px;
+}
+
+.nexus-command-hero-v4512 {
+  margin-bottom: 0;
+}
+
+.nexus-command-stats-v4512 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  margin-bottom: 0 !important;
+}
+
+.nexus-inbox-primary-v4512 {
+  width: 100%;
+  min-width: 0;
+}
+
+.nexus-command-context-v4512 {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.015);
+}
+
+.nexus-command-context-v4512 > summary {
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  list-style: none;
+  color: var(--text);
+}
+
+.nexus-command-context-v4512 > summary::-webkit-details-marker { display: none; }
+.nexus-command-context-v4512 > summary > svg { color: var(--gold); flex: 0 0 auto; }
+
+.nexus-command-context-v4512 > summary > span {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.nexus-command-context-v4512 > summary strong { font-size: 13px; }
+.nexus-command-center-v4512 .nexus-signal-topline > small { display: none !important; }
+.nexus-command-context-v4512 > summary small { color: var(--muted); font-size: 10px; }
+
+.nexus-command-context-v4512[open] > summary {
+  border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.02);
+}
+
+.nexus-command-context-grid-v4512 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 12px;
+}
+
+.nexus-command-context-grid-v4512 > .panel { margin: 0; }
+
+.nexus-command-footer-note-v4512 {
+  margin: 0 12px 12px;
+}
+
+/* ---------- Gestão · supervisão em vez de outra fila diária ---------- */
+
+.dashboard-operational-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
+.dashboard-operational-grid > .dashboard-side-stack { order: 1; }
+.dashboard-operational-grid > .dashboard-priorities-panel { order: 2; }
+
+.dashboard-priorities-panel {
+  border-style: dashed;
+}
+
+/* ---------- Responsividade ---------- */
+
+@media (max-width: 980px) {
+  .bank-day-group-head-v4512 {
+    grid-template-columns: minmax(120px,.7fr) minmax(130px,.7fr) minmax(190px,1fr);
+  }
+
+  .nexus-command-context-grid-v4512 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .new-sale-side {
+    grid-template-columns: 1fr !important;
+  }
+
+  .new-sale-side > * {
+    grid-column: 1 !important;
+  }
+
+  .nexus-command-stats-v4512 {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .nexus-command-stats-v4512 > article:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 720px) {
+  .bank-day-group-head-v4512 {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .bank-day-total-v4512,
+  .bank-day-coverage-v4512 {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .bank-day-total-v4512 > strong,
+  .bank-day-coverage-v4512 > strong {
+    text-align: right;
+  }
+
+  .bank-day-coverage-v4512 > small {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .nexus-command-stats-v4512 {
+    grid-template-columns: 1fr !important;
+  }
+
+  .nexus-command-stats-v4512 > article:first-child { grid-column: auto; }
+
+  .new-sale-side .sale-form-actions {
+    display: grid !important;
+    grid-template-columns: 1fr;
+  }
+
+  .new-sale-side .sale-form-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+}
