@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { BankMonthFocusUX } from "@/components/bank-month-focus-ux";
+import { BudgetSaveDedupUX } from "@/components/budget-save-dedup-ux";
 
 export function ErpHierarchyUX() {
   const pathname = usePathname();
@@ -37,6 +38,7 @@ export function ErpHierarchyUX() {
     };
 
     apply();
+
     const observer = new MutationObserver(apply);
     observer.observe(document.body, { childList: true, subtree: true });
 
@@ -46,5 +48,10 @@ export function ErpHierarchyUX() {
     };
   }, [pathname]);
 
-  return <BankMonthFocusUX />;
+  return (
+    <>
+      <BankMonthFocusUX />
+      <BudgetSaveDedupUX />
+    </>
+  );
 }
