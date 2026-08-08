@@ -47,14 +47,10 @@ export default async function DashboardPage() {
       key: "fitness",
       label: "Fitness",
       href: "/fitness",
-      // A arte horizontal ainda não foi fornecida.
-      // O componente cria uma ambientação desktop premium
-      // usando a própria arte vertical sem distorcê-la.
       desktopImage:
-        "/operation-banners/fitness-mobile.webp",
+        "/operation-banners/fitness-desktop.webp",
       mobileImage:
         "/operation-banners/fitness-mobile.webp",
-      desktopFit: "contain",
       tone: "fitness",
       rgb: "239, 75, 154",
       visible: access.canAccessFitness,
