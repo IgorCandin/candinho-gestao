@@ -5,6 +5,7 @@ import {
   CalendarDays,
   ChevronRight,
   CircleDollarSign,
+  FlaskConical,
   ReceiptText,
   RefreshCcw,
   ShoppingBag,
@@ -15,6 +16,12 @@ const groups = [
     title: "Ajustes do Bank",
     description: "Coisas que você altera de vez em quando, não no uso diário.",
     items: [
+      {
+        href: "/bank-lab",
+        title: "Bank 2.0 — laboratório",
+        description: "Teste a conexão bancária sem alterar o Bank atual.",
+        icon: FlaskConical,
+      },
       {
         href: "/bank/atualizar",
         title: "Atualizar saldos",
