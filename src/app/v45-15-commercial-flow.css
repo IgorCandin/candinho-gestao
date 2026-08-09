@@ -1,0 +1,478 @@
+/* =========================================================
+   V45.15 · COMERCIAL MAIS FLUIDO
+   Suplementos: escolha só depois de Salvar.
+   Fitness: venda aproximada do padrão Suplementos.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   SUPLEMENTOS · página inicial do orçamento
+   --------------------------------------------------------- */
+
+.v4515-budget-flow .new-sale-layout {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 18px !important;
+}
+
+.v4515-budget-flow
+  [data-v4515-premature-choice="true"],
+.v4515-budget-flow
+  .v4510-intent-card,
+.v4515-budget-flow
+  .v458-budget-stage-note {
+  display: none !important;
+}
+
+/* Pagamento, entrega, pós-venda e parceria só existem
+   visualmente depois da escolha "Orçamento confirmado". */
+.v4515-budget-flow:not(.v4515-confirm-flow-open)
+  .new-sale-side
+  > article[data-v4515-stage] {
+  display: none !important;
+}
+
+.v4515-budget-flow:not(.v4515-confirm-flow-open)
+  .new-sale-side
+  > .v4510-followup-preview {
+  display: none !important;
+}
+
+.v4515-budget-flow:not(.v4515-confirm-flow-open)
+  .new-sale-side {
+  width: 100%;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.v4515-budget-flow:not(.v4515-confirm-flow-open)
+  .new-sale-side
+  .sale-form-summary {
+  min-height: 0;
+  padding: 16px 18px;
+  display: flex !important;
+}
+
+.v4515-budget-flow:not(.v4515-confirm-flow-open)
+  .new-sale-side
+  .sale-form-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* A escolha nativa volta a ser a etapa 1.
+   Removemos a ideia de "recomendado" que vinha do seletor
+   prematuro da página. */
+.v4515-budget-flow
+  .budget-choice-card.v4510-modal-recommended::before {
+  display: none !important;
+}
+
+.v4515-choice-suspended {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* ---------------------------------------------------------
+   SUPLEMENTOS · etapa 2 da venda confirmada
+   --------------------------------------------------------- */
+
+.v4515-confirm-shell {
+  position: fixed;
+  z-index: 1190;
+  inset: 0;
+  pointer-events: none;
+}
+
+.v4515-confirm-backdrop {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: rgba(2, 4, 8, .78);
+  backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.v4515-confirm-header {
+  position: fixed;
+  z-index: 1210;
+  top: max(18px, env(safe-area-inset-top));
+  left: 50%;
+  width: min(760px, calc(100vw - 32px));
+  min-height: 64px;
+  padding: 10px 12px 10px 15px;
+  border: 1px solid rgba(217, 166, 61, .22);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  background: rgba(10, 13, 19, .98);
+  box-shadow: 0 18px 60px rgba(0,0,0,.44);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.v4515-confirm-header span,
+.v4515-confirm-header strong,
+.v4515-confirm-header small {
+  display: block;
+}
+
+.v4515-confirm-header span {
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: .10em;
+}
+
+.v4515-confirm-header strong {
+  margin-top: 3px;
+  font-size: 15px;
+}
+
+.v4515-confirm-header small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side {
+  position: fixed !important;
+  z-index: 1200 !important;
+  top: calc(
+    max(18px, env(safe-area-inset-top)) + 74px
+  ) !important;
+  bottom: calc(
+    max(18px, env(safe-area-inset-bottom)) + 66px
+  ) !important;
+  left: 50% !important;
+  width: min(760px, calc(100vw - 32px)) !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  align-content: start !important;
+  gap: 9px !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  transform: translateX(-50%) !important;
+  pointer-events: auto;
+  scrollbar-width: thin;
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side
+  > article[data-v4515-stage],
+.v4515-confirm-flow-open
+  .new-sale-side
+  > .sale-form-summary {
+  display: block !important;
+  flex: none !important;
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side
+  > article[data-v4515-stage] {
+  border-color: rgba(255,255,255,.07);
+  box-shadow: none;
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side
+  > article[data-v4515-stage="payment"] {
+  border-color: rgba(217,166,61,.22);
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side
+  > article[data-v4515-stage="partnership"] {
+  opacity: .88;
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side
+  > .v4510-followup-preview,
+.v4515-confirm-flow-open
+  .new-sale-side
+  > .v458-budget-stage-note,
+.v4515-confirm-flow-open
+  .new-sale-side
+  > .v4510-intent-card,
+.v4515-confirm-flow-open
+  .new-sale-side
+  > .sale-form-actions,
+.v4515-confirm-flow-open
+  .new-sale-side
+  > .form-message {
+  display: none !important;
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side
+  .sale-form-summary {
+  border-color: rgba(217,166,61,.24);
+}
+
+.v4515-confirm-footer {
+  position: fixed;
+  z-index: 1210;
+  bottom: max(18px, env(safe-area-inset-bottom));
+  left: 50%;
+  width: min(760px, calc(100vw - 32px));
+  min-height: 54px;
+  padding: 7px;
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 15px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+  background: rgba(10, 13, 19, .98);
+  box-shadow: 0 -14px 50px rgba(0,0,0,.35);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+/* ---------------------------------------------------------
+   FITNESS · cliente igual ao padrão comercial
+   --------------------------------------------------------- */
+
+.fitness-customer-selected-meta-v4515 {
+  margin-top: 6px;
+  padding-inline: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.fitness-customer-new-v4515 {
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 11px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  background: rgba(239, 75, 154, .035);
+  text-align: left;
+}
+
+.fitness-customer-new-v4515 > span {
+  min-width: 0;
+}
+
+.fitness-customer-new-v4515 strong,
+.fitness-customer-new-v4515 small {
+  display: block;
+}
+
+.fitness-customer-new-v4515 strong {
+  font-size: 11px;
+}
+
+.fitness-customer-new-v4515 small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.v4515-fitness-sale
+  .v4515-fitness-customer-panel
+  .panel-head p {
+  max-width: 620px;
+}
+
+.v4515-fitness-sale
+  .v4515-fitness-customer-panel
+  .field-span-two {
+  grid-column: 1 / -1;
+}
+
+/* Cliente existente: a busca já trouxe os dados.
+   Não faz sentido obrigar a pessoa a reler cinco inputs. */
+.v4515-fitness-sale
+  .v4515-fitness-customer-panel.v4515-has-existing-customer
+  .v4515-fitness-customer-extra {
+  display: none !important;
+}
+
+.v4515-fitness-sale
+  .v4515-fitness-customer-panel.v4515-has-existing-customer
+  .panel-body {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.v4515-fitness-sale
+  .v4515-fitness-customer-panel.v4515-has-existing-customer
+  .field-span-two {
+  grid-column: auto;
+}
+
+.v4515-fitness-sale
+  .v4515-fitness-customer-panel
+  .v4515-fitness-sale-date {
+  min-width: 170px;
+}
+
+/* ---------------------------------------------------------
+   FITNESS · pagamento como Suplementos
+   --------------------------------------------------------- */
+
+.v4515-fitness-payment-native {
+  display: none !important;
+}
+
+.v4515-fitness-payment-choice {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.v4515-fitness-payment-choice button {
+  min-width: 0;
+  min-height: 68px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  display: grid;
+  align-content: center;
+  gap: 4px;
+  color: var(--text);
+  background: rgba(255,255,255,.01);
+  text-align: left;
+  cursor: pointer;
+}
+
+.v4515-fitness-payment-choice button:hover {
+  border-color: rgba(239,75,154,.24);
+  background: rgba(239,75,154,.025);
+}
+
+.v4515-fitness-payment-choice button.active {
+  border-color: rgba(239,75,154,.48);
+  background:
+    radial-gradient(
+      circle at 0 0,
+      rgba(239,75,154,.12),
+      transparent 60%
+    ),
+    rgba(239,75,154,.035);
+}
+
+.v4515-fitness-payment-choice strong,
+.v4515-fitness-payment-choice small {
+  display: block;
+}
+
+.v4515-fitness-payment-choice strong {
+  font-size: 12px;
+}
+
+.v4515-fitness-payment-choice small {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.3;
+}
+
+/* Um pouco menos de "formulário" no Fitness. */
+.v4515-fitness-sale
+  .sale-form-item {
+  border-radius: 13px;
+}
+
+.v4515-fitness-sale
+  .sale-form-item-grid
+  .sale-product-field {
+  min-width: 0;
+}
+
+.v4515-fitness-sale
+  .sale-form-item-grid
+  .sale-product-field
+  .select {
+  width: 100%;
+}
+
+@media (max-width: 720px) {
+  .v4515-budget-flow:not(.v4515-confirm-flow-open)
+    .new-sale-side
+    .sale-form-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .v4515-budget-flow:not(.v4515-confirm-flow-open)
+    .new-sale-side
+    .sale-form-actions
+    .button {
+    width: 100%;
+  }
+
+  .v4515-confirm-header {
+    top: max(8px, env(safe-area-inset-top));
+    width: calc(100vw - 16px);
+    border-radius: 13px;
+  }
+
+  .v4515-confirm-header small {
+    display: none;
+  }
+
+  .v4515-confirm-flow-open
+    .new-sale-side {
+    top: calc(
+      max(8px, env(safe-area-inset-top)) + 68px
+    ) !important;
+    bottom: calc(
+      max(8px, env(safe-area-inset-bottom)) + 64px
+    ) !important;
+    width: calc(100vw - 16px) !important;
+    gap: 7px !important;
+  }
+
+  .v4515-confirm-footer {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: calc(100vw - 16px);
+  }
+
+  .v4515-confirm-footer .button {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .v4515-fitness-sale
+    .v4515-fitness-customer-panel.v4515-has-existing-customer
+    .panel-body {
+    grid-template-columns: 1fr;
+  }
+
+  .v4515-fitness-sale
+    .v4515-fitness-customer-panel.v4515-has-existing-customer
+    .field-span-two {
+    grid-column: 1;
+  }
+
+  .v4515-fitness-sale
+    .v4515-fitness-customer-panel
+    .v4515-fitness-sale-date {
+    min-width: 0;
+  }
+
+  .v4515-fitness-payment-choice {
+    grid-template-columns: 1fr;
+  }
+}

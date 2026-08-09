@@ -1,15 +1,17 @@
 "use client";
 
 import {
+  Check,
   Search,
   UserPlus,
-  X,
+  UserRound,
 } from "lucide-react";
 import {
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import styles from "./fitness-customer-picker.module.css";
 
 export type FitnessCustomerPick = {
   id: string;
@@ -21,7 +23,9 @@ export type FitnessCustomerPick = {
   active: boolean;
 };
 
-function normalize(value: string | null | undefined) {
+function normalize(
+  value: string | null | undefined,
+) {
   return (value ?? "")
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
@@ -39,25 +43,46 @@ export function FitnessCustomerPicker({
   onSelect: (id: string) => void;
   onNew: () => void;
 }) {
-  const selected = customers.find(
-    (customer) => customer.id === selectedId,
-  );
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selected =
+    customers.find(
+      (customer) => customer.id === selectedId,
+    ) ?? null;
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(
+    selected?.name ?? "",
+  );
   const [open, setOpen] = useState(false);
 
-  const results = useMemo(() => {
-    const needle = normalize(query.trim());
-
-    if (!needle) {
-      return customers
-        .filter((customer) => customer.active)
-        .slice(0, 8);
+  useEffect(() => {
+    function close(event: MouseEvent) {
+      if (
+        !rootRef.current?.contains(
+          event.target as Node,
+        )
+      ) {
+        setOpen(false);
+      }
     }
+
+    document.addEventListener("mousedown", close);
+    return () =>
+      document.removeEventListener("mousedown", close);
+  }, []);
+
+  useEffect(() => {
+    if (selected) {
+      setQuery(selected.name);
+    }
+  }, [selected?.id]);
+
+  const filtered = useMemo(() => {
+    const needle = normalize(query.trim());
 
     return customers
       .filter((customer) => {
         if (!customer.active) return false;
+        if (!needle) return true;
 
         return [
           customer.name,
@@ -85,120 +110,124 @@ export function FitnessCustomerPicker({
           a.name.localeCompare(b.name, "pt-BR")
         );
       })
-      .slice(0, 12);
+      .slice(0, 30);
   }, [customers, query]);
 
-  if (selected) {
-    return (
-      <div className={styles.selected}>
-        <div>
-          <span>Cliente selecionado</span>
-          <strong>{selected.name}</strong>
-          <small>
+  return (
+    <div
+      ref={rootRef}
+      className="customer-combobox fitness-customer-combobox-v4515"
+      data-selected={selected ? "true" : "false"}
+      data-customer-id={selectedId || ""}
+    >
+      <div
+        className={`customer-combobox-input ${
+          open ? "open" : ""
+        }`}
+      >
+        <Search size={16} />
+
+        <input
+          className="input"
+          value={query}
+          onFocus={() => setOpen(true)}
+          onChange={(event) => {
+            const next = event.target.value;
+
+            setQuery(next);
+            setOpen(true);
+
+            if (selectedId) {
+              onNew();
+            }
+          }}
+          placeholder="Digite nome, cidade ou telefone"
+          autoComplete="off"
+        />
+
+        {selected && <Check size={16} />}
+      </div>
+
+      {selected && (
+        <div className="fitness-customer-selected-meta-v4515">
+          <UserRound size={13} />
+          <span>
             {[
               selected.phone,
               selected.city,
               selected.source === "Candinho Company"
-                ? "já estava na Candinho"
-                : "cliente Fitness",
+                ? "Cliente Company"
+                : "Cliente Fitness",
             ]
               .filter(Boolean)
-              .join(" · ")}
-          </small>
+              .join(" · ") || "Cliente selecionado"}
+          </span>
         </div>
-
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="Trocar cliente"
-          onClick={() => {
-            onNew();
-            setQuery("");
-            setOpen(true);
-          }}
-        >
-          <X size={16} />
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.wrap}>
-      <label className={styles.search}>
-        <Search size={16} />
-        <input
-          value={query}
-          onFocus={() => setOpen(true)}
-          onChange={(event) => {
-            setQuery(event.target.value);
-            setOpen(true);
-          }}
-          placeholder="Buscar nome, telefone, cidade..."
-          autoComplete="off"
-        />
-      </label>
+      )}
 
       {open && (
-        <div className={styles.results}>
-          {results.map((customer) => (
-            <button
-              type="button"
-              key={customer.id}
-              onClick={() => {
-                onSelect(customer.id);
-                setQuery(customer.name);
-                setOpen(false);
-              }}
-            >
-              <div>
-                <strong>{customer.name}</strong>
-                <small>
-                  {[customer.phone, customer.city]
-                    .filter(Boolean)
-                    .join(" · ") || "Sem telefone/cidade"}
-                </small>
-              </div>
-
-              <span
-                data-company={
-                  customer.source === "Candinho Company"
-                    ? "true"
-                    : "false"
+        <div className="customer-combobox-menu">
+          {filtered.length > 0 ? (
+            filtered.map((customer) => (
+              <button
+                key={customer.id}
+                type="button"
+                className={
+                  customer.id === selectedId
+                    ? "active"
+                    : ""
                 }
+                onClick={() => {
+                  onSelect(customer.id);
+                  setQuery(customer.name);
+                  setOpen(false);
+                }}
               >
-                {customer.source === "Candinho Company"
-                  ? "Candinho"
-                  : "Fitness"}
-              </span>
-            </button>
-          ))}
+                <UserRound size={15} />
 
-          {results.length === 0 && (
-            <div className={styles.empty}>
+                <span>
+                  <strong>{customer.name}</strong>
+                  <small>
+                    {[
+                      customer.city,
+                      customer.phone,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") ||
+                      "Cliente cadastrado"}
+                  </small>
+                </span>
+
+                {customer.id === selectedId && (
+                  <Check size={15} />
+                )}
+              </button>
+            ))
+          ) : (
+            <div className="customer-combobox-empty">
               Nenhum cliente encontrado.
             </div>
           )}
 
           <button
-            className={styles.newCustomer}
+            className="fitness-customer-new-v4515"
             type="button"
             onClick={() => {
               onNew();
+              setQuery("");
               setOpen(false);
             }}
           >
             <UserPlus size={15} />
-            Cadastrar como nova pessoa
+            <span>
+              <strong>Novo cliente</strong>
+              <small>
+                Preencher os dados nesta venda
+              </small>
+            </span>
           </button>
         </div>
       )}
-
-      <small className={styles.help}>
-        A busca reúne clientes de Suplementos/Company e
-        Fitness. Se a pessoa já existe, não precisa
-        cadastrar de novo.
-      </small>
     </div>
   );
 }

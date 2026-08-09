@@ -3,45 +3,74 @@
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { BankMonthFocusUX } from "@/components/bank-month-focus-ux";
-import { BudgetSaveDedupUX } from "@/components/budget-save-dedup-ux";
+import { BudgetConfirmedFlowUX } from "@/components/budget-confirmed-flow-ux";
 import { CompanyOperationActiveVisualFix } from "@/components/company-operation-active-visual-fix";
+import { FitnessSaleStreamlinedUX } from "@/components/fitness-sale-streamlined-ux";
 
 export function ErpHierarchyUX() {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (pathname !== "/suplementos/painel") return;
+    if (pathname !== "/suplementos/painel") {
+      return;
+    }
 
     let frame = 0;
 
     const apply = () => {
       cancelAnimationFrame(frame);
+
       frame = requestAnimationFrame(() => {
-        const panel = document.querySelector<HTMLElement>(
-          ".dashboard-priorities-panel",
-        );
+        const panel =
+          document.querySelector<HTMLElement>(
+            ".dashboard-priorities-panel",
+          );
+
         if (!panel) return;
 
-        const title = panel.querySelector<HTMLElement>(".panel-head h2");
-        const description = panel.querySelector<HTMLElement>(".panel-head p");
+        const title =
+          panel.querySelector<HTMLElement>(
+            ".panel-head h2",
+          );
 
-        const nextTitle = "Exceções de gestão";
+        const description =
+          panel.querySelector<HTMLElement>(
+            ".panel-head p",
+          );
+
+        const nextTitle =
+          "Exceções de gestão";
+
         const nextDescription =
           "Riscos e pendências para supervisão. Para executar o dia, use Hoje; para a fila completa, use Fila Única.";
 
-        if (title && title.textContent !== nextTitle) {
+        if (
+          title &&
+          title.textContent !== nextTitle
+        ) {
           title.textContent = nextTitle;
         }
-        if (description && description.textContent !== nextDescription) {
-          description.textContent = nextDescription;
+
+        if (
+          description &&
+          description.textContent !==
+            nextDescription
+        ) {
+          description.textContent =
+            nextDescription;
         }
       });
     };
 
     apply();
 
-    const observer = new MutationObserver(apply);
-    observer.observe(document.body, { childList: true, subtree: true });
+    const observer =
+      new MutationObserver(apply);
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
 
     return () => {
       cancelAnimationFrame(frame);
@@ -52,7 +81,8 @@ export function ErpHierarchyUX() {
   return (
     <>
       <BankMonthFocusUX />
-      <BudgetSaveDedupUX />
+      <BudgetConfirmedFlowUX />
+      <FitnessSaleStreamlinedUX />
       <CompanyOperationActiveVisualFix />
     </>
   );
