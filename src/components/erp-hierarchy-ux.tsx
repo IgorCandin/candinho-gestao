@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { BankMonthFocusUX } from "@/components/bank-month-focus-ux";
 import { BudgetSaveDedupUX } from "@/components/budget-save-dedup-ux";
+import { CompanyOperationActiveVisualFix } from "@/components/company-operation-active-visual-fix";
 
 export function ErpHierarchyUX() {
   const pathname = usePathname();
@@ -52,6 +53,7 @@ export function ErpHierarchyUX() {
     <>
       <BankMonthFocusUX />
       <BudgetSaveDedupUX />
+      <CompanyOperationActiveVisualFix />
     </>
   );
 }
