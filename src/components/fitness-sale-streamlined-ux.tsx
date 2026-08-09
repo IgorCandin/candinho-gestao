@@ -49,6 +49,8 @@ function enhancePayment(panel: HTMLElement) {
 
   if (!modeField || !select) return;
 
+  const paymentSelect = select;
+
   modeField.classList.add(
     "v4515-fitness-payment-native",
   );
@@ -91,7 +93,7 @@ function enhancePayment(panel: HTMLElement) {
       `;
 
       button.addEventListener("click", () => {
-        setNativeSelectValue(select, option.value);
+        setNativeSelectValue(paymentSelect, option.value);
       });
 
       control.append(button);
@@ -112,14 +114,14 @@ function enhancePayment(panel: HTMLElement) {
         button.classList.toggle(
           "active",
           button.dataset.paymentMode ===
-            select.value,
+            paymentSelect.value,
         );
       });
   }
 
-  if (select.dataset.v4515PaymentBound !== "1") {
-    select.dataset.v4515PaymentBound = "1";
-    select.addEventListener("change", sync);
+  if (paymentSelect.dataset.v4515PaymentBound !== "1") {
+    paymentSelect.dataset.v4515PaymentBound = "1";
+    paymentSelect.addEventListener("change", sync);
   }
 
   sync();
