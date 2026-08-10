@@ -19,6 +19,7 @@ import {
   createBankDebt,
   payBankDebtInstallment,
   postponeBankDebtPayment,
+  updateBankDebtOriginalAmount,
 } from "./actions";
 import { correctBankDebtTotalPaid } from "./correction-actions";
 
@@ -379,6 +380,7 @@ export default async function BankDebtsPage({
     adiar?: string;
     ajustar?: string;
     corrigir?: string;
+    editar_total?: string;
   }>;
 }) {
   const params = await searchParams;
@@ -404,6 +406,9 @@ export default async function BankDebtsPage({
   const selectedCorrectionDebt = params.corrigir
     ? debts.find((debt) => String(debt.id) === params.corrigir) ?? null
     : null;
+  const editingDetailTotal = Boolean(
+    selectedDetailDebt && params.editar_total === String(selectedDetailDebt.id),
+  );
 
   const calendarYear = /^\d{4}$/.test(String(params.ano ?? ""))
     ? Number(params.ano)
@@ -446,6 +451,8 @@ export default async function BankDebtsPage({
             <strong>
               {params.salvo === "corrigida"
                 ? "Histórico corrigido com auditoria."
+                : params.salvo === "total"
+                  ? "Valor total atualizado com sucesso."
                 : params.salvo === "ajustada"
                   ? "Histórico conciliado com sucesso."
                   : params.salvo === "paga"
@@ -565,6 +572,44 @@ export default async function BankDebtsPage({
               <strong>{formatCurrency(Number(selectedDetailDebt.remaining_amount ?? 0))}</strong>
             </div>
           </div>
+
+          {editingDetailTotal ? (
+            <form action={updateBankDebtOriginalAmount} className="bank-debt-form-panel" style={{ marginTop: 18 }}>
+              <input type="hidden" name="debt_id" value={String(selectedDetailDebt.id)} />
+              <div className="bank-debt-form-grid">
+                <label className="field">
+                  <span>Novo valor total</span>
+                  <div className="bank-money-input">
+                    <b>R$</b>
+                    <input
+                      className="input"
+                      name="original_amount"
+                      inputMode="decimal"
+                      defaultValue={Number(selectedDetailDebt.original_amount ?? 0).toFixed(2).replace(".", ",")}
+                      required
+                    />
+                  </div>
+                </label>
+                <label className="field">
+                  <span>Motivo da alteração</span>
+                  <input className="input" name="reason" defaultValue="Correção do valor informado" required />
+                </label>
+              </div>
+              <div className="bank-balance-update-actions">
+                <Link className="button ghost" href={`/bank/emprestimos?detalhes=${encodeURIComponent(String(selectedDetailDebt.id))}`}>Cancelar</Link>
+                <button className="button gold" type="submit"><Save size={16} /> Salvar novo total</button>
+              </div>
+            </form>
+          ) : (
+            <div className="bank-balance-update-actions" style={{ marginTop: 12 }}>
+              <Link
+                className="button ghost compact-button"
+                href={`/bank/emprestimos?detalhes=${encodeURIComponent(String(selectedDetailDebt.id))}&editar_total=${encodeURIComponent(String(selectedDetailDebt.id))}`}
+              >
+                Editar valor total
+              </Link>
+            </div>
+          )}
 
           <div
             style={{

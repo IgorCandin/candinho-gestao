@@ -498,3 +498,26 @@ export async function postponeBankDebtPayment(
     "/bank/emprestimos?salvo=adiada",
   );
 }
+
+export async function updateBankDebtOriginalAmount(formData: FormData) {
+  const debtId = String(formData.get("debt_id") ?? "");
+  const originalAmount = parseMoney(formData.get("original_amount"), {
+    label: "novo valor total",
+  });
+  const reason = String(formData.get("reason") ?? "").trim();
+
+  if (!uuidPattern.test(debtId)) throw new Error("Dívida inválida.");
+  if (reason.length < 5) throw new Error("Informe o motivo da alteração.");
+
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_update_debt_original_amount", {
+    p_debt_id: debtId,
+    p_original_amount: originalAmount,
+    p_reason: reason,
+  });
+
+  if (error) throw error;
+
+  revalidateBankDebtPaths();
+  redirect(`/bank/emprestimos?detalhes=${encodeURIComponent(debtId)}&salvo=total`);
+}
