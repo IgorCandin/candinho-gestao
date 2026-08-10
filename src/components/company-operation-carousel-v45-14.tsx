@@ -23,6 +23,7 @@ export type CompanyOperationSlideV4514 = {
   tone: string;
   rgb: string;
   desktopFit?: "cover" | "contain";
+  badge?: string;
 };
 
 const AUTOPLAY_MS = 2500;
@@ -53,6 +54,7 @@ export function CompanyOperationCarouselV4514({
   const initializing = useRef(true);
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [activePhysicalIndex, setActivePhysicalIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [desktop, setDesktop] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -94,6 +96,7 @@ export function CompanyOperationCarouselV4514({
         Math.max((track.clientWidth - slide.clientWidth) / 2, 0);
 
       physicalIndexRef.current = physicalIndex;
+      setActivePhysicalIndex(physicalIndex);
       setActiveIndex(loopSlides[physicalIndex]?.logicalIndex ?? 0);
 
       track.scrollTo({
@@ -256,6 +259,7 @@ export function CompanyOperationCarouselV4514({
       });
 
       physicalIndexRef.current = nearest;
+      setActivePhysicalIndex(nearest);
       setActiveIndex(loopSlides[nearest]?.logicalIndex ?? 0);
 
       if (settleTimer.current) {
@@ -330,7 +334,7 @@ export function CompanyOperationCarouselV4514({
         >
           {loopSlides.map((operation, physicalIndex) => {
             const active =
-              physicalIndexRef.current === physicalIndex ||
+              activePhysicalIndex === physicalIndex ||
               (
                 operation.logicalIndex === activeIndex &&
                 operations.length === 1
@@ -368,6 +372,12 @@ export function CompanyOperationCarouselV4514({
                     draggable={false}
                   />
                 </picture>
+
+                {operation.badge ? (
+                  <span className="company-operation-badge-v4514">
+                    {operation.badge}
+                  </span>
+                ) : null}
 
                 <span className="company-operation-enter-v4514">
                   Abrir operação

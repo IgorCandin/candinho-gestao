@@ -68,6 +68,19 @@ export default async function DashboardPage() {
       visible: access.canAccessBank,
     },
     {
+      key: "bank-lab",
+      label: "Bank 2.0 — Teste",
+      href: "/bank-lab",
+      desktopImage:
+        "/operation-banners/bank-lab-desktop.jpg",
+      mobileImage:
+        "/operation-banners/bank-lab-mobile.jpg",
+      tone: "bank-lab",
+      rgb: "196, 198, 204",
+      badge: "BANK 2.0 · LABORATÓRIO",
+      visible: access.canAccessBank,
+    },
+    {
       key: "marketing",
       label: "Marketing",
       href: "/marketing",
@@ -93,9 +106,9 @@ export default async function DashboardPage() {
     },
   ];
 
-  const visibleOperations = operations
-    .filter((operation) => operation.visible)
-    .map(({ visible: _visible, ...operation }) => operation);
+  const visibleOperations = operations.flatMap(
+    ({ visible, ...operation }) => visible ? [operation] : [],
+  );
 
   return (
     <section className="company-home company-home-streaming-v4514">

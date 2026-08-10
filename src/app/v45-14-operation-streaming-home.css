@@ -262,6 +262,26 @@
   transition: opacity .2s ease, transform .2s ease;
 }
 
+.company-operation-badge-v4514 {
+  position: absolute;
+  z-index: 5;
+  top: 16px;
+  right: 16px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(255,255,255,.38);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(5,7,10,.82);
+  color: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.34);
+  backdrop-filter: blur(14px);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
 .company-operation-slide-v4514[data-active="true"]:hover
   .company-operation-enter-v4514,
 .company-operation-slide-v4514[data-active="true"]:focus-visible
@@ -535,6 +555,14 @@ button.company-home-utility-link-v4514 {
   .company-operation-arrow-v4514,
   .company-operation-progress-v4514 {
     display: none;
+  }
+
+  .company-operation-badge-v4514 {
+    top: 12px;
+    right: 12px;
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 8px;
   }
 
   .company-operation-pager-v4514 {

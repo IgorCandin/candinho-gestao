@@ -90,8 +90,8 @@ export default async function BankLabPage({
       </header>
 
       <picture className={styles.hero}>
-        <source media="(max-width: 700px)" srcSet="/operation-banners/bank-mobile.webp" />
-        <Image src="/operation-banners/bank-desktop.webp" alt="Bank — operação financeira" width={1680} height={945} priority />
+        <source media="(max-width: 700px)" srcSet="/operation-banners/bank-lab-mobile.jpg" />
+        <Image src="/operation-banners/bank-lab-desktop.jpg" alt="Bank 2.0 — laboratório de importação financeira" width={1280} height={720} priority />
       </picture>
 
       {params.ok && <section className={styles.notice}><CheckCircle2 size={20} /><strong>{params.ok}</strong></section>}
