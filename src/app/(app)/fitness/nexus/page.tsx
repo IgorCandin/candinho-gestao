@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { FitnessNexusCenter } from "@/components/fitness-nexus-center";
+import { FitnessNexusPurchaseBasketV2 } from "@/components/fitness-nexus-purchase-basket-v2";
 import { PageHeader } from "@/components/page-header";
 import { getFitnessNexusSnapshot } from "@/lib/fitness-nexus-data";
 
@@ -21,7 +22,10 @@ export default async function FitnessNexusPage() {
         }
       />
 
-      <FitnessNexusCenter snapshot={snapshot} />
+      <div className="fitness-nexus-lab-v2">
+        <FitnessNexusCenter snapshot={snapshot} />
+      </div>
+      <FitnessNexusPurchaseBasketV2 />
     </>
   );
 }
