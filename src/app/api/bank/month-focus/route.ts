@@ -240,6 +240,7 @@ export async function GET() {
   return NextResponse.json({
     today: month.today,
     tomorrow,
+    referenceMonth,
     mandatoryCommitments:
       Number(month.remainingMonthTotal ?? 0) +
       Number(month.overdueTotal ?? 0),

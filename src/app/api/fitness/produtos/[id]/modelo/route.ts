@@ -37,6 +37,46 @@ function imageModel() {
   return configured;
 }
 
+function openAiImageError(status: number, raw: JsonRecord) {
+  const error = object(raw.error);
+  const detail = text(error.message);
+  const code = text(error.code);
+  const type = text(error.type);
+  const normalized = `${code} ${type} ${detail}`.toLowerCase();
+
+  console.warn(JSON.stringify({
+    level: "warn",
+    event: "fitness_model_photo_openai_error",
+    status,
+    code: code || null,
+    type: type || null,
+    message: detail.slice(0, 500) || null,
+  }));
+
+  if (
+    normalized.includes("no credits remaining") ||
+    normalized.includes("insufficient_quota") ||
+    normalized.includes("billing quota") ||
+    normalized.includes("run out of credits")
+  ) {
+    return "Os créditos da OpenAI acabaram. Adicione saldo na conta da API para voltar a gerar fotos.";
+  }
+
+  if (status === 401 || normalized.includes("invalid_api_key")) {
+    return "A chave da OpenAI precisa ser atualizada para voltar a gerar fotos.";
+  }
+
+  if (status === 403 || normalized.includes("model_not_found")) {
+    return "A conta da OpenAI ainda não tem acesso ao modelo de imagens configurado.";
+  }
+
+  if (status === 429 || normalized.includes("rate_limit")) {
+    return "A OpenAI recebeu muitas solicitações agora. Aguarde um minuto e tente novamente.";
+  }
+
+  return "O Nexus não conseguiu gerar a foto agora. Tente novamente em instantes.";
+}
+
 function absoluteSource(
   request: Request,
   value: string,
@@ -360,18 +400,7 @@ export async function POST(
     );
 
     if (!response.ok) {
-      const error = object(raw.error);
-      const detail = text(error.message);
-
-      console.warn(
-        "[Fitness Model Photo] OpenAI:",
-        response.status,
-        detail,
-      );
-
-      throw new Error(
-        "O Nexus não conseguiu gerar a foto agora. Tente novamente em instantes.",
-      );
+      throw new Error(openAiImageError(response.status, raw));
     }
 
     const generated = await generatedImageBytes(raw);

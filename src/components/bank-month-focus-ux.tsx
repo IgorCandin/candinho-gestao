@@ -4,14 +4,15 @@ import Link from "next/link";
 import {
   ArrowRight,
   CalendarClock,
+  CheckCircle2,
   CircleDollarSign,
-  HandCoins,
   Plus,
   TrendingUp,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { markBankCommitmentAsPaid } from "@/app/(app)/bank/actions";
 
 type RecentCommitment = {
   id: string;
@@ -32,6 +33,7 @@ type DebtInfo = {
 type FocusPayload = {
   today: string;
   tomorrow: string;
+  referenceMonth: string;
   mandatoryCommitments: number;
   recent: RecentCommitment[];
   laterCommitmentCount: number;
@@ -148,7 +150,6 @@ export function BankMonthFocusUX() {
 
   useEffect(() => {
     if (pathname !== "/bank") {
-      setPayload(null);
       return;
     }
 
@@ -355,9 +356,8 @@ export function BankMonthFocusUX() {
               ) : (
                 <div className="bank-recent-list-v4513">
                   {payload.recent.map((item) => (
-                    <Link
+                    <div
                       className="bank-recent-item-v4513"
-                      href={item.href}
                       key={item.id}
                     >
                       <span className="bank-recent-date-v4513">
@@ -373,8 +373,24 @@ export function BankMonthFocusUX() {
                       </span>
 
                       <b>{money(item.amount)}</b>
-                      <ArrowRight size={15} />
-                    </Link>
+                      <div className="bank-recent-actions-v4513">
+                        <form action={markBankCommitmentAsPaid}>
+                          <input type="hidden" name="commitment_key" value={item.id} />
+                          <input type="hidden" name="reference_month" value={payload.referenceMonth} />
+                          <button className="button gold compact-button" type="submit">
+                            <CheckCircle2 size={14} />
+                            Paguei
+                          </button>
+                        </form>
+                        <Link
+                          className="icon-link"
+                          href={item.href}
+                          aria-label={`Abrir detalhes de ${item.title}`}
+                        >
+                          <ArrowRight size={15} />
+                        </Link>
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}

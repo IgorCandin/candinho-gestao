@@ -94,6 +94,40 @@
   white-space: nowrap;
 }
 
+.bank-recent-actions-v4513 {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.bank-recent-actions-v4513 form {
+  display: flex;
+}
+
+.bank-recent-actions-v4513 .button {
+  min-height: 32px;
+  padding-inline: 10px;
+}
+
+/* No desktop com menu lateral, a largura útil pode ser menor que a janela.
+   O botão de recebimento ganha uma linha própria antes de ficar cortado. */
+@media (min-width: 821px) and (max-width: 1500px) {
+  .theme-bank .bank-source-item {
+    grid-template-columns: minmax(0, 1fr) auto auto !important;
+  }
+
+  .theme-bank .bank-source-item > form {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .theme-bank .bank-source-item > form .bank-income-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
 /* Empréstimo: parcela e saldo total deixam de parecer a mesma coisa. */
 .bank-debt-installment-v4513 {
   margin-top: 4px !important;
@@ -223,8 +257,15 @@ a.bank-income-focus-row-v4513:hover {
     grid-column: 1 / -1;
   }
 
-  .bank-recent-item-v4513 > svg {
-    display: none;
+  .bank-recent-actions-v4513 {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .bank-recent-actions-v4513 .button {
+    width: 100%;
+    justify-content: center;
   }
 
   .bank-income-summary-v4513,
