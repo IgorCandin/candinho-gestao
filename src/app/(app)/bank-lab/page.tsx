@@ -114,7 +114,7 @@ export default async function BankLabPage({
           <div className={styles.panelTitle}><div><h2>1. Subir extrato</h2><p>OFX é o formato preferido; CSV também funciona.</p></div><FileUp size={22} /></div>
           <form action={importBankStatement} className={styles.form}>
             <label><span>Conta que receberá o extrato</span><select name="account_id" required>{activeAccounts.map((account) => <option key={account.id} value={account.id}>{holders.find((holder) => holder.id === account.holder_id)?.name} — {account.name}</option>)}</select></label>
-            <label><span>Arquivo do banco</span><input name="statement_file" type="file" accept=".ofx,.csv,.txt" required /></label>
+            <label><span>Arquivo do banco</span><input name="statement_file" type="file" required /></label>
             <label><span>Saldo final, se o arquivo não informar (opcional)</span><input name="statement_balance" inputMode="decimal" placeholder="Ex.: 1.250,40" /></label>
             <button className={styles.primary} type="submit"><FileUp size={17} /> Importar e atualizar</button>
             <small>Repetições são ignoradas. Lançamentos manuais nunca são apagados.</small>
