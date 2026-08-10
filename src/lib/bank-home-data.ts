@@ -1,8 +1,9 @@
 import { createClient } from "./supabase/server";
+import { getWeeklyOccurrenceDates } from "./bank-weekly-subscriptions";
 
 export type BankMonthCommitment = {
   id: string;
-  kind: "charge" | "invoice" | "subscription" | "debt";
+  kind: "charge" | "invoice" | "subscription" | "weekly_subscription" | "debt";
   title: string;
   amount: number;
   dueDate: string | null;
@@ -104,6 +105,7 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
     chargesResult,
     invoicesResult,
     subscriptionsResult,
+    weeklyOccurrencesResult,
     debtsResult,
     resolutionsResult,
     bankReceivablesResult,
@@ -148,6 +150,12 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
         "id,name,provider,amount,billing_day,due_mode,origin,payment_method_type,projection_mode,billing_cycle,is_active,starts_on,ends_on",
       )
       .eq("is_active", true),
+
+    supabase
+      .from("bank_subscription_weekly_occurrences")
+      .select("subscription_id,occurrence_on,resolution")
+      .gte("occurrence_on", start)
+      .lt("occurrence_on", nextStart),
 
     supabase
       .from("bank_debts")
@@ -213,6 +221,8 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
     throw invoicesResult.error;
   if (subscriptionsResult.error)
     throw subscriptionsResult.error;
+  if (weeklyOccurrencesResult.error)
+    throw weeklyOccurrencesResult.error;
   if (debtsResult.error)
     throw debtsResult.error;
   if (resolutionsResult.error)
@@ -253,6 +263,12 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
         String(
           row.commitment_key ?? "",
         ),
+    ),
+  );
+
+  const resolvedWeeklyKeys = new Set(
+    (weeklyOccurrencesResult.data ?? []).map(
+      (row) => `${String(row.subscription_id)}:${String(row.occurrence_on).slice(0, 10)}`,
     ),
   );
 
@@ -392,6 +408,27 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
 
     const amount = number(row.amount);
     if (amount <= 0) continue;
+
+    if (cycle === "weekly") {
+      getWeeklyOccurrenceDates(start).forEach((occurrenceOn, index) => {
+        if (startsOn && occurrenceOn < startsOn) return;
+        if (endsOn && occurrenceOn > endsOn) return;
+        if (resolvedWeeklyKeys.has(`${id}:${occurrenceOn}`)) return;
+
+        commitments.push({
+          id: `weekly_subscription:${id}:${occurrenceOn}`,
+          kind: "weekly_subscription",
+          title: `${String(row.name ?? row.provider ?? "Compromisso")} · ${index + 1}ª semana`,
+          amount,
+          dueDate: occurrenceOn,
+          dueMode: "fixed_day",
+          status: "active",
+          origin: typeof row.origin === "string" ? row.origin : "Semanal",
+          href: "/bank/mensalidades",
+        });
+      });
+      continue;
+    }
 
     const dueMode =
       row.due_mode === "month_only"

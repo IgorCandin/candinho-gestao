@@ -13,10 +13,20 @@ import {
   getBankAccounts,
   getBankCardsAndInvoices,
   getBankSubscriptions,
+  getBankWeeklySubscriptionOccurrences,
 } from "@/lib/bank-data";
+import {
+  getBrazilToday,
+  getMonthBounds,
+  getWeeklyOccurrenceDates,
+  getWeeklyOccurrenceLabel,
+  getWeeklyOccurrenceRange,
+} from "@/lib/bank-weekly-subscriptions";
 import { formatCurrency } from "@/lib/format";
 import {
   createBankSubscription,
+  clearBankWeeklyOccurrence,
+  resolveBankWeeklyOccurrence,
   toggleBankSubscription,
   updateBankSubscription,
 } from "./actions";
@@ -57,11 +67,19 @@ export default async function BankSubscriptionsPage({
   }>;
 }) {
   const params = await searchParams;
-  const [subscriptions, accounts, cardData] = await Promise.all([
+  const monthBounds = getMonthBounds(getBrazilToday());
+  const [subscriptions, accounts, cardData, weeklyOccurrences] = await Promise.all([
     getBankSubscriptions(),
     getBankAccounts(),
     getBankCardsAndInvoices(),
+    getBankWeeklySubscriptionOccurrences(monthBounds.start, monthBounds.nextStart),
   ]);
+  const weeklyOccurrencesByKey = new Map(
+    weeklyOccurrences.map((occurrence) => [
+      `${String(occurrence.subscription_id)}:${String(occurrence.occurrence_on).slice(0, 10)}`,
+      occurrence,
+    ]),
+  );
 
   const creating = params.acao === "nova";
   const editing = params.editar
@@ -105,7 +123,11 @@ export default async function BankSubscriptionsPage({
           <CheckCircle2 size={18} />
           <div>
             <strong>
-              {params.salvo === "editada"
+              {params.salvo === "semana-atualizada"
+                ? "Semana atualizada com sucesso."
+                : params.salvo === "semana-desfeita"
+                  ? "Marcação da semana desfeita."
+                : params.salvo === "editada"
                 ? "Mensalidade alterada com sucesso."
                 : "Mensalidades atualizadas."}
             </strong>
@@ -158,7 +180,7 @@ export default async function BankSubscriptionsPage({
               </label>
 
               <label className="field">
-                <span>Valor</span>
+                <span>Valor {defaultCycle === "weekly" ? "por semana" : ""}</span>
                 <input
                   className="input"
                   name="amount"
@@ -345,15 +367,23 @@ export default async function BankSubscriptionsPage({
             <div className="bank-income-list">
               {subscriptions.map((item) => {
                 const active = Boolean(item.is_active);
+                const weekly = String(item.billing_cycle ?? "monthly") === "weekly";
+                const occurrenceDates = weekly
+                  ? getWeeklyOccurrenceDates(monthBounds.start)
+                  : [];
                 return (
-                  <div className="bank-income-list-item" key={String(item.id)}>
+                  <div className="bank-subscription-card" key={String(item.id)}>
+                  <div className="bank-income-list-item">
                     <div>
                       <strong>{String(item.name ?? "Plano")}</strong>
                       <span>{String(item.provider ?? item.category ?? "Sem fornecedor")}</span>
                     </div>
 
                     <div>
-                      <strong>{formatCurrency(Number(item.amount ?? 0))}</strong>
+                      <strong>
+                        {formatCurrency(Number(item.amount ?? 0))}
+                        {weekly ? " / semana" : ""}
+                      </strong>
                       <span>
                         {String(item.due_mode ?? "fixed_day") === "month_only"
                           ? "Sem dia fixo"
@@ -397,6 +427,63 @@ export default async function BankSubscriptionsPage({
                         </button>
                       </form>
                     </div>
+                  </div>
+                  {weekly && active && (
+                    <div className="bank-weekly-tracker">
+                      <div className="bank-weekly-heading">
+                        <div>
+                          <strong>Consultas deste mês</strong>
+                          <span>Marque cada semana como paga ou não realizada.</span>
+                        </div>
+                        <span className="badge blue">
+                          Teto {formatCurrency(Number(item.amount ?? 0) * 4)}
+                        </span>
+                      </div>
+                      <div className="bank-weekly-grid">
+                        {occurrenceDates.map((occurrenceOn, index) => {
+                          const occurrence = weeklyOccurrencesByKey.get(
+                            `${String(item.id)}:${occurrenceOn}`,
+                          );
+                          const resolution = String(occurrence?.resolution ?? "");
+                          return (
+                            <div className="bank-weekly-item" key={occurrenceOn}>
+                              <div>
+                                <strong>{getWeeklyOccurrenceLabel(index)}</strong>
+                                <span>Dias {getWeeklyOccurrenceRange(monthBounds.start, index)}</span>
+                              </div>
+                              {resolution ? (
+                                <div className="bank-weekly-result">
+                                  <span className={`badge ${resolution === "paid" ? "green" : "gray"}`}>
+                                    {resolution === "paid" ? "Paga" : "Não aconteceu"}
+                                  </span>
+                                  <form action={clearBankWeeklyOccurrence}>
+                                    <input type="hidden" name="subscription_id" value={String(item.id)} />
+                                    <input type="hidden" name="occurrence_on" value={occurrenceOn} />
+                                    <button className="button ghost compact-button" type="submit">Desfazer</button>
+                                  </form>
+                                </div>
+                              ) : (
+                                <div className="bank-weekly-actions">
+                                  <form action={resolveBankWeeklyOccurrence}>
+                                    <input type="hidden" name="subscription_id" value={String(item.id)} />
+                                    <input type="hidden" name="occurrence_on" value={occurrenceOn} />
+                                    <input type="hidden" name="resolution" value="paid" />
+                                    <button className="button green compact-button" type="submit">Paguei</button>
+                                  </form>
+                                  <form action={resolveBankWeeklyOccurrence}>
+                                    <input type="hidden" name="subscription_id" value={String(item.id)} />
+                                    <input type="hidden" name="occurrence_on" value={occurrenceOn} />
+                                    <input type="hidden" name="resolution" value="skipped" />
+                                    <button className="button ghost compact-button" type="submit">Não aconteceu</button>
+                                  </form>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                   </div>
                 );
               })}

@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 const monthPattern = /^\d{4}-\d{2}-01$/;
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const datePattern = /^\d{4}-\d{2}-\d{2}$/;
 
 function todayInBrazil() {
   return new Intl.DateTimeFormat(
@@ -71,6 +72,7 @@ function revalidateBank() {
   revalidatePath(
     "/bank/visao-anual",
   );
+  revalidatePath("/bank/mensalidades");
 }
 
 export async function markBankCommitmentAsPaid(
@@ -107,7 +109,7 @@ export async function markBankCommitmentAsPaid(
     );
   }
 
-  const [kind, id] =
+  const [kind, id, occurrenceOn] =
     commitmentKey.split(":");
 
   if (!uuidPattern.test(id ?? "")) {
@@ -119,7 +121,21 @@ export async function markBankCommitmentAsPaid(
   const supabase =
     await requireBankWriteAccess();
 
-  if (kind === "charge") {
+  if (kind === "weekly_subscription") {
+    if (!datePattern.test(occurrenceOn ?? "")) {
+      throw new Error("Semana inválida.");
+    }
+    const { error } = await supabase.rpc(
+      "bank_resolve_weekly_subscription_occurrence",
+      {
+        p_subscription_id: id,
+        p_occurrence_on: occurrenceOn,
+        p_resolution: "paid",
+        p_notes: "Pagamento confirmado pela Home do Candinho Bank.",
+      },
+    );
+    if (error) throw error;
+  } else if (kind === "charge") {
     const { error } =
       await supabase.rpc(
         "bank_mark_charge_paid",

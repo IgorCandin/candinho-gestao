@@ -550,6 +550,22 @@ export async function getBankSubscriptions(): Promise<Record<string, unknown>[]>
   return data ?? [];
 }
 
+export async function getBankWeeklySubscriptionOccurrences(
+  start: string,
+  nextStart: string,
+): Promise<Record<string, unknown>[]> {
+  if (!isSupabaseConfigured) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("bank_subscription_weekly_occurrences")
+    .select("subscription_id,occurrence_on,resolution,amount,paid_on")
+    .gte("occurrence_on", start)
+    .lt("occurrence_on", nextStart)
+    .order("occurrence_on", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function getBankAccounts(): Promise<Record<string, unknown>[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();

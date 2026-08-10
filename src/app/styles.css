@@ -1789,6 +1789,23 @@ h1{font-size:clamp(27px,3vw,36px)}
 .bank-check-option small { color: var(--muted); font-size: 8px; line-height: 1.4; }
 .bank-income-sections { align-items: start; }
 .bank-income-list { display: grid; gap: 9px; }
+.bank-subscription-card { display: grid; gap: 0; border-radius: 14px; overflow: hidden; }
+.bank-subscription-card .bank-income-list-item { border-radius: 14px; }
+.bank-subscription-card:has(.bank-weekly-tracker) .bank-income-list-item { border-radius: 14px 14px 0 0; }
+.bank-weekly-tracker { padding: 14px; border: 1px solid rgba(70, 198, 135, .24); border-top: 0; border-radius: 0 0 14px 14px; background: rgba(9, 42, 30, .28); display: grid; gap: 12px; }
+.bank-weekly-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.bank-weekly-heading > div { display: grid; gap: 3px; }
+.bank-weekly-heading strong { font-size: 11px; }
+.bank-weekly-heading span { color: var(--muted); font-size: 9px; }
+.bank-weekly-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.bank-weekly-item { border: 1px solid rgba(255,255,255,.08); border-radius: 11px; padding: 10px; display: grid; gap: 9px; background: rgba(7, 12, 18, .58); }
+.bank-weekly-item > div:first-child { display: grid; gap: 3px; }
+.bank-weekly-item strong { font-size: 10px; }
+.bank-weekly-item span { color: var(--muted); font-size: 8px; }
+.bank-weekly-actions, .bank-weekly-result { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.bank-weekly-actions .button, .bank-weekly-result .button { min-height: 30px; font-size: 8px; padding: 6px 9px; }
+@media (max-width: 900px) { .bank-weekly-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .bank-weekly-grid { grid-template-columns: 1fr; } .bank-weekly-heading { align-items: flex-start; } }
 .bank-income-list-item {
   display: grid;
   grid-template-columns: minmax(0,1.2fr) minmax(120px,.65fr) auto auto;

@@ -58,6 +58,7 @@ function kindLabel(
 ) {
   if (kind === "invoice") return "Fatura";
   if (kind === "subscription") return "Mensalidade";
+  if (kind === "weekly_subscription") return "Consulta semanal";
   if (kind === "debt") return "Parcela";
   return "Cobrança";
 }

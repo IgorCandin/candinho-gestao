@@ -196,3 +196,45 @@ export async function toggleBankSubscription(formData: FormData) {
   revalidateBankSubscriptionPaths();
   redirect(`/bank/mensalidades?salvo=${active ? "ativada" : "pausada"}`);
 }
+
+export async function resolveBankWeeklyOccurrence(formData: FormData) {
+  const subscriptionId = String(formData.get("subscription_id") ?? "");
+  const occurrenceOn = String(formData.get("occurrence_on") ?? "");
+  const resolution = String(formData.get("resolution") ?? "");
+
+  if (!uuidPattern.test(subscriptionId)) throw new Error("Compromisso semanal inválido.");
+  if (!datePattern.test(occurrenceOn)) throw new Error("Semana inválida.");
+  if (!['paid', 'skipped'].includes(resolution)) throw new Error("Escolha Paguei ou Não aconteceu.");
+
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_resolve_weekly_subscription_occurrence", {
+    p_subscription_id: subscriptionId,
+    p_occurrence_on: occurrenceOn,
+    p_resolution: resolution,
+    p_notes: resolution === "paid"
+      ? "Consulta confirmada como paga."
+      : "Consulta não realizada nesta semana.",
+  });
+  if (error) throw error;
+
+  revalidateBankSubscriptionPaths();
+  redirect("/bank/mensalidades?salvo=semana-atualizada");
+}
+
+export async function clearBankWeeklyOccurrence(formData: FormData) {
+  const subscriptionId = String(formData.get("subscription_id") ?? "");
+  const occurrenceOn = String(formData.get("occurrence_on") ?? "");
+
+  if (!uuidPattern.test(subscriptionId)) throw new Error("Compromisso semanal inválido.");
+  if (!datePattern.test(occurrenceOn)) throw new Error("Semana inválida.");
+
+  const supabase = await requireBankWriteAccess();
+  const { error } = await supabase.rpc("bank_clear_weekly_subscription_occurrence", {
+    p_subscription_id: subscriptionId,
+    p_occurrence_on: occurrenceOn,
+  });
+  if (error) throw error;
+
+  revalidateBankSubscriptionPaths();
+  redirect("/bank/mensalidades?salvo=semana-desfeita");
+}
