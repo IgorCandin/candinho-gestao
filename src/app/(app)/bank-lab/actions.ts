@@ -28,7 +28,7 @@ async function writableClient() {
   return supabase;
 }
 
-function returnToLab(message: string, kind: "ok" | "erro" = "ok") {
+function returnToLab(message: string, kind: "ok" | "erro" = "ok"): never {
   revalidatePath("/bank-lab");
   redirect(`/bank-lab?${kind}=${encodeURIComponent(message)}`);
 }
@@ -36,14 +36,21 @@ function returnToLab(message: string, kind: "ok" | "erro" = "ok") {
 export async function importBankStatement(formData: FormData) {
   const accountId = String(formData.get("account_id") ?? "");
   const file = formData.get("statement_file");
-  if (!uuidPattern.test(accountId)) throw new Error("Selecione a conta correta.");
-  if (!(file instanceof File) || file.size === 0) throw new Error("Escolha um extrato OFX ou CSV.");
-  if (file.size > 5 * 1024 * 1024) throw new Error("O arquivo deve ter no máximo 5 MB.");
+  if (!uuidPattern.test(accountId)) returnToLab("Selecione a conta correta.", "erro");
+  if (!(file instanceof File) || file.size === 0) returnToLab("Escolha um extrato OFX ou CSV.", "erro");
+  if (file.size > 5 * 1024 * 1024) returnToLab("O arquivo deve ter no máximo 5 MB.", "erro");
 
   const bytes = new Uint8Array(await file.arrayBuffer());
-  const parsed = parseBankStatement(file.name, decodeBankFile(bytes));
-  if (parsed.transactions.length === 0) throw new Error("Nenhuma movimentação foi encontrada no extrato.");
-  if (parsed.transactions.length > 5000) throw new Error("Envie um extrato com até 5.000 movimentações por vez.");
+  let parsed: ReturnType<typeof parseBankStatement>;
+  try {
+    parsed = parseBankStatement(file.name, decodeBankFile(bytes));
+  } catch (error) {
+    returnToLab(error instanceof Error ? error.message : "Não consegui ler esse extrato.", "erro");
+  }
+  if (parsed.transactions.length === 0) {
+    returnToLab("O arquivo foi lido, mas não possui movimentações. Confira o período escolhido no banco e gere outro OFX.", "erro");
+  }
+  if (parsed.transactions.length > 5000) returnToLab("Envie um extrato com até 5.000 movimentações por vez.", "erro");
 
   const occurrences = new Map<string, number>();
   const rows = parsed.transactions.map((transaction) => {
@@ -65,7 +72,12 @@ export async function importBankStatement(formData: FormData) {
   const latestTransactionDate = rows.reduce((latest, row) => row.transaction_date > latest ? row.transaction_date : latest, rows[0].transaction_date);
   const balanceDate = parsed.balanceDate ?? latestTransactionDate;
   const fileHash = createHash("sha256").update(bytes).digest("hex");
-  const supabase = await writableClient();
+  let supabase;
+  try {
+    supabase = await writableClient();
+  } catch (error) {
+    returnToLab(error instanceof Error ? error.message : "Não foi possível validar seu acesso ao Bank.", "erro");
+  }
   const { data, error } = await supabase.rpc("bank_lab_import_statement", {
     p_account_id: accountId,
     p_file_name: file.name,
@@ -74,7 +86,7 @@ export async function importBankStatement(formData: FormData) {
     p_statement_date: balanceDate,
     p_rows: rows,
   });
-  if (error) throw error;
+  if (error) returnToLab(error.message || "Não foi possível importar o extrato.", "erro");
 
   const result = (data ?? {}) as { already_imported?: boolean; imported_rows?: number; duplicate_rows?: number; balance_updated?: boolean };
   if (result.already_imported) returnToLab("Esse mesmo arquivo já havia sido importado. Nada foi duplicado.");

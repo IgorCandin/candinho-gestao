@@ -35,25 +35,41 @@ function dateOnly(value: string | undefined) {
 }
 
 function tag(block: string, name: string) {
-  return block.match(new RegExp(`<${name}>\\s*([^<\\r\\n]+)`, "i"))?.[1]?.trim();
+  return block.match(new RegExp(`<(?:[\\w.-]+:)?${name}\\b[^>]*>\\s*([^<\\r\\n]+)`, "i"))?.[1]?.trim();
+}
+
+function ofxTransactionBlocks(text: string) {
+  const openingTag = /<(?:[\w.-]+:)?STMTTRN\b[^>]*>/gi;
+  const matches = Array.from(text.matchAll(openingTag));
+  return matches.map((match, index) => {
+    const start = (match.index ?? 0) + match[0].length;
+    const end = matches[index + 1]?.index ?? text.length;
+    return text.slice(start, end);
+  });
 }
 
 function parseOfx(text: string): ParsedBankStatement {
   const transactions: ParsedBankTransaction[] = [];
-  for (const match of text.matchAll(/<STMTTRN>([\s\S]*?)(?=<STMTTRN>|<\/BANKTRANLIST>|<\/STMTTRN>)/gi)) {
-    const block = match[1];
-    const date = dateOnly(tag(block, "DTPOSTED"));
+  for (const block of ofxTransactionBlocks(text)) {
+    const date = dateOnly(tag(block, "DTPOSTED") ?? tag(block, "DTUSER") ?? tag(block, "DTTRAN"));
     const amount = money(tag(block, "TRNAMT"));
-    const description = [tag(block, "NAME"), tag(block, "MEMO")]
+    const description = [
+      tag(block, "NAME"),
+      tag(block, "MEMO"),
+      tag(block, "PAYEE"),
+      tag(block, "CHECKNUM"),
+      tag(block, "TRNTYPE"),
+      tag(block, "FITID"),
+    ]
       .filter(Boolean)
       .filter((value, index, values) => values.indexOf(value) === index)
       .join(" — ");
-    if (date && amount && description) {
+    if (date && amount !== null && amount !== 0 && description) {
       transactions.push({ date, amount, description, externalId: tag(block, "FITID") });
     }
   }
 
-  const ledger = text.match(/<LEDGERBAL>([\s\S]*?)(?:<\/LEDGERBAL>|<AVAILBAL>|<\/BANKMSGSRSV1>)/i)?.[1];
+  const ledger = text.match(/<(?:[\w.-]+:)?LEDGERBAL\b[^>]*>([\s\S]*?)(?:<\/(?:[\w.-]+:)?LEDGERBAL\s*>|<(?:[\w.-]+:)?AVAILBAL\b|<\/(?:[\w.-]+:)?BANKMSGSRSV1\s*>)/i)?.[1];
   return {
     transactions,
     balance: money(ledger ? tag(ledger, "BALAMT") : undefined),
