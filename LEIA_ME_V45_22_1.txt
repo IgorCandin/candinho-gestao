@@ -1,0 +1,25 @@
+﻿V45.22.1 - VIEWPORT + FICHA DE PRODUTO
+
+Inclui dois ajustes:
+
+1. MENU DE OPERACOES
+- Suplementos, Fitness, Bank e Central passam a encaixar 100% na altura util do navegador.
+- Em telas desktop mais baixas, logo, orbita e cards reduzem progressivamente.
+- Nao altera o mobile.
+
+2. FICHA DE PRODUTO
+- Foto sobe para o inicio da ficha, logo depois da navegacao entre produtos.
+- O layout principal deixa de dividir a pagina em duas colunas.
+- Foto, resumo comercial, caracteristicas e palavras-chave ficam empilhados.
+- A foto fica contida em um card/balao com largura controlada.
+- Remove a copia acidental do painel de custo que ficou dentro do card de preco.
+- O painel de custo oficial continua uma unica vez na pagina.
+- Estoque, sabores, leads, compras e vendas permanecem abaixo.
+
+COMO APLICAR
+1. Extraia este ZIP na raiz de candinho-gestao.
+2. Execute APLICAR_V45_22_1.bat.
+3. Aguarde TypeScript OK e git diff --check OK.
+4. So depois faca commit:
+   V45.22.1 - ajusta viewport e ficha de produto
+5. Push origin e avise "subi".

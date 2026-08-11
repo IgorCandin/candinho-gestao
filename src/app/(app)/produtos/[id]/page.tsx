@@ -258,6 +258,140 @@ export default async function ProductDetailsPage({
       />
 
       <EntitySwipeNavigator previous={swipe.previous} next={swipe.next} />
+      <section className="product-detail-stack-v45221">
+        <article className="panel product-photo-top-v45221">
+          <div className="panel-head">
+            <div>
+              <h2>Foto do produto</h2>
+              <p>
+                Imagem principal em destaque. As informações seguem abaixo
+                em blocos de largura total.
+              </p>
+            </div>
+          </div>
+
+          <div className="panel-body product-photo-body-v45221">
+            <ProductImageUploader
+              productId={product.id}
+              initialImageUrl={product.image_url}
+              initialThumbnailUrl={product.thumbnail_url}
+            />
+          </div>
+        </article>
+
+        <article className="panel product-summary-full-v45221">
+          <div className="panel-head">
+            <div>
+              <h2>Resumo comercial</h2>
+              <p>Informações rápidas para consulta durante o atendimento.</p>
+            </div>
+            <span className={`badge ${product.active ? "green" : "gray"}`}>
+              <span className="dot" />
+              {product.active ? "Ativo" : "Inativo"}
+            </span>
+          </div>
+
+          <div className="panel-body">
+            <div className="product-price-grid">
+              <div className="product-price-card">
+                <CircleDollarSign size={18} />
+                <span>
+                  {activePromotion ? "Preço promocional" : "Preço à vista"}
+                </span>
+                <strong>
+                  {formatCurrency(
+                    activePromotion?.effective_promotional_price ??
+                      product.sale_price,
+                  )}
+                </strong>
+                {activePromotion && (
+                  <small>De {formatCurrency(product.sale_price)}</small>
+                )}
+              </div>
+
+              <div className="product-price-card">
+                <CalendarDays size={18} />
+                <span>Preço a prazo</span>
+                <strong>{formatCurrency(product.installment_price)}</strong>
+              </div>
+            </div>
+
+            <div className="product-detail-grid">
+              <DetailItem label="Categoria" value={product.category} />
+              <DetailItem label="Marca" value={product.brand} />
+              <DetailItem label="Nível" value={product.level} />
+              <DetailItem
+                label="Categoria de vendas"
+                value={product.sales_category}
+              />
+              <DetailItem
+                label="Duração"
+                value={
+                  product.duration_days
+                    ? `${product.duration_days} dias/doses`
+                    : null
+                }
+              />
+              {flavorEnabled && (
+                <DetailItem
+                  label="Sabores ativos"
+                  value={flavorRows.length}
+                />
+              )}
+            </div>
+          </div>
+        </article>
+
+        {(product.description ||
+          product.objective ||
+          product.ideal_profile ||
+          product.information ||
+          product.quick_message) && (
+          <article className="panel">
+            <div className="panel-head">
+              <div>
+                <h2>Características</h2>
+                <p>Argumentos e orientações para apresentar o produto.</p>
+              </div>
+              <BadgeInfo size={19} />
+            </div>
+
+            <div className="panel-body product-copy-list">
+              <CopyItem label="Descrição" value={product.description} />
+              <CopyItem label="Objetivo" value={product.objective} />
+              <CopyItem label="Perfil ideal" value={product.ideal_profile} />
+              <CopyItem label="Informativo" value={product.information} />
+              <CopyItem
+                label="Mensagem rápida"
+                value={product.quick_message}
+              />
+            </div>
+          </article>
+        )}
+
+        {product.keywords && (
+          <article className="panel">
+            <div className="panel-head">
+              <div>
+                <h2>Palavras-chave</h2>
+                <p>Facilitam a consulta e o atendimento.</p>
+              </div>
+              <Tags size={19} />
+            </div>
+
+            <div className="panel-body">
+              <div className="keyword-list">
+                {product.keywords.split(",").map((keyword) => (
+                  <span key={keyword.trim()}>
+                    <CheckCircle2 size={14} />
+                    {keyword.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </article>
+        )}
+      </section>
 
       <section className="product-stock-summary">
         <article>
@@ -353,122 +487,6 @@ export default async function ProductDetailsPage({
           </div>
         </article>
       )}
-
-      <section className="product-details-layout">
-        <article className="panel product-images-panel">
-          <div className="panel-head">
-            <div>
-              <h2>Foto do produto</h2>
-              <p>Uma única foto principal é usada no catálogo e nas listas.</p>
-            </div>
-          </div>
-          <div className="panel-body">
-            <ProductImageUploader
-              productId={product.id}
-              initialImageUrl={product.image_url}
-              initialThumbnailUrl={product.thumbnail_url}
-            />
-          </div>
-        </article>
-
-        <div className="product-details-side">
-          <article className="panel">
-            <div className="panel-head">
-              <div>
-                <h2>Resumo comercial</h2>
-                <p>Informações para consultar durante o atendimento.</p>
-              </div>
-              <span className={`badge ${product.active ? "green" : "gray"}`}>
-                <span className="dot" />
-                {product.active ? "Ativo" : "Inativo"}
-              </span>
-            </div>
-
-            <div className="panel-body">
-              <div className="product-price-grid">
-                <div className="product-price-card">
-                  <CircleDollarSign size={18} />
-                  <span>{activePromotion ? "Preço promocional" : "Preço à vista"}</span>
-                  <strong>
-                    {formatCurrency(
-                      activePromotion?.effective_promotional_price ?? product.sale_price,
-                    )}
-                  </strong>
-                  <ProductInternalCostPanelV4521
-        productId={product.id}
-        salePrice={product.sale_price}
-      />
-      {activePromotion && (
-                    <small>De {formatCurrency(product.sale_price)}</small>
-                  )}
-                </div>
-                <div className="product-price-card">
-                  <CalendarDays size={18} />
-                  <span>Preço a prazo</span>
-                  <strong>{formatCurrency(product.installment_price)}</strong>
-                </div>
-              </div>
-
-              <div className="product-detail-grid">
-                <DetailItem label="Categoria" value={product.category} />
-                <DetailItem label="Marca" value={product.brand} />
-                <DetailItem label="Nível" value={product.level} />
-                <DetailItem label="Categoria de vendas" value={product.sales_category} />
-                <DetailItem
-                  label="Duração"
-                  value={product.duration_days ? `${product.duration_days} dias/doses` : null}
-                />
-                {flavorEnabled && <DetailItem label="Sabores ativos" value={flavorRows.length} />}
-              </div>
-            </div>
-          </article>
-
-          {(product.description ||
-            product.objective ||
-            product.ideal_profile ||
-            product.information ||
-            product.quick_message) && (
-            <article className="panel">
-              <div className="panel-head">
-                <div>
-                  <h2>Características</h2>
-                  <p>Argumentos e orientações para apresentar o produto.</p>
-                </div>
-                <BadgeInfo size={19} />
-              </div>
-              <div className="panel-body product-copy-list">
-                <CopyItem label="Descrição" value={product.description} />
-                <CopyItem label="Objetivo" value={product.objective} />
-                <CopyItem label="Perfil ideal" value={product.ideal_profile} />
-                <CopyItem label="Informativo" value={product.information} />
-                <CopyItem label="Mensagem rápida" value={product.quick_message} />
-              </div>
-            </article>
-          )}
-
-          {product.keywords && (
-            <article className="panel">
-              <div className="panel-head">
-                <div>
-                  <h2>Palavras-chave</h2>
-                  <p>Facilitam a consulta e o atendimento.</p>
-                </div>
-                <Tags size={19} />
-              </div>
-              <div className="panel-body">
-                <div className="keyword-list">
-                  {product.keywords.split(",").map((keyword) => (
-                    <span key={keyword.trim()}>
-                      <CheckCircle2 size={14} />
-                      {keyword.trim()}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </article>
-          )}
-        </div>
-      </section>
 
       <article className="panel product-history-panel">
         <div className="panel-head">
