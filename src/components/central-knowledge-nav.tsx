@@ -11,7 +11,12 @@ export function CentralKnowledgeNav({
 }) {
   const pathname = usePathname();
 
-  if (!pathname.startsWith("/central")) return null;
+  if (
+    !pathname.startsWith("/central") ||
+    pathname === "/central/inicio"
+  ) {
+    return null;
+  }
 
   return (
     <nav

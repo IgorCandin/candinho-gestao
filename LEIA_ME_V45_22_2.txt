@@ -1,0 +1,29 @@
+﻿V45.22.2 - MENUS 100% NA VIEWPORT
+
+CAUSA ENCONTRADA
+1. /central/inicio recebia a barra "Apresentação | Documentos oficiais" antes
+   do gateway. O gateway tinha 100dvh sozinho, então barra + gateway
+   ultrapassavam a altura da janela e os cards iam para fora da tela.
+2. /dashboard dimensionava o banner principalmente pela largura. Em uma janela
+   1366x768 ou lado a lado, o banner podia ficar mais alto do que o espaço
+   vertical restante.
+
+CORREÇÕES
+- Esconde a barra de conhecimento somente em /central/inicio.
+- Mantém a barra normalmente no restante da Central.
+- Reforça o grid do gateway para os cards não saírem da viewport.
+- Em telas desktop baixas, logo/círculo/cards reduzem progressivamente.
+- No dashboard, o tamanho do card passa a respeitar largura e altura.
+- O acesso rápido continua visível sem precisar rolar.
+- Mobile não é redesenhado nesta versão.
+
+COMO APLICAR
+1. Extraia este ZIP na raiz de candinho-gestao.
+2. Execute APLICAR_V45_22_2.bat.
+3. Aguarde:
+   TypeScript OK.
+   git diff --check OK.
+   V45.22.2 aplicada com sucesso.
+4. Commit:
+   V45.22.2 - corrige menus cortados na viewport
+5. Push origin e avise "subi".

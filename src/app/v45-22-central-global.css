@@ -393,3 +393,88 @@
     max-height: 360px;
   }
 }
+/* =========================================================
+   V45.22.2 · Gateway inteiro dentro da viewport
+   ========================================================= */
+
+@media (min-width: 821px) {
+  .supplements-entry-standalone {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .v4522-operation-entry {
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    grid-template-rows: minmax(0, 1fr) auto;
+    overflow: hidden;
+  }
+
+  .v4522-operation-entry .v4521-entry-center {
+    align-self: center;
+    max-height: 100%;
+  }
+
+  .v4522-operation-entry .v4521-entry-menu {
+    align-self: end;
+    box-sizing: border-box;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 821px) and (max-height: 720px) {
+  .v4522-operation-entry .v4521-entry-center {
+    gap: 5px;
+    transform: translateY(0);
+  }
+
+  .v4522-operation-entry .v4521-entry-logo-wrap {
+    width: min(330px, 31vw);
+    height: 138px;
+  }
+
+  .v4522-operation-entry .v4521-entry-logo {
+    width: min(245px, 24vw);
+  }
+
+  .v4522-operation-entry .v4521-entry-orbit {
+    width: min(292px, 47dvh);
+  }
+
+  .v4522-operation-entry .v4521-entry-menu {
+    width: min(1180px, calc(100vw - 44px));
+    gap: 7px;
+    padding-bottom: 9px;
+  }
+
+  .v4522-operation-entry .v4521-entry-menu button {
+    min-height: 56px;
+    padding: 7px 9px;
+  }
+
+  .v4522-operation-entry .v4521-entry-line {
+    bottom: 3px;
+  }
+}
+
+@media (min-width: 821px) and (max-height: 620px) {
+  .v4522-operation-entry .v4521-entry-kicker,
+  .v4522-operation-entry .v4521-entry-center p {
+    display: none;
+  }
+
+  .v4522-operation-entry .v4521-entry-logo-wrap {
+    height: 120px;
+  }
+
+  .v4522-operation-entry .v4521-entry-orbit {
+    width: min(250px, 43dvh);
+  }
+
+  .v4522-operation-entry .v4521-entry-menu button {
+    min-height: 52px;
+  }
+}
