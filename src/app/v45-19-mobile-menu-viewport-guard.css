@@ -1,0 +1,16 @@
+/* V45.19 · Mobile menu viewport guard
+   O painel do menu deve terminar dentro do visual viewport real.
+   A variável é calculada pelo componente MobileMenuViewportGuard. */
+
+@media (max-width: 820px) {
+  .mobile-menu-panel {
+    height: auto !important;
+    max-height: var(
+      --v4519-mobile-menu-max-height,
+      calc(100dvh - 72px)
+    ) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+}

@@ -6,6 +6,7 @@ import { BankMonthFocusUX } from "@/components/bank-month-focus-ux";
 import { BudgetConfirmedFlowUX } from "@/components/budget-confirmed-flow-ux";
 import { CompanyOperationActiveVisualFix } from "@/components/company-operation-active-visual-fix";
 import { FitnessSaleStreamlinedUX } from "@/components/fitness-sale-streamlined-ux";
+import { MobileMenuViewportGuard } from "@/components/mobile-menu-viewport-guard";
 import { SupplementCanonicalNavigationUX } from "@/components/supplement-canonical-navigation-ux";
 
 export function ErpHierarchyUX() {
@@ -40,10 +41,10 @@ export function ErpHierarchyUX() {
           );
 
         const nextTitle =
-          "Exceções de gestão";
+          "ExceÃ§Ãµes de gestÃ£o";
 
         const nextDescription =
-          "Riscos e pendências para supervisão. Para executar o dia, use Hoje; para a fila completa, use Fila Única.";
+          "Riscos e pendÃªncias para supervisÃ£o. Para executar o dia, use Hoje; para a fila completa, use Fila Ãšnica.";
 
         if (
           title &&
@@ -85,6 +86,7 @@ export function ErpHierarchyUX() {
       <BudgetConfirmedFlowUX />
       <FitnessSaleStreamlinedUX />
       <CompanyOperationActiveVisualFix />
+      <MobileMenuViewportGuard />
       <SupplementCanonicalNavigationUX />
     </>
   );
