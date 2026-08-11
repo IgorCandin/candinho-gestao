@@ -1,5 +1,0 @@
-/* V45.16 · Bank 2.0 aposentado.
-   Mantemos o Bank oficial intacto e removemos o laboratório da navegação. */
-a[href="/bank-lab"] {
-  display: none !important;
-}

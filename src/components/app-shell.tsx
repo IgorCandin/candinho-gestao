@@ -16,7 +16,6 @@ import {
   ChartNoAxesCombined,
   CircleDollarSign,
   ContactRound,
-  FlaskConical,
   Handshake,
   HeartPulse,
   History,
@@ -75,7 +74,6 @@ const fitnessSalesNav = [
 ];
 
 const bankNav = [
-  { href: "/bank-lab", label: "Bank 2.0 Lab", icon: FlaskConical },
   { href: "/bank", label: "Este mês", icon: ChartNoAxesCombined },
   { href: "/bank/atualizar", label: "Atualização Rápida", icon: RefreshCcw },
   { href: "/bank/entradas", label: "Entradas e Receber", icon: CircleDollarSign },

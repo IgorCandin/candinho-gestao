@@ -5,7 +5,6 @@ import {
   CalendarDays,
   ChevronRight,
   CircleDollarSign,
-  FlaskConical,
   ReceiptText,
   RefreshCcw,
   ShoppingBag,
@@ -14,14 +13,8 @@ import {
 const groups = [
   {
     title: "Ajustes do Bank",
-    description: "Coisas que você altera de vez em quando, não no uso diário.",
+    description: "Coisas que vocÃª altera de vez em quando, nÃ£o no uso diÃ¡rio.",
     items: [
-      {
-        href: "/bank-lab",
-        title: "Bank 2.0 — laboratório",
-        description: "Teste a conexão bancária sem alterar o Bank atual.",
-        icon: FlaskConical,
-      },
       {
         href: "/bank/atualizar",
         title: "Atualizar saldos",
@@ -31,7 +24,7 @@ const groups = [
       {
         href: "/bank/mensalidades",
         title: "Planos e mensalidades",
-        description: "Cadastre, altere, pause ou ative recorrências.",
+        description: "Cadastre, altere, pause ou ative recorrÃªncias.",
         icon: CalendarDays,
       },
       {
@@ -43,36 +36,36 @@ const groups = [
     ],
   },
   {
-    title: "Planejamento e histórico",
-    description: "Use quando quiser olhar além do mês atual.",
+    title: "Planejamento e histÃ³rico",
+    description: "Use quando quiser olhar alÃ©m do mÃªs atual.",
     items: [
       {
         href: "/bank/visao-anual",
-        title: "Visão anual",
-        description: "Veja a projeção dos próximos meses.",
+        title: "VisÃ£o anual",
+        description: "Veja a projeÃ§Ã£o dos prÃ³ximos meses.",
         icon: CalendarDays,
       },
       {
         href: "/bank/fechamento",
-        title: "Histórico mensal",
-        description: "Salve uma fotografia do Bank para comparar a evolução.",
+        title: "HistÃ³rico mensal",
+        description: "Salve uma fotografia do Bank para comparar a evoluÃ§Ã£o.",
         icon: Archive,
       },
     ],
   },
   {
-    title: "Cadastros avançados",
-    description: "Ficam aqui para não poluir a navegação principal.",
+    title: "Cadastros avanÃ§ados",
+    description: "Ficam aqui para nÃ£o poluir a navegaÃ§Ã£o principal.",
     items: [
       {
         href: "/bank/cobrancas",
-        title: "Cobranças avulsas",
-        description: "Cadastre valores pontuais que você precisa pagar.",
+        title: "CobranÃ§as avulsas",
+        description: "Cadastre valores pontuais que vocÃª precisa pagar.",
         icon: ReceiptText,
       },
       {
         href: "/bank/operacoes",
-        title: "À receber das operações",
+        title: "Ã€ receber das operaÃ§Ãµes",
         description: "Consulte valores vindos de Suplementos e Fitness.",
         icon: ShoppingBag,
       },
@@ -94,8 +87,8 @@ export default function BankOrganizePage() {
           <div className="eyebrow">Candinho Bank</div>
           <h1>Organizar Bank</h1>
           <p>
-            O uso do dia a dia fica nas abas principais. Aqui ficam configurações,
-            cadastros e consultas que você usa com menos frequência.
+            O uso do dia a dia fica nas abas principais. Aqui ficam configuraÃ§Ãµes,
+            cadastros e consultas que vocÃª usa com menos frequÃªncia.
           </p>
         </div>
       </div>
@@ -105,7 +98,7 @@ export default function BankOrganizePage() {
         <div>
           <strong>Regra simples</strong>
           <span>
-            Para acompanhar o mês, use Este mês, Entradas, Faturas e Empréstimos.
+            Para acompanhar o mÃªs, use Este mÃªs, Entradas, Faturas e EmprÃ©stimos.
             Se precisar configurar alguma coisa, volte aqui.
           </span>
         </div>
