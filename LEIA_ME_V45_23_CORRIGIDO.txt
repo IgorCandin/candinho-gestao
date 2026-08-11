@@ -1,0 +1,25 @@
+﻿V45.23 - CORRECAO DE RETOMADA
+
+CAUSA DO ERRO
+O instalador removeu o import de isMobileOperationEntry, mas em 3 paginas o bloco:
+    if (await isMobileOperationEntry()) { ... }
+continuou no arquivo.
+
+Por isso o TypeScript encontrou exatamente 3 erros:
+- src/app/(app)/fitness/inicio/page.tsx
+- src/app/(app)/bank/inicio/page.tsx
+- src/app/(app)/central/inicio/page.tsx
+
+Esta correcao:
+1. Confirma que o restante da V45.23 ja foi aplicado.
+2. Remove os 3 redirects mobile antigos de forma robusta.
+3. Limpa .next.
+4. Executa npx tsc --noEmit.
+5. Executa git diff --check.
+
+NAO DESFACA NADA.
+Basta extrair este ZIP na raiz de candinho-gestao e executar:
+APLICAR_V45_23_CORRIGIDO.bat
+
+Se passar:
+V45.23 - mobile de operacoes e menus modais

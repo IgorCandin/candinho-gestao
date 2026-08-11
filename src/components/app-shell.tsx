@@ -596,11 +596,26 @@ export function AppShell({
           />
         </Link>
 
-        <details className="mobile-menu" ref={mobileMenuRef}>
+        <details
+          className="mobile-menu"
+          ref={mobileMenuRef}
+          data-dismissible-menu="true"
+        >
           <summary>
             <Menu size={20} />
             <span>Menu</span>
           </summary>
+
+          <button
+            className="mobile-menu-backdrop"
+            type="button"
+            aria-label="Fechar menu"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              closeMobileMenu();
+            }}
+          />
 
           <div className="mobile-menu-panel">
             {nav.map(({ href, label, icon: Icon }) => (

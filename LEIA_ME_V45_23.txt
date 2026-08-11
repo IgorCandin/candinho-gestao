@@ -1,0 +1,53 @@
+V45.23 - MOBILE DE OPERACOES + MENUS MODAIS
+
+OBJETIVO
+Transformar o acesso mobile nas operações e corrigir o comportamento dos menus
+globais sem redesenhar ainda todas as telas internas do ERP.
+
+O QUE MUDA
+
+1. ENTRADA MOBILE NAS OPERAÇÕES
+- Suplementos, Fitness, Bank e Central deixam de pular direto para a primeira tela.
+- No telefone, entrar na operação abre a mesma ideia visual do desktop:
+  logo/identidade no topo e módulos abaixo.
+- O primeiro módulo fica destacado em largura total:
+  Suplementos = Hoje
+  Fitness = Visão geral
+  Bank = Este mês
+  Central = Meu Dia
+- Os demais ficam em grade de 2 colunas.
+- A logo continua voltando para a Company.
+- Também entra um botão pequeno "Operações" no canto para deixar a saída óbvia.
+- Layout usa safe-area e adapta altura para celulares menores.
+
+2. MENU MOBILE
+- O menu lateral vira um drawer/modal de verdade.
+- Fundo recebe backdrop escuro.
+- Menu fica acima de busca, Nexus, bottom-nav e cards.
+- Todos os botões ficam visíveis dentro de uma gaveta rolável.
+- Clicar fora fecha SOMENTE o menu.
+- O toque não atravessa para o botão/card que está atrás.
+- ESC também fecha.
+- A página de fundo fica travada enquanto o menu está aberto.
+
+3. DESKTOP
+- O mesmo conceito de "primeiro clique fora só fecha" entra nos menus globais
+  marcados como pop-up, começando por Ferramentas do sidebar.
+- Acordeões de formulário e blocos expansíveis NÃO entram nessa regra.
+
+NÃO TEM
+- Migration.
+- Alteração no Supabase.
+- Redesign completo das páginas mobile internas.
+- Mudança no bottom-nav nesta versão.
+
+COMO APLICAR
+1. Extraia o ZIP na raiz de candinho-gestao.
+2. Execute APLICAR_V45_23.bat.
+3. Aguarde:
+   TypeScript OK.
+   git diff --check OK.
+   V45.23 aplicada com sucesso.
+4. Commit:
+   V45.23 - mobile de operacoes e menus modais
+5. Push origin e avise "subi".

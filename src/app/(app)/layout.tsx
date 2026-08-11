@@ -5,6 +5,7 @@ import { CentralKnowledgeNav } from "@/components/central-knowledge-nav";
 import { CustomerRelationshipsPortal } from "@/components/customer-relationships-portal";
 import { CustomerSalesAssistantPortal } from "@/components/customer-sales-assistant-portal";
 import { DesktopEscapeBack } from "@/components/desktop-escape-back";
+import { DismissibleMenuGuard } from "@/components/dismissible-menu-guard";
 import { DesktopSidebarController } from "@/components/desktop-sidebar-controller";
 import { FitnessUxScope } from "@/components/fitness-ux-scope";
 import { NexusActivityTracker } from "@/components/nexus-activity-tracker";
@@ -63,6 +64,7 @@ export default async function ProtectedLayout({
   return (
     <DesktopSidebarController>
       <V459UiFoundationMarker />
+      <DismissibleMenuGuard />
       <DesktopEscapeBack />
       <OperationToolSearch access={access} />
       <CentralCostsShortcut enabled={canAccessSharedCosts} />
