@@ -39,18 +39,45 @@ const nextConfig: NextConfig = {
   },
 
   async redirects() {
-    return supplementRouteRoots.flatMap((route) => [
+    return [
+      // Compatibilidade de links/bookmarks antigos do Marketing.
+      // O Marketing já possui telas nativas próprias; não duplicamos páginas.
       {
-        source: `/${route}`,
-        destination: `/suplementos/${route}`,
+        source: "/central/midia",
+        has: [{ type: "query" as const, key: "scope", value: "marketing" }],
+        destination: "/marketing/ideias",
         permanent: false,
       },
       {
-        source: `/${route}/:path*`,
-        destination: `/suplementos/${route}/:path*`,
+        source: "/central/agenda",
+        has: [{ type: "query" as const, key: "scope", value: "marketing" }],
+        destination: "/marketing/planejamento",
         permanent: false,
       },
-    ]);
+      {
+        source: "/marketing/midia",
+        destination: "/marketing/ideias",
+        permanent: false,
+      },
+      {
+        source: "/marketing/agenda",
+        destination: "/marketing/planejamento",
+        permanent: false,
+      },
+
+      ...supplementRouteRoots.flatMap((route) => [
+        {
+          source: `/${route}`,
+          destination: `/suplementos/${route}`,
+          permanent: false,
+        },
+        {
+          source: `/${route}/:path*`,
+          destination: `/suplementos/${route}/:path*`,
+          permanent: false,
+        },
+      ]),
+    ];
   },
 
   async rewrites() {

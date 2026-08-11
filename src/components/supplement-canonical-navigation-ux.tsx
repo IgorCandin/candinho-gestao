@@ -26,8 +26,7 @@ function splitHref(rawHref: string) {
   const queryIndex = rawHref.indexOf("?");
   const hashIndex = rawHref.indexOf("#");
 
-  const endings = [queryIndex, hashIndex]
-    .filter((value) => value >= 0);
+  const endings = [queryIndex, hashIndex].filter((value) => value >= 0);
 
   const end =
     endings.length > 0
@@ -40,9 +39,53 @@ function splitHref(rawHref: string) {
   };
 }
 
-function canonicalSupplementHref(
-  rawHref: string,
-) {
+function canonicalMarketingHref(rawHref: string) {
+  if (
+    !rawHref.startsWith("/central/") ||
+    !rawHref.includes("?")
+  ) {
+    return rawHref;
+  }
+
+  const hashIndex = rawHref.indexOf("#");
+  const withoutHash =
+    hashIndex >= 0 ? rawHref.slice(0, hashIndex) : rawHref;
+  const hash =
+    hashIndex >= 0 ? rawHref.slice(hashIndex) : "";
+
+  const queryIndex = withoutHash.indexOf("?");
+  if (queryIndex < 0) return rawHref;
+
+  const path = withoutHash.slice(0, queryIndex);
+  const query = withoutHash.slice(queryIndex + 1);
+
+  if (
+    path !== "/central/midia" &&
+    path !== "/central/agenda"
+  ) {
+    return rawHref;
+  }
+
+  const params = new URLSearchParams(query);
+  if (params.get("scope") !== "marketing") {
+    return rawHref;
+  }
+
+  params.delete("scope");
+
+  const destination =
+    path === "/central/midia"
+      ? "/marketing/ideias"
+      : "/marketing/planejamento";
+
+  const remainingQuery = params.toString();
+
+  return `${destination}${
+    remainingQuery ? `?${remainingQuery}` : ""
+  }${hash}`;
+}
+
+function canonicalSupplementHref(rawHref: string) {
   if (
     !rawHref.startsWith("/") ||
     rawHref.startsWith("/suplementos")
@@ -64,6 +107,12 @@ function canonicalSupplementHref(
   }
 
   return rawHref;
+}
+
+function canonicalOperationHref(rawHref: string) {
+  return canonicalSupplementHref(
+    canonicalMarketingHref(rawHref),
+  );
 }
 
 function supplementNavIsActive(
@@ -116,17 +165,36 @@ function supplementNavIsActive(
   );
 }
 
+function marketingNavIsActive(
+  href: string,
+  pathname: string,
+) {
+  const { path } = splitHref(href);
+
+  if (path === "/marketing") {
+    return pathname === "/marketing";
+  }
+
+  return (
+    pathname === path ||
+    pathname.startsWith(`${path}/`)
+  );
+}
+
 /**
- * Compatibilidade da fase de migração de URLs.
+ * Compatibilidade da migração de URLs operacionais.
  *
- * O next.config garante que URLs antigas continuam funcionando.
- * Este componente evita o salto extra nos Links já renderizados,
- * muda o endereço mostrado ao passar o mouse/copiar o link e mantém
- * o estado ativo do menu enquanto o código interno ainda possui
- * alguns hrefs históricos.
+ * V45.17:
+ * - URLs canônicas de Suplementos em /suplementos/...
  *
- * Quando todos os hrefs do ERP já apontarem diretamente para
- * /suplementos/..., este componente pode ser removido.
+ * V45.18:
+ * - atalhos antigos do Marketing que apontavam para a Central passam
+ *   a abrir as páginas nativas /marketing/ideias e
+ *   /marketing/planejamento;
+ * - mantém o destaque correto do menu após a canonicalização.
+ *
+ * A camada continua preservando links históricos enquanto o código físico
+ * legado de Suplementos ainda existe nas rotas raiz.
  */
 export function SupplementCanonicalNavigationUX() {
   const pathname = usePathname();
@@ -152,7 +220,7 @@ export function SupplementCanonicalNavigationUX() {
             "";
 
           const canonical =
-            canonicalSupplementHref(original);
+            canonicalOperationHref(original);
 
           if (canonical !== original) {
             anchor.dataset.v4517LegacyHref =
@@ -164,15 +232,6 @@ export function SupplementCanonicalNavigationUX() {
           }
         }
 
-        if (
-          pathname !== "/suplementos" &&
-          !pathname.startsWith(
-            "/suplementos/",
-          )
-        ) {
-          return;
-        }
-
         const navigationLinks =
           document.querySelectorAll<HTMLAnchorElement>(
             [
@@ -182,26 +241,56 @@ export function SupplementCanonicalNavigationUX() {
             ].join(","),
           );
 
-        for (const link of navigationLinks) {
-          const href =
-            link.getAttribute("href") ?? "";
+        if (
+          pathname === "/suplementos" ||
+          pathname.startsWith("/suplementos/")
+        ) {
+          for (const link of navigationLinks) {
+            const href =
+              link.getAttribute("href") ?? "";
 
-          if (
-            href !== "/suplementos" &&
-            !href.startsWith(
-              "/suplementos/",
-            )
-          ) {
-            continue;
+            if (
+              href !== "/suplementos" &&
+              !href.startsWith("/suplementos/")
+            ) {
+              continue;
+            }
+
+            link.classList.toggle(
+              "primary",
+              supplementNavIsActive(
+                href,
+                pathname,
+              ),
+            );
           }
 
-          link.classList.toggle(
-            "primary",
-            supplementNavIsActive(
-              href,
-              pathname,
-            ),
-          );
+          return;
+        }
+
+        if (
+          pathname === "/marketing" ||
+          pathname.startsWith("/marketing/")
+        ) {
+          for (const link of navigationLinks) {
+            const href =
+              link.getAttribute("href") ?? "";
+
+            if (
+              href !== "/marketing" &&
+              !href.startsWith("/marketing/")
+            ) {
+              continue;
+            }
+
+            link.classList.toggle(
+              "primary",
+              marketingNavIsActive(
+                href,
+                pathname,
+              ),
+            );
+          }
         }
       });
     }
@@ -248,7 +337,7 @@ export function SupplementCanonicalNavigationUX() {
       if (!legacy) return;
 
       const canonical =
-        canonicalSupplementHref(legacy);
+        canonicalOperationHref(legacy);
 
       if (
         canonical === legacy ||
