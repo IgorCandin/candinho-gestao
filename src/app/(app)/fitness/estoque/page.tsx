@@ -108,10 +108,11 @@ function sortFitnessStock(
 }
 
 export default async function Page() {
-  const [access, stock] =
+  const [access, stock, consignedRows] =
     await Promise.all([
       getCurrentUserAccess(),
       getFitnessStock(),
+      getConsignedStock(),
     ]);
 
   const salesMode =
@@ -119,18 +120,6 @@ export default async function Page() {
 
   const orderedStock =
     sortFitnessStock(stock);
-
-  const supabase =
-    await createClient();
-
-  const { data: consignedRows } =
-    await supabase
-      .from(
-        "fitness_stock_operational",
-      )
-      .select(
-        "variant_id,consigned_quantity",
-      );
 
   const consignedByVariant =
     new Map<string, number>(
@@ -349,4 +338,13 @@ export default async function Page() {
         )}
     </>
   );
+}
+
+async function getConsignedStock() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("fitness_stock_operational")
+    .select("variant_id,consigned_quantity");
+
+  return data ?? [];
 }

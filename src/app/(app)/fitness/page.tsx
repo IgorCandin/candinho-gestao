@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import {
   CircleDollarSign,
   PackageOpen,
@@ -19,12 +20,11 @@ import { getFitnessNexusSnapshot } from "@/lib/fitness-nexus-data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 
 export default async function FitnessDashboardPage() {
-  const [access, summary, sales, orders, nexus] = await Promise.all([
+  const [access, summary, sales, orders] = await Promise.all([
     getCurrentUserAccess(),
     getFitnessDashboard(),
     getFitnessDashboardPendingSales(),
     getFitnessDashboardRecentOrders(),
-    getFitnessNexusSnapshot(),
   ]);
 
   return (
@@ -43,7 +43,9 @@ export default async function FitnessDashboardPage() {
         }
       />
 
-      <FitnessNexusHome snapshot={nexus} />
+      <Suspense fallback={<FitnessNexusHomeLoading />}>
+        <FitnessNexusHomeAsync />
+      </Suspense>
 
       <section className="stats-grid">
         <StatCard
@@ -209,5 +211,25 @@ export default async function FitnessDashboardPage() {
         </article>
       </section>
     </>
+  );
+}
+
+async function FitnessNexusHomeAsync() {
+  const nexus = await getFitnessNexusSnapshot();
+  return <FitnessNexusHome snapshot={nexus} />;
+}
+
+function FitnessNexusHomeLoading() {
+  return (
+    <section
+      className="panel"
+      aria-label="Carregando recomendações do Nexus"
+    >
+      <div className="panel-body">
+        <small>
+          O Nexus está analisando estoque e vendas sem travar a tela…
+        </small>
+      </div>
+    </section>
   );
 }
