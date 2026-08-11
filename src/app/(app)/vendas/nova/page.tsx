@@ -41,7 +41,7 @@ export default async function NewSalePage({
     getActivePromotionRows(),
     supabase
       .from("products")
-      .select("id,duration_days")
+      .select("id,duration_days,last_purchase_cost,last_purchase_on")
       .eq("active", true),
   ]);
 
@@ -56,6 +56,21 @@ export default async function NewSalePage({
     (durationResult.data ?? []).map((row) => [
       row.id,
       Math.max(1, Number(row.duration_days ?? 30)),
+    ]),
+  );
+  const lastPurchaseCosts = Object.fromEntries(
+    (durationResult.data ?? []).map((row) => [
+      row.id,
+      {
+        cost:
+          row.last_purchase_cost === null
+            ? null
+            : Number(row.last_purchase_cost),
+        purchasedOn:
+          row.last_purchase_on === null
+            ? null
+            : String(row.last_purchase_on),
+      },
     ]),
   );
 
@@ -90,6 +105,7 @@ export default async function NewSalePage({
         partners={partners}
         stock={stock}
         combos={combos}
+        lastPurchaseCosts={lastPurchaseCosts}
         initialQuote={initialQuote}
       />
     </>

@@ -43,7 +43,7 @@ import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 
 const supplementNav = [
-  { href: "/suplementos", label: "Hoje", icon: Home },
+  { href: "/suplementos/hoje", label: "Hoje", icon: Home },
   { href: "/vendas", label: "Comercial", icon: ShoppingBag },
   { href: "/clientes", label: "CRM e relacionamento", icon: ContactRound },
   { href: "/estoque", label: "Estoque e compras", icon: Boxes },
@@ -352,6 +352,7 @@ export function AppShell({
 
   const isOperationHome =
     pathname === "/suplementos" ||
+    pathname === "/suplementos/hoje" ||
     pathname === "/fitness" ||
     pathname === "/bank" ||
     pathname === "/marketing";
@@ -457,6 +458,13 @@ export function AppShell({
     return pathname.startsWith(baseHref);
   }
 
+  if (pathname === "/suplementos") {
+    return (
+      <main className="supplements-entry-standalone">
+        {children}
+      </main>
+    );
+  }
   if (isPromotionShowcase) {
     return (
       <main className="promotion-showcase-standalone">

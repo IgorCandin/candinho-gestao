@@ -20,6 +20,7 @@ import { DemoBanner } from "@/components/demo-banner";
 import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { PageHeader } from "@/components/page-header";
 import { ProductImageUploader } from "@/components/product-image-uploader";
+import { ProductInternalCostPanelV4521 } from "@/components/product-internal-cost-panel-v45-21";
 import {
   getEntitySwipeNavigation,
   getProductDetails,
@@ -287,6 +288,10 @@ export default async function ProductDetailsPage({
         </article>
       </section>
 
+      <ProductInternalCostPanelV4521
+        productId={product.id}
+        salePrice={product.sale_price}
+      />
       {activePromotion && (
         <article className="panel product-active-promotion-panel">
           <div>
@@ -389,7 +394,11 @@ export default async function ProductDetailsPage({
                       activePromotion?.effective_promotional_price ?? product.sale_price,
                     )}
                   </strong>
-                  {activePromotion && (
+                  <ProductInternalCostPanelV4521
+        productId={product.id}
+        salePrice={product.sale_price}
+      />
+      {activePromotion && (
                     <small>De {formatCurrency(product.sale_price)}</small>
                   )}
                 </div>

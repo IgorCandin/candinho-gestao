@@ -108,6 +108,7 @@ export function NewSaleForm({
   partners,
   stock,
   combos,
+  lastPurchaseCosts,
   initialQuote = null,
 }: {
   customers: CustomerOption[];
@@ -115,6 +116,7 @@ export function NewSaleForm({
   partners: PartnerOption[];
   stock: SaleStockOption[];
   combos: ProductComboSaleOption[];
+  lastPurchaseCosts: Record<string, { cost: number | null; purchasedOn: string | null }>;
   initialQuote?: QuoteDraft | null;
 }) {
   const router = useRouter();
@@ -1009,6 +1011,7 @@ export function NewSaleForm({
 
             {items.map((item, index) => {
               const row = rowFor(item.productId);
+              const lastPurchaseCost = item.productId ? lastPurchaseCosts[item.productId] : undefined;
               const productFlavors = flavorsFor(
                 item.productId,
               );
@@ -1181,6 +1184,26 @@ export function NewSaleForm({
                             row.cost_price,
                           )}
                         </strong>
+                      </span>                      <span className="v4521-last-cost-chip">
+                        Último custo{" "}
+                        <strong>
+                          {lastPurchaseCost?.cost
+                            ? formatCurrency(
+                                lastPurchaseCost.cost,
+                              )
+                            : "Sem histórico"}
+                        </strong>
+                        {lastPurchaseCost?.purchasedOn && (
+                          <small>
+                            {new Intl.DateTimeFormat(
+                              "pt-BR",
+                            ).format(
+                              new Date(
+                                `${lastPurchaseCost.purchasedOn}T12:00:00`,
+                              ),
+                            )}
+                          </small>
+                        )}
                       </span>
                       <span>
                         Preço padrão{" "}

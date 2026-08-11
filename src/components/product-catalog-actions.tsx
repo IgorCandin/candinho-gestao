@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, CheckSquare, FileDown, Layers3, Plus, Search, Square } from "lucide-react";
+import { CheckSquare, FileDown, Layers3, Plus, Search, Square } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import type { ProductCatalogRow } from "@/lib/types";
@@ -73,12 +73,6 @@ export function ProductCatalogActions({
           Combos
         </Link>
 
-        {canWrite && (
-          <Link className="button ghost" href="/produtos/gerencial">
-            <BarChart3 size={16} />
-            Área Gerencial
-          </Link>
-        )}
 
         {canWrite && (
           <button className="button ghost" type="button" onClick={() => setStep("mode")}>

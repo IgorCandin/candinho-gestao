@@ -14,6 +14,7 @@ import {
 import { DemoBanner } from "@/components/demo-banner";
 import { InventoryActions } from "@/components/inventory-actions";
 import { InventoryTable } from "@/components/inventory-table";
+import { InventoryProductManagementV4521 } from "@/components/inventory-product-management-v45-21";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { getInventoryWorkspaceSnapshot } from "@/lib/central-data";
@@ -500,6 +501,7 @@ export default async function StockPage() {
           flavorMeta={flavorMeta}
         />
       </article>
+      <InventoryProductManagementV4521 />
     </>
   );
 }

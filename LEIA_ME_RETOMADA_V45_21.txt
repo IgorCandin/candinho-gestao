@@ -1,0 +1,21 @@
+﻿V45.21 - CORRECAO DE RETOMADA
+
+1. Extraia este ZIP na RAIZ do repositorio candinho-gestao.
+2. Confirme a substituicao dos arquivos APLICAR_V45_21.bat e APLICAR_V45_21.ps1.
+3. NAO apague a pasta _v45_21_payload.
+4. Execute APLICAR_V45_21.bat.
+5. O instalador detectara automaticamente a tentativa parcial anterior.
+6. Ele nao reaplicara as copias que ja foram feitas; continuara as alteracoes restantes.
+7. No final ele executa:
+   - npx tsc --noEmit
+   - git diff --check
+8. Somente se as duas validacoes passarem, a pasta _v45_21_payload sera removida.
+9. NAO faca commit se aparecer qualquer erro.
+10. Se aparecer "V45.21 aplicada com sucesso", abra o GitHub Desktop e use:
+    V45.21 - integra compras, custos e Nexus operacional
+
+CORRECAO PRINCIPAL
+O instalador original normalizava os arquivos do repositorio para LF, mas alguns
+blocos multi-linha do proprio PowerShell continuavam em CRLF. Por isso ele via
+o botao "Area Gerencial" na tela, mas a comparacao exata falhava. A versao
+corrigida normaliza ambos os lados e tambem pode retomar uma execucao parcial.

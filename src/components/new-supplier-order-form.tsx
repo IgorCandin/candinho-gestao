@@ -71,13 +71,17 @@ export function NewSupplierOrderForm({
   initialSuppliers,
   products,
   locations,
+  lastPurchaseCosts,
+  initialProductIds = [],
 }: {
   initialSuppliers: SupplierOption[];
   products: PurchaseProductOption[];
   locations: LocationOption[];
+  lastPurchaseCosts: Record<string, { cost: number | null; purchasedOn: string | null }>;
+  initialProductIds?: string[];
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"unit" | "batch" | null>(null);
+  const [mode, setMode] = useState<"unit" | "batch" | null>(initialProductIds.length > 1 ? "batch" : initialProductIds.length === 1 ? "unit" : null);
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [supplierId, setSupplierId] = useState("");
   const [orderedOn, setOrderedOn] = useState(todayBrazil());
@@ -88,7 +92,24 @@ export function NewSupplierOrderForm({
       "",
   );
   const [notes, setNotes] = useState("");
-  const [items, setItems] = useState<OrderItemDraft[]>([emptyItem()]);
+  const [items, setItems] = useState<OrderItemDraft[]>(() => {
+    const seeded = initialProductIds
+      .map((productId) => {
+        const product = products.find(
+          (row) => row.id === productId,
+        );
+        if (!product) return null;
+
+        return {
+          ...emptyItem(),
+          productId,
+          unitCost: String(product.cost_price.toFixed(2)),
+        };
+      })
+      .filter((item): item is OrderItemDraft => Boolean(item));
+
+    return seeded.length > 0 ? seeded : [emptyItem()];
+  });
   const [showNewSupplier, setShowNewSupplier] = useState(false);
   const [supplierName, setSupplierName] = useState("");
   const [supplierNotes, setSupplierNotes] = useState("");
@@ -762,6 +783,9 @@ export function NewSupplierOrderForm({
               const product = products.find(
                 (row) => row.id === item.productId,
               );
+              const lastPurchaseCost = item.productId ? lastPurchaseCosts[item.productId] : undefined;
+              const enteredCost = Number(item.unitCost) || 0;
+              const lastCostDifference = lastPurchaseCost?.cost && lastPurchaseCost.cost > 0 ? enteredCost - lastPurchaseCost.cost : null;
               const productFlavors = flavorsFor(
                 item.productId,
               );
@@ -1018,6 +1042,30 @@ export function NewSupplierOrderForm({
                             product.cost_price,
                           )}
                         </strong>
+                      </span>                      <span className="v4521-last-cost-chip">
+                        Último custo{" "}
+                        <strong>
+                          {lastPurchaseCost?.cost
+                            ? formatCurrency(
+                                lastPurchaseCost.cost,
+                              )
+                            : "Sem histórico"}
+                        </strong>
+                        {lastCostDifference !== null && (
+                          <small
+                            className={
+                              lastCostDifference > 0
+                                ? "warning-text"
+                                : "positive"
+                            }
+                          >
+                            {lastCostDifference > 0 ? "+" : ""}
+                            {formatCurrency(
+                              lastCostDifference,
+                            )}{" "}
+                            nesta compra
+                          </small>
+                        )}
                       </span>
                       <span>
                         Preço de venda{" "}
