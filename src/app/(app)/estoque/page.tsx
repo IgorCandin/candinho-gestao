@@ -25,6 +25,9 @@ import {
 } from "@/lib/data";
 import { formatCurrency, formatDateTime } from "@/lib/format";
 
+export const metadata = {
+  title: "Estoque e compras - Suplementos",
+};
 type FlavorHealthItem = {
   product_id: string;
   product_name: string;
@@ -481,19 +484,13 @@ export default async function StockPage() {
       <article className="panel inventory-main-panel inventory-v2-products-panel">
         <div className="panel-head">
           <div>
-            <h2>Produtos e quantidades</h2>
+            <h2>Saldo por produto</h2>
             <p>
-              Consulte o saldo agregado e identifique rapidamente quais
-              produtos usam controle por sabor.
+              Esta é a visão operacional das quantidades: físico, reservado,
+              disponível, a caminho e controle por sabor. Cadastro e ficha
+              comercial continuam em Produtos.
             </p>
           </div>
-
-          <Link
-            className="button ghost compact-button"
-            href="/produtos"
-          >
-            Abrir Produtos
-          </Link>
         </div>
 
         <InventoryTable

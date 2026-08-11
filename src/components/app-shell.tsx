@@ -43,9 +43,11 @@ import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 
 const supplementNav = [
+  { href: "/suplementos", label: "Menu", icon: Home },
   { href: "/suplementos/hoje", label: "Hoje", icon: Home },
   { href: "/vendas", label: "Comercial", icon: ShoppingBag },
   { href: "/clientes", label: "CRM e relacionamento", icon: ContactRound },
+  { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/estoque", label: "Estoque e compras", icon: Boxes },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/parceiros", label: "Parceiros", icon: Handshake },
@@ -57,7 +59,9 @@ const supplementSalesNav = [
 ];
 
 const fitnessNav = [
-  { href: "/fitness", label: "Início", icon: Home },
+  { href: "/fitness/inicio", label: "Menu", icon: Home },
+  { href: "/fitness", label: "Visão geral", icon: BarChart3 },
+  { href: "/fitness/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/fitness/painel", label: "Painel Gerencial", icon: BarChart3 },
   { href: "/fitness/vendas", label: "Comercial", icon: ShoppingBag },
   { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch },
@@ -74,6 +78,7 @@ const fitnessSalesNav = [
 ];
 
 const bankNav = [
+  { href: "/bank/inicio", label: "Menu", icon: Home },
   { href: "/bank", label: "Este mês", icon: ChartNoAxesCombined },
   { href: "/bank/atualizar", label: "Atualização Rápida", icon: RefreshCcw },
   { href: "/bank/entradas", label: "Entradas e Receber", icon: CircleDollarSign },
@@ -88,6 +93,8 @@ const bankNav = [
 ];
 
 const centralNav = [
+  { href: "/central/inicio", label: "Menu", icon: Home },
+  { href: "/central/meu-dia", label: "Meu Dia", icon: ListChecks },
   { href: "/central", label: "Visão Geral", icon: HeartPulse },
   { href: "/central/prioridades", label: "Prioridades", icon: ListChecks },
   { href: "/central/promocoes", label: "Promoções", icon: BadgePercent },
@@ -96,8 +103,8 @@ const centralNav = [
   { href: "/central/alertas", label: "Alertas", icon: Bell },
   { href: "/central/respostas", label: "Respostas rápidas", icon: MessageSquareText },
   { href: "/central/clientes", label: "Clientes", icon: UsersRound },
-  { href: "/central/agenda", label: "Agenda", icon: CalendarDays },
-  { href: "/central/agenda-estrategica", label: "Agenda Estratégica", icon: ListTodo },
+  { href: "/central/agenda", label: "Agenda Global", icon: CalendarDays },
+  { href: "/central/marketing", label: "Marketing", icon: Megaphone },
   { href: "/central/pendencias", label: "Pendências", icon: ListTodo },
   { href: "/central/midia", label: "Mídia", icon: Images },
   { href: "/central/integracoes", label: "Integrações", icon: Link2 },
@@ -399,15 +406,15 @@ export function AppShell({
       isSettings
         ? "/dashboard"
         : isCentral
-          ? "/central"
+          ? "/central/inicio"
           : isPartner
             ? "/parceiro"
             : isMarketing
-              ? "/marketing"
+              ? "/central/marketing"
               : isFitness
-                ? "/fitness"
+                ? "/fitness/inicio"
                 : isBank
-                  ? "/bank"
+                  ? "/bank/inicio"
                   : "/suplementos",
     );
   }
@@ -458,7 +465,12 @@ export function AppShell({
     return pathname.startsWith(baseHref);
   }
 
-  if (pathname === "/suplementos") {
+  if (
+    pathname === "/suplementos" ||
+    pathname === "/fitness/inicio" ||
+    pathname === "/bank/inicio" ||
+    pathname === "/central/inicio"
+  ) {
     return (
       <main className="supplements-entry-standalone">
         {children}

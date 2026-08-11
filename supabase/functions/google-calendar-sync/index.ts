@@ -98,6 +98,57 @@ async function getSource(admin: ReturnType<typeof serviceClient>, job: any) {
     };
   }
 
+  if (job.source_type === "operational_task") {
+    const { data, error } = await admin
+      .from("operational_tasks")
+      .select("id,title,category,due_at,status,priority,operation_scope,notes")
+      .eq("id", job.source_id)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+
+    const allowedScopes = ["company", "supplements", "fitness"];
+    if (
+      !data ||
+      !allowedScopes.includes(String(data.operation_scope)) ||
+      data.status !== "planned" ||
+      !data.due_at
+    ) {
+      return { action: "delete" as const };
+    }
+
+    const when = brazilDateTime(String(data.due_at));
+    const scope = String(data.operation_scope);
+    const scopeLabel =
+      scope === "supplements"
+        ? "Suplementos"
+        : scope === "fitness"
+          ? "Fitness"
+          : "Central";
+    const href =
+      scope === "supplements"
+        ? "/suplementos/agenda"
+        : scope === "fitness"
+          ? "/fitness/agenda"
+          : "/central/agenda";
+
+    const description = [
+      `Operação: ${scopeLabel}`,
+      `Horário na Candinho: ${when.time}`,
+      data.category ? `Categoria: ${data.category}` : null,
+      data.priority ? `Prioridade: ${data.priority}` : null,
+      data.notes ? `Observações:\n${data.notes}` : null,
+      `Abrir na Candinho: ${APP_URL}${href}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    return {
+      action: "upsert" as const,
+      title: `${scopeLabel} · ${data.title}`,
+      date: when.date,
+      description,
+    };
+  }
   if (job.source_type === "marketing_task") {
     const { data, error } = await admin
       .from("operational_tasks")
@@ -115,7 +166,7 @@ async function getSource(admin: ReturnType<typeof serviceClient>, job: any) {
       data.category ? `Categoria: ${data.category}` : null,
       data.priority ? `Prioridade: ${data.priority}` : null,
       data.notes ? `Plano:\n${data.notes}` : null,
-      `Abrir no Marketing: ${APP_URL}/marketing/planejamento`,
+      `Abrir no Marketing: ${APP_URL}/central/marketing/planejamento`,
     ].filter(Boolean).join("\n");
 
     return {

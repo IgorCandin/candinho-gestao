@@ -46,7 +46,7 @@ export default async function DashboardPage() {
     {
       key: "fitness",
       label: "Fitness",
-      href: "/fitness",
+      href: "/fitness/inicio",
       desktopImage:
         "/operation-banners/fitness-desktop.webp",
       mobileImage:
@@ -58,7 +58,7 @@ export default async function DashboardPage() {
     {
       key: "bank",
       label: "Bank",
-      href: "/bank",
+      href: "/bank/inicio",
       desktopImage:
         "/operation-banners/bank-desktop.webp",
       mobileImage:
@@ -67,22 +67,11 @@ export default async function DashboardPage() {
       rgb: "70, 195, 123",
       visible: access.canAccessBank,
     },
-    {
-      key: "marketing",
-      label: "Marketing",
-      href: "/marketing",
-      desktopImage:
-        "/operation-banners/marketing-desktop.webp",
-      mobileImage:
-        "/operation-banners/marketing-mobile.webp",
-      tone: "marketing",
-      rgb: "239, 70, 70",
-      visible: access.canAccessMarketing,
-    },
+
     {
       key: "central",
       label: "Central",
-      href: "/central",
+      href: "/central/inicio",
       desktopImage:
         "/operation-banners/central-desktop.webp",
       mobileImage:
@@ -130,7 +119,7 @@ export default async function DashboardPage() {
         <div className="company-home-utility-links-v4514">
           <Link
             className="company-home-utility-link-v4514"
-            href="/nexus/foco"
+            href="/central/meu-dia"
           >
             <Bot size={16} />
             <span>Meu Dia</span>
