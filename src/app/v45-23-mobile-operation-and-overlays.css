@@ -422,3 +422,67 @@
     margin-top: 12px;
   }
 }
+/* =========================================================
+   V45.23.2 · Logo limpa e escala desktop
+   ========================================================= */
+
+/*
+ * Mobile: escondemos visualmente o kicker e o slogan sem alterar
+ * a caixa ocupada por eles. Assim o layout que ficou aprovado no
+ * telefone preserva exatamente o mesmo ritmo e posição.
+ */
+@media (max-width: 820px) {
+  .v4522-operation-entry .v4521-entry-kicker,
+  .v4522-operation-entry .v4521-entry-center > p {
+    visibility: hidden !important;
+    pointer-events: none !important;
+    user-select: none !important;
+  }
+}
+
+/*
+ * Desktop: as frases saem do fluxo e a marca/círculo ganham presença.
+ * A escala usa também a altura da viewport para não voltar a cortar
+ * em monitores mais baixos.
+ */
+@media (min-width: 821px) {
+  .v4522-operation-entry .v4521-entry-kicker,
+  .v4522-operation-entry .v4521-entry-center > p {
+    display: none !important;
+  }
+
+  .v4522-operation-entry .v4521-entry-center {
+    gap: 0 !important;
+    transform: none !important;
+  }
+
+  .v4522-operation-entry .v4521-entry-logo-wrap {
+    width: min(560px, 46vw) !important;
+    height: clamp(280px, 50dvh, 400px) !important;
+  }
+
+  .v4522-operation-entry .v4521-entry-logo {
+    width: clamp(285px, 42dvh, 360px) !important;
+    max-width: 72vw !important;
+    max-height: 170px !important;
+  }
+
+  .v4522-operation-entry .v4521-entry-orbit {
+    width: clamp(360px, 58dvh, 455px) !important;
+    max-width: 46vw !important;
+  }
+}
+
+@media (min-width: 821px) and (max-height: 580px) {
+  .v4522-operation-entry .v4521-entry-logo-wrap {
+    height: 250px !important;
+  }
+
+  .v4522-operation-entry .v4521-entry-logo {
+    width: 260px !important;
+  }
+
+  .v4522-operation-entry .v4521-entry-orbit {
+    width: 325px !important;
+  }
+}
