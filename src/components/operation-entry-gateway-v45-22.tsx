@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ArrowLeft,
   BarChart3,
   Bell,
   Boxes,
@@ -146,16 +145,6 @@ export function OperationEntryGatewayV4522({
       style={{ "--entry-rgb": config.rgb } as CSSProperties}
     >
       <div className="v4521-entry-ambient" />
-
-      <Link
-        href="/dashboard"
-        className="v4523-entry-back"
-        aria-label="Voltar para as operações"
-      >
-        <ArrowLeft size={16} />
-        <span>Operações</span>
-      </Link>
-
       <div className="v4521-entry-center">
         <span className="v4521-entry-kicker">{config.label}</span>
 

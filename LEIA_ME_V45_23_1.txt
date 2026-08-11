@@ -1,0 +1,22 @@
+﻿V45.23.1 - RESPIRO DO MENU MOBILE
+
+AJUSTES
+- Remove o botão "Operações" do gateway mobile.
+- A logo continua clicável e volta para /dashboard.
+- Aumenta o círculo/órbita para não encostar visualmente na logo.
+- Reduz levemente a marca dentro do círculo.
+- Afasta os cards da logo e leva o bloco de atalhos mais para a parte inferior,
+  ficando mais próximo do ritmo visual do desktop.
+- Em aparelhos baixos, mantém uma versão compacta com rolagem segura.
+- Não altera a lógica dos menus modais/backdrop da V45.23.
+
+COMO APLICAR
+1. Extraia este ZIP na raiz de candinho-gestao.
+2. Execute APLICAR_V45_23_1.bat.
+3. Aguarde:
+   TypeScript OK.
+   git diff --check OK.
+   V45.23.1 aplicada com sucesso.
+4. Commit:
+   V45.23.1 - ajusta respiro do menu mobile
+5. Push origin e avise "subi".

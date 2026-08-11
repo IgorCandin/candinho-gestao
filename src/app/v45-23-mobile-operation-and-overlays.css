@@ -370,3 +370,55 @@
     z-index: 2;
   }
 }
+/* =========================================================
+   V45.23.1 · Respiro visual do gateway mobile
+   ========================================================= */
+
+@media (max-width: 820px) {
+  .v4522-operation-entry .v4521-entry-center {
+    padding-top: clamp(42px, 6.5dvh, 62px);
+    padding-bottom: 8px;
+    gap: 9px;
+  }
+  .v4522-operation-entry .v4521-entry-logo-wrap {
+    width: min(352px, 88vw);
+    height: clamp(224px, 30dvh, 278px);
+  }
+  .v4522-operation-entry .v4521-entry-logo {
+    width: min(238px, 58vw);
+    max-height: 108px;
+  }
+  .v4522-operation-entry .v4521-entry-orbit {
+    width: clamp(286px, 76vw, 326px);
+    max-width: none;
+  }
+  .v4522-operation-entry .v4521-entry-orbit::after { inset: 28px; }
+  .v4522-operation-entry .v4521-entry-center p { margin-top: 2px; }
+  .v4522-operation-entry .v4521-entry-menu {
+    flex: 0 1 auto;
+    margin-top: clamp(20px, 3.3dvh, 34px);
+    padding-top: 0;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    align-content: start;
+  }
+}
+
+@media (max-width: 820px) and (max-height: 760px) {
+  .v4522-operation-entry .v4521-entry-center {
+    padding-top: 28px;
+    padding-bottom: 4px;
+    gap: 6px;
+  }
+  .v4522-operation-entry .v4521-entry-logo-wrap { height: 180px; }
+  .v4522-operation-entry .v4521-entry-logo {
+    width: min(218px, 55vw);
+    max-height: 94px;
+  }
+  .v4522-operation-entry .v4521-entry-orbit {
+    width: clamp(244px, 68vw, 286px);
+  }
+  .v4522-operation-entry .v4521-entry-menu {
+    flex: 1 1 auto;
+    margin-top: 12px;
+  }
+}
