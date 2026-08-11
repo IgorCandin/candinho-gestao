@@ -1,0 +1,23 @@
+/* =========================================================
+   V45.20 · Mobile menu hard boundary
+   =========================================================
+   O V45.19 reduziu o overflow, mas um sinal novo ainda mostrou
+   bottom 894 em viewport 848 na rota /nexus/qualidade.
+
+   Esta regra não depende de JS nem de custom property:
+   top continua sendo definido pelo shell atual e bottom fixa o
+   limite inferior. Com height:auto, o navegador resolve a altura
+   disponível entre top e bottom, impedindo o painel de sair da tela.
+*/
+
+@media (max-width: 820px) {
+  .mobile-menu-panel {
+    bottom: max(8px, env(safe-area-inset-bottom)) !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    scrollbar-gutter: stable;
+  }
+}

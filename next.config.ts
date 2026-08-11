@@ -6,13 +6,6 @@ import type { NextConfig } from "next";
  * O código físico continua temporariamente nas rotas históricas
  * (/vendas, /clientes, /agenda...), mas a URL canônica passa a ser
  * /suplementos/<rota>.
- *
- * Estratégia:
- * - URL antiga -> redirect temporário para a URL canônica.
- * - URL canônica -> rewrite interno para a rota física antiga.
- *
- * Assim não precisamos mover dezenas de pastas de uma vez nem quebrar
- * links, bookmarks, Server Actions ou histórico do ERP.
  */
 const supplementRouteRoots = [
   "agenda",
@@ -40,8 +33,20 @@ const nextConfig: NextConfig = {
 
   async redirects() {
     return [
+      // Bank 2.0 Lab foi aposentado. Bookmarks e sinais históricos
+      // devem cair no Bank oficial, não em uma página 404.
+      {
+        source: "/bank-lab",
+        destination: "/bank",
+        permanent: false,
+      },
+      {
+        source: "/bank-lab/:path*",
+        destination: "/bank",
+        permanent: false,
+      },
+
       // Compatibilidade de links/bookmarks antigos do Marketing.
-      // O Marketing já possui telas nativas próprias; não duplicamos páginas.
       {
         source: "/central/midia",
         has: [{ type: "query" as const, key: "scope", value: "marketing" }],
