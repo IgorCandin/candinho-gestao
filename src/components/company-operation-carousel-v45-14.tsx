@@ -402,6 +402,26 @@ export function CompanyOperationCarouselV4514({
                   </picture>
                 )}
 
+                {operation.key === "vitrine" && (
+                  <div
+                    className="company-vitrine-coin-v45242"
+                    aria-hidden="true"
+                  >
+                    <div className="company-vitrine-coin-inner-v45242">
+                      <span className="company-vitrine-coin-face-v45242 front">
+                        <span className="company-vitrine-coin-label-v45242">
+                          Suplementos
+                        </span>
+                      </span>
+                      <span className="company-vitrine-coin-face-v45242 back">
+                        <span className="company-vitrine-coin-label-v45242">
+                          Fitness
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                )}
+
                 {operation.badge ? (
                   <span className="company-operation-badge-v4514">
                     {operation.badge}

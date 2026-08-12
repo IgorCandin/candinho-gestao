@@ -37,6 +37,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   Truck,
+  UserRound,
   UsersRound,
 } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
@@ -110,6 +111,7 @@ const centralNav = [
   { href: "/central/integracoes", label: "Integrações", icon: Link2 },
   { href: "/central/ativacao", label: "Ativação V1", icon: Rocket },
   { href: "/central/governanca", label: "Governança", icon: ShieldCheck },
+  { href: "/configuracoes", label: "Perfil", icon: UserRound },
 ];
 
 const marketingNav = [

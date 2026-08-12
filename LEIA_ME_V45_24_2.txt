@@ -1,0 +1,53 @@
+﻿V45.24.2 - HOME FINAL + VITRINE + PHYSIQUE
+
+CORREÇÃO DO CMD
+O erro do R3 aconteceu porque ele tentou fazer Copy-Item de:
+src/app/v45-24-company-home-final.css
+quando esse arquivo estava AUSENTE no working tree.
+
+A V45.24.2 não exige que o arquivo exista:
+- se houver alteração local, faz backup;
+- se o arquivo estiver ausente, registra isso no backup e restaura o HEAD;
+- depois cria/substitui o CSS diretamente pelo payload.
+Assim não há mais Copy-Item em caminho inexistente.
+
+HOME
+- Volta para a geometria aprovada do V45.14/V45.22.
+- Remove as regras V45.24 que deixaram a Company e o carrossel minúsculos.
+- Restaura HOME · CANDINHO COMPANY.
+- Mantém logo, saudação, banner grande, previews laterais, dots e autoplay.
+- Parte inferior da Home: SOMENTE Sair.
+- Meu Dia continua na Central.
+- Perfil entra no menu da Central.
+
+VITRINE
+- Usa o banner desktop enviado pelo usuário: 1672x941.
+- Usa o banner mobile enviado pelo usuário: 941x1672.
+- No palco do banner entra uma moeda/círculo 3D.
+- Frente: Suplementos.
+- Verso: Fitness.
+- A moeda gira como cara/coroa continuamente enquanto Vitrine está ativa.
+- Por enquanto as faces usam recortes visuais das operações Suplementos/Fitness.
+  Depois podemos ligar a moeda a produtos reais do catálogo sem refazer o card.
+
+PHYSIQUE
+- Usa o banner desktop enviado pelo usuário: 1672x941.
+- Usa o banner mobile enviado pelo usuário: 941x1672.
+- Card já deixa de ser placeholder.
+
+COMERCIAL
+- Não é reescrito nesta versão.
+- O main já contém a correção de custo duplicado e a regra Última compra somente
+  quando diferente do custo cadastrado.
+
+COMO APLICAR
+1. Feche o CMD anterior.
+2. Extraia ESTE ZIP inteiro na raiz de candinho-gestao.
+3. Execute APLICAR_V45_24_2.bat.
+4. Só faça commit se aparecer:
+   TypeScript OK.
+   git diff --check OK.
+   V45.24.2 aplicada com sucesso.
+5. Commit:
+   V45.24.2 - finaliza home Vitrine e Physique
+6. Push origin.
