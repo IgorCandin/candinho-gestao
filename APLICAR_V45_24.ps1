@@ -48,14 +48,16 @@ if (-not (Test-Path -LiteralPath "package.json")) {
 
 Write-Host ""
 Write-Host "======================================================" -ForegroundColor Cyan
-Write-Host " V45.24 - Home de Operacoes Final" -ForegroundColor Cyan
+Write-Host " V45.24 R2 - Home final + Comercial polido" -ForegroundColor Cyan
 Write-Host "======================================================" -ForegroundColor Cyan
 Write-Host ""
 
 $targets = @(
   "src/app/(app)/dashboard/page.tsx",
   "src/components/company-operation-carousel-v45-14.tsx",
-  "src/app/globals.css"
+  "src/app/globals.css",
+  "src/components/new-sale-form.tsx",
+  "src/app/v45-15-commercial-flow.css"
 )
 
 $dirty = @(& git diff --name-only -- $targets)
@@ -279,7 +281,170 @@ if (-not $dashboard.Contains('key: "vitrine"')) {
 }
 
 # ---------------------------------------------------------------------------
-# 3. CSS final e import
+# 3. Comercial: custo sem duplicidade + busca de produto sem recorte
+# ---------------------------------------------------------------------------
+
+$salePath = "src/components/new-sale-form.tsx"
+$sale = Read-Utf8 $salePath
+
+if (-not $sale.Contains("lastPurchaseCostDiffers")) {
+  $sale = Replace-Once $sale @'
+              const row = rowFor(item.productId);
+              const lastPurchaseCost = item.productId ? lastPurchaseCosts[item.productId] : undefined;
+              const productFlavors = flavorsFor(
+'@ @'
+              const row = rowFor(item.productId);
+              const lastPurchaseCost = item.productId
+                ? lastPurchaseCosts[item.productId]
+                : undefined;
+              const lastPurchaseCostDiffers =
+                Boolean(
+                  row &&
+                    lastPurchaseCost?.cost != null &&
+                    Math.abs(
+                      Number(lastPurchaseCost.cost) -
+                        Number(row.cost_price),
+                    ) >= 0.01,
+                );
+              const productFlavors = flavorsFor(
+'@ "regra inteligente do ultimo custo"
+
+  $sale = Replace-Once $sale @'
+                      </span>                      <span className="v4521-last-cost-chip">
+                        Último custo{" "}
+                        <strong>
+                          {lastPurchaseCost?.cost
+                            ? formatCurrency(
+                                lastPurchaseCost.cost,
+                              )
+                            : "Sem histórico"}
+                        </strong>
+                        {lastPurchaseCost?.purchasedOn && (
+                          <small>
+                            {new Intl.DateTimeFormat(
+                              "pt-BR",
+                            ).format(
+                              new Date(
+                                `${lastPurchaseCost.purchasedOn}T12:00:00`,
+                              ),
+                            )}
+                          </small>
+                        )}
+                      </span>
+                      <span>
+                        Preço padrão{" "}
+'@ @'
+                      </span>
+                      {lastPurchaseCostDiffers && (
+                        <span className="v4521-last-cost-chip">
+                          Última compra{" "}
+                          <strong>
+                            {formatCurrency(
+                              Number(lastPurchaseCost?.cost ?? 0),
+                            )}
+                          </strong>
+                          {lastPurchaseCost?.purchasedOn && (
+                            <small>
+                              {new Intl.DateTimeFormat(
+                                "pt-BR",
+                              ).format(
+                                new Date(
+                                  `${lastPurchaseCost.purchasedOn}T12:00:00`,
+                                ),
+                              )}
+                            </small>
+                          )}
+                        </span>
+                      )}
+                      <span>
+                        Preço padrão{" "}
+'@ "remover custo duplicado"
+
+  Write-Utf8 $salePath $sale
+  Write-Host "Comercial: custo duplicado corrigido." -ForegroundColor Green
+} else {
+  Write-Host "Comercial: regra de custo ja corrigida." -ForegroundColor DarkGray
+}
+
+$commercialCssPath = "src/app/v45-15-commercial-flow.css"
+$commercialCss = Read-Utf8 $commercialCssPath
+$commercialMarker = "V45.24 R2 · Dropdown de produto livre de recorte"
+
+if (-not $commercialCss.Contains($commercialMarker)) {
+  $commercialPatch = @'
+
+/* =========================================================
+   V45.24 R2 · Dropdown de produto livre de recorte
+   ========================================================= */
+
+/*
+ * O combobox da V45.23.4 era absoluto dentro do card do item.
+ * Alguns containers antigos do Comercial recortavam o conteúdo
+ * que ultrapassava a borda do item. Aqui só a tela de orçamento
+ * recebe overflow visível; o restante do ERP não muda.
+ */
+.v4515-budget-flow .new-sale-main,
+.v4515-budget-flow .new-sale-main > article.panel,
+.v4515-budget-flow .new-sale-main > article.panel > .panel-body,
+.v4515-budget-flow .sale-form-items,
+.v4515-budget-flow .sale-form-item,
+.v4515-budget-flow .sale-form-item-grid,
+.v4515-budget-flow .sale-product-field {
+  overflow: visible !important;
+}
+
+.v4515-budget-flow .sale-form-item {
+  position: relative;
+  z-index: 1;
+}
+
+.v4515-budget-flow
+  .sale-form-item:has(.sale-product-combobox-menu-v45234) {
+  z-index: 120;
+}
+
+.v4515-budget-flow .sale-product-combobox-v45234 {
+  z-index: 140;
+}
+
+.v4515-budget-flow .sale-product-combobox-menu-v45234 {
+  z-index: 2600 !important;
+  max-height: min(420px, 58dvh);
+  overscroll-behavior: contain;
+}
+
+.v4515-budget-flow
+  .sale-product-combobox-menu-v45234
+  button {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * Quando custo cadastrado e última compra são iguais, mostramos
+ * apenas Custo. "Última compra" só aparece quando existe uma
+ * diferença real, evitando dois chips com o mesmo valor.
+ */
+.v4515-budget-flow .v4521-last-cost-chip {
+  border-color: rgba(217, 166, 61, .20);
+}
+
+@media (max-width: 720px) {
+  .v4515-budget-flow .sale-product-combobox-menu-v45234 {
+    max-height: 58dvh;
+  }
+}
+'@
+
+  $commercialCss = $commercialCss.TrimEnd() + "`n" + $commercialPatch.TrimStart() + "`n"
+  Write-Utf8 $commercialCssPath $commercialCss
+  Write-Host "Comercial: dropdown de produtos sem recorte." -ForegroundColor Green
+} else {
+  Write-Host "Comercial: dropdown ja corrigido." -ForegroundColor DarkGray
+}
+
+# ---------------------------------------------------------------------------
+# 4. CSS final e import
 # ---------------------------------------------------------------------------
 $payloadCss = "_v45_24_payload/v45-24-company-home-final.css"
 $targetCss = "src/app/v45-24-company-home-final.css"
@@ -298,7 +463,7 @@ if (-not $globals.Contains('@import "./v45-24-company-home-final.css";')) {
 }
 
 # ---------------------------------------------------------------------------
-# 4. Validacao
+# 5. Validacao
 # ---------------------------------------------------------------------------
 if (Test-Path -LiteralPath ".next") {
   Remove-Item -LiteralPath ".next" -Recurse -Force
@@ -322,7 +487,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "git diff --check OK." -ForegroundColor Green
 
 Write-Host ""
-Write-Host "V45.24 aplicada com sucesso." -ForegroundColor Green
+Write-Host "V45.24 R2 aplicada com sucesso." -ForegroundColor Green
 Write-Host "Commit sugerido:"
-Write-Host "V45.24 - finaliza home de operacoes" -ForegroundColor White
+Write-Host "V45.24 - finaliza home e corrige comercial" -ForegroundColor White
 Write-Host ""

@@ -1,34 +1,39 @@
-﻿V45.24 - HOME DE OPERACOES FINAL
+﻿V45.24 R2 - FINAL DA NOITE
 
-FECHA O PENTE-FINO VISUAL DA TELA /dashboard
+Use ESTE pacote no lugar do V45.24 anterior.
 
-- Corrige o corte/espremimento da area superior.
-- A logo Candinho Company ganha uma safe area real e nunca deve sair da viewport.
-- Remove o texto redundante "HOME · CANDINHO COMPANY".
-- Mantem "Ola, Candinho" menor para liberar espaco ao carrossel.
-- Banner ativo continua grande no centro.
-- Operacoes vizinhas continuam aparecendo parcialmente nas laterais.
-- Dots e autoplay continuam.
-- O tamanho do banner respeita largura E altura real da janela.
-- Vitrine entra no seletor como card premium sem imagem.
-- Physique entra no seletor como card premium sem imagem.
-- Quando os banners de Vitrine/Physique estiverem prontos, basta substituir os cards por image paths.
-- Vitrine e Physique saem do "Acesso rapido" para nao ficarem duplicados.
-- Acesso rapido fica: Meu Dia, Perfil e Sair.
-- Mobile recebe safe area no topo e os placeholders usam formato vertical premium.
-- Nao mexe no Comercial V45.23.4 R2, Supabase, Bank, Agenda ou menus internos.
+BASE ESPERADA
+- Main já com V45.23.4 R2.
+- Sem alterações locais nos arquivos da Home/Comercial que o instalador edita.
 
-ORDEM DO CARROSSEL
-Suplementos -> Fitness -> Bank -> Vitrine -> Physique -> Central -> loop
-Assim, enquanto Suplementos estiver centralizado, Central continua aparecendo à esquerda e Fitness à direita, como no video.
+HOME DE OPERAÇÕES
+- Corrige o corte no topo mostrado no vídeo/foto.
+- Reserva safe area real para a logo Candinho Company.
+- Mantém banner central grande, previews laterais, dots e autoplay.
+- Vitrine entra como card placeholder sem imagem.
+- Physique entra como card placeholder sem imagem.
+- Quando os banners oficiais ficarem prontos, basta substituir os placeholders.
+- Vitrine e Physique saem do Acesso rápido para não duplicar.
+- Acesso rápido fica com Meu Dia, Perfil e Sair.
+
+COMERCIAL
+- Corrige o dropdown de busca de produto sendo cortado pelos cards.
+- A lista pode ultrapassar o card e rolar normalmente.
+- Mantém produtos com estoque em verde.
+- Corrige os dois custos iguais aparecendo lado a lado:
+  * Custo sempre aparece.
+  * Última compra só aparece quando o valor é realmente diferente do custo cadastrado.
+  * Se forem iguais, não duplica informação.
+- Preserva último custo quando ele realmente serve para comparação.
 
 COMO APLICAR
 1. Extraia o ZIP inteiro na raiz de candinho-gestao.
-2. Execute APLICAR_V45_24.bat.
-3. Aguarde:
+2. Se você já extraiu o V45.24 anterior, substitua APLICAR_V45_24.bat e .ps1.
+3. Execute APLICAR_V45_24.bat.
+4. Só faça commit se aparecer:
    TypeScript OK.
    git diff --check OK.
-   V45.24 aplicada com sucesso.
-4. Commit:
-   V45.24 - finaliza home de operacoes
-5. Push origin.
+   V45.24 R2 aplicada com sucesso.
+5. Commit:
+   V45.24 - finaliza home e corrige comercial
+6. Push origin.

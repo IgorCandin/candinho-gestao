@@ -4,7 +4,7 @@ cd /d "%~dp0"
 
 echo.
 echo ======================================================
-echo Candinho V45.24 - Home de Operacoes Final
+echo Candinho V45.24 R2 - Final da noite
 echo ======================================================
 echo.
 
@@ -19,7 +19,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo V45.24 concluida.
+echo V45.24 R2 concluida.
 echo Abra o GitHub Desktop, confira e faca o commit sugerido.
 echo.
 pause

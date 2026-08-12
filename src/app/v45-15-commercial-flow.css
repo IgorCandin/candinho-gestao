@@ -769,3 +769,64 @@
     grid-template-columns: 1fr;
   }
 }
+/* =========================================================
+   V45.24 R2 · Dropdown de produto livre de recorte
+   ========================================================= */
+
+/*
+ * O combobox da V45.23.4 era absoluto dentro do card do item.
+ * Alguns containers antigos do Comercial recortavam o conteúdo
+ * que ultrapassava a borda do item. Aqui só a tela de orçamento
+ * recebe overflow visível; o restante do ERP não muda.
+ */
+.v4515-budget-flow .new-sale-main,
+.v4515-budget-flow .new-sale-main > article.panel,
+.v4515-budget-flow .new-sale-main > article.panel > .panel-body,
+.v4515-budget-flow .sale-form-items,
+.v4515-budget-flow .sale-form-item,
+.v4515-budget-flow .sale-form-item-grid,
+.v4515-budget-flow .sale-product-field {
+  overflow: visible !important;
+}
+
+.v4515-budget-flow .sale-form-item {
+  position: relative;
+  z-index: 1;
+}
+
+.v4515-budget-flow
+  .sale-form-item:has(.sale-product-combobox-menu-v45234) {
+  z-index: 120;
+}
+
+.v4515-budget-flow .sale-product-combobox-v45234 {
+  z-index: 140;
+}
+
+.v4515-budget-flow .sale-product-combobox-menu-v45234 {
+  z-index: 2600 !important;
+  max-height: min(420px, 58dvh);
+  overscroll-behavior: contain;
+}
+
+.v4515-budget-flow
+  .sale-product-combobox-menu-v45234
+  button {
+  position: relative;
+  z-index: 1;
+}
+
+/*
+ * Quando custo cadastrado e última compra são iguais, mostramos
+ * apenas Custo. "Última compra" só aparece quando existe uma
+ * diferença real, evitando dois chips com o mesmo valor.
+ */
+.v4515-budget-flow .v4521-last-cost-chip {
+  border-color: rgba(217, 166, 61, .20);
+}
+
+@media (max-width: 720px) {
+  .v4515-budget-flow .sale-product-combobox-menu-v45234 {
+    max-height: 58dvh;
+  }
+}
