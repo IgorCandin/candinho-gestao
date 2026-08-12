@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CustomerCombobox } from "@/components/customer-combobox";
+import { SaleProductComboboxV45234 } from "@/components/sale-product-combobox-v45-23-4";
 import {
   createEqualInstallments,
   PaymentInstallmentEditor,
@@ -160,15 +161,7 @@ export function NewSaleForm({
           quantity: String(item.quantity),
           unitPrice: String(item.unit_price),
         }))
-      : [
-          {
-            key: itemKey(),
-            productId: "",
-            flavorId: "",
-            quantity: "1",
-            unitPrice: "",
-          },
-        ],
+      : [],
   );
 
   const [discount, setDiscount] = useState(
@@ -222,6 +215,7 @@ export function NewSaleForm({
   const [notes, setNotes] = useState(initialQuote?.notes ?? "");
   const [comboId, setComboId] = useState("");
   const [choiceOpen, setChoiceOpen] = useState(false);
+  const [quoteFinalizeOpen, setQuoteFinalizeOpen] = useState(false);
   const [loadingMode, setLoadingMode] = useState<SaveMode | null>(null);
   const [savedBudgetPrompt, setSavedBudgetPrompt] =
     useState<SavedBudgetPrompt | null>(null);
@@ -229,6 +223,74 @@ export function NewSaleForm({
 
   const [flavors, setFlavors] = useState<FlavorOption[]>([]);
   const [flavorStock, setFlavorStock] = useState<FlavorStock[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAutomaticPartner() {
+      if (!customerId) {
+        if (!initialQuote) {
+          setPartnership(false);
+          setPartnerId("");
+        }
+        return;
+      }
+
+      if (
+        initialQuote?.customer_id === customerId &&
+        initialQuote.partner_id
+      ) {
+        setPartnership(true);
+        setPartnerId(initialQuote.partner_id);
+        return;
+      }
+
+      try {
+        const response = await fetch(
+          `/api/customers/${customerId}/relationships?compact=1`,
+          { cache: "no-store" },
+        );
+
+        if (!response.ok || cancelled) return;
+
+        const payload = (await response.json()) as {
+          network?: {
+            autoPartner?: {
+              partner_id?: string | null;
+            } | null;
+          };
+        };
+
+        if (cancelled) return;
+
+        const automaticPartner =
+          payload.network?.autoPartner?.partner_id ?? "";
+
+        if (automaticPartner) {
+          setPartnership(true);
+          setPartnerId(automaticPartner);
+        } else {
+          setPartnership(false);
+          setPartnerId("");
+        }
+      } catch {
+        if (!cancelled && !initialQuote) {
+          setPartnership(false);
+          setPartnerId("");
+        }
+      }
+    }
+
+    void loadAutomaticPartner();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    customerId,
+    initialQuote?.customer_id,
+    initialQuote?.partner_id,
+  ]);
 
   useEffect(() => {
     let cancelled = false;
@@ -374,6 +436,32 @@ export function NewSaleForm({
     );
   }, [stock]);
 
+  const searchableProductOptions = useMemo(() => {
+    const location =
+      locations.find((row) => row.id === locationId) ?? null;
+
+    return productOptions.map((product) => {
+      const localStock = stock.find(
+        (row) =>
+          row.product_id === product.product_id &&
+          row.location_id === locationId,
+      );
+
+      return {
+        id: product.product_id,
+        name: product.product_name,
+        category: product.category,
+        brand: product.brand,
+        available: Number(localStock?.available_quantity ?? 0),
+        physical: Number(localStock?.physical_quantity ?? 0),
+        locationCode:
+          localStock?.location_code ??
+          location?.code ??
+          "—",
+      };
+    });
+  }, [locationId, locations, productOptions, stock]);
+
   function rowFor(productId: string) {
     return (
       stock.find(
@@ -435,9 +523,7 @@ export function NewSaleForm({
 
   function removeItem(key: string) {
     setItems((current) =>
-      current.length === 1
-        ? current
-        : current.filter((item) => item.key !== key),
+      current.filter((item) => item.key !== key),
     );
   }
 
@@ -555,6 +641,10 @@ export function NewSaleForm({
       throw new Error(
         "Selecione o cliente e o estoque de origem.",
       );
+    }
+
+    if (items.length === 0) {
+      throw new Error("Adicione pelo menos um produto ao orçamento.");
     }
 
     if (
@@ -754,9 +844,6 @@ export function NewSaleForm({
         : quoteData;
 
       const quoteId = String(saved?.quote_id ?? "");
-      const leadId = saved?.lead_id
-        ? String(saved.lead_id)
-        : null;
 
       if (!quoteId) {
         throw new Error(
@@ -789,14 +876,13 @@ export function NewSaleForm({
       }
 
       setChoiceOpen(false);
+      setQuoteFinalizeOpen(false);
 
       setSavedBudgetPrompt({
         quoteId,
         target: saleId
-          ? `/vendas/${saleId}`
-          : leadId
-            ? `/leads/${leadId}`
-            : "/leads",
+          ? `/suplementos/vendas/${saleId}`
+          : "/suplementos/vendas",
         mode,
       });
     } catch (error) {
@@ -806,6 +892,7 @@ export function NewSaleForm({
           : "Não foi possível salvar o orçamento.",
       );
       setChoiceOpen(false);
+      setQuoteFinalizeOpen(false);
     } finally {
       setLoadingMode(null);
     }
@@ -899,50 +986,7 @@ export function NewSaleForm({
               />
             </label>
 
-            <label className="field">
-              <span>Validade do orçamento</span>
-              <input
-                className="input"
-                type="date"
-                min={quotedOn}
-                required
-                value={validUntil}
-                onChange={(event) =>
-                  setValidUntil(event.target.value)
-                }
-              />
-            </label>
 
-            <label className="field">
-              <span>Estoque / depósito de origem</span>
-              <select
-                className="select"
-                required
-                value={locationId}
-                onChange={(event) =>
-                  setLocationId(event.target.value)
-                }
-              >
-                {locations.map((location) => (
-                  <option
-                    key={location.id}
-                    value={location.id}
-                  >
-                    {location.code} · {location.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-
-            <div className="field field-span-two">
-              <small>
-                <strong>Apenas orçando:</strong> não reserva nem
-                baixa estoque.{" "}
-                <strong>Orçamento confirmado:</strong> cria a
-                venda normal; itens ficam reservados até a
-                entrega e o brinde é baixado imediatamente.
-              </small>
-            </div>
           </div>
         </article>
 
@@ -951,61 +995,104 @@ export function NewSaleForm({
             <div>
               <h2>Produtos</h2>
               <p>
-                Monte a proposta com quantidade, sabor e valor
-                negociado de cada item.
+                Primeiro confirme o estoque. Depois pesquise um
+                produto pelo nome, marca ou categoria — ou aplique
+                um combo pronto.
               </p>
             </div>
-
-            <button
-              className="button ghost compact-button"
-              type="button"
-              onClick={addItem}
-            >
-              <Plus size={16} />
-              Adicionar produto
-            </button>
           </div>
 
           <div className="panel-body sale-form-items">
-            {combos.length > 0 && (
-              <div className="budget-combo-picker">
-                <Layers3 size={18} />
-                <div>
-                  <strong>Adicionar combo pronto</strong>
-                  <span>
-                    Insere os produtos reais do combo e aplica o
-                    desconto comercial automaticamente.
-                  </span>
-                </div>
-
+            <div className="v45234-product-setup">
+              <label className="field v45234-stock-field">
+                <span>Estoque / depósito de origem</span>
                 <select
                   className="select"
-                  value={comboId}
+                  required
+                  value={locationId}
                   onChange={(event) =>
-                    setComboId(event.target.value)
+                    setLocationId(event.target.value)
                   }
                 >
-                  <option value="">Selecione um combo</option>
-                  {combos.map((combo) => (
+                  {locations.map((location) => (
                     <option
-                      key={combo.id}
-                      value={combo.id}
+                      key={location.id}
+                      value={location.id}
                     >
-                      {combo.name} ·{" "}
-                      {formatCurrency(combo.sale_price)}
+                      {location.code} · {location.name}
                     </option>
                   ))}
                 </select>
+                <small>
+                  CS já vem selecionado por padrão. Troque somente
+                  quando a venda sair de outro estoque.
+                </small>
+              </label>
 
+              <div className="v45234-product-actions">
                 <button
-                  className="button ghost compact-button"
+                  className="button gold v45234-add-product"
                   type="button"
-                  disabled={!comboId}
-                  onClick={addCombo}
+                  onClick={addItem}
                 >
-                  <Plus size={15} />
-                  Aplicar
+                  <Plus size={17} />
+                  Selecionar produto
                 </button>
+
+                {combos.length > 0 && (
+                  <div className="budget-combo-picker v45234-combo-picker">
+                    <Layers3 size={18} />
+                    <div>
+                      <strong>Selecionar combo</strong>
+                      <span>
+                        Adiciona os produtos e aplica o desconto
+                        comercial automaticamente.
+                      </span>
+                    </div>
+
+                    <select
+                      className="select"
+                      value={comboId}
+                      onChange={(event) =>
+                        setComboId(event.target.value)
+                      }
+                    >
+                      <option value="">Selecione um combo</option>
+                      {combos.map((combo) => (
+                        <option
+                          key={combo.id}
+                          value={combo.id}
+                        >
+                          {combo.name} ·{" "}
+                          {formatCurrency(combo.sale_price)}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      className="button ghost compact-button"
+                      type="button"
+                      disabled={!comboId}
+                      onClick={addCombo}
+                    >
+                      <Plus size={15} />
+                      Aplicar
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {items.length === 0 && (
+              <div className="v45234-empty-products">
+                <PackagePlus size={20} />
+                <div>
+                  <strong>Nenhum produto selecionado ainda.</strong>
+                  <span>
+                    Confirme o estoque acima e toque em
+                    Selecionar produto.
+                  </span>
+                </div>
               </div>
             )}
 
@@ -1046,7 +1133,7 @@ export function NewSaleForm({
                 >
                   <div className="sale-form-item-head">
                     <strong>Item {index + 1}</strong>
-                    {items.length > 1 && (
+                    {items.length > 0 && (
                       <button
                         className="icon-button"
                         type="button"
@@ -1063,29 +1150,20 @@ export function NewSaleForm({
                   <div className="sale-form-item-grid">
                     <label className="field sale-product-field">
                       <span>Produto</span>
-                      <select
-                        className="select"
-                        required
+                      <SaleProductComboboxV45234
+                        options={searchableProductOptions}
                         value={item.productId}
-                        onChange={(event) =>
+                        onChange={(productId) =>
                           selectProduct(
                             item.key,
-                            event.target.value,
+                            productId,
                           )
                         }
-                      >
-                        <option value="">
-                          Selecione o produto
-                        </option>
-                        {productOptions.map((product) => (
-                          <option
-                            key={product.product_id}
-                            value={product.product_id}
-                          >
-                            {product.product_name}
-                          </option>
-                        ))}
-                      </select>
+                      />
+                      <small>
+                        Produtos com saldo neste estoque aparecem
+                        em verde. Sem estoque continua selecionável.
+                      </small>
                     </label>
 
                     {productFlavors.length > 0 && (
@@ -1823,7 +1901,7 @@ export function NewSaleForm({
         </article>
 
         <div className="sale-form-actions">
-          <Link className="button ghost" href="/vendas">
+          <Link className="button ghost" href="/suplementos/vendas">
             Cancelar
           </Link>
 
@@ -1930,9 +2008,10 @@ export function NewSaleForm({
                 className="budget-choice-card quote"
                 type="button"
                 disabled={Boolean(loadingMode)}
-                onClick={() =>
-                  persist("quote")
-                }
+                onClick={() => {
+                  setChoiceOpen(false);
+                  setQuoteFinalizeOpen(true);
+                }}
               >
                 <FileText size={25} />
                 <span>
@@ -1955,6 +2034,102 @@ export function NewSaleForm({
         </div>
       )}
 
+      {quoteFinalizeOpen && (
+        <div
+          className="budget-choice-backdrop"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !loadingMode
+            ) {
+              setQuoteFinalizeOpen(false);
+              setChoiceOpen(true);
+            }
+          }}
+        >
+          <section
+            className="budget-choice-modal v45234-quote-finalize"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="v45234-quote-validity-title"
+          >
+            <button
+              className="budget-choice-close"
+              type="button"
+              aria-label="Voltar"
+              disabled={Boolean(loadingMode)}
+              onClick={() => {
+                setQuoteFinalizeOpen(false);
+                setChoiceOpen(true);
+              }}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="budget-choice-heading">
+              <FileText size={25} />
+              <div>
+                <span>Apenas orçamento</span>
+                <h2 id="v45234-quote-validity-title">
+                  Até quando essa proposta vale?
+                </h2>
+                <p>
+                  A validade só é necessária quando ainda é uma
+                  proposta. Ela não aparece na venda confirmada.
+                </p>
+              </div>
+            </div>
+
+            <label className="field v45234-validity-field">
+              <span>Validade do orçamento</span>
+              <input
+                className="input"
+                type="date"
+                min={quotedOn}
+                required
+                value={validUntil}
+                onChange={(event) =>
+                  setValidUntil(event.target.value)
+                }
+              />
+            </label>
+
+            <div className="v45234-quote-finalize-actions">
+              <button
+                className="button ghost"
+                type="button"
+                disabled={Boolean(loadingMode)}
+                onClick={() => {
+                  setQuoteFinalizeOpen(false);
+                  setChoiceOpen(true);
+                }}
+              >
+                Voltar
+              </button>
+
+              <button
+                className="button gold"
+                type="button"
+                disabled={Boolean(loadingMode)}
+                onClick={() => persist("quote")}
+              >
+                {loadingMode === "quote" ? (
+                  <LoaderCircle
+                    className="spin"
+                    size={17}
+                  />
+                ) : (
+                  <Save size={17} />
+                )}
+                {loadingMode === "quote"
+                  ? "Salvando"
+                  : "Salvar orçamento"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
       {savedBudgetPrompt && (
         <div
           className="budget-choice-backdrop"

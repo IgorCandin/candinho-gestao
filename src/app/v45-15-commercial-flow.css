@@ -476,3 +476,296 @@
     grid-template-columns: 1fr;
   }
 }
+/* =========================================================
+   V45.23.4 · Pente-fino do Novo Orcamento
+   ========================================================= */
+
+.v45234-product-setup {
+  display: grid;
+  gap: 12px;
+}
+
+.v45234-stock-field {
+  width: min(520px, 100%);
+}
+
+.v45234-product-actions {
+  display: grid;
+  grid-template-columns: minmax(190px, .65fr) minmax(0, 1.35fr);
+  gap: 10px;
+  align-items: stretch;
+}
+
+.v45234-add-product {
+  min-height: 82px;
+  justify-content: center;
+  font-weight: 900;
+}
+
+.v45234-combo-picker {
+  margin: 0 !important;
+  min-width: 0;
+}
+
+.v45234-empty-products {
+  min-height: 82px;
+  padding: 16px;
+  border: 1px dashed rgba(217, 166, 61, .18);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: var(--muted);
+  background: rgba(217, 166, 61, .02);
+}
+
+.v45234-empty-products strong,
+.v45234-empty-products span {
+  display: block;
+}
+
+.v45234-empty-products strong {
+  color: var(--text);
+  font-size: 12px;
+}
+
+.v45234-empty-products span {
+  margin-top: 3px;
+  font-size: 10px;
+}
+
+/* Busca digitável de produtos */
+.sale-product-combobox-v45234 {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  z-index: 20;
+}
+
+.sale-product-combobox-input-v45234 {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 11px;
+  background: rgba(255,255,255,.012);
+}
+
+.sale-product-combobox-input-v45234.open {
+  border-color: rgba(217,166,61,.42);
+  box-shadow: 0 0 0 3px rgba(217,166,61,.06);
+}
+
+.sale-product-combobox-input-v45234 > svg {
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.sale-product-combobox-input-v45234 .input {
+  min-width: 0;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding-inline: 0 !important;
+}
+
+.sale-product-combobox-menu-v45234 {
+  position: absolute;
+  z-index: 140;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 340px;
+  padding: 6px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  overflow-y: auto;
+  background: rgba(9, 12, 18, .985);
+  box-shadow: 0 22px 60px rgba(0,0,0,.48);
+}
+
+.sale-product-combobox-menu-v45234 button {
+  width: 100%;
+  min-width: 0;
+  min-height: 54px;
+  padding: 8px 9px;
+  border: 0;
+  border-radius: 9px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 9px;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sale-product-combobox-menu-v45234 button:hover,
+.sale-product-combobox-menu-v45234 button.active {
+  background: rgba(255,255,255,.045);
+}
+
+.sale-product-combobox-menu-v45234 button.has-stock > svg,
+.sale-product-combobox-menu-v45234 button.has-stock strong,
+.sale-product-combobox-menu-v45234 button.has-stock em {
+  color: #51d89a;
+}
+
+.sale-product-combobox-menu-v45234 button.no-stock {
+  opacity: .68;
+}
+
+.sale-product-combobox-menu-v45234 strong,
+.sale-product-combobox-menu-v45234 small {
+  display: block;
+}
+
+.sale-product-combobox-menu-v45234 strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}
+
+.sale-product-combobox-menu-v45234 small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.sale-product-combobox-menu-v45234 em {
+  color: var(--muted);
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.sale-product-combobox-empty-v45234 {
+  padding: 16px 12px;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+}
+
+/* Ajustes e observações ficam recolhidos até serem necessários. */
+.v45234-optional-panel .panel-head {
+  align-items: center;
+}
+
+.v45234-optional-panel:not(.is-open) .panel-body {
+  display: none !important;
+}
+
+.v45234-optional-toggle {
+  min-width: 190px;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--text);
+  background: rgba(255,255,255,.012);
+  cursor: pointer;
+}
+
+.v45234-optional-toggle span:first-child {
+  min-width: 0;
+  text-align: left;
+}
+
+.v45234-optional-toggle b,
+.v45234-optional-toggle small {
+  display: block;
+}
+
+.v45234-optional-toggle b {
+  color: var(--gold);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.v45234-optional-toggle small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.v45234-optional-toggle [data-state] {
+  color: var(--gold);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+/* Validade existe somente no caminho "Apenas orçamento". */
+.v45234-quote-finalize {
+  max-width: 560px;
+}
+
+.v45234-validity-field {
+  margin-top: 18px;
+}
+
+.v45234-quote-finalize-actions {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+}
+
+/* Parceria com a mesma força visual dos demais controles da confirmação. */
+.v4515-confirm-flow-open
+  .new-sale-side
+  > article[data-v4515-stage="partnership"] {
+  opacity: 1 !important;
+}
+
+.v4515-confirm-flow-open
+  .new-sale-side
+  .choice-card {
+  min-height: 72px;
+}
+
+@media (max-width: 720px) {
+  .v45234-product-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .v45234-add-product {
+    min-height: 58px;
+  }
+
+  .sale-product-combobox-menu-v45234 {
+    position: fixed;
+    z-index: 1500;
+    top: 18dvh;
+    left: 12px;
+    right: 12px;
+    max-height: 58dvh;
+  }
+
+  .sale-product-combobox-menu-v45234 button {
+    min-height: 58px;
+  }
+
+  .v45234-optional-panel .panel-head {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .v45234-optional-toggle {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .v45234-quote-finalize-actions {
+    grid-template-columns: 1fr;
+  }
+}

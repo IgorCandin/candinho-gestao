@@ -1,0 +1,43 @@
+﻿V45.23.4 R2 - CORRECAO DO ERRO DO CMD
+
+O erro da primeira tentativa foi causado pelo instalador ANTES do TypeScript.
+Ele lia os arquivos do repositorio normalizados em LF, mas os blocos multiline
+do Windows PowerShell estavam em CRLF. Por isso encontrou os arquivos, mas nao
+reconheceu o bloco "desestruturacao de afiliacoes" e parou com seguranca.
+
+A R2 normaliza os dois lados dentro do Replace-Once. Alem disso, simplifica a
+parceria automatica para usar a API de relacionamentos ja existente no ERP.
+
+Esta R2 corrige isso da forma certa:
+- a pagina server nao mexe em estado React;
+- o NewSaleForm consulta a API de relacionamentos ja existente ao selecionar o cliente;
+- usa network.autoPartner, a mesma regra que o CRM/Nexus ja conhece;
+- se nao houver parceiro automatico, a opcao manual continua disponivel.
+
+RETOMADA SEGURA
+A tentativa anterior criou apenas componentes novos antes de falhar. Esta R2
+remove esses componentes parciais e os recria. Se encontrar alteracao LOCAL em
+um arquivo rastreado que ela precisa editar, ela PARA em vez de sobrescrever.
+
+MANTEM O PENTE-FINO COMERCIAL
+1. Cliente + data primeiro.
+2. Estoque CS dentro da etapa de Produtos.
+3. Selecionar produto so quando voce clicar no botao.
+4. Busca digitavel por produto/marca/categoria.
+5. Produto com saldo aparece em verde; sem saldo continua selecionavel.
+6. Combo no mesmo bloco de produto.
+7. Ajustes/brinde e Observacoes recolhidos como opcionais.
+8. Apenas orcamento pergunta validade somente depois da escolha.
+9. Confirmado abre pagamento/entrega/pos-venda/parceria.
+10. PDF fica disponivel nos dois caminhos.
+
+COMO APLICAR
+1. Feche a janela antiga com erro.
+2. Extraia este ZIP na raiz de candinho-gestao e substitua BAT/PS1.
+3. Execute APLICAR_V45_23_4.bat.
+4. So faca commit se aparecer:
+   TypeScript OK.
+   git diff --check OK.
+   V45.23.4 R2 aplicada com sucesso.
+5. Commit sugerido:
+   V45.23.4 - restaura e reorganiza fluxo comercial

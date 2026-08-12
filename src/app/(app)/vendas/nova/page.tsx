@@ -1,4 +1,5 @@
 import { CommercialSaleRefinementUX } from "@/components/commercial-sale-refinement-ux";
+import { CommercialBudgetOptionalPanelsV45234 } from "@/components/commercial-budget-optional-panels-v45-23-4";
 import { DemoBanner } from "@/components/demo-banner";
 import { NewSaleForm } from "@/components/new-sale-form";
 import { PageHeader } from "@/components/page-header";
@@ -98,6 +99,8 @@ export default async function NewSalePage({
         productDurations={productDurations}
         hasSavedQuote={Boolean(initialQuote)}
       />
+
+      <CommercialBudgetOptionalPanelsV45234 />
 
       <NewSaleForm
         customers={customers}

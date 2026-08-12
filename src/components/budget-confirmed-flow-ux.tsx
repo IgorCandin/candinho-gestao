@@ -81,7 +81,7 @@ export function BudgetConfirmedFlowUX() {
   const [committing, setCommitting] = useState(false);
 
   useEffect(() => {
-    if (pathname !== "/vendas/nova") return;
+    if (pathname !== "/vendas/nova" && pathname !== "/suplementos/vendas/nova") return;
 
     document.body.classList.add(FLOW_CLASS);
 
@@ -252,7 +252,6 @@ export function BudgetConfirmedFlowUX() {
     }
 
     setCommitting(true);
-    skipConfirmedPdfRef.current = true;
 
     if (skipResetTimerRef.current) {
       clearTimeout(skipResetTimerRef.current);
@@ -273,7 +272,7 @@ export function BudgetConfirmedFlowUX() {
     });
   }
 
-  if (pathname !== "/vendas/nova" || !open) {
+  if ((pathname !== "/vendas/nova" && pathname !== "/suplementos/vendas/nova") || !open) {
     return null;
   }
 
