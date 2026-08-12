@@ -718,3 +718,135 @@
     flex-direction: column;
   }
 }
+
+/* V45.25.R3 · menu de operacao centralizado */
+
+.v4522-operation-entry .v4521-entry-menu {
+  width:
+    min(
+      var(--entry-menu-max, 1180px),
+      calc(100vw - 64px)
+    );
+  grid-template-columns:
+    repeat(
+      var(--entry-columns, 7),
+      minmax(0, 1fr)
+    );
+}
+
+.v4522-operation-entry.tone-physique .v4521-entry-center,
+.v4522-operation-entry.tone-physique .v4521-entry-menu {
+  justify-self: center;
+  margin-inline: auto;
+}
+
+@media (max-width: 820px) {
+  .v4522-operation-entry .v4521-entry-menu {
+    width: 100%;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+}
+/* V45.26.R4 · Physique usa o gateway padrao */
+
+.v4522-operation-entry.tone-physique {
+  min-height: 100dvh !important;
+  display: grid !important;
+  grid-template-rows: minmax(0, 1fr) auto !important;
+  overflow: hidden !important;
+}
+
+.v4522-operation-entry.tone-physique .v4521-entry-center {
+  align-self: center !important;
+  justify-self: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  transform: translateY(4vh) !important;
+}
+
+.v4522-operation-entry.tone-physique .v4521-entry-menu {
+  position: relative !important;
+  inset: auto !important;
+  align-self: end !important;
+  justify-self: center !important;
+  width:
+    min(
+      var(--entry-menu-max, 760px),
+      calc(100vw - 64px)
+    ) !important;
+  margin: 0 !important;
+  padding: 0 0 32px !important;
+  transform: none !important;
+  grid-template-columns:
+    repeat(
+      var(--entry-columns, 4),
+      minmax(0, 1fr)
+    ) !important;
+}
+
+.v4522-operation-entry.tone-physique .v4521-entry-line {
+  bottom: 20px !important;
+}
+
+@media (max-width: 820px) {
+  .v4522-operation-entry.tone-physique {
+    display: grid !important;
+    grid-template-rows: minmax(0, 1fr) auto !important;
+  }
+
+  .v4522-operation-entry.tone-physique .v4521-entry-center {
+    align-self: center !important;
+    transform: translateY(1.5dvh) !important;
+  }
+
+  .v4522-operation-entry.tone-physique .v4521-entry-menu {
+    width: calc(100vw - 32px) !important;
+    padding-bottom:
+      max(
+        18px,
+        env(safe-area-inset-bottom)
+      ) !important;
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* V45.27 · ritmo inferior comum das operacoes */
+
+.v4522-operation-entry {
+  grid-template-rows:
+    minmax(0, 1fr)
+    auto !important;
+}
+
+.v4522-operation-entry .v4521-entry-menu {
+  position: relative !important;
+  inset: auto !important;
+  align-self: end !important;
+  justify-self: center !important;
+  margin: 0 !important;
+  padding-bottom: 32px !important;
+  transform: none !important;
+}
+
+.v4522-operation-entry .v4521-entry-line {
+  bottom: 20px !important;
+}
+
+@media (max-width: 820px) {
+  .v4522-operation-entry .v4521-entry-menu {
+    padding-bottom:
+      max(
+        18px,
+        env(safe-area-inset-bottom)
+      ) !important;
+  }
+
+  .v4522-operation-entry .v4521-entry-line {
+    bottom:
+      max(
+        8px,
+        env(safe-area-inset-bottom)
+      ) !important;
+  }
+}

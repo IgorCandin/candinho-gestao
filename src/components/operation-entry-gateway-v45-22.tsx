@@ -31,6 +31,8 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 type GatewayOperation =
   | "supplements"
   | "fitness"
+  | "vitrine"
+  | "physique"
   | "bank"
   | "central";
 
@@ -63,6 +65,30 @@ const CONFIG = {
       { href: "/fitness/estoque", label: "Estoque", note: "Saldo e disponibilidade", icon: Boxes },
       { href: "/fitness/clientes", label: "Clientes", note: "Relacionamento Fitness", icon: UsersRound },
       { href: "/fitness/pedidos", label: "Pedidos", note: "Compras e recebimentos", icon: PackageOpen },
+    ],
+  },  vitrine: {
+    label: "Candinho Vitrine",
+    slogan: "Catálogo, produto e experiência em um só lugar.",
+    brand: BRAND_ASSETS.company.complete,
+    rgb: "255, 126, 73",
+    items: [
+      { href: "/vitrine", label: "Visão geral", note: "Organize a experiência da vitrine", icon: Home },
+      { href: "/catalogo", label: "Abrir vitrine pública", note: "Veja o catálogo como o cliente", icon: ShoppingBag },
+      { href: "/produtos", label: "Suplementos", note: "Produtos, preços e imagens", icon: PackageSearch },
+      { href: "/fitness/produtos", label: "Fitness", note: "Peças, tamanhos e cores", icon: PackageOpen },
+      { href: "/central/promocoes", label: "Promoções", note: "Campanhas que alimentam a vitrine", icon: BarChart3 },
+    ],
+  },
+  physique: {
+    label: "Candinho Physique",
+    slogan: "Evolução física, histórico e acompanhamento.",
+    brand: BRAND_ASSETS.physique.complete,
+    rgb: "209, 119, 70",
+    items: [
+      { href: "/physique", label: "Visão geral", note: "Resumo da operação Physique", icon: BarChart3 },
+      { href: "/physique/atletas", label: "Atletas", note: "Dossiês e evolução individual", icon: UsersRound },
+      { href: "/physique/fichas", label: "Fichas e treinos", note: "Planos estruturados por atleta", icon: ListChecks },
+      { href: "/physique/atletas/novo", label: "Novo atleta", note: "Cadastre e comece o acompanhamento", icon: ContactRound },
     ],
   },
   bank: {
@@ -142,10 +168,17 @@ export function OperationEntryGatewayV4522({
       className={`v4521-supplements-entry v4522-operation-entry tone-${operation} ${
         leaving ? "is-leaving" : ""
       }`}
-      style={{ "--entry-rgb": config.rgb } as CSSProperties}
-    >
-      <div className="v4521-entry-ambient" />
-      <div className="v4521-entry-center">
+      style={{
+        "--entry-rgb": config.rgb,
+        "--entry-columns": String(Math.min(7, config.items.length)),
+        "--entry-menu-max": `${Math.min(
+          1180,
+          Math.max(520, config.items.length * 168),
+        )}px`,
+      } as CSSProperties}
+    >      <div className="v4521-entry-ambient" />
+
+<div className="v4521-entry-center">
         <span className="v4521-entry-kicker">{config.label}</span>
 
         <div className="v4521-entry-logo-wrap">

@@ -67,6 +67,11 @@ export function PhysiqueTrainingPlanView({
           >
             <small>Treino {day.day_order}</small>
             <strong>{day.day_label}</strong>
+            {day.focus && (
+              <em className="physique-ux-day-focus-v4526">
+                {day.focus}
+              </em>
+            )}
           </button>
         ))}
       </div>

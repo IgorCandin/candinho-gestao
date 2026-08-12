@@ -119,6 +119,22 @@ const marketingNav = [
   { href: "/central/midia?scope=marketing", label: "Ideias e arquivos", icon: Images },
   { href: "/central/agenda?scope=marketing", label: "Planejamento", icon: CalendarDays },
 ];
+const vitrineNav = [
+  { href: "/vitrine/inicio", label: "Menu", icon: Home },
+  { href: "/vitrine", label: "Visão geral", icon: BarChart3 },
+  { href: "/catalogo", label: "Vitrine pública", icon: ShoppingBag },
+  { href: "/produtos", label: "Suplementos", icon: PackageSearch },
+  { href: "/fitness/produtos", label: "Fitness", icon: PackageSearch },
+  { href: "/central/promocoes", label: "Promoções", icon: BadgePercent },
+];
+
+const physiqueNav = [
+  { href: "/physique/inicio", label: "Menu", icon: Home },
+  { href: "/physique", label: "Visão geral", icon: BarChart3 },
+  { href: "/physique/atletas", label: "Atletas", icon: UsersRound },
+  { href: "/physique/fichas", label: "Fichas e treinos", icon: ListChecks },
+  { href: "/physique/atletas/novo", label: "Novo atleta", icon: ContactRound },
+];
 
 const partnerNav = [
   { href: "/parceiro", label: "Meu Painel", icon: Handshake },
@@ -132,6 +148,8 @@ type Operation =
   | "central"
   | "supplements"
   | "fitness"
+  | "vitrine"
+  | "physique"
   | "bank"
   | "marketing"
   | "partner";
@@ -158,6 +176,8 @@ export function AppShell({
     operation = "partner";
   else if (pathname.startsWith("/bank")) operation = "bank";
   else if (pathname.startsWith("/marketing")) operation = "marketing";
+  else if (pathname.startsWith("/vitrine")) operation = "vitrine";
+  else if (pathname.startsWith("/physique")) operation = "physique";
   else if (pathname.startsWith("/fitness")) operation = "fitness";
   else if (!isHub && !isSettings && !isPromotionShowcase)
     operation = "supplements";
@@ -165,6 +185,8 @@ export function AppShell({
   const isCentral = operation === "central";
   const isPartner = operation === "partner";
   const isFitness = operation === "fitness";
+  const isVitrine = operation === "vitrine";
+  const isPhysique = operation === "physique";
   const isSupplements = operation === "supplements";
   const isBank = operation === "bank";
   const isMarketing = operation === "marketing";
@@ -211,13 +233,17 @@ export function AppShell({
             ? bankNav
             : isMarketing
               ? marketingNav
-              : isFitness
-                ? isSalesProfile
-                  ? fitnessSalesNav
-                  : fitnessNav
-                : isSalesProfile
-                  ? supplementSalesNav
-                  : supplementNav;
+              : isVitrine
+                ? vitrineNav
+                : isPhysique
+                  ? physiqueNav
+                  : isFitness
+                    ? isSalesProfile
+                      ? fitnessSalesNav
+                      : fitnessNav
+                    : isSalesProfile
+                      ? supplementSalesNav
+                      : supplementNav;
 
   const mobileShortcuts = isSettings
     ? []
@@ -363,6 +389,10 @@ export function AppShell({
     pathname === "/suplementos" ||
     pathname === "/suplementos/hoje" ||
     pathname === "/fitness" ||
+    pathname === "/vitrine" ||
+    pathname === "/vitrine/inicio" ||
+    pathname === "/physique" ||
+    pathname === "/physique/inicio" ||
     pathname === "/bank" ||
     pathname === "/marketing";
 
@@ -378,17 +408,21 @@ export function AppShell({
     !isSettings &&
     !isOperationHome;
 
-  const brand = isBank
-    ? BRAND_ASSETS.bank.complete
-    : isMarketing
-      ? BRAND_ASSETS.marketing.complete
-      : isCentral
-        ? BRAND_ASSETS.central.complete
-        : isFitness
-          ? BRAND_ASSETS.fitness.complete
-          : isSupplements
-            ? BRAND_ASSETS.supplements.complete
-            : BRAND_ASSETS.company.complete;
+  const brand = isPhysique
+    ? BRAND_ASSETS.physique.complete
+    : isVitrine
+      ? BRAND_ASSETS.company.complete
+      : isBank
+        ? BRAND_ASSETS.bank.complete
+        : isMarketing
+          ? BRAND_ASSETS.marketing.complete
+          : isCentral
+            ? BRAND_ASSETS.central.complete
+            : isFitness
+              ? BRAND_ASSETS.fitness.complete
+              : isSupplements
+                ? BRAND_ASSETS.supplements.complete
+                : BRAND_ASSETS.company.complete;
 
   useEffect(() => {
     mobileMenuRef.current?.removeAttribute("open");
@@ -413,11 +447,15 @@ export function AppShell({
             ? "/parceiro"
             : isMarketing
               ? "/central/marketing"
-              : isFitness
-                ? "/fitness/inicio"
-                : isBank
-                  ? "/bank/inicio"
-                  : "/suplementos",
+              : isVitrine
+                ? "/vitrine/inicio"
+                : isPhysique
+                  ? "/physique/inicio"
+                  : isFitness
+                    ? "/fitness/inicio"
+                    : isBank
+                      ? "/bank/inicio"
+                      : "/suplementos",
     );
   }
 
@@ -470,6 +508,8 @@ export function AppShell({
   if (
     pathname === "/suplementos" ||
     pathname === "/fitness/inicio" ||
+    pathname === "/vitrine/inicio" ||
+    pathname === "/physique/inicio" ||
     pathname === "/bank/inicio" ||
     pathname === "/central/inicio"
   ) {
@@ -477,6 +517,37 @@ export function AppShell({
       <main className="supplements-entry-standalone">
         {children}
       </main>
+    );
+  }
+  if (isPhysique) {
+    const physiqueBrand = BRAND_ASSETS.physique.reduced;
+
+    return (
+      <div className="physique-standalone-app-v4526">
+        <header className="physique-standalone-topbar-v4526">
+          <div className="physique-standalone-topbar-spacer-v4526" />
+
+          <Link
+            href="/dashboard"
+            className="physique-standalone-brand-v4526"
+            aria-label="Voltar às operações"
+          >
+            <Image
+              src={physiqueBrand.src}
+              alt={physiqueBrand.alt}
+              width={physiqueBrand.width}
+              height={physiqueBrand.height}
+              priority
+            />
+          </Link>
+
+          <div className="physique-standalone-topbar-spacer-v4526" />
+        </header>
+
+        <main className="physique-standalone-content-v4526">
+          {children}
+        </main>
+      </div>
     );
   }
   if (isPromotionShowcase) {

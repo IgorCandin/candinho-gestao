@@ -416,3 +416,155 @@
     --slide-width: min(80vw, 334px) !important;
   }
 }
+
+/* V45.25 · HOME: WebKit coin + crop dos banners */
+
+.company-vitrine-coin-mobile-v4525 {
+  display: none;
+}
+
+.company-vitrine-coin-face-v45243 {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}.company-operation-stream-v45243
+  .company-operation-slide-v4514.tone-vitrine
+  picture
+  img,
+.company-operation-stream-v45243
+  .company-operation-slide-v4514.tone-physique
+  picture
+  img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center !important;
+}
+
+@keyframes v4525-vitrine-mobile-turn {
+  0%,
+  100% {
+    transform: scaleX(1);
+    filter: brightness(1);
+  }
+
+  44% {
+    transform: scaleX(.18);
+    filter: brightness(.84);
+  }
+
+  49%,
+  51% {
+    transform: scaleX(.035);
+    filter: brightness(.68);
+  }
+
+  56% {
+    transform: scaleX(.18);
+    filter: brightness(.84);
+  }
+}
+
+@media (max-width: 820px) {
+  .company-vitrine-coin-desktop-v4525 {
+    display: none !important;
+  }
+
+  .company-vitrine-coin-mobile-v4525 {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: block;
+    transform-origin: center;
+    will-change: transform;
+    animation:
+      v4525-vitrine-mobile-turn
+      3.3s
+      ease-in-out
+      infinite;
+  }
+
+  .company-vitrine-coin-mobile-face-v4525 {
+    transform: none !important;
+    -webkit-backface-visibility: visible !important;
+    backface-visibility: visible !important;
+  }
+
+  .company-operation-stream-v45243
+    .company-operation-slide-v4514.tone-vitrine,
+  .company-operation-stream-v45243
+    .company-operation-slide-v4514.tone-physique {
+    overflow: hidden !important;
+  }}
+
+/* V45.25.R3 · background uniforme da Home */
+
+.hub-standalone {
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 50% -8%,
+      rgba(217,164,65,.055),
+      transparent 32rem
+    ),
+    #05070a !important;
+}
+
+.hub-standalone .content-hub {
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+.hub-standalone .company-home-streaming-v4514 {
+  width: 100% !important;
+  max-width: none !important;
+  background: transparent !important;
+}
+
+.hub-standalone .company-home-streaming-v4514::before {
+  inset: 0 !important;
+  height: 100% !important;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(217,164,65,.045),
+      transparent 31rem
+    ) !important;
+}
+
+.hub-standalone .company-home-streaming-v4514::after {
+  inset: 0 !important;
+}
+
+/* V45.27 · respiro e interacao central */
+
+@media (min-width: 821px) {
+  .company-home-streaming-v4514 {
+    padding-top: 24px !important;
+  }
+
+  .company-home-brand-v4514 {
+    margin-bottom: 12px !important;
+  }
+
+  .company-operation-stream-v45243
+    .company-operation-slide-v4514[data-active="false"]
+    .company-operation-enter-v4514 {
+    opacity: 0 !important;
+    pointer-events: none !important;
+  }
+
+  .company-operation-stream-v45243
+    .company-operation-slide-v4514[data-active="false"] {
+    cursor: pointer;
+  }
+}
+
+@media (min-width: 821px) and (max-height: 680px) {
+  .company-home-streaming-v4514 {
+    padding-top: 14px !important;
+  }
+}

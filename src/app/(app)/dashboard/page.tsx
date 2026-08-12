@@ -103,7 +103,7 @@ export default async function DashboardPage() {
     {
       key: "physique",
       label: "Physique",
-      href: "/physique",
+      href: "/physique/inicio",
       desktopImage:
         "/operation-banners/physique-desktop.webp",
       mobileImage:

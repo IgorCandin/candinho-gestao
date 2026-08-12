@@ -4,7 +4,6 @@ import {
   Activity,
   Dumbbell,
   FileStack,
-  LogOut,
   Paperclip,
   Plus,
   ShieldCheck,
@@ -139,17 +138,6 @@ export default async function PhysiqueStandalonePage() {
         </Link>
       </div>
 
-      <div className="physique-standalone-actions">
-        <Link href="/dashboard" className="physique-action-button secondary">
-          Operações
-        </Link>
-        <form action="/auth/signout" method="post">
-          <button className="physique-action-button" type="submit">
-            <LogOut size={15}/>
-            <span>Sair</span>
-          </button>
-        </form>
-      </div>
     </>
   );
 }
