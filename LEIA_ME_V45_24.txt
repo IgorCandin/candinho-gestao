@@ -1,0 +1,34 @@
+﻿V45.24 - HOME DE OPERACOES FINAL
+
+FECHA O PENTE-FINO VISUAL DA TELA /dashboard
+
+- Corrige o corte/espremimento da area superior.
+- A logo Candinho Company ganha uma safe area real e nunca deve sair da viewport.
+- Remove o texto redundante "HOME · CANDINHO COMPANY".
+- Mantem "Ola, Candinho" menor para liberar espaco ao carrossel.
+- Banner ativo continua grande no centro.
+- Operacoes vizinhas continuam aparecendo parcialmente nas laterais.
+- Dots e autoplay continuam.
+- O tamanho do banner respeita largura E altura real da janela.
+- Vitrine entra no seletor como card premium sem imagem.
+- Physique entra no seletor como card premium sem imagem.
+- Quando os banners de Vitrine/Physique estiverem prontos, basta substituir os cards por image paths.
+- Vitrine e Physique saem do "Acesso rapido" para nao ficarem duplicados.
+- Acesso rapido fica: Meu Dia, Perfil e Sair.
+- Mobile recebe safe area no topo e os placeholders usam formato vertical premium.
+- Nao mexe no Comercial V45.23.4 R2, Supabase, Bank, Agenda ou menus internos.
+
+ORDEM DO CARROSSEL
+Suplementos -> Fitness -> Bank -> Vitrine -> Physique -> Central -> loop
+Assim, enquanto Suplementos estiver centralizado, Central continua aparecendo à esquerda e Fitness à direita, como no video.
+
+COMO APLICAR
+1. Extraia o ZIP inteiro na raiz de candinho-gestao.
+2. Execute APLICAR_V45_24.bat.
+3. Aguarde:
+   TypeScript OK.
+   git diff --check OK.
+   V45.24 aplicada com sucesso.
+4. Commit:
+   V45.24 - finaliza home de operacoes
+5. Push origin.

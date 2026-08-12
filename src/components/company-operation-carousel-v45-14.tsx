@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  Activity,
   ChevronLeft,
   ChevronRight,
+  Store,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -18,10 +20,12 @@ export type CompanyOperationSlideV4514 = {
   key: string;
   label: string;
   href: string;
-  desktopImage: string;
-  mobileImage: string;
+  desktopImage?: string;
+  mobileImage?: string;
   tone: string;
   rgb: string;
+  placeholderTitle?: string;
+  placeholderSubtitle?: string;
   desktopFit?: "cover" | "contain";
   badge?: string;
 };
@@ -342,8 +346,16 @@ export function CompanyOperationCarouselV4514({
 
             const style = {
               "--operation-rgb": operation.rgb,
-              "--operation-image": `url("${operation.desktopImage}")`,
+              ...(operation.desktopImage
+                ? {
+                    "--operation-image": `url("${operation.desktopImage}")`,
+                  }
+                : {}),
             } as CSSProperties;
+
+            const placeholder = !operation.desktopImage;
+            const PlaceholderIcon =
+              operation.key === "physique" ? Activity : Store;
 
             return (
               <Link
@@ -355,23 +367,40 @@ export function CompanyOperationCarouselV4514({
                 className={`company-operation-slide-v4514 tone-${operation.tone}`}
                 data-active={active ? "true" : "false"}
                 data-desktop-fit={operation.desktopFit ?? "cover"}
+                data-placeholder={placeholder ? "true" : "false"}
                 aria-label={`Abrir Candinho ${operation.label}`}
                 style={style}
               >
-                <picture>
-                  <source
-                    media="(max-width: 820px)"
-                    srcSet={operation.mobileImage}
-                  />
-                  <img
-                    src={operation.desktopImage}
-                    alt={`Candinho ${operation.label}`}
-                    loading={
-                      operation.loopGroup === 1 ? "eager" : "lazy"
-                    }
-                    draggable={false}
-                  />
-                </picture>
+                {placeholder ? (
+                  <div className="company-operation-placeholder-v4524">
+                    <div className="company-operation-placeholder-icon-v4524">
+                      <PlaceholderIcon />
+                    </div>
+                    <span>Candinho Company</span>
+                    <strong>
+                      {operation.placeholderTitle ?? operation.label}
+                    </strong>
+                    <small>
+                      {operation.placeholderSubtitle ??
+                        "Acesso integrado à operação."}
+                    </small>
+                  </div>
+                ) : (
+                  <picture>
+                    <source
+                      media="(max-width: 820px)"
+                      srcSet={operation.mobileImage ?? operation.desktopImage}
+                    />
+                    <img
+                      src={operation.desktopImage}
+                      alt={`Candinho ${operation.label}`}
+                      loading={
+                        operation.loopGroup === 1 ? "eager" : "lazy"
+                      }
+                      draggable={false}
+                    />
+                  </picture>
+                )}
 
                 {operation.badge ? (
                   <span className="company-operation-badge-v4514">

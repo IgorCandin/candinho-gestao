@@ -2,10 +2,8 @@ import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Activity,
   Bot,
   LogOut,
-  Store,
   UserRound,
 } from "lucide-react";
 import {
@@ -69,6 +67,27 @@ export default async function DashboardPage() {
     },
 
     {
+      key: "vitrine",
+      label: "Vitrine",
+      href: "/catalogo",
+      tone: "vitrine",
+      rgb: "224, 174, 74",
+      placeholderTitle: "Vitrine",
+      placeholderSubtitle:
+        "Catálogo e consulta rápida enquanto o banner oficial é preparado.",
+      visible: access.canAccessSupplements,
+    },
+    {
+      key: "physique",
+      label: "Physique",
+      href: "/physique",
+      tone: "physique",
+      rgb: "174, 112, 255",
+      placeholderTitle: "Physique",
+      placeholderSubtitle:
+        "Atletas, evolução e gestão esportiva em um único espaço.",
+      visible: access.canManageUsers,
+    },    {
       key: "central",
       label: "Central",
       href: "/central/inicio",
@@ -99,7 +118,6 @@ export default async function DashboardPage() {
       </div>
 
       <header className="company-home-heading-v4514">
-        <span>HOME · CANDINHO COMPANY</span>
         <h1>Olá, {access.name}.</h1>
         <p>Escolha a operação para continuar.</p>
       </header>
@@ -125,23 +143,6 @@ export default async function DashboardPage() {
             <span>Meu Dia</span>
           </Link>
 
-          <Link
-            className="company-home-utility-link-v4514"
-            href="/catalogo"
-          >
-            <Store size={16} />
-            <span>Vitrine</span>
-          </Link>
-
-          {access.canManageUsers && (
-            <Link
-              className="company-home-utility-link-v4514 physique"
-              href="/physique"
-            >
-              <Activity size={16} />
-              <span>Physique</span>
-            </Link>
-          )}
 
           {access.canManageUsers && (
             <Link
