@@ -1,0 +1,22 @@
+﻿CONFIGURAÇÃO LOCAL DO SUPABASE — CANDINHO ERP
+
+Esse helper NÃO altera o código do ERP e NÃO deve ser commitado.
+
+O que ele faz:
+- cria/atualiza .env.local na raiz;
+- preserva outras variáveis que já existirem;
+- cria backup do .env.local anterior;
+- define somente:
+  NEXT_PUBLIC_SUPABASE_URL
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+- não grava SUPABASE_SECRET_KEY;
+- limpa o cache .next.
+
+Como usar:
+1. Pare o npm run dev com Ctrl+C.
+2. Extraia estes dois arquivos na raiz candinho-gestao.
+3. Execute CONFIGURAR_LOCAL_SUPABASE.bat.
+4. Rode npm run dev novamente.
+5. Abra http://localhost:3000/dashboard
+
+A rota /catalogo e os previews reais da Vitrine precisam dessas variáveis para acessar o Supabase localmente.

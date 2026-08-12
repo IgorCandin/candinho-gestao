@@ -116,9 +116,9 @@
 .company-vitrine-coin-v45243 {
   position: absolute;
   z-index: 6;
-  left: 71.4%;
-  top: 44.2%;
-  width: clamp(228px, 18.2vw, 336px);
+  left: 73.1%;
+  top: 64.4%;
+  width: clamp(108px, 9.8vw, 168px);
   aspect-ratio: 1;
   translate: -50% -50%;
   perspective: 1100px;
@@ -401,8 +401,8 @@
 
   .company-vitrine-coin-v45243 {
     left: 50%;
-    top: 69.2%;
-    width: clamp(132px, 36vw, 176px);
+    top: 74.2%;
+    width: clamp(108px, 31vw, 146px);
   }
 
   .company-vitrine-coin-face-v45243 small {
@@ -416,3 +416,4 @@
     --slide-width: min(80vw, 334px) !important;
   }
 }
+

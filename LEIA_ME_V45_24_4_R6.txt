@@ -1,0 +1,20 @@
+﻿V45.24.4 R6 - AJUSTE MAIS FORTE DA MOEDA DA VITRINE (PC)
+
+Escopo:
+- PC: deixar a moeda visivelmente maior e bem mais alta.
+- Mobile: manter exatamente como esta.
+
+Ajustes:
+- desktop largura: clamp(228px, 18.2vw, 336px)
+- desktop top: 52.8%
+- mobile: sem alteracoes
+
+Como aplicar:
+1. Extraia este ZIP na raiz do candinho-gestao
+2. Rode APLICAR_V45_24_4_R6.bat
+3. Atualize http://localhost:3000/dashboard
+
+Final esperado:
+- TypeScript OK.
+- git diff --check OK.
+- V45.24.4 R6 concluida com sucesso.

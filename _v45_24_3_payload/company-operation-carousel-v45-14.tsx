@@ -80,6 +80,7 @@ function pickProduct(
 function VitrineProductCoinV45243({
   products,
   active,
+  reducedMotion,
 }: {
   products: CompanyShowcaseProductV45243[];
   active: boolean;
@@ -107,6 +108,7 @@ function VitrineProductCoinV45243({
     useState<CompanyShowcaseProductV45243 | null>(
       firstFitness,
     );
+  const [flipped, setFlipped] = useState(false);
 
   useEffect(() => {
     if (!products.length) return;
@@ -127,22 +129,20 @@ function VitrineProductCoinV45243({
   ]);
 
   useEffect(() => {
-    if (!active || products.length <= 1) {
+    if (
+      !active ||
+      reducedMotion ||
+      products.length <= 1
+    ) {
       return;
     }
 
-    let updateFront = true;
+    let showBack = false;
 
     const timer = window.setInterval(() => {
-      if (updateFront) {
-        setFrontProduct((current) =>
-          pickProduct(
-            products,
-            "supplements",
-            current?.id,
-          ),
-        );
-      } else {
+      showBack = !showBack;
+
+      if (showBack) {
         setBackProduct((current) =>
           pickProduct(
             products,
@@ -150,15 +150,24 @@ function VitrineProductCoinV45243({
             current?.id,
           ),
         );
+      } else {
+        setFrontProduct((current) =>
+          pickProduct(
+            products,
+            "supplements",
+            current?.id,
+          ),
+        );
       }
 
-      updateFront = !updateFront;
+      setFlipped(showBack);
     }, 1650);
 
     return () => window.clearInterval(timer);
   }, [
     active,
     products,
+    reducedMotion,
   ]);
 
   if (!frontProduct && !backProduct) {
@@ -179,11 +188,15 @@ function VitrineProductCoinV45243({
   return (
     <div
       className="company-vitrine-coin-v45243"
-      data-spinning={active ? "true" : "false"}
       aria-hidden="true"
     >
       <div className="company-vitrine-coin-float-v45243">
-        <div className="company-vitrine-coin-inner-v45243">
+        <div
+          className={[
+            "company-vitrine-coin-inner-v45243",
+            flipped ? "is-flipped" : "",
+          ].join(" ")}
+        >
           <span className="company-vitrine-coin-face-v45243 front">
             {frontProduct && (
               <>

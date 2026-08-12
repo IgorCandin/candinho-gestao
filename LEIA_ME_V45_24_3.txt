@@ -1,0 +1,71 @@
+﻿V45.24.3 - PACOTÃO FINAL DA HOME DE OPERAÇÕES
+
+ESCOPO APLICADO EXATAMENTE
+
+HOME
+- Sair discreto no canto superior esquerdo.
+- Logo Candinho Company centralizada.
+- Nenhum texto/subtítulo embaixo da logo.
+- Sem dots/indicadores e sem barra de progresso.
+- Foco somente nos cards.
+- Ordem:
+  1. Vitrine
+  2. Suplementos
+  3. Fitness
+  4. Bank
+  5. Central
+  6. Physique
+
+CARROSSEL
+- Autoplay restaurado.
+- 3,5 segundos por card.
+- Funciona no desktop E mobile.
+- Não pausa ao passar mouse/foco.
+- Cinco cópias internas do loop para reduzir recenter/travas.
+- Swipe manual continua funcionando.
+- Setas do PC continuam disponíveis.
+- Mobile mantém navegação por gesto.
+
+VITRINE
+- Banner oficial desktop/mobile incluído.
+- Círculo alinhado ao pódio.
+- Movimento leve subindo/descendo.
+- Flip 3D tipo cara/coroa.
+- Frente = produto aleatório de Suplementos.
+- Verso = produto aleatório de Fitness.
+- Usa as fotos REAIS cadastradas no catálogo do ERP.
+- Busca produtos com getProductCatalog() e getFitnessProducts().
+- Se uma consulta falhar, a Home continua funcionando.
+
+PHYSIQUE
+- Banner desktop/mobile oficial incluído.
+- Ordem final depois da Central.
+
+FITNESS
+CAUSA ENCONTRADA:
+src/app/(app)/fitness/loading.tsx era exclusivo da Fitness e mostrava:
+"Carregando Fitness… / Preparando a próxima tela."
+As outras operações não têm esse loading.
+A V45.24.3 remove esse arquivo para a Fitness se comportar como as demais.
+
+RETOMADA / SEGURANÇA
+- Este instalador faz backup dos arquivos-alvo locais, inclusive staged/unstaged.
+- Normaliza SOMENTE Home/carrossel/loading Fitness e os quatro banners.
+- Depois aplica uma versão completa e determinística.
+- O backup fica fora da pasta do repositório.
+
+COMO APLICAR
+1. Feche npm run dev antes de aplicar.
+2. Extraia o ZIP inteiro na raiz candinho-gestao.
+3. Execute APLICAR_V45_24_3.bat.
+4. Espere:
+   TypeScript OK.
+   git diff --check OK.
+   V45.24.3 aplicada com sucesso.
+5. Teste local:
+   npm run dev
+   http://localhost:3000/dashboard
+6. Se visualmente aprovado:
+   Commit:
+   V45.24.3 - finaliza home e navegacao das operacoes
+7. Push origin.
