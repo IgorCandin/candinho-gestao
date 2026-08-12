@@ -308,16 +308,18 @@ export default async function CommercialOutflowsPage() {
 
                 {row.status ===
                   "completed" &&
-                canWrite ? (
+                canWrite &&
+                row.inventory_applied !== false ? (
                   <CommercialOutflowCancelButton
                     id={row.id}
                   />
                 ) : (
                   <span className="badge gray">
-                    {row.status ===
-                    "cancelled"
-                      ? "Estornada"
-                      : row.status}
+                    {row.historical_reclassification
+                      ? "Histórico corrigido"
+                      : row.status === "cancelled"
+                        ? "Estornada"
+                        : row.status}
                   </span>
                 )}
               </div>

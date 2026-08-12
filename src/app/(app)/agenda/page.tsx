@@ -35,6 +35,20 @@ export default async function AgendaPage() {
 
   const supabase = await createClient();
 
+  if (access.canWriteSupplements || access.role === "admin") {
+    const { error: queueError } = await supabase.rpc(
+      "rebalance_flexible_commercial_contacts_v1",
+      { p_daily_cap: 12 },
+    );
+
+    if (queueError) {
+      console.error(
+        "Não foi possível reorganizar a fila comercial flexível:",
+        queueError,
+      );
+    }
+  }
+
   const [
     events,
     customers,
@@ -101,7 +115,7 @@ export default async function AgendaPage() {
       <PageHeader
         eyebrow="Candinho Suplementos"
         title="Agenda"
-        description="Somente compromissos da Suplementos. A Central enxerga esta mesma agenda dentro da visão Global."
+        description="Compromissos fixos continuam vencendo normalmente. A fila comercial flexível é reorganizada automaticamente para manter até 12 contatos por dia."
       />
 
       {access.canWriteSupplements && (

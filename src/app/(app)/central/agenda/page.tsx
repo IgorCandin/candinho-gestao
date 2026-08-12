@@ -13,6 +13,7 @@ import {
 } from "@/lib/central-unified-agenda";
 import { getCurrentUserAccess } from "@/lib/data";
 import { getGoogleCalendarStatus } from "@/lib/google-calendar-data";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function CentralAgendaPage() {
   const access = await getCurrentUserAccess();
@@ -48,6 +49,21 @@ export default async function CentralAgendaPage() {
     ...(access.canWriteMarketing ? ["marketing"] : []),
   ];
 
+  if (access.role === "admin" || access.canWriteSupplements) {
+    const supabase = await createClient();
+    const { error: queueError } = await supabase.rpc(
+      "rebalance_flexible_commercial_contacts_v1",
+      { p_daily_cap: 12 },
+    );
+
+    if (queueError) {
+      console.error(
+        "Não foi possível reorganizar a fila comercial flexível:",
+        queueError,
+      );
+    }
+  }
+
   const [agenda, contacts, users, googleCalendar] = await Promise.all([
     getCentralUnifiedAgendaSnapshot({
       canSupplements:
@@ -67,7 +83,7 @@ export default async function CentralAgendaPage() {
       <PageHeader
         eyebrow="Candinho Central"
         title="Agenda Global"
-        description="Central, Suplementos, Fitness, Marketing e Agenda Estratégica em um único calendário. Cada operação continua com sua própria visão filtrada."
+        description="Central, Suplementos, Fitness, Marketing e Agenda Estratégica em um único calendário. A fila comercial flexível é balanceada antes da leitura."
         action={
           canManageTasks ? (
             <CentralTaskCreateForm

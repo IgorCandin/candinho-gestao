@@ -7,11 +7,26 @@ import { NexusOperatingChat } from "@/components/nexus-operating-chat";
 import { PageHeader } from "@/components/page-header";
 import { getCurrentUserAccess, getCustomerOptions } from "@/lib/data";
 import { getNexusBrief } from "@/lib/nexus-operating-context";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function SupplementsNexusPage() {
   const access = await getCurrentUserAccess();
+
   if (!(access.role === "admin" || access.canWriteSupplements)) {
     redirect("/suplementos");
+  }
+
+  const supabase = await createClient();
+  const { error: queueError } = await supabase.rpc(
+    "rebalance_flexible_commercial_contacts_v1",
+    { p_daily_cap: 12 },
+  );
+
+  if (queueError) {
+    console.error(
+      "Não foi possível reorganizar a fila comercial flexível:",
+      queueError,
+    );
   }
 
   const [customers, brief] = await Promise.all([
