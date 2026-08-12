@@ -3,16 +3,24 @@
 import Link from "next/link";
 import {
   Boxes,
+  CalendarClock,
   LoaderCircle,
   Package,
   Save,
   UserRoundPlus,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/format";
-import type { CustomerOption, ProductOption } from "@/lib/types";
+import type {
+  CustomerOption,
+  ProductOption,
+} from "@/lib/types";
 
 const STATUSES = [
   "Perguntou sobre",
@@ -46,7 +54,52 @@ type ComboOption = {
   items: ComboItem[];
 };
 
-type InterestMode = "product" | "combo";
+type InterestMode =
+  | "product"
+  | "combo";
+
+function defaultFollowupDate() {
+  const date = new Date();
+  date.setDate(
+    date.getDate() + 2,
+  );
+
+  const year =
+    date.getFullYear();
+  const month = String(
+    date.getMonth() + 1,
+  ).padStart(2, "0");
+  const day = String(
+    date.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function looksLikeStockWait(
+  status: string,
+  notes: string,
+) {
+  if (
+    status ===
+    "Esperando pedido de fornecedor"
+  ) {
+    return true;
+  }
+
+  const normalized =
+    notes
+      .normalize("NFD")
+      .replace(
+        /[\u0300-\u036f]/g,
+        "",
+      )
+      .toLowerCase();
+
+  return /(estoque|cheg|quando.{0,20}entr|reposi|pedido.{0,20}fornecedor)/i.test(
+    normalized,
+  );
+}
 
 export function NewLeadForm({
   customers,
@@ -58,33 +111,69 @@ export function NewLeadForm({
   const router = useRouter();
 
   const [mode, setMode] =
-    useState<InterestMode>("product");
-  const [customerId, setCustomerId] =
-    useState("");
-  const [productId, setProductId] =
-    useState("");
-  const [flavorId, setFlavorId] =
-    useState("");
-  const [comboId, setComboId] =
-    useState("");
-  const [comboFlavors, setComboFlavors] =
-    useState<Record<string, string>>({});
-  const [status, setStatus] =
-    useState<(typeof STATUSES)[number]>(
-      "Perguntou sobre",
+    useState<InterestMode>(
+      "product",
     );
+  const [
+    customerId,
+    setCustomerId,
+  ] = useState("");
+  const [
+    productId,
+    setProductId,
+  ] = useState("");
+  const [
+    flavorId,
+    setFlavorId,
+  ] = useState("");
+  const [
+    comboId,
+    setComboId,
+  ] = useState("");
+  const [
+    comboFlavors,
+    setComboFlavors,
+  ] = useState<
+    Record<string, string>
+  >({});
+  const [
+    status,
+    setStatus,
+  ] = useState<
+    (typeof STATUSES)[number]
+  >("Perguntou sobre");
   const [notes, setNotes] =
     useState("");
-  const [loading, setLoading] =
-    useState(false);
-  const [loadingOptions, setLoadingOptions] =
-    useState(true);
-  const [message, setMessage] =
-    useState<string | null>(null);
-  const [flavors, setFlavors] =
-    useState<FlavorOption[]>([]);
+  const [
+    followupOn,
+    setFollowupOn,
+  ] = useState(
+    defaultFollowupDate(),
+  );
+  const [
+    loading,
+    setLoading,
+  ] = useState(false);
+  const [
+    loadingOptions,
+    setLoadingOptions,
+  ] = useState(true);
+  const [
+    message,
+    setMessage,
+  ] = useState<
+    string | null
+  >(null);
+  const [
+    flavors,
+    setFlavors,
+  ] = useState<
+    FlavorOption[]
+  >([]);
   const [combos, setCombos] =
-    useState<ComboOption[]>([]);
+    useState<ComboOption[]>(
+      [],
+    );
 
   useEffect(() => {
     let cancelled = false;
@@ -92,7 +181,8 @@ export function NewLeadForm({
     async function loadOptions() {
       setLoadingOptions(true);
 
-      const supabase = createClient();
+      const supabase =
+        createClient();
 
       const [
         flavorResult,
@@ -100,14 +190,22 @@ export function NewLeadForm({
         comboItemResult,
       ] = await Promise.all([
         supabase
-          .from("product_flavors")
-          .select("id,product_id,name")
+          .from(
+            "product_flavors",
+          )
+          .select(
+            "id,product_id,name",
+          )
           .eq("active", true)
-          .order("display_order")
+          .order(
+            "display_order",
+          )
           .order("name"),
 
         supabase
-          .from("product_combo_overview")
+          .from(
+            "product_combo_overview",
+          )
           .select(
             "id,name,description,sale_price,component_summary,available_quantity,stock_status",
           )
@@ -115,7 +213,9 @@ export function NewLeadForm({
           .order("name"),
 
         supabase
-          .from("product_combo_items")
+          .from(
+            "product_combo_items",
+          )
           .select(
             "combo_id,product_id,quantity,created_at",
           )
@@ -130,38 +230,47 @@ export function NewLeadForm({
         comboItemResult.error;
 
       if (error) {
-        setMessage(error.message);
-        setLoadingOptions(false);
+        setMessage(
+          error.message,
+        );
+        setLoadingOptions(
+          false,
+        );
         return;
       }
 
       setFlavors(
-        (flavorResult.data ?? []).map(
-          (row) => ({
-            id: String(row.id),
-            productId: String(
-              row.product_id,
-            ),
-            name: String(
-              row.name ?? "",
-            ),
-          }),
-        ),
+        (
+          flavorResult.data ??
+          []
+        ).map((row) => ({
+          id: String(row.id),
+          productId: String(
+            row.product_id,
+          ),
+          name: String(
+            row.name ?? "",
+          ),
+        })),
       );
 
       const itemsByCombo =
-        new Map<string, ComboItem[]>();
+        new Map<
+          string,
+          ComboItem[]
+        >();
 
-      for (
-        const row of
-        comboItemResult.data ?? []
-      ) {
+      for (const row of
+        comboItemResult.data ??
+        []) {
         const id = String(
           row.combo_id,
         );
 
         const current =
-          itemsByCombo.get(id) ?? [];
+          itemsByCombo.get(
+            id,
+          ) ?? [];
 
         current.push({
           productId: String(
@@ -179,39 +288,43 @@ export function NewLeadForm({
       }
 
       setCombos(
-        (comboResult.data ?? []).map(
-          (row) => ({
-            id: String(row.id),
-            name: String(
-              row.name ?? "Combo",
+        (
+          comboResult.data ??
+          []
+        ).map((row) => ({
+          id: String(row.id),
+          name: String(
+            row.name ??
+              "Combo",
+          ),
+          description:
+            typeof row.description ===
+            "string"
+              ? row.description
+              : "",
+          salePrice: Number(
+            row.sale_price ??
+              0,
+          ),
+          componentSummary:
+            typeof row.component_summary ===
+            "string"
+              ? row.component_summary
+              : "",
+          availableQuantity:
+            Number(
+              row.available_quantity ??
+                0,
             ),
-            description:
-              typeof row.description ===
-              "string"
-                ? row.description
-                : "",
-            salePrice: Number(
-              row.sale_price ?? 0,
-            ),
-            componentSummary:
-              typeof row.component_summary ===
-              "string"
-                ? row.component_summary
-                : "",
-            availableQuantity:
-              Number(
-                row.available_quantity ??
-                  0,
-              ),
-            stockStatus: String(
-              row.stock_status ?? "",
-            ),
-            items:
-              itemsByCombo.get(
-                String(row.id),
-              ) ?? [],
-          }),
-        ),
+          stockStatus: String(
+            row.stock_status ??
+              "",
+          ),
+          items:
+            itemsByCombo.get(
+              String(row.id),
+            ) ?? [],
+        })),
       );
 
       setLoadingOptions(false);
@@ -236,9 +349,16 @@ export function NewLeadForm({
       () =>
         combos.find(
           (combo) =>
-            combo.id === comboId,
+            combo.id ===
+            comboId,
         ) ?? null,
       [combos, comboId],
+    );
+
+  const stockAutomation =
+    looksLikeStockWait(
+      status,
+      notes,
     );
 
   function flavorsFor(
@@ -257,7 +377,8 @@ export function NewLeadForm({
     return (
       products.find(
         (item) =>
-          item.id === product,
+          item.id ===
+          product,
       )?.name ?? "Produto"
     );
   }
@@ -268,7 +389,9 @@ export function NewLeadForm({
     setMode(next);
     setMessage(null);
 
-    if (next === "product") {
+    if (
+      next === "product"
+    ) {
       setComboId("");
       setComboFlavors({});
     } else {
@@ -312,54 +435,79 @@ export function NewLeadForm({
       const supabase =
         createClient();
 
-      const { data, error } =
-        await supabase.rpc(
-          "create_lead_interest_v3",
-          {
-            p_customer_id:
-              customerId,
-            p_product_id:
-              mode === "product"
-                ? productId
-                : null,
-            p_flavor_id:
-              mode === "product"
-                ? flavorId ||
-                  null
-                : null,
-            p_combo_id:
-              mode === "combo"
-                ? selectedCombo?.id ??
-                  null
-                : null,
-            p_combo_items:
-              mode === "combo" &&
-              selectedCombo
-                ? selectedCombo.items.map(
-                    (item) => ({
-                      product_id:
-                        item.productId,
-                      flavor_id:
-                        comboFlavors[
-                          item
-                            .productId
-                        ] || null,
-                    }),
-                  )
-                : [],
-            p_lead_status:
-              status,
-            p_notes:
-              notes.trim() ||
-              null,
-            p_lead_on: null,
-          },
-        );
+      const {
+        data,
+        error,
+      } = await supabase.rpc(
+        "create_lead_interest_v3",
+        {
+          p_customer_id:
+            customerId,
+          p_product_id:
+            mode === "product"
+              ? productId
+              : null,
+          p_flavor_id:
+            mode === "product"
+              ? flavorId ||
+                null
+              : null,
+          p_combo_id:
+            mode === "combo"
+              ? selectedCombo?.id ??
+                null
+              : null,
+          p_combo_items:
+            mode === "combo" &&
+            selectedCombo
+              ? selectedCombo.items.map(
+                  (item) => ({
+                    product_id:
+                      item.productId,
+                    flavor_id:
+                      comboFlavors[
+                        item
+                          .productId
+                      ] ||
+                      null,
+                  }),
+                )
+              : [],
+          p_lead_status:
+            status,
+          p_notes:
+            notes.trim() ||
+            null,
+          p_lead_on: null,
+        },
+      );
 
       if (error) throw error;
 
+      const leadId =
+        String(data);
+
+      const {
+        error: agendaError,
+      } = await supabase.rpc(
+        "configure_lead_agenda_v1",
+        {
+          p_lead_id: leadId,
+          p_followup_on:
+            followupOn ||
+            null,
+        },
+      );
+
+      if (agendaError) {
+        console.error(
+          "Lead salvo, mas a Agenda não pôde ser sincronizada:",
+          agendaError,
+        );
+      }
+
       router.push(
-        `/leads/${String(data)}`,
+        `/leads/${leadId}`,
       );
       router.refresh();
     } catch (error) {
@@ -384,10 +532,9 @@ export function NewLeadForm({
             Informações do lead
           </h2>
           <p>
-            Registre interesse em
-            produto individual ou combo.
-            Sabor pode ficar em aberto
-            até a decisão do cliente.
+            Registre o interesse e já
+            deixe o próximo passo na
+            Agenda.
           </p>
         </div>
 
@@ -423,7 +570,9 @@ export function NewLeadForm({
                 )
               }
             >
-              <Package size={16} />
+              <Package
+                size={16}
+              />
               Produto individual
             </button>
 
@@ -517,6 +666,31 @@ export function NewLeadForm({
           </select>
         </label>
 
+        <label className="field field-span-two">
+          <span>
+            Próximo contato na Agenda
+          </span>
+
+          <input
+            className="input"
+            type="date"
+            value={followupOn}
+            onChange={(event) =>
+              setFollowupOn(
+                event.target.value,
+              )
+            }
+          />
+
+          <small>
+            Essa data vira um retorno
+            automático na Agenda. Você
+            pode alterar ou deixar vazio
+            se o próximo passo depender
+            apenas da chegada do estoque.
+          </small>
+        </label>
+
         {mode === "product" ? (
           <>
             <label className="field">
@@ -535,7 +709,9 @@ export function NewLeadForm({
                     event.target
                       .value,
                   );
-                  setFlavorId("");
+                  setFlavorId(
+                    "",
+                  );
                 }}
               >
                 <option value="">
@@ -682,7 +858,8 @@ export function NewLeadForm({
                     justifyContent:
                       "space-between",
                     gap: 12,
-                    flexWrap: "wrap",
+                    flexWrap:
+                      "wrap",
                   }}
                 >
                   <div>
@@ -696,7 +873,8 @@ export function NewLeadForm({
                       style={{
                         display:
                           "block",
-                        marginTop: 4,
+                        marginTop:
+                          4,
                         color:
                           "var(--muted)",
                       }}
@@ -745,7 +923,8 @@ export function NewLeadForm({
                       >
                         <span
                           style={{
-                            fontSize: 11,
+                            fontSize:
+                              11,
                             fontWeight:
                               800,
                           }}
@@ -824,8 +1003,8 @@ export function NewLeadForm({
                   serão levados para o
                   orçamento quando o lead
                   for convertido. Sabores
-                  ainda podem ser definidos
-                  depois.
+                  ainda podem ser
+                  definidos depois.
                 </small>
               </div>
             )}
@@ -833,7 +1012,9 @@ export function NewLeadForm({
         )}
 
         <label className="field field-span-two">
-          <span>Observações</span>
+          <span>
+            Observações
+          </span>
 
           <textarea
             className="textarea"
@@ -844,9 +1025,79 @@ export function NewLeadForm({
                 event.target.value,
               )
             }
-            placeholder="Dúvidas, objetivo, produto, combo, sabor ou próximo passo."
+            placeholder="Ex.: quer comprar assim que a creatina entrar no estoque."
           />
         </label>
+
+        <div
+          className="field-span-two"
+          style={{
+            display: "grid",
+            gridTemplateColumns:
+              "auto minmax(0,1fr)",
+            gap: 10,
+            alignItems: "start",
+            padding: 14,
+            border:
+              "1px solid var(--line)",
+            borderRadius: 14,
+            background:
+              stockAutomation
+                ? "rgba(228,164,58,.055)"
+                : "rgba(255,255,255,.018)",
+          }}
+        >
+          <CalendarClock
+            size={19}
+          />
+
+          <div>
+            <strong>
+              Agenda automática
+            </strong>
+
+            <small
+              style={{
+                display: "block",
+                marginTop: 4,
+                color:
+                  "var(--muted)",
+                lineHeight: 1.5,
+              }}
+            >
+              {followupOn
+                ? `O retorno será colocado na Agenda para ${followupOn
+                    .split("-")
+                    .reverse()
+                    .join("/")}.`
+                : "Sem data fixa de retorno."}
+            </small>
+
+            {stockAutomation && (
+              <small
+                style={{
+                  display:
+                    "block",
+                  marginTop: 5,
+                  color:
+                    "var(--gold)",
+                  lineHeight:
+                    1.5,
+                }}
+              >
+                O status/observação
+                indica espera de
+                estoque. Se o produto
+                estiver zerado, a Agenda
+                cria prioridade de
+                compra. Assim que houver
+                estoque disponível, ela
+                troca para “Produto
+                chegou · chamar cliente”.
+              </small>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="form-footer">
