@@ -1,8 +1,0 @@
-﻿V45.23.1 - INSTALADOR CORRIGIDO
-
-O instalador anterior dependia de um bloco de texto identico ao arquivo local.
-Esta versao remove o botao Operacoes com regex tolerante a formatacao.
-
-Rode APLICAR_V45_23_1.bat.
-Se aparecer TypeScript OK, git diff --check OK e V45.23.1 aplicada com sucesso,
-faça o commit: V45.23.1 - ajusta respiro do menu mobile

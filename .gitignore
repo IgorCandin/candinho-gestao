@@ -42,3 +42,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+# Candinho - artefatos locais de pacotes/hotfixes
+/APLICAR_V*.bat
+/APLICAR_V*.ps1
+/LEIA_ME_V*.txt
+/LEIA_ME_RETOMADA_V*.txt
+/CONFIGURAR_LOCAL_*.bat
+/CONFIGURAR_LOCAL_*.ps1
+/CONFIGURAR_LOCAL_*.txt
+/LEIA_ME_CONFIG_LOCAL.txt
+/_v*_payload/
+/BACKUP_V*/

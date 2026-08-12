@@ -1,0 +1,49 @@
+﻿LIMPEZA DA RAIZ — CANDINHO GESTÃO
+
+O que este pacote remove automaticamente, SOMENTE da raiz:
+- APLICAR_V*.bat
+- APLICAR_V*.ps1
+- LEIA_ME_V*.txt
+- LEIA_ME_RETOMADA_V*.txt
+- CONFIGURAR_LOCAL_*.bat/.ps1/.txt
+- LEIA_ME_CONFIG_LOCAL.txt
+- pastas _v*_payload
+- pastas BACKUP_V* caso estejam DENTRO do repositório
+
+SEGURANÇA
+- Exibe preview antes.
+- Só continua se você digitar LIMPAR.
+- Cria backup fora do repositório.
+- Se o arquivo for rastreado no Git, usa git rm.
+- Se for local/untracked, remove só do disco.
+- Não faz commit.
+- Não faz push.
+
+NÃO REMOVE
+- src
+- public
+- supabase
+- docs
+- migrations
+- package.json / package-lock.json
+- .env.local
+- node_modules
+- arquivos de código que não sejam os instaladores acima
+
+Também acrescenta regras no .gitignore para os próximos pacotes não voltarem
+a aparecer na raiz do Git.
+
+COMO USAR
+1. Preferencialmente faça commit/push da versão funcional atual primeiro.
+2. Extraia este ZIP na raiz de candinho-gestao.
+3. Execute LIMPAR_RAIZ_CANDINHO.bat.
+4. Leia o preview.
+5. Digite LIMPAR.
+6. Abra GitHub Desktop e confira as deleções.
+7. Commit sugerido:
+   chore: limpa artefatos antigos da raiz
+
+OBSERVAÇÃO
+Os backups criados anteriormente pelos hotfixes normalmente ficam UM NÍVEL
+ACIMA do repositório. Este script não apaga esses backups externos
+automaticamente, para evitar perda acidental.
