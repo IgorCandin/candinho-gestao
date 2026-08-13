@@ -1,6 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Dumbbell, LogIn, Sparkles, Store } from "lucide-react";
+import {
+  Dumbbell,
+  Sparkles,
+  Store,
+} from "lucide-react";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicBackorderSection } from "@/components/public-backorder-section";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
@@ -18,7 +22,9 @@ import {
 import { getPublicFitnessAvailabilityMap } from "@/lib/public-fitness-availability-data";
 import { getPublicSupplementBackorders } from "@/lib/public-backorder-data";
 
-export type PublicCatalogOperation = "supplements" | "fitness";
+export type PublicCatalogOperation =
+  | "supplements"
+  | "fitness";
 
 function isolateSnapshot(
   snapshot: PublicStorefrontSnapshot,
@@ -55,7 +61,8 @@ function isolateSnapshot(
           ? snapshot.categories.fitness
           : [],
     },
-    generated_at: snapshot.generated_at,
+    generated_at:
+      snapshot.generated_at,
   };
 }
 
@@ -78,8 +85,15 @@ export async function PublicCatalogOperationPage({
       : Promise.resolve([]),
   ]);
 
-  const isolatedSnapshot = isolateSnapshot(snapshot, operation);
-  const isFitness = operation === "fitness";
+  const isolatedSnapshot =
+    isolateSnapshot(
+      snapshot,
+      operation,
+    );
+
+  const isFitness =
+    operation === "fitness";
+
   const brand = isFitness
     ? BRAND_ASSETS.fitness.complete
     : BRAND_ASSETS.supplements.complete;
@@ -89,10 +103,18 @@ export async function PublicCatalogOperationPage({
       className="public-storefront-page"
       data-catalog-operation={operation}
     >
-      <PublicCatalogCardLinks links={productLinks} />
-      <PublicCatalogOperationLock operation={operation} />
-      <PublicStorefrontCompanyUX snapshot={isolatedSnapshot} />
-      <PublicStorefrontVisualEnhancer snapshot={isolatedSnapshot} />
+      <PublicCatalogCardLinks
+        links={productLinks}
+      />
+      <PublicCatalogOperationLock
+        operation={operation}
+      />
+      <PublicStorefrontCompanyUX
+        snapshot={isolatedSnapshot}
+      />
+      <PublicStorefrontVisualEnhancer
+        snapshot={isolatedSnapshot}
+      />
 
       {isFitness && (
         <PublicFitnessAvailabilityEnhancer
@@ -101,28 +123,31 @@ export async function PublicCatalogOperationPage({
         />
       )}
 
-      <header className="public-storefront-header">
-        <div className="public-storefront-header-top">
-          <Image
-            src={brand.src}
-            alt={brand.alt}
-            width={brand.width}
-            height={brand.height}
-            priority
-          />
-
+      <header className="public-storefront-header public-storefront-header-v4532">
+        <div className="public-storefront-header-top public-storefront-header-top-v4532">
           <Link
-            className="public-storefront-login"
-            href="/login"
+            href="/catalogo"
+            className="public-storefront-operation-brand-v4532"
+            aria-label="Voltar para a Vitrine Candinho"
           >
-            <LogIn size={16} />
-            Área interna
+            <Image
+              src={brand.src}
+              alt={brand.alt}
+              width={brand.width}
+              height={brand.height}
+              priority
+            />
           </Link>
         </div>
 
-        <div className="public-storefront-hero">
+        <div className="public-storefront-hero public-storefront-hero-v4532">
           <span>
-            {isFitness ? <Dumbbell size={15} /> : <Store size={15} />}
+            {isFitness ? (
+              <Dumbbell size={15} />
+            ) : (
+              <Store size={15} />
+            )}
+
             {isFitness
               ? " Vitrine Candinho Fitness"
               : " Vitrine Candinho Suplementos"}
@@ -148,14 +173,18 @@ export async function PublicCatalogOperationPage({
       </header>
 
       <section className="public-storefront-content">
-        {!isFitness && <PublicCatalogGuide />}
+        {!isFitness && (
+          <PublicCatalogGuide />
+        )}
 
         <PublicStorefrontBrowser
           snapshot={isolatedSnapshot}
         />
 
         {!isFitness && (
-          <PublicBackorderSection products={backorders} />
+          <PublicBackorderSection
+            products={backorders}
+          />
         )}
       </section>
     </main>

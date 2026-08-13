@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Sparkles, Store } from "lucide-react";
+import {
+  Sparkles,
+  Store,
+} from "lucide-react";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicBackorderSection } from "@/components/public-backorder-section";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
@@ -35,23 +38,30 @@ export default async function PublicCatalogPage() {
     getPublicStorefrontTopSellers(3).catch(() => []),
   ]);
 
-  const company = BRAND_ASSETS.company.complete;
+  const company =
+    BRAND_ASSETS.company.complete;
 
   return (
     <main className="public-storefront-page">
-      <PublicCatalogCardLinks links={productLinks} />
-      <PublicStorefrontCompanyUX snapshot={snapshot} />
-      <PublicStorefrontVisualEnhancer snapshot={snapshot} />
+      <PublicCatalogCardLinks
+        links={productLinks}
+      />
+      <PublicStorefrontCompanyUX
+        snapshot={snapshot}
+      />
+      <PublicStorefrontVisualEnhancer
+        snapshot={snapshot}
+      />
       <PublicFitnessAvailabilityEnhancer
         snapshot={snapshot}
         availability={fitnessAvailability}
       />
 
-      <header className="public-storefront-header">
-        <div className="public-storefront-header-top public-storefront-header-top-v4527">
+      <header className="public-storefront-header public-storefront-header-v4532">
+        <div className="public-storefront-header-top public-storefront-header-top-v4527 public-storefront-header-top-v4532">
           <Link
             href="/dashboard"
-            className="public-storefront-company-link-v4527"
+            className="public-storefront-company-link-v4527 public-storefront-company-link-v4532"
             aria-label="Voltar para Operações Candinho Company"
           >
             <Image
@@ -63,25 +73,30 @@ export default async function PublicCatalogPage() {
             />
           </Link>
         </div>
-<div className="public-storefront-hero">
+
+        <div className="public-storefront-hero public-storefront-hero-v4532">
           <span>
             <Store size={15} /> Vitrine Candinho
           </span>
+
           <h1>
             Encontre o produto certo sem complicar.
           </h1>
+
           <p>
             Veja o que está disponível agora, amplie as
             fotos, confira tamanho e cor, navegue pelas
             opções e converse com o Nexus para filtrar o
             catálogo.
           </p>
+
           <span>
             <Sparkles size={14} /> Estoque e promoções vêm
             diretamente do ERP.
           </span>
         </div>
       </header>
+
       <Link
         href="/catalogo/creatina-300g-candinho-suplementos"
         className="public-storefront-creatina-banner-v4527"
@@ -107,8 +122,12 @@ export default async function PublicCatalogPage() {
         id="catalogo-completo"
       >
         <PublicCatalogGuide />
-        <PublicStorefrontBrowser snapshot={snapshot} />
-        <PublicBackorderSection products={backorders} />
+        <PublicStorefrontBrowser
+          snapshot={snapshot}
+        />
+        <PublicBackorderSection
+          products={backorders}
+        />
       </section>
     </main>
   );

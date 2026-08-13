@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { AgendaDragDropV4532 } from "@/components/agenda-drag-drop-v45-32";
 import { CommercialContactAgendaCard } from "@/components/commercial-contact-agenda-card";
 import { DemoBanner } from "@/components/demo-banner";
 import { GoogleCalendarConnectionCard } from "@/components/google-calendar-connection-card";
@@ -129,6 +130,11 @@ export default async function AgendaPage() {
       {!commercialQueue.skipped && (
         <CommercialContactAgendaCard snapshot={commercialQueue} />
       )}
+
+      <AgendaDragDropV4532
+        events={scopedEvents}
+        enabled={access.canWriteSupplements}
+      />
 
       <OperationalCalendar
         events={scopedEvents}
