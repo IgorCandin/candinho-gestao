@@ -13,7 +13,6 @@ import {
   Search,
   Square,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   useEffect,
   useMemo,
@@ -120,7 +119,6 @@ export function MarketingProductMediaHubV4533({
   canEditSupplements: boolean;
   canEditFitness: boolean;
 }) {
-  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadTargetRef = useRef<UploadTarget | null>(null);
 
@@ -293,7 +291,6 @@ export function MarketingProductMediaHubV4533({
         }.`,
       );
 
-      router.refresh();
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -301,12 +298,14 @@ export function MarketingProductMediaHubV4533({
           : "Não foi possível atualizar a foto.",
       );
     } finally {
-      setUploadingKey(null);
       uploadTargetRef.current = null;
 
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+
+      // Último passo: reativa todos os quadrados de foto.
+      setUploadingKey(null);
     }
   }
 
@@ -768,6 +767,9 @@ export function MarketingProductMediaHubV4533({
         className="visually-hidden"
         type="file"
         accept="image/jpeg,image/png,image/webp"
+        onClick={(event) => {
+          event.currentTarget.value = "";
+        }}
         onChange={(event) =>
           void uploadSelected(
             event.target.files?.[0],

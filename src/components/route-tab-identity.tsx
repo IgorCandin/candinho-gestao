@@ -11,7 +11,7 @@ type Operation =
   | "central"
   | "physique";
 
-const FAVICON_VERSION = "45.35";
+const FAVICON_VERSION = "45.35.1";
 
 const OPERATION = {
   company: {
@@ -360,80 +360,33 @@ export function RouteTabIdentity() {
     const identity =
       identityFor(pathname || "/");
 
-    let applying = false;
-
     const apply = () => {
-      if (applying) return;
-
-      applying = true;
-
-      try {
-        applyIdentity(
-          identity.brandTitle,
-          identity.icon,
-        );
-      } finally {
-        applying = false;
-      }
+      applyIdentity(
+        identity.brandTitle,
+        identity.icon,
+      );
     };
 
+    // Aplica no início e reaplica em janelas curtas nas quais
+    // o Next pode reescrever metadata. Depois encerra: nada de
+    // observar o <head> indefinidamente.
     apply();
 
     const frame =
       window.requestAnimationFrame(apply);
 
-    const timer =
-      window.setTimeout(apply, 260);
-
-    const observer =
-      new MutationObserver(() => {
-        const managed =
-          document.head.querySelector<HTMLLinkElement>(
-            'link[data-route-tab-identity="true"]',
-          );
-
-        const expected =
-          versioned(identity.icon);
-
-        const competing =
-          Array.from(
-            document.head.querySelectorAll<HTMLLinkElement>(
-              'link[rel="icon"], link[rel="shortcut icon"]',
-            ),
-          ).some(
-            (icon) =>
-              icon.dataset.routeTabIdentity !==
-              "true",
-          );
-
-        if (
-          document.title !==
-            identity.brandTitle ||
-          managed?.getAttribute("href") !==
-            expected ||
-          competing
-        ) {
-          apply();
-        }
-      });
-
-    observer.observe(
-      document.head,
-      {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: [
-          "href",
-          "rel",
-        ],
-      },
-    );
+    const timers = [
+      window.setTimeout(apply, 120),
+      window.setTimeout(apply, 420),
+      window.setTimeout(apply, 1100),
+    ];
 
     return () => {
-      observer.disconnect();
       window.cancelAnimationFrame(frame);
-      window.clearTimeout(timer);
+
+      for (const timer of timers) {
+        window.clearTimeout(timer);
+      }
     };
   }, [pathname]);
 
