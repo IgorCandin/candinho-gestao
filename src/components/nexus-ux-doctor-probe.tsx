@@ -148,20 +148,35 @@ function inspectFixedClipping(pathname: string) {
     .slice(0, 500);
 
   for (const element of elements) {
+    const style = window.getComputedStyle(element);
+    const position = style.position;
     const rect = element.getBoundingClientRect();
+
     if (rect.width <= 0 || rect.height <= 0) continue;
     if (rect.width > viewportWidth * 1.15 && rect.height > viewportHeight * 0.8) {
       continue;
     }
     if (hasScrollableAncestor(element)) continue;
 
-    const overflow = Math.max(
+    const horizontalOverflow = Math.max(
       0,
       -rect.left,
       rect.right - viewportWidth,
+    );
+    const verticalOverflow = Math.max(
+      0,
       -rect.top,
       rect.bottom - viewportHeight,
     );
+
+    // Elementos sticky continuam participando do fluxo normal antes/depois de
+    // atingir o ponto de aderência. Portanto, estar verticalmente fora da dobra
+    // não significa clipping. Para sticky, o Doctor só acusa corte horizontal.
+    // Elementos fixed continuam sendo fiscalizados nos dois eixos.
+    const overflow =
+      position === "sticky"
+        ? horizontalOverflow
+        : Math.max(horizontalOverflow, verticalOverflow);
 
     if (overflow > 12) {
       const hint = selectorHint(element);
@@ -170,6 +185,9 @@ function inspectFixedClipping(pathname: string) {
         dedupeKey: hint,
         payload: {
           element: hint,
+          position,
+          horizontal_overflow: Math.ceil(horizontalOverflow),
+          vertical_overflow: Math.ceil(verticalOverflow),
           rect: {
             left: Math.round(rect.left),
             top: Math.round(rect.top),
