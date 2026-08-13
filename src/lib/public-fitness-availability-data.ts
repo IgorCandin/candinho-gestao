@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { publicSupabaseRpc } from "@/lib/public-supabase-rpc-v45-36";
 
 export type PublicFitnessAvailabilityOption = {
   size: string;
@@ -19,32 +19,41 @@ function number(value: unknown) {
 export async function getPublicFitnessAvailabilityMap(): Promise<
   PublicFitnessAvailabilityMap
 > {
-  const supabase = await createClient();
+  const { data, error } =
+    await publicSupabaseRpc<Record<string, unknown>>(
+      "public_fitness_available_options_v1",
+      {},
+      10,
+    );
 
-  const { data, error } = await supabase.rpc(
-    "public_fitness_available_options_v1",
-  );
-
-  if (error || !data || typeof data !== "object" || Array.isArray(data)) {
+  if (
+    error ||
+    !data ||
+    typeof data !== "object" ||
+    Array.isArray(data)
+  ) {
     if (error) {
       console.warn(
         "[Public Fitness Availability]",
         error.message,
       );
     }
+
     return {};
   }
 
   const result: PublicFitnessAvailabilityMap = {};
 
   for (const [productId, rawOptions] of Object.entries(
-    data as Record<string, unknown>,
+    data,
   )) {
     if (!Array.isArray(rawOptions)) continue;
 
     result[productId] = rawOptions
       .filter(
-        (option): option is Record<string, unknown> =>
+        (
+          option,
+        ): option is Record<string, unknown> =>
           Boolean(
             option &&
               typeof option === "object" &&
@@ -54,7 +63,8 @@ export async function getPublicFitnessAvailabilityMap(): Promise<
       .map((option) => ({
         size: String(option.size ?? ""),
         color: String(option.color ?? ""),
-        available_quantity: number(option.available_quantity),
+        available_quantity:
+          number(option.available_quantity),
       }))
       .filter(
         (option) =>

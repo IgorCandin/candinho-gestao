@@ -1,0 +1,35 @@
+/* =========================================================
+   V45.36 · Performance — zero mudança visual
+   ========================================================= */
+
+/*
+  O navegador deixa para pintar blocos longos da Vitrine quando eles
+  se aproximam da viewport. A geometria continua reservada, então não
+  muda o layout nem a identidade visual.
+*/
+.public-storefront-page
+  .storefront-editorial-top3-v4527,
+.public-storefront-page
+  .storefront-editorial-favorites-v4526,
+.public-storefront-page
+  .storefront-editorial-promos-v4526,
+.public-storefront-page
+  #catalogo-completo,
+.public-storefront-page
+  .public-storefront-blocks
+  > section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 640px;
+}
+
+/*
+  A composição continua idêntica; esta propriedade apenas informa ao
+  navegador que o elemento pode ser promovido sem recalcular pintura
+  de toda a página durante pequenas animações/hover.
+*/
+.public-storefront-page
+  .storefront-editorial-goal-v4526,
+.public-storefront-page
+  .public-storefront-card {
+  backface-visibility: hidden;
+}

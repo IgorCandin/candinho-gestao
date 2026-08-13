@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { publicSupabaseRpc } from "@/lib/public-supabase-rpc-v45-36";
 
 export type PublicStorefrontTopSeller = {
   operation: "supplements" | "fitness";
@@ -19,14 +19,19 @@ function numberValue(value: unknown) {
 export async function getPublicStorefrontTopSellers(
   limit = 3,
 ): Promise<PublicStorefrontTopSeller[]> {
-  const supabase = await createClient();
+  const safeLimit =
+    Math.min(Math.max(limit, 1), 12);
 
-  const { data, error } = await supabase.rpc(
-    "public_storefront_top_sellers",
-    {
-      p_limit: Math.min(Math.max(limit, 1), 12),
-    },
-  );
+  const { data, error } =
+    await publicSupabaseRpc<
+      Array<Record<string, unknown>>
+    >(
+      "public_storefront_top_sellers",
+      {
+        p_limit: safeLimit,
+      },
+      15,
+    );
 
   if (error) {
     throw new Error(
@@ -38,36 +43,49 @@ export async function getPublicStorefrontTopSellers(
 
   return data
     .filter(
-      (row): row is Record<string, unknown> =>
-        Boolean(row && typeof row === "object"),
+      (
+        row,
+      ): row is Record<string, unknown> =>
+        Boolean(
+          row &&
+            typeof row === "object" &&
+            !Array.isArray(row),
+        ),
     )
-    .map((row): PublicStorefrontTopSeller => ({
-      operation:
-        row.operation === "fitness"
-          ? "fitness"
-          : "supplements",
-      product_id: String(row.product_id ?? ""),
-      name: String(row.name ?? "Produto"),
-      image_url:
-        typeof row.image_url === "string"
-          ? row.image_url
-          : null,
-      price_from: numberValue(row.price_from),
-      units_sold: numberValue(row.units_sold),
-      available_quantity: numberValue(
-        row.available_quantity,
-      ),
-      href:
-        typeof row.href === "string" &&
-        row.href.startsWith("/")
-          ? row.href
-          : "/catalogo",
-    }))
+    .map(
+      (row): PublicStorefrontTopSeller => ({
+        operation:
+          row.operation === "fitness"
+            ? "fitness"
+            : "supplements",
+        product_id:
+          String(row.product_id ?? ""),
+        name:
+          String(row.name ?? "Produto"),
+        image_url:
+          typeof row.image_url === "string"
+            ? row.image_url
+            : null,
+        price_from:
+          numberValue(row.price_from),
+        units_sold:
+          numberValue(row.units_sold),
+        available_quantity:
+          numberValue(
+            row.available_quantity,
+          ),
+        href:
+          typeof row.href === "string" &&
+          row.href.startsWith("/")
+            ? row.href
+            : "/catalogo",
+      }),
+    )
     .filter(
       (row) =>
         row.product_id &&
         row.units_sold > 0 &&
         row.available_quantity > 0,
     )
-    .slice(0, limit);
+    .slice(0, safeLimit);
 }

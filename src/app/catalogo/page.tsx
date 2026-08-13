@@ -8,20 +8,21 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicBackorderSection } from "@/components/public-backorder-section";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
+import { PublicCatalogWarmupV4536 } from "@/components/public-catalog-warmup-v45-36";
 import { PublicStorefrontBrowser } from "@/components/public-storefront-browser";
 import { PublicStorefrontVisualEnhancer } from "@/components/public-storefront-visual-enhancer";
 import { PublicStorefrontCompanyUX } from "@/components/public-storefront-company-ux";
 import { PublicStorefrontEditorialV4526 } from "@/components/public-storefront-editorial-v45-26";
 import { PublicFitnessAvailabilityEnhancer } from "@/components/public-fitness-availability-enhancer";
 import {
-  getPublicStorefrontSlugMap,
-} from "@/lib/public-product-page-data";
+  getCachedPublicStorefrontSlugMap,
+} from "@/lib/public-storefront-slug-map-v45-36";
 import { getPublicStorefrontSnapshot } from "@/lib/public-storefront-data";
 import { getPublicStorefrontTopSellers } from "@/lib/public-storefront-top-sellers";
 import { getPublicFitnessAvailabilityMap } from "@/lib/public-fitness-availability-data";
 import { getPublicSupplementBackorders } from "@/lib/public-backorder-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 10;
 
 export default async function PublicCatalogPage() {
   const [
@@ -32,10 +33,12 @@ export default async function PublicCatalogPage() {
     topSellers,
   ] = await Promise.all([
     getPublicStorefrontSnapshot(),
-    getPublicStorefrontSlugMap(),
+    getCachedPublicStorefrontSlugMap(),
     getPublicFitnessAvailabilityMap(),
     getPublicSupplementBackorders(),
-    getPublicStorefrontTopSellers(3).catch(() => []),
+    getPublicStorefrontTopSellers(3).catch(
+      () => [],
+    ),
   ]);
 
   const company =
@@ -43,6 +46,8 @@ export default async function PublicCatalogPage() {
 
   return (
     <main className="public-storefront-page">
+      <PublicCatalogWarmupV4536 />
+
       <PublicCatalogCardLinks
         links={productLinks}
       />

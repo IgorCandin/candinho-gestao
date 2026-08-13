@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { publicSupabaseRpc } from "@/lib/public-supabase-rpc-v45-36";
 
 function numberValue(value: unknown) {
   const parsed = Number(value ?? 0);
@@ -19,12 +19,16 @@ export type PublicBackorderProduct = {
 export async function getPublicSupplementBackorders(): Promise<
   PublicBackorderProduct[]
 > {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.rpc(
-    "public_catalog_backorders_v1",
-    { p_limit: 80 },
-  );
+  const { data, error } =
+    await publicSupabaseRpc<
+      Array<Record<string, unknown>>
+    >(
+      "public_catalog_backorders_v1",
+      {
+        p_limit: 80,
+      },
+      10,
+    );
 
   if (error) {
     console.warn(
@@ -34,18 +38,28 @@ export async function getPublicSupplementBackorders(): Promise<
     return [];
   }
 
-  return (data ?? []).map(
-    (row: Record<string, unknown>) => ({
+  return (Array.isArray(data) ? data : []).map(
+    (row) => ({
       product_id: String(row.product_id ?? ""),
       name: String(row.name ?? "Produto"),
       category:
-        typeof row.category === "string" ? row.category : null,
-      brand: typeof row.brand === "string" ? row.brand : null,
+        typeof row.category === "string"
+          ? row.category
+          : null,
+      brand:
+        typeof row.brand === "string"
+          ? row.brand
+          : null,
       image_url:
-        typeof row.image_url === "string" ? row.image_url : null,
-      sale_price: numberValue(row.sale_price),
-      available_quantity: numberValue(row.available_quantity),
-      incoming_quantity: numberValue(row.incoming_quantity),
+        typeof row.image_url === "string"
+          ? row.image_url
+          : null,
+      sale_price:
+        numberValue(row.sale_price),
+      available_quantity:
+        numberValue(row.available_quantity),
+      incoming_quantity:
+        numberValue(row.incoming_quantity),
     }),
   );
 }

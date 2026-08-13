@@ -14,7 +14,9 @@ import { PublicStorefrontBrowser } from "@/components/public-storefront-browser"
 import { PublicStorefrontVisualEnhancer } from "@/components/public-storefront-visual-enhancer";
 import { PublicStorefrontCompanyUX } from "@/components/public-storefront-company-ux";
 import { PublicFitnessAvailabilityEnhancer } from "@/components/public-fitness-availability-enhancer";
-import { getPublicStorefrontSlugMap } from "@/lib/public-product-page-data";
+import {
+  getCachedPublicStorefrontSlugMap,
+} from "@/lib/public-storefront-slug-map-v45-36";
 import {
   getPublicStorefrontSnapshot,
   type PublicStorefrontSnapshot,
@@ -71,6 +73,9 @@ export async function PublicCatalogOperationPage({
 }: {
   operation: PublicCatalogOperation;
 }) {
+  const isFitness =
+    operation === "fitness";
+
   const [
     snapshot,
     productLinks,
@@ -78,8 +83,10 @@ export async function PublicCatalogOperationPage({
     backorders,
   ] = await Promise.all([
     getPublicStorefrontSnapshot(),
-    getPublicStorefrontSlugMap(),
-    getPublicFitnessAvailabilityMap(),
+    getCachedPublicStorefrontSlugMap(),
+    isFitness
+      ? getPublicFitnessAvailabilityMap()
+      : Promise.resolve({}),
     operation === "supplements"
       ? getPublicSupplementBackorders()
       : Promise.resolve([]),
@@ -90,9 +97,6 @@ export async function PublicCatalogOperationPage({
       snapshot,
       operation,
     );
-
-  const isFitness =
-    operation === "fitness";
 
   const brand = isFitness
     ? BRAND_ASSETS.fitness.complete

@@ -20,17 +20,23 @@ import "./v45-30-commercial-queue.css";
 import "./v45-32-catalog-agenda-tools.css";
 import "./v45-33-operational-finish.css";
 import "./v45-35-media-favicon.css";
+import "./v45-36-performance.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
   description:
     "Gestão integrada da Candinho Company: Central, Suplementos, Fitness, Bank e Portal do Parceiro.",
-  applicationName: "Candinho Company",
-  manifest: "/manifest.webmanifest",
+  applicationName:
+    "Candinho Company",
+  manifest:
+    "/manifest.webmanifest",
   icons: {
-    icon: "/favicons/cc.png",
-    shortcut: "/favicons/cc.png",
-    apple: "/favicons/cc-v44-180.png",
+    icon:
+      "/favicons/cc.png",
+    shortcut:
+      "/favicons/cc.png",
+    apple:
+      "/favicons/cc-v44-180.png",
   },
 };
 
@@ -46,8 +52,32 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabaseOrigin =
+    process.env
+      .NEXT_PUBLIC_SUPABASE_URL
+      ?.replace(
+        /\/+$/,
+        "",
+      );
+
   return (
     <html lang="pt-BR">
+      <head>
+        {supabaseOrigin && (
+          <>
+            <link
+              rel="preconnect"
+              href={supabaseOrigin}
+              crossOrigin="anonymous"
+            />
+            <link
+              rel="dns-prefetch"
+              href={supabaseOrigin}
+            />
+          </>
+        )}
+      </head>
+
       <body>
         <Suspense fallback={null}>
           <RouteTabIdentity />

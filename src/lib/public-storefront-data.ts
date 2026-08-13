@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { publicSupabaseRpc } from "@/lib/public-supabase-rpc-v45-36";
 
 export type PublicStorefrontImage = {
   url: string;
@@ -99,16 +99,20 @@ function images(value: unknown): PublicStorefrontImage[] {
     .filter((entry) => entry.url);
 }
 
-function product(row: Record<string, unknown>): PublicStorefrontProduct {
+function product(
+  row: Record<string, unknown>,
+): PublicStorefrontProduct {
   const parsedImages = images(row.images);
   const imageUrl =
     typeof row.image_url === "string" ? row.image_url : null;
 
   return {
     id: String(row.id ?? ""),
-    operation: row.operation === "fitness" ? "fitness" : "supplements",
+    operation:
+      row.operation === "fitness" ? "fitness" : "supplements",
     name: String(row.name ?? "Produto"),
-    category: typeof row.category === "string" ? row.category : null,
+    category:
+      typeof row.category === "string" ? row.category : null,
     image_url: imageUrl,
     price_from: num(row.price_from),
     price_to: num(row.price_to),
@@ -140,10 +144,14 @@ function promotion(
     id: String(row.id ?? ""),
     promotion_id: String(row.promotion_id ?? ""),
     product_id:
-      typeof row.product_id === "string" ? row.product_id : null,
-    operation: row.operation === "fitness" ? "fitness" : "supplements",
+      typeof row.product_id === "string"
+        ? row.product_id
+        : null,
+    operation:
+      row.operation === "fitness" ? "fitness" : "supplements",
     name: String(row.name ?? "Produto"),
-    category: typeof row.category === "string" ? row.category : null,
+    category:
+      typeof row.category === "string" ? row.category : null,
     image_url:
       typeof row.image_url === "string" ? row.image_url : null,
     current_price: num(row.current_price),
@@ -154,7 +162,8 @@ function promotion(
       row.promotion_status === "scheduled" ? "scheduled" : "active",
     starts_on:
       typeof row.starts_on === "string" ? row.starts_on : null,
-    ends_on: typeof row.ends_on === "string" ? row.ends_on : null,
+    ends_on:
+      typeof row.ends_on === "string" ? row.ends_on : null,
     available_quantity: availableQuantity,
     stock_status:
       row.stock_status === "sold_out" || availableQuantity <= 0
@@ -164,14 +173,14 @@ function promotion(
 }
 
 export async function getPublicStorefrontSnapshot(): Promise<PublicStorefrontSnapshot> {
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.rpc(
-    "public_storefront_snapshot",
-    {
-      p_limit: 500,
-    },
-  );
+  const { data, error } =
+    await publicSupabaseRpc<Record<string, unknown>>(
+      "public_storefront_snapshot",
+      {
+        p_limit: 500,
+      },
+      10,
+    );
 
   if (error) {
     throw new Error(
@@ -186,11 +195,19 @@ export async function getPublicStorefrontSnapshot(): Promise<PublicStorefrontSna
   const promotions = object(payload.promotions);
   const categories = object(payload.categories);
 
-  const asRows = (value: unknown): Record<string, unknown>[] =>
+  const asRows = (
+    value: unknown,
+  ): Record<string, unknown>[] =>
     Array.isArray(value)
       ? value.filter(
-          (item): item is Record<string, unknown> =>
-            Boolean(item && typeof item === "object"),
+          (
+            item,
+          ): item is Record<string, unknown> =>
+            Boolean(
+              item &&
+                typeof item === "object" &&
+                !Array.isArray(item),
+            ),
         )
       : [];
 
@@ -198,22 +215,29 @@ export async function getPublicStorefrontSnapshot(): Promise<PublicStorefrontSna
     Array.isArray(value)
       ? value.filter(
           (item): item is string =>
-            typeof item === "string" && item.trim().length > 0,
+            typeof item === "string" &&
+            item.trim().length > 0,
         )
       : [];
 
   return {
     products: {
-      supplements: asRows(products.supplements).map(product),
-      fitness: asRows(products.fitness).map(product),
+      supplements:
+        asRows(products.supplements).map(product),
+      fitness:
+        asRows(products.fitness).map(product),
     },
     promotions: {
-      supplements: asRows(promotions.supplements).map(promotion),
-      fitness: asRows(promotions.fitness).map(promotion),
+      supplements:
+        asRows(promotions.supplements).map(promotion),
+      fitness:
+        asRows(promotions.fitness).map(promotion),
     },
     categories: {
-      supplements: asStrings(categories.supplements),
-      fitness: asStrings(categories.fitness),
+      supplements:
+        asStrings(categories.supplements),
+      fitness:
+        asStrings(categories.fitness),
     },
     generated_at:
       typeof payload.generated_at === "string"

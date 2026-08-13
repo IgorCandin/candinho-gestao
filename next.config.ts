@@ -31,6 +31,27 @@ const nextConfig: NextConfig = {
     cpus: 1,
   },
 
+  async headers() {
+    const immutable = [
+      {
+        key: "Cache-Control",
+        value:
+          "public, max-age=31536000, immutable",
+      },
+    ];
+
+    return [
+      {
+        source: "/favicons/:path*",
+        headers: immutable,
+      },
+      {
+        source: "/vitrine/:path*",
+        headers: immutable,
+      },
+    ];
+  },
+
   async redirects() {
     return [
       {
@@ -54,7 +75,8 @@ const nextConfig: NextConfig = {
             value: "marketing",
           },
         ],
-        destination: "/central/marketing/ideias",
+        destination:
+          "/central/marketing/ideias",
         permanent: false,
       },
       {
@@ -66,65 +88,89 @@ const nextConfig: NextConfig = {
             value: "marketing",
           },
         ],
-        destination: "/central/marketing/planejamento",
+        destination:
+          "/central/marketing/planejamento",
         permanent: false,
       },
       {
-        source: "/marketing/midia",
-        destination: "/central/marketing/ideias",
+        source:
+          "/marketing/midia",
+        destination:
+          "/central/marketing/ideias",
         permanent: false,
       },
       {
-        source: "/marketing/agenda",
-        destination: "/central/marketing/planejamento",
+        source:
+          "/marketing/agenda",
+        destination:
+          "/central/marketing/planejamento",
         permanent: false,
       },
       {
         source: "/marketing",
-        destination: "/central/marketing",
+        destination:
+          "/central/marketing",
         permanent: false,
       },
       {
-        source: "/marketing/:path*",
-        destination: "/central/marketing/:path*",
+        source:
+          "/marketing/:path*",
+        destination:
+          "/central/marketing/:path*",
         permanent: false,
       },
 
-      ...supplementRouteRoots.flatMap((route) => [
-        {
-          source: `/${route}`,
-          destination: `/suplementos/${route}`,
-          permanent: false,
-        },
-        {
-          source: `/${route}/:path*`,
-          destination: `/suplementos/${route}/:path*`,
-          permanent: false,
-        },
-      ]),
+      ...supplementRouteRoots.flatMap(
+        (route) => [
+          {
+            source:
+              `/${route}`,
+            destination:
+              `/suplementos/${route}`,
+            permanent: false,
+          },
+          {
+            source:
+              `/${route}/:path*`,
+            destination:
+              `/suplementos/${route}/:path*`,
+            permanent: false,
+          },
+        ],
+      ),
     ];
   },
 
   async rewrites() {
     return {
       beforeFiles: [
-        ...supplementRouteRoots.flatMap((route) => [
-          {
-            source: `/suplementos/${route}`,
-            destination: `/${route}`,
-          },
-          {
-            source: `/suplementos/${route}/:path*`,
-            destination: `/${route}/:path*`,
-          },
-        ]),
+        ...supplementRouteRoots.flatMap(
+          (route) => [
+            {
+              source:
+                `/suplementos/${route}`,
+              destination:
+                `/${route}`,
+            },
+            {
+              source:
+                `/suplementos/${route}/:path*`,
+              destination:
+                `/${route}/:path*`,
+            },
+          ],
+        ),
         {
-          source: "/central/marketing",
-          destination: "/marketing",
+          source:
+            "/central/marketing",
+          destination:
+            "/marketing",
         },
         {
-          source: "/central/marketing/:path*",
-          destination: "/marketing/:path*",
+          source:
+            "/central/marketing/:path*",
+          destination:
+            "/marketing/:path*",
         },
       ],
     };
