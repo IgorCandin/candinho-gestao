@@ -148,12 +148,14 @@ export function AgendaDragDropV4532({
   useEffect(() => {
     if (!enabled) return;
 
-    const root =
+    const rootCandidate =
       document.querySelector<HTMLElement>(
         ".agenda-layout",
       );
 
-    if (!root) return;
+    if (!rootCandidate) return;
+
+    const root: HTMLElement = rootCandidate;
 
     function clearTargets() {
       root
