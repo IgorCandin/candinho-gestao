@@ -6,12 +6,14 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 
 export default function LoginPage() {
   const company = BRAND_ASSETS.company.complete;
+
+  // Marketing foi absorvido pela Central. O asset antigo continua
+  // no repositório por segurança, mas deixa de ser exibido no produto.
   const operations = [
     BRAND_ASSETS.supplements.reduced,
     BRAND_ASSETS.fitness.reduced,
     BRAND_ASSETS.bank.reduced,
     BRAND_ASSETS.central.reduced,
-    BRAND_ASSETS.marketing.reduced,
     BRAND_ASSETS.physique.reduced,
   ];
 
@@ -52,12 +54,18 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <div className="login-operations-band" aria-label="Operações da Candinho Company">
-          <div className="login-operations login-operations-six login-operations-prominent">
+        <div
+          className="login-operations-band"
+          aria-label="Operações da Candinho Company"
+        >
+          <div className="login-operations login-operations-prominent">
             {operations.map((operation, index) => (
               <div className="login-operation-segment" key={operation.src}>
                 {index > 0 && (
-                  <span className="login-operation-divider" aria-hidden="true" />
+                  <span
+                    className="login-operation-divider"
+                    aria-hidden="true"
+                  />
                 )}
                 <div
                   className={`login-operation-logo ${

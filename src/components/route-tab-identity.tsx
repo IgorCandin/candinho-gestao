@@ -11,6 +11,8 @@ type Operation =
   | "central"
   | "physique";
 
+const FAVICON_VERSION = "45.34";
+
 const OPERATION = {
   company: {
     suffix: "Company",
@@ -48,6 +50,7 @@ const OPERATION = {
 >;
 
 const LABELS: Array<[string, string]> = [
+  ["/central/marketing/produtos", "Produtos e fotos"],
   ["/central/marketing/planejamento", "Planejamento de marketing"],
   ["/central/marketing/ideias", "Ideias e roteiros"],
   ["/central/agenda-estrategica", "Agenda Estratégica"],
@@ -66,6 +69,12 @@ const LABELS: Array<[string, string]> = [
   ["/central/busca", "Busca Global"],
   ["/central/midia", "Mídia"],
   ["/central/inicio", "Menu"],
+
+  // Nexus passa a usar oficialmente a identidade da Central.
+  ["/nexus/qualidade", "Qualidade"],
+  ["/nexus/rotinas", "Rotinas"],
+  ["/nexus/fila", "Fila Nexus"],
+  ["/nexus", "Nexus"],
 
   ["/fitness/pedidos/novo", "Novo pedido"],
   ["/fitness/vendas/nova", "Nova venda"],
@@ -126,10 +135,16 @@ const LABELS: Array<[string, string]> = [
   ["/vendas", "Comercial"],
 
   ["/physique/atletas", "Atletas"],
-  ["/configuracoes", "Configurações"],
-  ["/catalogo", "Catálogo"],
-  ["/promocoes", "Promoções"],
+
+  ["/parceiro/seguranca", "Segurança"],
   ["/parceiro", "Portal do parceiro"],
+
+  ["/catalogo/suplementos", "Catálogo de suplementos"],
+  ["/catalogo/fitness", "Catálogo Fitness"],
+  ["/catalogo", "Vitrine"],
+
+  ["/configuracoes", "Configurações"],
+  ["/promocoes", "Promoções"],
 ];
 
 function startsWithRoute(pathname: string, route: string) {
@@ -139,9 +154,25 @@ function startsWithRoute(pathname: string, route: string) {
 function operationFor(pathname: string): Operation {
   if (startsWithRoute(pathname, "/bank")) return "bank";
   if (startsWithRoute(pathname, "/fitness")) return "fitness";
-  if (startsWithRoute(pathname, "/central")) return "central";
+
+  // Nexus e Marketing pertencem visualmente à Central.
+  if (
+    startsWithRoute(pathname, "/central") ||
+    startsWithRoute(pathname, "/nexus") ||
+    startsWithRoute(pathname, "/marketing")
+  ) {
+    return "central";
+  }
+
   if (startsWithRoute(pathname, "/physique")) return "physique";
-  if (startsWithRoute(pathname, "/suplementos")) return "supplements";
+
+  // Portal do Parceiro usa a identidade Candinho Suplementos.
+  if (
+    startsWithRoute(pathname, "/suplementos") ||
+    startsWithRoute(pathname, "/parceiro")
+  ) {
+    return "supplements";
+  }
 
   const supplementRoots = [
     "/agenda",
@@ -208,27 +239,44 @@ function identityFor(pathname: string) {
   };
 }
 
-function setFavicon(href: string) {
-  const versionedHref = `${href}?v=45.22`;
-  const icons = Array.from(
-    document.querySelectorAll<HTMLLinkElement>(
-      'link[rel="icon"], link[rel="shortcut icon"]',
-    ),
-  );
+function faviconHref(href: string) {
+  return `${href}?v=${FAVICON_VERSION}`;
+}
 
-  if (icons.length === 0) {
-    const icon = document.createElement("link");
-    icon.rel = "icon";
+function ensureManagedIcon(
+  rel: "icon" | "shortcut icon",
+  href: string,
+) {
+  const selector = `link[data-route-tab-identity="${rel}"]`;
+  let icon = document.head.querySelector<HTMLLinkElement>(selector);
+
+  if (!icon) {
+    icon = document.createElement("link");
+    icon.dataset.routeTabIdentity = rel;
+    icon.rel = rel;
     icon.type = "image/png";
-    icon.href = versionedHref;
     document.head.appendChild(icon);
-    return;
   }
 
-  icons.forEach((icon) => {
-    icon.type = "image/png";
-    icon.href = versionedHref;
-  });
+  const nextHref = faviconHref(href);
+
+  if (icon.getAttribute("href") !== nextHref) {
+    icon.setAttribute("href", nextHref);
+  }
+}
+
+function applyIdentity(
+  title: string,
+  icon: string,
+) {
+  if (document.title !== title) {
+    document.title = title;
+  }
+
+  // Um link gerenciado fica por último no <head>, evitando que o
+  // favicon global da Company vença em navegações internas do Next.
+  ensureManagedIcon("icon", icon);
+  ensureManagedIcon("shortcut icon", icon);
 }
 
 export function RouteTabIdentity() {
@@ -238,15 +286,39 @@ export function RouteTabIdentity() {
     const identity = identityFor(pathname || "/");
 
     const apply = () => {
-      document.title = identity.brandTitle;
-      setFavicon(identity.icon);
+      applyIdentity(identity.brandTitle, identity.icon);
     };
 
     apply();
+
     const frame = window.requestAnimationFrame(apply);
-    const timer = window.setTimeout(apply, 180);
+    const timer = window.setTimeout(apply, 220);
+
+    // Algumas páginas inserem metadata depois da navegação.
+    // Se o Next alterar title/favicon, reaplica a identidade da operação.
+    const observer = new MutationObserver(() => {
+      const managed = document.head.querySelector<HTMLLinkElement>(
+        'link[data-route-tab-identity="icon"]',
+      );
+
+      const expectedIcon = faviconHref(identity.icon);
+
+      if (
+        document.title !== identity.brandTitle ||
+        managed?.getAttribute("href") !== expectedIcon
+      ) {
+        apply();
+      }
+    });
+
+    observer.observe(document.head, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+    });
 
     return () => {
+      observer.disconnect();
       window.cancelAnimationFrame(frame);
       window.clearTimeout(timer);
     };
