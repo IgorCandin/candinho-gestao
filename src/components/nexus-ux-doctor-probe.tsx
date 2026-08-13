@@ -80,6 +80,34 @@ async function sendSignal(
   }
 }
 
+async function sendHealthyLayout(pathname: string) {
+  if (typeof window === "undefined") return;
+
+  const dedupe = [
+    "candinho:ux-doctor:healthy-layout",
+    pathname,
+    viewportClass(),
+  ].join("|");
+
+  if (sessionSeen(dedupe)) return;
+  markSessionSeen(dedupe);
+
+  try {
+    await fetch("/api/nexus/ux-health", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      keepalive: true,
+      body: JSON.stringify({
+        health_check: "layout",
+        route: pathname,
+        viewport_class: viewportClass(),
+      }),
+    });
+  } catch {
+    // Diagnóstico saudável também nunca pode bloquear a operação.
+  }
+}
+
 function hasScrollableAncestor(element: Element) {
   let parent = element.parentElement;
 
@@ -121,40 +149,19 @@ function inspectFixedClipping(pathname: string) {
 
   for (const element of elements) {
     const rect = element.getBoundingClientRect();
-    const style = window.getComputedStyle(element);
-
     if (rect.width <= 0 || rect.height <= 0) continue;
     if (rect.width > viewportWidth * 1.15 && rect.height > viewportHeight * 0.8) {
       continue;
     }
     if (hasScrollableAncestor(element)) continue;
 
-    // Elementos inteiramente fora da viewport costumam estar em transição,
-    // recolhidos ou simplesmente foram ultrapassados pelo scroll. Não são
-    // quebra visual por si só.
-    const intersectsViewport =
-      rect.right > 0 &&
-      rect.left < viewportWidth &&
-      rect.bottom > 0 &&
-      rect.top < viewportHeight;
-
-    if (!intersectsViewport) continue;
-
-    const horizontalOverflow = Math.max(
+    const overflow = Math.max(
       0,
       -rect.left,
       rect.right - viewportWidth,
+      -rect.top,
+      rect.bottom - viewportHeight,
     );
-
-    // Sticky acompanha o fluxo vertical da página. O V45.7 tratava qualquer
-    // parte acima/abaixo da viewport como clipping e gerava falsos positivos
-    // em sidebar, topbar, painel de venda e imagens de produto.
-    const verticalOverflow =
-      style.position === "fixed"
-        ? Math.max(0, -rect.top, rect.bottom - viewportHeight)
-        : 0;
-
-    const overflow = Math.max(horizontalOverflow, verticalOverflow);
 
     if (overflow > 12) {
       const hint = selectorHint(element);
@@ -163,9 +170,6 @@ function inspectFixedClipping(pathname: string) {
         dedupeKey: hint,
         payload: {
           element: hint,
-          position: style.position,
-          horizontal_overflow: Math.ceil(horizontalOverflow),
-          vertical_overflow: Math.ceil(verticalOverflow),
           rect: {
             left: Math.round(rect.left),
             top: Math.round(rect.top),
@@ -176,12 +180,14 @@ function inspectFixedClipping(pathname: string) {
           },
         },
       });
-      return;
+      return true;
     }
   }
+
+  return false;
 }
 
-function inspectLayout(pathname: string) {
+function inspectLayout(pathname: string, confirmHealthy = false) {
   const root = document.documentElement;
   const body = document.body;
   const viewportWidth = window.innerWidth;
@@ -193,13 +199,10 @@ function inspectLayout(pathname: string) {
   );
 
   const overflow = Math.max(0, Math.ceil(docWidth - viewportWidth));
-  const visualScale = window.visualViewport?.scale ?? 1;
-  const nonDefaultVisualScale = Math.abs(visualScale - 1) > 0.12;
 
-  // Browser/pinch zoom altera a geometria observada. O objetivo do Doctor é
-  // medir a interface em escala normal; caso contrário ele acaba atribuindo
-  // ao ERP um overflow criado pelo próprio zoom do navegador.
-  if (overflow > 8 && !nonDefaultVisualScale) {
+  const hasHorizontalOverflow = overflow > 8;
+
+  if (hasHorizontalOverflow) {
     void sendSignal(pathname, "horizontal_overflow", {
       overflowPx: overflow,
       dedupeKey: `${Math.round(viewportWidth / 50) * 50}`,
@@ -207,12 +210,19 @@ function inspectLayout(pathname: string) {
         document_width: docWidth,
         viewport_width: viewportWidth,
         visual_viewport_width: window.visualViewport?.width ?? null,
-        visual_viewport_scale: visualScale,
+        visual_viewport_scale: window.visualViewport?.scale ?? null,
       },
     });
   }
 
-  inspectFixedClipping(pathname);
+  const hasFixedClip = inspectFixedClipping(pathname);
+  const hasLayoutIssue = hasHorizontalOverflow || hasFixedClip;
+
+  if (confirmHealthy && !hasLayoutIssue) {
+    void sendHealthyLayout(pathname);
+  }
+
+  return hasLayoutIssue;
 }
 
 export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
@@ -224,12 +234,12 @@ export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
     let resizeTimer = 0;
     const timers = [
       window.setTimeout(() => inspectLayout(pathname), 550),
-      window.setTimeout(() => inspectLayout(pathname), 1600),
+      window.setTimeout(() => inspectLayout(pathname, true), 1600),
     ];
 
     const onResize = () => {
       window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => inspectLayout(pathname), 450);
+      resizeTimer = window.setTimeout(() => inspectLayout(pathname, true), 450);
     };
 
     const onError = (event: ErrorEvent) => {

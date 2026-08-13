@@ -9,7 +9,6 @@ import {
   Wrench,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 
 export type UxIssueRow = {
   id: string;
@@ -55,7 +54,6 @@ function badgeClass(row: UxIssueRow) {
 }
 
 export function UxIssueReportList({ rows }: { rows: UxIssueRow[] }) {
-  const router = useRouter();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("pending");
   const [category, setCategory] = useState("all");
@@ -112,7 +110,7 @@ export function UxIssueReportList({ rows }: { rows: UxIssueRow[] }) {
       });
 
       if (!response.ok) throw new Error("Falha ao atualizar.");
-      router.refresh();
+      window.location.reload();
     } finally {
       setUpdating(null);
     }

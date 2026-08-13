@@ -16,7 +16,6 @@ import {
   Target,
   UserRound,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type {
@@ -54,7 +53,6 @@ export function CommercialContactQueue({
 }: {
   snapshot: CommercialContactQueueSnapshot;
 }) {
-  const router = useRouter();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const current = snapshot.items[0] ?? null;
@@ -91,12 +89,17 @@ export function CommercialContactQueue({
               ? "Sem resposta registrada. Ele volta depois, sem poluir sua Agenda."
               : "Resposta registrada. O Nexus segura este contato antes de trazer de novo.",
       );
-      router.refresh();
+      window.location.reload();
     } catch (error) {
-      setMessage(
+      const errorMessage =
         error instanceof Error
           ? error.message
-          : "Não foi possível atualizar a fila comercial.",
+          : error && typeof error === "object" && "message" in error
+            ? String((error as { message?: unknown }).message ?? "")
+            : "";
+
+      setMessage(
+        errorMessage || "Não foi possível atualizar a fila comercial.",
       );
     } finally {
       setLoadingAction(null);

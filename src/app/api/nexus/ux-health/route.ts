@@ -53,6 +53,7 @@ export async function POST(request: Request) {
   const body = object(await request.json().catch(() => ({})));
   const signalType = clean(body.signal_type, 80);
   const route = clean(body.route, 320);
+  const healthCheck = clean(body.health_check, 40);
 
   const allowed = new Set([
     "horizontal_overflow",
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
     "client_error",
   ]);
 
-  if (!signalType || !allowed.has(signalType) || !route?.startsWith("/")) {
+  if (!route?.startsWith("/")) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
@@ -72,6 +73,26 @@ export async function POST(request: Request) {
       : "unknown";
 
   const supabase = await createClient();
+
+  if (healthCheck === "layout") {
+    const { data, error } = await supabase.rpc(
+      "nexus_confirm_ux_layout_health_v1",
+      {
+        p_route: route,
+        p_viewport_class: viewportClass,
+      },
+    );
+
+    if (error) {
+      return NextResponse.json({ ok: false }, { status: 400 });
+    }
+
+    return NextResponse.json({ ok: true, resolved: data ?? 0 });
+  }
+
+  if (!signalType || !allowed.has(signalType)) {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
 
   const { data, error } = await supabase.rpc(
     "nexus_record_ux_health_signal_v1",
