@@ -14,6 +14,8 @@ import {
 const STORAGE_KEY =
   "candinho:desktop-sidebar-collapsed";
 
+const DESKTOP_QUERY = "(min-width: 821px)";
+
 export function DesktopSidebarController({
   children,
 }: {
@@ -27,10 +29,30 @@ export function DesktopSidebarController({
   const [hydrated, setHydrated] =
     useState(false);
 
+  const [isDesktop, setIsDesktop] =
+    useState(false);
+
+  const [hasShell, setHasShell] =
+    useState(false);
+
   const [footerTarget, setFooterTarget] =
     useState<HTMLElement | null>(null);
 
   useEffect(() => {
+    const media = window.matchMedia(DESKTOP_QUERY);
+
+    const syncViewport = () => {
+      setIsDesktop(media.matches);
+    };
+
+    syncViewport();
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", syncViewport);
+    } else {
+      media.addListener(syncViewport);
+    }
+
     try {
       setCollapsed(
         window.localStorage.getItem(
@@ -40,64 +62,64 @@ export function DesktopSidebarController({
     } finally {
       setHydrated(true);
     }
+
+    return () => {
+      if (typeof media.removeEventListener === "function") {
+        media.removeEventListener("change", syncViewport);
+      } else {
+        media.removeListener(syncViewport);
+      }
+    };
   }, []);
 
   useEffect(() => {
-    const apply = () => {
-      const shell =
-        document.querySelector(
-          ".app-shell",
-        );
+    if (!hydrated) return;
 
-      if (!shell) return;
+    const syncShell = () => {
+      const shell = document.querySelector<HTMLElement>(
+        ".app-shell",
+      );
+
+      setHasShell(Boolean(shell));
+
+      if (!shell) {
+        setFooterTarget(null);
+        return;
+      }
 
       shell.classList.toggle(
         "sidebar-collapsed",
         collapsed,
       );
-    };
 
-    const frame =
-      window.requestAnimationFrame(
-        apply,
-      );
-
-    return () =>
-      window.cancelAnimationFrame(
-        frame,
-      );
-  }, [collapsed, pathname]);
-
-  useEffect(() => {
-    if (!hydrated) return;
-
-    const resolveFooter = () => {
       setFooterTarget(
-        document.querySelector(
+        shell.querySelector<HTMLElement>(
           ".sidebar-footer",
-        ) as HTMLElement | null,
+        ),
       );
     };
 
-    const frame =
-      window.requestAnimationFrame(
-        resolveFooter,
-      );
+    const frame = window.requestAnimationFrame(syncShell);
+    const timer = window.setTimeout(syncShell, 80);
 
-    return () =>
-      window.cancelAnimationFrame(
-        frame,
-      );
-  }, [hydrated, pathname, collapsed]);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [collapsed, hydrated, isDesktop, pathname]);
 
   function toggle() {
     setCollapsed((current) => {
       const next = !current;
 
-      window.localStorage.setItem(
-        STORAGE_KEY,
-        next ? "1" : "0",
-      );
+      try {
+        window.localStorage.setItem(
+          STORAGE_KEY,
+          next ? "1" : "0",
+        );
+      } catch {
+        // Falha de storage não pode quebrar a navegação.
+      }
 
       return next;
     });
@@ -149,6 +171,8 @@ export function DesktopSidebarController({
 
       {!hidden &&
         hydrated &&
+        isDesktop &&
+        hasShell &&
         (collapsed
           ? toggleButton(false)
           : footerTarget

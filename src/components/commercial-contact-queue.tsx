@@ -84,7 +84,7 @@ export function CommercialContactQueue({
         action === "contacted"
           ? "Contato marcado como chamado. O próximo já entrou na frente."
           : action === "skipped"
-            ? "Pulou. Esse contato foi para o fim da fila de hoje."
+            ? "Pulou. Esse contato saiu da fila de hoje e volta no próximo dia elegível."
             : action === "no_response"
               ? "Sem resposta registrada. Ele volta depois, sem poluir sua Agenda."
               : "Resposta registrada. O Nexus segura este contato antes de trazer de novo.",

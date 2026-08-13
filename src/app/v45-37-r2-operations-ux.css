@@ -58,11 +58,16 @@
   }
 }
 
-/* V45.37.R4 · Bank
-   Quando o menu desktop é recolhido, a sidebar precisa desaparecer de verdade.
-   Mantém o trilho de 48px do botão, mas elimina a "sidebar fantasma" sem clique. */
+/* V45.37.R5 · estabilização global do shell desktop
+   A sidebar recolhível pertence ao AppShell inteiro — não a uma operação específica.
+   O mesmo comportamento agora vale para Suplementos, Fitness, Central, Bank,
+   Marketing, Vitrine, Parceiro e qualquer outra rota que use .app-shell. */
 @media (min-width: 821px) {
-  .app-shell.theme-bank.sidebar-collapsed > .sidebar {
+  .app-shell.sidebar-collapsed {
+    grid-template-columns: 48px minmax(0, 1fr) !important;
+  }
+
+  .app-shell.sidebar-collapsed > .sidebar {
     min-width: 0 !important;
     width: 0 !important;
     max-width: 0 !important;
@@ -76,11 +81,11 @@
     overflow: hidden !important;
   }
 
-  .app-shell.theme-bank.sidebar-collapsed > .sidebar * {
+  .app-shell.sidebar-collapsed > .sidebar * {
     pointer-events: none !important;
   }
 
-  .app-shell.theme-bank:not(.sidebar-collapsed) > .sidebar {
+  .app-shell:not(.sidebar-collapsed) > .sidebar {
     min-width: 252px !important;
     width: auto !important;
     max-width: none !important;
@@ -88,5 +93,39 @@
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
+  }
+
+  .app-shell > .main {
+    grid-column: 2 / -1;
+    min-width: 0 !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+
+  /* O controlador é global, mas algumas páginas são standalone e não têm sidebar.
+     Nelas, um estado recolhido salvo no localStorage não pode deixar botão fantasma. */
+  body:not(:has(.app-shell)) .desktop-sidebar-toggle {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+
+/* V45.37.R5 · guarda do bottom-nav do Bank em viewport móvel.
+   O Doctor já registrou uma ocorrência em que a barra ficou 29 px abaixo da área visível. */
+@media (max-width: 820px) {
+  nav.bank-v39-mobile-nav {
+    position: fixed !important;
+    left: max(10px, env(safe-area-inset-left)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 !important;
+    transform: none !important;
+    box-sizing: border-box !important;
+  }
+
+  .theme-bank > .main > .content {
+    padding-bottom: max(118px, calc(96px + env(safe-area-inset-bottom))) !important;
   }
 }
