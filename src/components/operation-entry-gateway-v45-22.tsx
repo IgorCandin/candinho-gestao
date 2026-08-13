@@ -11,6 +11,7 @@ import {
   CircleDollarSign,
   ContactRound,
   FileText,
+  Handshake,
   History,
   Home,
   Landmark,
@@ -49,6 +50,7 @@ const CONFIG = {
       { href: "/agenda", label: "Agenda", note: "Compromissos de Suplementos", icon: CalendarDays },
       { href: "/estoque", label: "Estoque e compras", note: "Saldo, giro e reposição", icon: Boxes },
       { href: "/produtos", label: "Produtos", note: "Catálogo e cadastro", icon: PackageSearch },
+      { href: "/parceiros", label: "Parcerias", note: "Rede, acertos e portal", icon: Handshake },
       { href: "/suplementos/painel", label: "Gestão", note: "Indicadores gerenciais", icon: BarChart3 },
     ],
   },
@@ -66,7 +68,8 @@ const CONFIG = {
       { href: "/fitness/clientes", label: "Clientes", note: "Relacionamento Fitness", icon: UsersRound },
       { href: "/fitness/pedidos", label: "Pedidos", note: "Compras e recebimentos", icon: PackageOpen },
     ],
-  },  vitrine: {
+  },
+  vitrine: {
     label: "Candinho Vitrine",
     slogan: "Catálogo, produto e experiência em um só lugar.",
     brand: BRAND_ASSETS.company.complete,
@@ -126,27 +129,13 @@ const CONFIG = {
   {
     label: string;
     slogan: string;
-    brand: {
-      src: string;
-      width: number;
-      height: number;
-      alt: string;
-    };
+    brand: { src: string; width: number; height: number; alt: string };
     rgb: string;
-    items: Array<{
-      href: string;
-      label: string;
-      note: string;
-      icon: typeof Home;
-    }>;
+    items: Array<{ href: string; label: string; note: string; icon: typeof Home }>;
   }
 >;
 
-export function OperationEntryGatewayV4522({
-  operation,
-}: {
-  operation: GatewayOperation;
-}) {
+export function OperationEntryGatewayV4522({ operation }: { operation: GatewayOperation }) {
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
   const [target, setTarget] = useState<string | null>(null);
@@ -154,40 +143,27 @@ export function OperationEntryGatewayV4522({
 
   function enter(href: string) {
     if (leaving) return;
-
     setTarget(href);
     setLeaving(true);
-
-    window.setTimeout(() => {
-      router.push(href);
-    }, 520);
+    window.setTimeout(() => router.push(href), 520);
   }
 
   return (
     <section
-      className={`v4521-supplements-entry v4522-operation-entry tone-${operation} ${
-        leaving ? "is-leaving" : ""
-      }`}
+      className={`v4521-supplements-entry v4522-operation-entry tone-${operation} ${leaving ? "is-leaving" : ""}`}
       style={{
         "--entry-rgb": config.rgb,
-        "--entry-columns": String(Math.min(7, config.items.length)),
-        "--entry-menu-max": `${Math.min(
-          1180,
-          Math.max(520, config.items.length * 168),
-        )}px`,
+        "--entry-columns": String(Math.min(8, config.items.length)),
+        "--entry-menu-max": `${Math.min(1240, Math.max(520, config.items.length * 154))}px`,
       } as CSSProperties}
-    >      <div className="v4521-entry-ambient" />
+    >
+      <div className="v4521-entry-ambient" />
 
-<div className="v4521-entry-center">
+      <div className="v4521-entry-center">
         <span className="v4521-entry-kicker">{config.label}</span>
-
         <div className="v4521-entry-logo-wrap">
           <span className="v4521-entry-orbit" />
-          <Link
-            href="/dashboard"
-            className="v4522-entry-logo-link"
-            aria-label={`${config.label} — voltar às operações`}
-          >
+          <Link href="/dashboard" className="v4522-entry-logo-link" aria-label={`${config.label} — voltar às operações`}>
             <Image
               className="v4521-entry-logo"
               src={config.brand.src}
@@ -198,32 +174,20 @@ export function OperationEntryGatewayV4522({
             />
           </Link>
         </div>
-
         <p>{config.slogan}</p>
       </div>
 
-      <nav
-        className="v4521-entry-menu"
-        aria-label={`Entrar em ${config.label}`}
-      >
+      <nav className="v4521-entry-menu" aria-label={`Entrar em ${config.label}`}>
         {config.items.map(({ href, label, note, icon: Icon }, index) => (
           <button
             type="button"
             key={href}
             onClick={() => enter(href)}
-            className={[
-              target === href ? "is-target" : "",
-              index === 0 ? "is-primary" : "",
-            ]
-              .filter(Boolean)
-              .join(" ")}
+            className={[target === href ? "is-target" : "", index === 0 ? "is-primary" : ""].filter(Boolean).join(" ")}
             style={{ "--entry-index": index } as CSSProperties}
           >
             <Icon size={20} />
-            <span>
-              <strong>{label}</strong>
-              <small>{note}</small>
-            </span>
+            <span><strong>{label}</strong><small>{note}</small></span>
           </button>
         ))}
       </nav>

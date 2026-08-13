@@ -8,7 +8,8 @@ export type NexusUnifiedQueueItem = {
     | "fitness_post_sale"
     | "bank_charge"
     | "bank_invoice"
-    | "bank_debt";
+    | "bank_debt"
+    | "commercial_queue";
   operation_scope: string;
   operation_label: string;
   severity: "urgent" | "attention" | "opportunity" | "info";

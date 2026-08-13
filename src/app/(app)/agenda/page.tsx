@@ -1,8 +1,13 @@
 import { redirect } from "next/navigation";
+import { CommercialContactAgendaCard } from "@/components/commercial-contact-agenda-card";
 import { DemoBanner } from "@/components/demo-banner";
 import { GoogleCalendarConnectionCard } from "@/components/google-calendar-connection-card";
 import { OperationalCalendar } from "@/components/operational-calendar";
 import { PageHeader } from "@/components/page-header";
+import {
+  emptyCommercialContactQueue,
+  type CommercialContactQueueSnapshot,
+} from "@/lib/commercial-contact-types";
 import {
   getAgendaEvents,
   getAgendaPurchaseOrderOptions,
@@ -29,25 +34,21 @@ function dayDiff(date: string, today: string) {
   return Math.round((a - b) / 86_400_000);
 }
 
+function belongsToCommercialQueue(notes: string | null) {
+  if (!notes) return false;
+  return (
+    notes.startsWith("[Recompra automática]") ||
+    notes.startsWith("[Lead:") ||
+    notes.startsWith("[Fila Comercial]")
+  );
+}
+
 export default async function AgendaPage() {
   const access = await getCurrentUserAccess();
   if (!access.canAccessSupplements) redirect("/dashboard");
 
   const supabase = await createClient();
-
-  if (access.canWriteSupplements || access.role === "admin") {
-    const { error: queueError } = await supabase.rpc(
-      "rebalance_flexible_commercial_contacts_v1",
-      { p_daily_cap: 12 },
-    );
-
-    if (queueError) {
-      console.error(
-        "Não foi possível reorganizar a fila comercial flexível:",
-        queueError,
-      );
-    }
-  }
+  const today = todayBrazil();
 
   const [
     events,
@@ -57,6 +58,7 @@ export default async function AgendaPage() {
     users,
     googleCalendar,
     taskScopeResult,
+    commercialQueueResult,
   ] = await Promise.all([
     getAgendaEvents(),
     getCustomerOptions(),
@@ -68,33 +70,36 @@ export default async function AgendaPage() {
       .from("operational_tasks")
       .select("id")
       .eq("operation_scope", "supplements"),
+    supabase.rpc("commercial_contact_queue_v1", { p_limit: 1 }),
   ]);
 
   if (taskScopeResult.error) throw taskScopeResult.error;
+
+  const commercialQueue = commercialQueueResult.error
+    ? emptyCommercialContactQueue(today)
+    : ((commercialQueueResult.data as CommercialContactQueueSnapshot | null) ??
+      emptyCommercialContactQueue(today));
 
   const supplementTaskIds = new Set(
     (taskScopeResult.data ?? []).map((row) => String(row.id)),
   );
 
-  const scopedEvents = events.filter(
-    (event) =>
+  const scopedEvents = events.filter((event) => {
+    if (belongsToCommercialQueue(event.notes)) return false;
+    return (
       event.source_type !== "task" ||
-      supplementTaskIds.has(event.source_id),
-  );
+      supplementTaskIds.has(event.source_id)
+    );
+  });
 
-  const today = todayBrazil();
   const month = today.slice(0, 7);
 
   const summary = {
     today_count: scopedEvents.filter(
-      (event) =>
-        event.status === "planned" &&
-        event.due_date === today,
-    ).length,
+      (event) => event.status === "planned" && event.due_date === today,
+    ).length + (commercialQueue.skipped ? 0 : commercialQueue.completed ? 0 : 1),
     overdue_count: scopedEvents.filter(
-      (event) =>
-        event.status === "planned" &&
-        event.due_date < today,
+      (event) => event.status === "planned" && event.due_date < today,
     ).length,
     next_seven_days_count: scopedEvents.filter((event) => {
       if (event.status !== "planned") return false;
@@ -103,9 +108,8 @@ export default async function AgendaPage() {
     }).length,
     completed_month_count: scopedEvents.filter(
       (event) =>
-        event.status === "completed" &&
-        event.due_date.startsWith(month),
-    ).length,
+        event.status === "completed" && event.due_date.startsWith(month),
+    ).length + (commercialQueue.completed ? 1 : 0),
   };
 
   return (
@@ -115,11 +119,15 @@ export default async function AgendaPage() {
       <PageHeader
         eyebrow="Candinho Suplementos"
         title="Agenda"
-        description="Compromissos fixos continuam vencendo normalmente. A fila comercial flexível é reorganizada automaticamente para manter até 12 contatos por dia."
+        description="Aqui ficam as obrigações reais: pagamentos, pós-venda, fornecedor, entregas e tarefas com data. A meta comercial aparece em um único card de hoje."
       />
 
       {access.canWriteSupplements && (
         <GoogleCalendarConnectionCard status={googleCalendar} />
+      )}
+
+      {!commercialQueue.skipped && (
+        <CommercialContactAgendaCard snapshot={commercialQueue} />
       )}
 
       <OperationalCalendar

@@ -13,6 +13,7 @@ import "./fitness-ux-v4.css";
 import "./nexus-company-gray.css";
 import "./fitness-availability-v1.css";
 import "./public-storefront-company-v7.css";
+import "./v45-30-commercial-queue.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
@@ -34,9 +35,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
       <body>
