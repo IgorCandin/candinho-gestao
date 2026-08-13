@@ -1,0 +1,144 @@
+/* V45.37.R9 · Vitrine mobile polish
+   Desktop permanece intocado. Ajustes exclusivos para telefone/tablet estreito. */
+
+@media (max-width: 720px) {
+  /* Marca Company no início e centralizada */
+  .public-storefront-header.public-storefront-header-v4532 {
+    row-gap: 10px !important;
+  }
+
+  .public-storefront-header-v4532 .public-storefront-header-top-v4532 {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    width: 100% !important;
+    padding: 4px 0 8px !important;
+    margin: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+  }
+
+  .public-storefront-header-v4532 .public-storefront-hero-v4532 {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+    width: 100% !important;
+    padding: 2px 0 10px !important;
+  }
+
+  .public-storefront-company-link-v4532 {
+    width: 100% !important;
+    max-width: none !important;
+    justify-content: center !important;
+  }
+
+  .public-storefront-company-link-v4532 img {
+    width: min(205px, 54vw) !important;
+    margin-inline: auto !important;
+  }
+
+  /* Eyebrows/ícones mais proporcionais no telefone */
+  .public-storefront-hero-v4532 > span,
+  .storefront-editorial-heading-v4526 span,
+  .storefront-editorial-goal-copy-v4526 > span,
+  .storefront-editorial-v4526 .eyebrow {
+    gap: 6px !important;
+  }
+
+  .public-storefront-hero-v4532 > span svg,
+  .storefront-editorial-heading-v4526 svg,
+  .storefront-editorial-goal-copy-v4526 > span svg {
+    width: 13px !important;
+    height: 13px !important;
+    flex: 0 0 13px !important;
+  }
+
+  /* Cards de objetivo: produto principal central e dois produtos atrás,
+     formando uma vitrine simétrica em vez de crescer somente para a direita. */
+  .storefront-editorial-goal-products-v4526 {
+    min-height: 178px !important;
+    width: 100% !important;
+    max-width: 330px !important;
+    margin: 4px auto 0 !important;
+    overflow: visible !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span {
+    left: 50% !important;
+    right: auto !important;
+    bottom: 7px !important;
+    width: 112px !important;
+    transform-origin: center bottom !important;
+    border-radius: 999px !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span:nth-child(1) {
+    z-index: 5 !important;
+    width: 148px !important;
+    bottom: 0 !important;
+    opacity: 1 !important;
+    transform: translateX(-50%) !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span:nth-child(2) {
+    z-index: 3 !important;
+    width: 118px !important;
+    bottom: 13px !important;
+    opacity: .88 !important;
+    transform: translateX(calc(-50% - 82px)) scale(.94) !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span:nth-child(3) {
+    z-index: 3 !important;
+    width: 118px !important;
+    bottom: 13px !important;
+    opacity: .88 !important;
+    transform: translateX(calc(-50% + 82px)) scale(.94) !important;
+  }
+
+  /* Mantém as imagens inteiras e visualmente centradas */
+  .storefront-editorial-goal-products-v4526 img {
+    object-position: center center !important;
+  }
+
+  /* Carrosséis públicos: primeira e última carta ganham respiro lateral,
+     deixando claro que existe rolagem horizontal sem parecer conteúdo cortado. */
+  .storefront-editorial-v4526 [class*="track"],
+  .storefront-editorial-v4526 [class*="carousel"],
+  .storefront-editorial-v4526 [class*="rail"] {
+    scroll-padding-inline: 18px !important;
+  }
+
+  /* Tipografia editorial com melhor proporção no iPhone */
+  .storefront-editorial-goal-v4526 h3 {
+    font-size: clamp(28px, 8vw, 36px) !important;
+    line-height: 1.04 !important;
+  }
+
+  .storefront-editorial-goal-v4526 p {
+    font-size: 14px !important;
+    line-height: 1.58 !important;
+  }
+}
+
+@media (max-width: 430px) {
+  .storefront-editorial-goal-products-v4526 {
+    max-width: 300px !important;
+    min-height: 164px !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span:nth-child(1) {
+    width: 136px !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span:nth-child(2),
+  .storefront-editorial-goal-products-v4526 > span:nth-child(3) {
+    width: 106px !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span:nth-child(2) {
+    transform: translateX(calc(-50% - 72px)) scale(.93) !important;
+  }
+
+  .storefront-editorial-goal-products-v4526 > span:nth-child(3) {
+    transform: translateX(calc(-50% + 72px)) scale(.93) !important;
+  }
+}

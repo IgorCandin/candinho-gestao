@@ -1,0 +1,91 @@
+/* =========================================================
+   V45.37.R8 · Hotfix de viewport dos modais de orçamento/venda
+   - O modal nativo de escolha/PDF ganha limite real de altura.
+   - O conteúdo passa a rolar dentro do próprio overlay.
+   - O fluxo "Finalizar venda" ganha tratamento para telas baixas.
+   - Não altera regra comercial, RPC, orçamento, estoque ou pagamentos.
+   ========================================================= */
+
+/* Modal nativo usado na escolha de orçamento confirmado,
+   finalização de orçamento e prompt de PDF. */
+.budget-choice-backdrop {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.budget-choice-modal {
+  max-height: calc(100dvh - 44px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+/* Mantém o botão de fechar acessível durante a rolagem do modal. */
+.budget-choice-modal > .budget-choice-close {
+  position: sticky !important;
+  z-index: 4;
+  top: 0 !important;
+  float: right;
+  margin-top: -8px;
+  margin-right: -8px;
+}
+
+/* Fluxo confirmado V45.15: o conteúdo central já é rolável,
+   mas reforçamos a caixa útil e o comportamento em viewport baixa. */
+body.v4515-confirm-flow-open {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+
+.v4515-confirm-flow-open .new-sale-side {
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scroll-padding-block: 10px;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Notebook/desktop com pouca altura (ex.: 1360x607):
+   reduzimos cabeçalho/rodapé do overlay para sobrar área útil. */
+@media (min-width: 721px) and (max-height: 700px) {
+  .v4515-confirm-header {
+    top: 8px !important;
+    min-height: 56px !important;
+    padding-block: 8px !important;
+  }
+
+  .v4515-confirm-header small {
+    display: none !important;
+  }
+
+  .v4515-confirm-flow-open .new-sale-side {
+    top: 72px !important;
+    bottom: 66px !important;
+  }
+
+  .v4515-confirm-footer {
+    bottom: 8px !important;
+    min-height: 50px !important;
+    padding: 5px !important;
+  }
+}
+
+/* Mobile: respeita safe-area e mantém o modal totalmente navegável. */
+@media (max-width: 720px) {
+  .budget-choice-backdrop {
+    padding: max(10px, env(safe-area-inset-top)) 12px
+      max(10px, env(safe-area-inset-bottom)) !important;
+  }
+
+  .budget-choice-modal {
+    max-height: calc(
+      100dvh - max(20px, env(safe-area-inset-top)) -
+      max(20px, env(safe-area-inset-bottom))
+    ) !important;
+  }
+}
