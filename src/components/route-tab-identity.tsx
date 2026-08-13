@@ -11,42 +11,46 @@ type Operation =
   | "central"
   | "physique";
 
-const FAVICON_VERSION = "45.34";
+const FAVICON_VERSION = "45.35";
 
 const OPERATION = {
   company: {
     suffix: "Company",
     brandTitle: "Candinho Company",
-    icon: "/favicons/cc-v44.png",
+    icon: "/favicons/cc.png",
   },
   bank: {
     suffix: "Bank",
     brandTitle: "Candinho Bank",
-    icon: "/favicons/cb-v44.png",
+    icon: "/favicons/cb.png",
   },
   fitness: {
     suffix: "Fitness",
     brandTitle: "Candinho Fitness",
-    icon: "/favicons/cf-v44.png",
+    icon: "/favicons/cf.png",
   },
   supplements: {
     suffix: "Suplementos",
     brandTitle: "Candinho Suplementos",
-    icon: "/favicons/cs-v44.png",
+    icon: "/favicons/cs.png",
   },
   central: {
     suffix: "Central",
     brandTitle: "Candinho Central",
-    icon: "/favicons/cce-v44.png",
+    icon: "/favicons/cce.png",
   },
   physique: {
     suffix: "Physique",
     brandTitle: "Candinho Physique",
-    icon: "/favicons/cc-v44.png",
+    icon: "/favicons/cc.png",
   },
 } satisfies Record<
   Operation,
-  { suffix: string; brandTitle: string; icon: string }
+  {
+    suffix: string;
+    brandTitle: string;
+    icon: string;
+  }
 >;
 
 const LABELS: Array<[string, string]> = [
@@ -70,7 +74,6 @@ const LABELS: Array<[string, string]> = [
   ["/central/midia", "Mídia"],
   ["/central/inicio", "Menu"],
 
-  // Nexus passa a usar oficialmente a identidade da Central.
   ["/nexus/qualidade", "Qualidade"],
   ["/nexus/rotinas", "Rotinas"],
   ["/nexus/fila", "Fila Nexus"],
@@ -147,15 +150,27 @@ const LABELS: Array<[string, string]> = [
   ["/promocoes", "Promoções"],
 ];
 
-function startsWithRoute(pathname: string, route: string) {
-  return pathname === route || pathname.startsWith(`${route}/`);
+function startsWithRoute(
+  pathname: string,
+  route: string,
+) {
+  return (
+    pathname === route ||
+    pathname.startsWith(`${route}/`)
+  );
 }
 
-function operationFor(pathname: string): Operation {
-  if (startsWithRoute(pathname, "/bank")) return "bank";
-  if (startsWithRoute(pathname, "/fitness")) return "fitness";
+function operationFor(
+  pathname: string,
+): Operation {
+  if (startsWithRoute(pathname, "/bank")) {
+    return "bank";
+  }
 
-  // Nexus e Marketing pertencem visualmente à Central.
+  if (startsWithRoute(pathname, "/fitness")) {
+    return "fitness";
+  }
+
   if (
     startsWithRoute(pathname, "/central") ||
     startsWithRoute(pathname, "/nexus") ||
@@ -164,9 +179,10 @@ function operationFor(pathname: string): Operation {
     return "central";
   }
 
-  if (startsWithRoute(pathname, "/physique")) return "physique";
+  if (startsWithRoute(pathname, "/physique")) {
+    return "physique";
+  }
 
-  // Portal do Parceiro usa a identidade Candinho Suplementos.
   if (
     startsWithRoute(pathname, "/suplementos") ||
     startsWithRoute(pathname, "/parceiro")
@@ -193,7 +209,11 @@ function operationFor(pathname: string): Operation {
     "/vendas",
   ];
 
-  if (supplementRoots.some((route) => startsWithRoute(pathname, route))) {
+  if (
+    supplementRoots.some((route) =>
+      startsWithRoute(pathname, route),
+    )
+  ) {
     return "supplements";
   }
 
@@ -205,64 +225,121 @@ function humanize(pathname: string) {
     pathname
       .split("/")
       .filter(Boolean)
-      .filter((item) => !/^[0-9a-f-]{20,}$/i.test(item))
+      .filter(
+        (item) =>
+          !/^[0-9a-f-]{20,}$/i.test(item),
+      )
       .at(-1) ?? "Início";
 
-  const value = decodeURIComponent(segment)
-    .replace(/[-_]+/g, " ")
-    .trim();
+  const value =
+    decodeURIComponent(segment)
+      .replace(/[-_]+/g, " ")
+      .trim();
 
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  return (
+    value.charAt(0).toUpperCase() +
+    value.slice(1)
+  );
 }
 
 function labelFor(pathname: string) {
-  const match = LABELS.find(([route]) => startsWithRoute(pathname, route));
+  const match = LABELS.find(([route]) =>
+    startsWithRoute(pathname, route),
+  );
+
   return match?.[1] ?? humanize(pathname);
 }
 
 function identityFor(pathname: string) {
-  if (pathname === "/" || pathname === "/dashboard") {
+  if (
+    pathname === "/" ||
+    pathname === "/dashboard"
+  ) {
     return OPERATION.company;
   }
-  if (pathname === "/bank") return OPERATION.bank;
-  if (pathname === "/fitness") return OPERATION.fitness;
-  if (pathname === "/central") return OPERATION.central;
-  if (pathname === "/suplementos") return OPERATION.supplements;
-  if (pathname === "/physique") return OPERATION.physique;
 
-  const operation = operationFor(pathname);
-  const config = OPERATION[operation];
+  if (pathname === "/bank") {
+    return OPERATION.bank;
+  }
+
+  if (pathname === "/fitness") {
+    return OPERATION.fitness;
+  }
+
+  if (pathname === "/central") {
+    return OPERATION.central;
+  }
+
+  if (pathname === "/suplementos") {
+    return OPERATION.supplements;
+  }
+
+  if (pathname === "/physique") {
+    return OPERATION.physique;
+  }
+
+  const operation =
+    operationFor(pathname);
+
+  const config =
+    OPERATION[operation];
 
   return {
     ...config,
-    brandTitle: `${labelFor(pathname)} - ${config.suffix}`,
+    brandTitle:
+      `${labelFor(pathname)} - ${config.suffix}`,
   };
 }
 
-function faviconHref(href: string) {
+function versioned(
+  href: string,
+) {
   return `${href}?v=${FAVICON_VERSION}`;
 }
 
-function ensureManagedIcon(
-  rel: "icon" | "shortcut icon",
+function removeCompetingFavicons() {
+  const icons = Array.from(
+    document.head.querySelectorAll<HTMLLinkElement>(
+      'link[rel="icon"], link[rel="shortcut icon"]',
+    ),
+  );
+
+  for (const icon of icons) {
+    if (
+      icon.dataset.routeTabIdentity !== "true"
+    ) {
+      icon.remove();
+    }
+  }
+}
+
+function ensureManagedFavicon(
   href: string,
 ) {
-  const selector = `link[data-route-tab-identity="${rel}"]`;
-  let icon = document.head.querySelector<HTMLLinkElement>(selector);
+  removeCompetingFavicons();
+
+  let icon =
+    document.head.querySelector<HTMLLinkElement>(
+      'link[data-route-tab-identity="true"]',
+    );
 
   if (!icon) {
     icon = document.createElement("link");
-    icon.dataset.routeTabIdentity = rel;
-    icon.rel = rel;
+    icon.rel = "icon";
     icon.type = "image/png";
+    icon.dataset.routeTabIdentity = "true";
     document.head.appendChild(icon);
   }
 
-  const nextHref = faviconHref(href);
+  const next = versioned(href);
 
-  if (icon.getAttribute("href") !== nextHref) {
-    icon.setAttribute("href", nextHref);
+  if (
+    icon.getAttribute("href") !== next
+  ) {
+    icon.setAttribute("href", next);
   }
+
+  return icon;
 }
 
 function applyIdentity(
@@ -273,49 +350,85 @@ function applyIdentity(
     document.title = title;
   }
 
-  // Um link gerenciado fica por último no <head>, evitando que o
-  // favicon global da Company vença em navegações internas do Next.
-  ensureManagedIcon("icon", icon);
-  ensureManagedIcon("shortcut icon", icon);
+  ensureManagedFavicon(icon);
 }
 
 export function RouteTabIdentity() {
   const pathname = usePathname();
 
   useEffect(() => {
-    const identity = identityFor(pathname || "/");
+    const identity =
+      identityFor(pathname || "/");
+
+    let applying = false;
 
     const apply = () => {
-      applyIdentity(identity.brandTitle, identity.icon);
+      if (applying) return;
+
+      applying = true;
+
+      try {
+        applyIdentity(
+          identity.brandTitle,
+          identity.icon,
+        );
+      } finally {
+        applying = false;
+      }
     };
 
     apply();
 
-    const frame = window.requestAnimationFrame(apply);
-    const timer = window.setTimeout(apply, 220);
+    const frame =
+      window.requestAnimationFrame(apply);
 
-    // Algumas páginas inserem metadata depois da navegação.
-    // Se o Next alterar title/favicon, reaplica a identidade da operação.
-    const observer = new MutationObserver(() => {
-      const managed = document.head.querySelector<HTMLLinkElement>(
-        'link[data-route-tab-identity="icon"]',
-      );
+    const timer =
+      window.setTimeout(apply, 260);
 
-      const expectedIcon = faviconHref(identity.icon);
+    const observer =
+      new MutationObserver(() => {
+        const managed =
+          document.head.querySelector<HTMLLinkElement>(
+            'link[data-route-tab-identity="true"]',
+          );
 
-      if (
-        document.title !== identity.brandTitle ||
-        managed?.getAttribute("href") !== expectedIcon
-      ) {
-        apply();
-      }
-    });
+        const expected =
+          versioned(identity.icon);
 
-    observer.observe(document.head, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-    });
+        const competing =
+          Array.from(
+            document.head.querySelectorAll<HTMLLinkElement>(
+              'link[rel="icon"], link[rel="shortcut icon"]',
+            ),
+          ).some(
+            (icon) =>
+              icon.dataset.routeTabIdentity !==
+              "true",
+          );
+
+        if (
+          document.title !==
+            identity.brandTitle ||
+          managed?.getAttribute("href") !==
+            expected ||
+          competing
+        ) {
+          apply();
+        }
+      });
+
+    observer.observe(
+      document.head,
+      {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: [
+          "href",
+          "rel",
+        ],
+      },
+    );
 
     return () => {
       observer.disconnect();

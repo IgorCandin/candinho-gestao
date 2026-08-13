@@ -1,4 +1,7 @@
-import type { Metadata, Viewport } from "next";
+import type {
+  Metadata,
+  Viewport,
+} from "next";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
@@ -16,6 +19,7 @@ import "./public-storefront-company-v7.css";
 import "./v45-30-commercial-queue.css";
 import "./v45-32-catalog-agenda-tools.css";
 import "./v45-33-operational-finish.css";
+import "./v45-35-media-favicon.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
@@ -24,8 +28,8 @@ export const metadata: Metadata = {
   applicationName: "Candinho Company",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/favicons/cc-v44.png",
-    shortcut: "/favicons/cc-v44.png",
+    icon: "/favicons/cc.png",
+    shortcut: "/favicons/cc.png",
     apple: "/favicons/cc-v44-180.png",
   },
 };
@@ -37,15 +41,22 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
     <html lang="pt-BR">
       <body>
         <Suspense fallback={null}>
           <RouteTabIdentity />
         </Suspense>
+
         <BankPullToRefresh enabled />
+
         {children}
+
         <Analytics />
         <SpeedInsights />
       </body>

@@ -1,0 +1,89 @@
+/* =========================================================
+   V45.35 · Upload direto no banco de fotos
+   ========================================================= */
+
+button.marketing-product-media-slot-v4533 {
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  appearance: none;
+}
+
+.marketing-product-media-slot-click-v4535.editable {
+  cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background 150ms ease,
+    transform 150ms ease;
+}
+
+.marketing-product-media-slot-click-v4535.editable:hover {
+  border-color: rgba(217, 164, 65, 0.42);
+  background: rgba(217, 164, 65, 0.035);
+  transform: translateY(-1px);
+}
+
+.marketing-product-media-slot-click-v4535.readonly {
+  cursor: default;
+}
+
+.marketing-product-media-slot-click-v4535:disabled {
+  opacity: 1;
+}
+
+.marketing-product-media-slot-click-v4535 > div {
+  position: relative;
+}
+
+.marketing-product-media-slot-overlay-v4535 {
+  position: absolute;
+  inset: 0;
+  padding: 8px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(5, 7, 10, 0.08),
+      rgba(5, 7, 10, 0.78)
+    );
+  color: #fff;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 6px;
+  font-size: 8px;
+  font-weight: 850;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.marketing-product-media-slot-click-v4535.editable:hover
+  .marketing-product-media-slot-overlay-v4535,
+.marketing-product-media-slot-click-v4535.missing
+  .marketing-product-media-slot-overlay-v4535 {
+  opacity: 1;
+}
+
+.marketing-product-media-slot-click-v4535.missing
+  .marketing-product-media-slot-overlay-v4535 {
+  align-items: center;
+  background: rgba(7, 9, 13, 0.68);
+}
+
+.marketing-product-media-slot-click-v4535 > small {
+  min-height: 30px;
+}
+
+@media (max-width: 820px) {
+  .marketing-product-media-slot-overlay-v4535 {
+    opacity: 1;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(5, 7, 10, 0.02),
+        rgba(5, 7, 10, 0.72)
+      );
+  }
+}

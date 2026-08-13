@@ -49,7 +49,8 @@ export default async function MarketingProductsPage() {
         "id,product_id,image_url,source_image_url,media_type,sort_order,public_visible",
       )
       .eq("public_visible", true)
-      .order("sort_order"),
+      .order("sort_order")
+      .order("created_at"),
   ]);
 
   for (const result of [
@@ -63,6 +64,7 @@ export default async function MarketingProductsPage() {
   const fitnessMedia = new Map<
     string,
     Array<{
+      id: string;
       image_url: string | null;
       source_image_url: string | null;
       sort_order: number | null;
@@ -72,7 +74,9 @@ export default async function MarketingProductsPage() {
   for (const media of fitnessMediaResult.data ?? []) {
     const key = String(media.product_id);
     const list = fitnessMedia.get(key) ?? [];
+
     list.push({
+      id: String(media.id),
       image_url:
         typeof media.image_url === "string"
           ? media.image_url
@@ -83,6 +87,7 @@ export default async function MarketingProductsPage() {
           : null,
       sort_order: Number(media.sort_order ?? 0),
     });
+
     fitnessMedia.set(key, list);
   }
 
@@ -99,7 +104,8 @@ export default async function MarketingProductsPage() {
         typeof product.brand === "string"
           ? product.brand
           : null,
-      edit_href: `/suplementos/produtos/${String(product.id)}/editar`,
+      edit_href:
+        `/suplementos/produtos/${String(product.id)}/editar`,
       description_missing:
         !String(product.description ?? "").trim(),
       slots: [
@@ -111,6 +117,7 @@ export default async function MarketingProductsPage() {
               ? product.image_url
               : null,
           required: true,
+          media_id: null,
         },
         {
           key: "photo2",
@@ -120,6 +127,7 @@ export default async function MarketingProductsPage() {
               ? product.banner_image_url
               : null,
           required: true,
+          media_id: null,
         },
         {
           key: "photo3",
@@ -129,29 +137,34 @@ export default async function MarketingProductsPage() {
               ? product.secondary_image_url
               : null,
           required: false,
+          media_id: null,
         },
       ],
     }));
 
   const fitnessRows: MarketingProductMediaRow[] =
     (fitnessResult.data ?? []).map((product) => {
-      const extras = (
-        fitnessMedia.get(String(product.id)) ?? []
-      )
-        .sort(
-          (a, b) =>
-            Number(a.sort_order ?? 0) -
-            Number(b.sort_order ?? 0),
-        )
-        .map(
-          (media) =>
-            media.image_url ??
-            media.source_image_url,
-        )
-        .filter(
-          (url): url is string =>
-            Boolean(url),
-        );
+      const extras =
+        (fitnessMedia.get(String(product.id)) ?? [])
+          .sort(
+            (a, b) =>
+              Number(a.sort_order ?? 0) -
+              Number(b.sort_order ?? 0),
+          )
+          .map((media) => ({
+            id: media.id,
+            url:
+              media.image_url ??
+              media.source_image_url,
+          }))
+          .filter(
+            (
+              media,
+            ): media is {
+              id: string;
+              url: string;
+            } => Boolean(media.url),
+          );
 
       return {
         module: "fitness" as const,
@@ -162,7 +175,8 @@ export default async function MarketingProductsPage() {
             ? product.category
             : null,
         brand: null,
-        edit_href: `/fitness/produtos/${String(product.id)}`,
+        edit_href:
+          `/fitness/produtos/${String(product.id)}`,
         description_missing:
           !String(product.description ?? "").trim(),
         slots: [
@@ -174,25 +188,32 @@ export default async function MarketingProductsPage() {
                 ? product.image_url
                 : null,
             required: true,
+            media_id: null,
           },
           {
             key: "photo2",
             label: "Foto extra 01",
-            url: extras[0] ?? null,
+            url: extras[0]?.url ?? null,
             required: false,
+            media_id: extras[0]?.id ?? null,
           },
           {
             key: "photo3",
             label: "Foto extra 02",
-            url: extras[1] ?? null,
+            url: extras[1]?.url ?? null,
             required: false,
+            media_id: extras[1]?.id ?? null,
           },
-          ...extras.slice(2).map((url, index) => ({
-            key: `extra-${index + 3}`,
-            label: `Foto extra ${String(index + 3).padStart(2, "0")}`,
-            url,
-            required: false,
-          })),
+          ...extras.slice(2).map(
+            (media, index) => ({
+              key: `extra-${index + 3}`,
+              label:
+                `Foto extra ${String(index + 3).padStart(2, "0")}`,
+              url: media.url,
+              required: false,
+              media_id: media.id,
+            }),
+          ),
         ],
       };
     });
@@ -231,12 +252,20 @@ export default async function MarketingProductsPage() {
           .some((slot) => slot.url),
     ).length;
 
+  const canEditSupplements =
+    access.role === "admin" ||
+    access.canWriteSupplements;
+
+  const canEditFitness =
+    access.role === "admin" ||
+    access.canWriteFitness;
+
   return (
     <>
       <PageHeader
         eyebrow="Central · Marketing"
         title="Produtos e banco de fotos"
-        description="Selecione produtos, baixe as imagens já cadastradas em lote e acompanhe o que ainda falta para fechar a apresentação pública."
+        description="Selecione para baixar em lote ou clique diretamente em qualquer foto para adicionar ou substituir sem sair desta tela."
       />
 
       <section className="marketing-product-pending-summary-v4533">
@@ -273,7 +302,11 @@ export default async function MarketingProductsPage() {
         </article>
       </section>
 
-      <MarketingProductMediaHubV4533 rows={rows} />
+      <MarketingProductMediaHubV4533
+        rows={rows}
+        canEditSupplements={canEditSupplements}
+        canEditFitness={canEditFitness}
+      />
     </>
   );
 }
