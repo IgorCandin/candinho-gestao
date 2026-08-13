@@ -5,6 +5,7 @@ import {
   FileText,
   Images,
   Lightbulb,
+  PackageSearch,
   Sparkles,
   Workflow,
 } from "lucide-react";
@@ -57,23 +58,38 @@ export default async function MarketingPage() {
               {ready} página(s) pronta(s) · {pending} em processamento
             </small>
           </Link>
+          <Link href="/central/marketing/produtos">
+            <span>Produtos e fotos</span>
+            <strong>Banco</strong>
+            <small>
+              Selecione produtos e baixe fotos em lote.
+            </small>
+          </Link>
           <Link href="/central/marketing/planejamento">
             <span>Planejamento</span>
             <strong>Agenda</strong>
             <small>Gravação, edição, publicação e campanhas</small>
-          </Link>
-          <Link href="/central/marketing/ideias">
-            <span>Organização inteligente</span>
-            <strong>Nexus</strong>
-            <small>PDFs viram páginas estruturadas e pesquisáveis.</small>
           </Link>
         </div>
       </section>
 
       <section className="central-launch-grid marketing-foundation-links">
         <Link
-          href="/central/marketing/ideias"
+          href="/central/marketing/produtos"
           className="central-launch-card primary"
+        >
+          <PackageSearch size={24} />
+          <span>
+            <strong>Produtos e banco de fotos</strong>
+            <small>
+              Suplementos e Fitness, seleção em lote e download das imagens.
+            </small>
+          </span>
+        </Link>
+
+        <Link
+          href="/central/marketing/ideias"
+          className="central-launch-card"
         >
           <Images size={24} />
           <span>

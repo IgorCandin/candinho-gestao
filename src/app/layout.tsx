@@ -15,6 +15,7 @@ import "./fitness-availability-v1.css";
 import "./public-storefront-company-v7.css";
 import "./v45-30-commercial-queue.css";
 import "./v45-32-catalog-agenda-tools.css";
+import "./v45-33-operational-finish.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",

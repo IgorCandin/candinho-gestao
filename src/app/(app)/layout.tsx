@@ -18,6 +18,7 @@ import { NexusUxDoctorProbe } from "@/components/nexus-ux-doctor-probe";
 import { OperationToolSearch } from "@/components/operation-tool-search";
 import { PartnerUxOverlay } from "@/components/partner-ux-overlay";
 import { ProductBannerPortal } from "@/components/product-banner-portal";
+import { ProductMovementPanelV4533 } from "@/components/product-movement-panel-v45-33";
 import { ProductPublicPageShortcutPortal } from "@/components/product-public-page-shortcut-portal";
 import { PurchasingNavigation } from "@/components/purchasing-navigation";
 import { SaleProductStockUX } from "@/components/sale-product-stock-ux";
@@ -104,6 +105,9 @@ export default async function ProtectedLayout({
       <ProductBannerPortal
         enabled={canUseSupplementUx}
         canEdit={canManagePublicProducts}
+      />
+      <ProductMovementPanelV4533
+        enabled={canUseSupplementUx}
       />
 
       <SaleProductStockUX enabled={canUseSupplementUx} />
