@@ -21,6 +21,7 @@ import "./v45-32-catalog-agenda-tools.css";
 import "./v45-33-operational-finish.css";
 import "./v45-35-media-favicon.css";
 import "./v45-36-performance.css";
+import "./v45-37-media-fitness.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",

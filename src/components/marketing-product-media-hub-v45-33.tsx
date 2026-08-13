@@ -9,8 +9,10 @@ import {
   ImagePlus,
   Images,
   LoaderCircle,
+  MoveRight,
   RefreshCw,
   Search,
+  Sparkles,
   Square,
 } from "lucide-react";
 import {
@@ -20,6 +22,23 @@ import {
   useState,
 } from "react";
 
+export type MarketingProductMediaSlot = {
+  key: string;
+  label: string;
+  url: string | null;
+  required: boolean;
+  media_id?: string | null;
+
+  // Fitness
+  color?: string | null;
+  variant_ids?: string[];
+  sizes?: string[];
+  available_quantity?: number;
+  physical_quantity?: number;
+  incoming_quantity?: number;
+  preferred_cover?: boolean;
+};
+
 export type MarketingProductMediaRow = {
   module: "supplements" | "fitness";
   id: string;
@@ -28,22 +47,17 @@ export type MarketingProductMediaRow = {
   brand: string | null;
   edit_href: string;
   description_missing: boolean;
-  slots: Array<{
-    key: string;
-    label: string;
-    url: string | null;
-    required: boolean;
-    media_id?: string | null;
-  }>;
+  slots: MarketingProductMediaSlot[];
+};
+
+export type MarketingFitnessProductOption = {
+  id: string;
+  name: string;
 };
 
 type UploadTarget = {
-  module: "supplements" | "fitness";
-  productId: string;
-  productName: string;
-  slotKey: string;
-  slotLabel: string;
-  mediaId: string | null;
+  row: MarketingProductMediaRow;
+  slot: MarketingProductMediaSlot;
 };
 
 function keyFor(row: MarketingProductMediaRow) {
@@ -68,7 +82,7 @@ function extensionFromUrl(url: string) {
 
 async function downloadOne(
   row: MarketingProductMediaRow,
-  slot: MarketingProductMediaRow["slots"][number],
+  slot: MarketingProductMediaSlot,
 ) {
   if (!slot.url) return false;
 
@@ -114,10 +128,12 @@ export function MarketingProductMediaHubV4533({
   rows,
   canEditSupplements,
   canEditFitness,
+  fitnessProducts,
 }: {
   rows: MarketingProductMediaRow[];
   canEditSupplements: boolean;
   canEditFitness: boolean;
+  fitnessProducts: MarketingFitnessProductOption[];
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const uploadTargetRef = useRef<UploadTarget | null>(null);
@@ -132,6 +148,10 @@ export function MarketingProductMediaHubV4533({
   const [downloading, setDownloading] = useState(false);
   const [uploadingKey, setUploadingKey] =
     useState<string | null>(null);
+  const [movingKey, setMovingKey] =
+    useState<string | null>(null);
+  const [moveTargets, setMoveTargets] =
+    useState<Record<string, string>>({});
   const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -139,13 +159,25 @@ export function MarketingProductMediaHubV4533({
   }, [rows]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLocaleLowerCase("pt-BR");
+    const q = query
+      .trim()
+      .toLocaleLowerCase("pt-BR");
 
     return liveRows.filter((row) => {
       if (row.module !== module) return false;
       if (!q) return true;
 
-      return `${row.name} ${row.category ?? ""} ${row.brand ?? ""}`
+      const variationText =
+        row.slots
+          .map(
+            (slot) =>
+              `${slot.color ?? ""} ${(slot.sizes ?? []).join(" ")}`,
+          )
+          .join(" ");
+
+      return `${row.name} ${row.category ?? ""} ${
+        row.brand ?? ""
+      } ${variationText}`
         .toLocaleLowerCase("pt-BR")
         .includes(q);
     });
@@ -194,18 +226,20 @@ export function MarketingProductMediaHubV4533({
 
   function chooseUpload(
     row: MarketingProductMediaRow,
-    slot: MarketingProductMediaRow["slots"][number],
+    slot: MarketingProductMediaSlot,
   ) {
-    if (!canEditRow(row) || uploadingKey) return;
+    if (!canEditRow(row) || uploadingKey || movingKey) {
+      return;
+    }
 
     uploadTargetRef.current = {
-      module: row.module,
-      productId: row.id,
-      productName: row.name,
-      slotKey: slot.key,
-      slotLabel: slot.label,
-      mediaId: slot.media_id ?? null,
+      row,
+      slot,
     };
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
 
     fileInputRef.current?.click();
   }
@@ -216,31 +250,67 @@ export function MarketingProductMediaHubV4533({
     if (!file || !target) return;
 
     const uploadKey =
-      `${target.module}:${target.productId}:${target.slotKey}`;
+      `${target.row.module}:${target.row.id}:${target.slot.key}`;
 
     setUploadingKey(uploadKey);
     setMessage(
-      `Atualizando ${target.slotLabel} de ${target.productName}...`,
+      `Atualizando ${target.slot.label} de ${target.row.name}...`,
     );
 
-    const form = new FormData();
-    form.set("module", target.module);
-    form.set("product_id", target.productId);
-    form.set("slot", target.slotKey);
-    form.set("file", file);
-
-    if (target.mediaId) {
-      form.set("media_id", target.mediaId);
-    }
-
     try {
-      const response = await fetch(
-        "/api/marketing/product-images/upload",
-        {
-          method: "POST",
-          body: form,
-        },
-      );
+      let response: Response;
+
+      if (target.row.module === "fitness") {
+        const variantIds =
+          target.slot.variant_ids ?? [];
+
+        if (
+          !target.slot.color ||
+          variantIds.length === 0
+        ) {
+          throw new Error(
+            "Esta variação não possui IDs válidos para atualização.",
+          );
+        }
+
+        const form = new FormData();
+        form.set("product_id", target.row.id);
+        form.set("color", target.slot.color);
+        form.set(
+          "variant_ids",
+          JSON.stringify(variantIds),
+        );
+        form.set("file", file);
+
+        response = await fetch(
+          "/api/marketing/fitness-variants/photo",
+          {
+            method: "POST",
+            body: form,
+          },
+        );
+      } else {
+        const form = new FormData();
+        form.set("module", "supplements");
+        form.set("product_id", target.row.id);
+        form.set("slot", target.slot.key);
+        form.set("file", file);
+
+        if (target.slot.media_id) {
+          form.set(
+            "media_id",
+            target.slot.media_id,
+          );
+        }
+
+        response = await fetch(
+          "/api/marketing/product-images/upload",
+          {
+            method: "POST",
+            body: form,
+          },
+        );
+      }
 
       const payload = (await response.json()) as {
         error?: string;
@@ -259,8 +329,8 @@ export function MarketingProductMediaHubV4533({
       setLiveRows((current) =>
         current.map((row) => {
           if (
-            row.module !== target.module ||
-            row.id !== target.productId
+            row.module !== target.row.module ||
+            row.id !== target.row.id
           ) {
             return row;
           }
@@ -268,7 +338,7 @@ export function MarketingProductMediaHubV4533({
           return {
             ...row,
             slots: row.slots.map((slot) =>
-              slot.key === target.slotKey
+              slot.key === target.slot.key
                 ? {
                     ...slot,
                     url: payload.url ?? slot.url,
@@ -284,13 +354,12 @@ export function MarketingProductMediaHubV4533({
       );
 
       setMessage(
-        `${target.slotLabel} atualizada${
+        `${target.slot.label} atualizada${
           payload.size_kb
             ? ` · ${payload.size_kb} KB`
             : ""
         }.`,
       );
-
     } catch (error) {
       setMessage(
         error instanceof Error
@@ -304,8 +373,79 @@ export function MarketingProductMediaHubV4533({
         fileInputRef.current.value = "";
       }
 
-      // Último passo: reativa todos os quadrados de foto.
       setUploadingKey(null);
+    }
+  }
+
+  async function moveVariation(
+    row: MarketingProductMediaRow,
+    slot: MarketingProductMediaSlot,
+  ) {
+    const targetProductId =
+      moveTargets[`${row.id}:${slot.key}`] ?? "";
+
+    if (
+      row.module !== "fitness" ||
+      !targetProductId ||
+      !slot.variant_ids?.length
+    ) {
+      setMessage(
+        "Escolha o produto correto para mover esta cor.",
+      );
+      return;
+    }
+
+    const key = `${row.id}:${slot.key}`;
+    setMovingKey(key);
+    setMessage(
+      `Movendo ${slot.label} de ${row.name}...`,
+    );
+
+    try {
+      const response = await fetch(
+        "/api/marketing/fitness-variants/move",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            source_product_id: row.id,
+            target_product_id: targetProductId,
+            variant_ids: slot.variant_ids,
+          }),
+        },
+      );
+
+      const payload = (await response.json()) as {
+        error?: string;
+        moved?: number;
+        target_product_name?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error ??
+            "Não foi possível mover a variação.",
+        );
+      }
+
+      setMessage(
+        `${slot.label}: ${payload.moved ?? slot.variant_ids.length} variação(ões) movida(s) para ${
+          payload.target_product_name ?? "o produto selecionado"
+        }. Atualizando a tela...`,
+      );
+
+      window.setTimeout(() => {
+        window.location.reload();
+      }, 450);
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível mover a variação.",
+      );
+      setMovingKey(null);
     }
   }
 
@@ -314,7 +454,6 @@ export function MarketingProductMediaHubV4533({
       | "photo1"
       | "photo2"
       | "photo3"
-      | "extras"
       | "all",
   ) {
     if (selectedRows.length === 0) {
@@ -324,28 +463,33 @@ export function MarketingProductMediaHubV4533({
 
     const targets: Array<{
       row: MarketingProductMediaRow;
-      slot: MarketingProductMediaRow["slots"][number];
+      slot: MarketingProductMediaSlot;
     }> = [];
 
     for (const row of selectedRows) {
       const slots =
         mode === "all"
-          ? row.slots.filter((slot) => Boolean(slot.url))
-          : mode === "extras"
-            ? row.slots.slice(1).filter((slot) => Boolean(slot.url))
-            : row.slots.filter(
-                (slot) =>
-                  slot.key === mode &&
-                  Boolean(slot.url),
-              );
+          ? row.slots.filter(
+              (slot) => Boolean(slot.url),
+            )
+          : row.slots.filter(
+              (slot) =>
+                slot.key === mode &&
+                Boolean(slot.url),
+            );
 
       for (const slot of slots) {
-        targets.push({ row, slot });
+        targets.push({
+          row,
+          slot,
+        });
       }
     }
 
     if (targets.length === 0) {
-      setMessage("Os selecionados não têm fotos nesse grupo.");
+      setMessage(
+        "Os selecionados não têm fotos nesse grupo.",
+      );
       return;
     }
 
@@ -389,7 +533,7 @@ export function MarketingProductMediaHubV4533({
     (row) => row.module === module,
   );
 
-  const completePhoto1 = moduleRows.filter(
+  const supplementPhoto1 = moduleRows.filter(
     (row) =>
       Boolean(
         row.slots.find(
@@ -398,7 +542,7 @@ export function MarketingProductMediaHubV4533({
       ),
   ).length;
 
-  const completePhoto2 = moduleRows.filter(
+  const supplementPhoto2 = moduleRows.filter(
     (row) =>
       Boolean(
         row.slots.find(
@@ -407,7 +551,7 @@ export function MarketingProductMediaHubV4533({
       ),
   ).length;
 
-  const completePhoto3 = moduleRows.filter(
+  const supplementPhoto3 = moduleRows.filter(
     (row) =>
       Boolean(
         row.slots.find(
@@ -415,6 +559,22 @@ export function MarketingProductMediaHubV4533({
         )?.url,
       ),
   ).length;
+
+  const fitnessVariationCount =
+    moduleRows.reduce(
+      (sum, row) => sum + row.slots.length,
+      0,
+    );
+
+  const fitnessVariationPhotos =
+    moduleRows.reduce(
+      (sum, row) =>
+        sum +
+        row.slots.filter(
+          (slot) => Boolean(slot.url),
+        ).length,
+      0,
+    );
 
   return (
     <section className="marketing-product-media-v4533">
@@ -424,38 +584,57 @@ export function MarketingProductMediaHubV4533({
           <strong>{moduleRows.length}</strong>
         </article>
 
-        <article>
-          <span>
-            {module === "supplements"
-              ? "Foto 01 · produto"
-              : "Foto principal"}
-          </span>
-          <strong>
-            {completePhoto1}/{moduleRows.length}
-          </strong>
-        </article>
+        {module === "supplements" ? (
+          <>
+            <article>
+              <span>Foto 01 · produto</span>
+              <strong>
+                {supplementPhoto1}/{moduleRows.length}
+              </strong>
+            </article>
 
-        <article>
-          <span>
-            {module === "supplements"
-              ? "Foto 02 · banner"
-              : "Foto extra 01"}
-          </span>
-          <strong>
-            {completePhoto2}/{moduleRows.length}
-          </strong>
-        </article>
+            <article>
+              <span>Foto 02 · banner</span>
+              <strong>
+                {supplementPhoto2}/{moduleRows.length}
+              </strong>
+            </article>
 
-        <article>
-          <span>
-            {module === "supplements"
-              ? "Foto 03 · nutrição"
-              : "Foto extra 02"}
-          </span>
-          <strong>
-            {completePhoto3}/{moduleRows.length}
-          </strong>
-        </article>
+            <article>
+              <span>Foto 03 · nutrição</span>
+              <strong>
+                {supplementPhoto3}/{moduleRows.length}
+              </strong>
+            </article>
+          </>
+        ) : (
+          <>
+            <article>
+              <span>Variações de cor</span>
+              <strong>
+                {fitnessVariationCount}
+              </strong>
+            </article>
+
+            <article>
+              <span>Cores com foto</span>
+              <strong>
+                {fitnessVariationPhotos}
+              </strong>
+            </article>
+
+            <article>
+              <span>Cores sem foto</span>
+              <strong>
+                {Math.max(
+                  0,
+                  fitnessVariationCount -
+                    fitnessVariationPhotos,
+                )}
+              </strong>
+            </article>
+          </>
+        )}
       </div>
 
       <div className="marketing-product-media-toolbar-v4533">
@@ -498,7 +677,11 @@ export function MarketingProductMediaHubV4533({
             onChange={(event) =>
               setQuery(event.target.value)
             }
-            placeholder="Buscar produto..."
+            placeholder={
+              module === "fitness"
+                ? "Buscar produto, cor ou tamanho..."
+                : "Buscar produto..."
+            }
           />
         </label>
       </div>
@@ -509,8 +692,9 @@ export function MarketingProductMediaHubV4533({
             {selectedRows.length} selecionado(s)
           </strong>
           <span>
-            Selecione para baixar em lote. Para trocar uma foto,
-            clique diretamente no quadrado dela.
+            {module === "fitness"
+              ? "Cada quadrado é uma cor real do produto. Clique na foto para corrigir; use “mover” se a cor veio do AppSheet no produto errado."
+              : "Selecione para baixar em lote. Para trocar uma foto, clique diretamente no quadrado dela."}
           </span>
         </div>
 
@@ -570,33 +754,7 @@ export function MarketingProductMediaHubV4533({
                 Baixar Foto 03
               </button>
             </>
-          ) : (
-            <>
-              <button
-                className="button ghost"
-                type="button"
-                disabled={downloading}
-                onClick={() =>
-                  void download("photo1")
-                }
-              >
-                <Download size={14} />
-                Baixar principal
-              </button>
-
-              <button
-                className="button ghost"
-                type="button"
-                disabled={downloading}
-                onClick={() =>
-                  void download("extras")
-                }
-              >
-                <Download size={14} />
-                Baixar extras
-              </button>
-            </>
-          )}
+          ) : null}
 
           <button
             className="button gold"
@@ -605,7 +763,9 @@ export function MarketingProductMediaHubV4533({
             onClick={() => void download("all")}
           >
             <Images size={14} />
-            Baixar todas
+            {module === "fitness"
+              ? "Baixar variações"
+              : "Baixar todas"}
           </button>
         </div>
       </div>
@@ -657,14 +817,24 @@ export function MarketingProductMediaHubV4533({
                 {row.brand && <p>{row.brand}</p>}
               </div>
 
-              <div className="marketing-product-media-slots-v4533">
+              <div
+                className={`marketing-product-media-slots-v4533 ${
+                  row.module === "fitness"
+                    ? "fitness-variation-grid-v4537"
+                    : ""
+                }`}
+              >
                 {row.slots.map((slot) => {
                   const slotUploadKey =
                     `${row.module}:${row.id}:${slot.key}`;
                   const isUploading =
                     uploadingKey === slotUploadKey;
+                  const moveKey =
+                    `${row.id}:${slot.key}`;
+                  const isMoving =
+                    movingKey === moveKey;
 
-                  return (
+                  const mediaButton = (
                     <button
                       type="button"
                       className={`marketing-product-media-slot-v4533 marketing-product-media-slot-click-v4535 ${
@@ -674,8 +844,11 @@ export function MarketingProductMediaHubV4533({
                           ? "editable"
                           : "readonly"
                       }`}
-                      key={slot.key}
-                      disabled={!editable || Boolean(uploadingKey)}
+                      disabled={
+                        !editable ||
+                        Boolean(uploadingKey) ||
+                        Boolean(movingKey)
+                      }
                       onClick={() =>
                         chooseUpload(row, slot)
                       }
@@ -687,7 +860,15 @@ export function MarketingProductMediaHubV4533({
                           : "Sem permissão para editar"
                       }
                     >
-                      <span>{slot.label}</span>
+                      <span>
+                        {slot.preferred_cover && (
+                          <b className="fitness-cover-badge-v4537">
+                            <Sparkles size={10} />
+                            Capa
+                          </b>
+                        )}
+                        {slot.label}
+                      </span>
 
                       <div>
                         {slot.url ? (
@@ -724,19 +905,116 @@ export function MarketingProductMediaHubV4533({
                       </div>
 
                       <small>
-                        {editable
-                          ? slot.url
-                            ? "Clique para trocar"
-                            : slot.required
-                              ? "Pendente · clique para adicionar"
-                              : "Opcional · clique para adicionar"
-                          : slot.url
-                            ? "Pronta"
-                            : slot.required
-                              ? "Pendente"
-                              : "Opcional"}
+                        {row.module === "fitness"
+                          ? `${slot.available_quantity ?? 0} disponível(is) · ${
+                              (slot.sizes ?? []).join(", ") ||
+                              "sem tamanho"
+                            }`
+                          : editable
+                            ? slot.url
+                              ? "Clique para trocar"
+                              : slot.required
+                                ? "Pendente · clique para adicionar"
+                                : "Opcional · clique para adicionar"
+                            : slot.url
+                              ? "Pronta"
+                              : slot.required
+                                ? "Pendente"
+                                : "Opcional"}
                       </small>
                     </button>
+                  );
+
+                  if (row.module !== "fitness") {
+                    return (
+                      <div
+                        key={slot.key}
+                        className="marketing-media-slot-shell-v4537"
+                      >
+                        {mediaButton}
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div
+                      key={slot.key}
+                      className="fitness-variation-card-v4537"
+                    >
+                      {mediaButton}
+
+                      <div className="fitness-variation-meta-v4537">
+                        <span>
+                          Físico {slot.physical_quantity ?? 0}
+                          {slot.incoming_quantity
+                            ? ` · ${slot.incoming_quantity} a caminho`
+                            : ""}
+                        </span>
+                      </div>
+
+                      {editable &&
+                        (slot.variant_ids?.length ?? 0) > 0 && (
+                          <div className="fitness-variation-move-v4537">
+                            <select
+                              className="select"
+                              aria-label={`Mover ${slot.label} para outro produto`}
+                              value={
+                                moveTargets[moveKey] ?? ""
+                              }
+                              disabled={Boolean(movingKey)}
+                              onChange={(event) =>
+                                setMoveTargets((current) => ({
+                                  ...current,
+                                  [moveKey]:
+                                    event.target.value,
+                                }))
+                              }
+                            >
+                              <option value="">
+                                Produto correto...
+                              </option>
+                              {fitnessProducts
+                                .filter(
+                                  (product) =>
+                                    product.id !== row.id,
+                                )
+                                .map((product) => (
+                                  <option
+                                    key={product.id}
+                                    value={product.id}
+                                  >
+                                    {product.name}
+                                  </option>
+                                ))}
+                            </select>
+
+                            <button
+                              type="button"
+                              className="button ghost compact-button"
+                              disabled={
+                                isMoving ||
+                                !moveTargets[moveKey]
+                              }
+                              onClick={() =>
+                                void moveVariation(
+                                  row,
+                                  slot,
+                                )
+                              }
+                            >
+                              {isMoving ? (
+                                <LoaderCircle
+                                  className="spin"
+                                  size={13}
+                                />
+                              ) : (
+                                <MoveRight size={13} />
+                              )}
+                              Mover
+                            </button>
+                          </div>
+                        )}
+                    </div>
                   );
                 })}
               </div>

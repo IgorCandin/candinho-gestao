@@ -8,6 +8,7 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicBackorderSection } from "@/components/public-backorder-section";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
+import { PublicCatalogHardNavigationV4537 } from "@/components/public-catalog-hard-navigation-v45-37";
 import { PublicCatalogWarmupV4536 } from "@/components/public-catalog-warmup-v45-36";
 import { PublicStorefrontBrowser } from "@/components/public-storefront-browser";
 import { PublicStorefrontVisualEnhancer } from "@/components/public-storefront-visual-enhancer";
@@ -46,6 +47,7 @@ export default async function PublicCatalogPage() {
 
   return (
     <main className="public-storefront-page">
+      <PublicCatalogHardNavigationV4537 />
       <PublicCatalogWarmupV4536 />
 
       <PublicCatalogCardLinks

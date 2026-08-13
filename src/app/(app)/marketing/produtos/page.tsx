@@ -2,12 +2,30 @@ import { redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
 import {
   MarketingProductMediaHubV4533,
+  type MarketingFitnessProductOption,
   type MarketingProductMediaRow,
+  type MarketingProductMediaSlot,
 } from "@/components/marketing-product-media-hub-v45-33";
 import { getCurrentUserAccess } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
+
+function normalizeColor(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+}
+
+function isBlack(value: string) {
+  return [
+    "preto",
+    "preta",
+    "black",
+  ].includes(normalizeColor(value));
+}
 
 export default async function MarketingProductsPage() {
   const access = await getCurrentUserAccess();
@@ -26,8 +44,9 @@ export default async function MarketingProductsPage() {
 
   const [
     supplementsResult,
-    fitnessResult,
-    fitnessMediaResult,
+    fitnessProductsResult,
+    fitnessVariantsResult,
+    fitnessStockResult,
   ] = await Promise.all([
     supabase
       .from("products")
@@ -39,56 +58,103 @@ export default async function MarketingProductsPage() {
     supabase
       .from("fitness_products")
       .select(
-        "id,name,category,image_url,description",
+        "id,name,category,image_url,description,active",
       )
       .eq("active", true)
       .order("name"),
     supabase
-      .from("fitness_product_media")
+      .from("fitness_variants")
       .select(
-        "id,product_id,image_url,source_image_url,media_type,sort_order,public_visible",
+        "id,product_id,size,color,image_url,active",
       )
-      .eq("public_visible", true)
-      .order("sort_order")
-      .order("created_at"),
+      .eq("active", true)
+      .order("color")
+      .order("size"),
+    supabase
+      .from("fitness_stock_operational")
+      .select(
+        "variant_id,product_id,physical_quantity,available_quantity,incoming_quantity,variant_active",
+      )
+      .eq("variant_active", true),
   ]);
 
   for (const result of [
     supplementsResult,
-    fitnessResult,
-    fitnessMediaResult,
+    fitnessProductsResult,
+    fitnessVariantsResult,
+    fitnessStockResult,
   ]) {
     if (result.error) throw result.error;
   }
 
-  const fitnessMedia = new Map<
+  const stockByVariant = new Map<
+    string,
+    {
+      physical: number;
+      available: number;
+      incoming: number;
+    }
+  >();
+
+  for (const row of fitnessStockResult.data ?? []) {
+    stockByVariant.set(
+      String(row.variant_id),
+      {
+        physical:
+          Number(row.physical_quantity ?? 0),
+        available:
+          Number(row.available_quantity ?? 0),
+        incoming:
+          Number(row.incoming_quantity ?? 0),
+      },
+    );
+  }
+
+  const variantsByProduct = new Map<
     string,
     Array<{
       id: string;
+      size: string;
+      color: string;
       image_url: string | null;
-      source_image_url: string | null;
-      sort_order: number | null;
+      physical: number;
+      available: number;
+      incoming: number;
     }>
   >();
 
-  for (const media of fitnessMediaResult.data ?? []) {
-    const key = String(media.product_id);
-    const list = fitnessMedia.get(key) ?? [];
+  for (const row of fitnessVariantsResult.data ?? []) {
+    const productId = String(row.product_id);
+    const stock =
+      stockByVariant.get(String(row.id)) ?? {
+        physical: 0,
+        available: 0,
+        incoming: 0,
+      };
+
+    const list =
+      variantsByProduct.get(productId) ?? [];
 
     list.push({
-      id: String(media.id),
+      id: String(row.id),
+      size: String(row.size ?? "").trim(),
+      color:
+        String(row.color ?? "").trim() ||
+        "Sem cor",
       image_url:
-        typeof media.image_url === "string"
-          ? media.image_url
+        typeof row.image_url === "string" &&
+        row.image_url.trim()
+          ? row.image_url
           : null,
-      source_image_url:
-        typeof media.source_image_url === "string"
-          ? media.source_image_url
-          : null,
-      sort_order: Number(media.sort_order ?? 0),
+      physical: stock.physical,
+      available: stock.available,
+      incoming: stock.incoming,
     });
 
-    fitnessMedia.set(key, list);
+    variantsByProduct.set(
+      productId,
+      list,
+    );
   }
 
   const supplementRows: MarketingProductMediaRow[] =
@@ -143,28 +209,149 @@ export default async function MarketingProductsPage() {
     }));
 
   const fitnessRows: MarketingProductMediaRow[] =
-    (fitnessResult.data ?? []).map((product) => {
-      const extras =
-        (fitnessMedia.get(String(product.id)) ?? [])
-          .sort(
-            (a, b) =>
-              Number(a.sort_order ?? 0) -
-              Number(b.sort_order ?? 0),
-          )
-          .map((media) => ({
-            id: media.id,
-            url:
-              media.image_url ??
-              media.source_image_url,
-          }))
-          .filter(
-            (
-              media,
-            ): media is {
-              id: string;
-              url: string;
-            } => Boolean(media.url),
+    (fitnessProductsResult.data ?? []).map((product) => {
+      const rawVariants =
+        variantsByProduct.get(
+          String(product.id),
+        ) ?? [];
+
+      const groups = new Map<
+        string,
+        {
+          color: string;
+          rows: typeof rawVariants;
+        }
+      >();
+
+      for (const variant of rawVariants) {
+        const key =
+          normalizeColor(variant.color) ||
+          "sem-cor";
+
+        const group =
+          groups.get(key) ?? {
+            color: variant.color,
+            rows: [],
+          };
+
+        group.rows.push(variant);
+        groups.set(key, group);
+      }
+
+      const slots: MarketingProductMediaSlot[] =
+        [...groups.values()].map(
+          (group, index) => {
+            const sortedRows =
+              [...group.rows].sort(
+                (a, b) =>
+                  b.available - a.available ||
+                  Number(Boolean(b.image_url)) -
+                    Number(Boolean(a.image_url)) ||
+                  a.size.localeCompare(
+                    b.size,
+                    "pt-BR",
+                  ),
+              );
+
+            const representative =
+              sortedRows.find(
+                (row) =>
+                  row.available > 0 &&
+                  row.image_url,
+              ) ??
+              sortedRows.find(
+                (row) => row.image_url,
+              ) ??
+              sortedRows[0];
+
+            return {
+              key: `fitness-color-${index}`,
+              label: group.color,
+              color: group.color,
+              url:
+                representative?.image_url ?? null,
+              required: true,
+              variant_ids:
+                group.rows.map((row) => row.id),
+              sizes: [
+                ...new Set(
+                  group.rows
+                    .map((row) => row.size)
+                    .filter(Boolean),
+                ),
+              ].sort((a, b) =>
+                a.localeCompare(b, "pt-BR"),
+              ),
+              available_quantity:
+                group.rows.reduce(
+                  (sum, row) =>
+                    sum + row.available,
+                  0,
+                ),
+              physical_quantity:
+                group.rows.reduce(
+                  (sum, row) =>
+                    sum + row.physical,
+                  0,
+                ),
+              incoming_quantity:
+                group.rows.reduce(
+                  (sum, row) =>
+                    sum + row.incoming,
+                  0,
+                ),
+              preferred_cover: false,
+            };
+          },
+        );
+
+      const preferred =
+        slots.find(
+          (slot) =>
+            (slot.available_quantity ?? 0) > 0 &&
+            slot.url &&
+            isBlack(slot.color ?? ""),
+        ) ??
+        slots.find(
+          (slot) =>
+            (slot.available_quantity ?? 0) > 0 &&
+            slot.url,
+        ) ??
+        slots.find(
+          (slot) =>
+            slot.url &&
+            isBlack(slot.color ?? ""),
+        ) ??
+        slots.find(
+          (slot) => slot.url,
+        ) ??
+        null;
+
+      for (const slot of slots) {
+        slot.preferred_cover =
+          Boolean(
+            preferred &&
+            preferred.key === slot.key,
           );
+      }
+
+      slots.sort(
+        (a, b) =>
+          Number(Boolean(b.preferred_cover)) -
+            Number(Boolean(a.preferred_cover)) ||
+          Number(
+            (b.available_quantity ?? 0) > 0,
+          ) -
+            Number(
+              (a.available_quantity ?? 0) > 0,
+            ) ||
+          (b.available_quantity ?? 0) -
+            (a.available_quantity ?? 0) ||
+          (a.color ?? "").localeCompare(
+            b.color ?? "",
+            "pt-BR",
+          ),
+      );
 
       return {
         module: "fitness" as const,
@@ -179,42 +366,7 @@ export default async function MarketingProductsPage() {
           `/fitness/produtos/${String(product.id)}`,
         description_missing:
           !String(product.description ?? "").trim(),
-        slots: [
-          {
-            key: "photo1",
-            label: "Foto principal",
-            url:
-              typeof product.image_url === "string"
-                ? product.image_url
-                : null,
-            required: true,
-            media_id: null,
-          },
-          {
-            key: "photo2",
-            label: "Foto extra 01",
-            url: extras[0]?.url ?? null,
-            required: false,
-            media_id: extras[0]?.id ?? null,
-          },
-          {
-            key: "photo3",
-            label: "Foto extra 02",
-            url: extras[1]?.url ?? null,
-            required: false,
-            media_id: extras[1]?.id ?? null,
-          },
-          ...extras.slice(2).map(
-            (media, index) => ({
-              key: `extra-${index + 3}`,
-              label:
-                `Foto extra ${String(index + 3).padStart(2, "0")}`,
-              url: media.url,
-              required: false,
-              media_id: media.id,
-            }),
-          ),
-        ],
+        slots,
       };
     });
 
@@ -244,13 +396,23 @@ export default async function MarketingProductsPage() {
       (row) => row.description_missing,
     ).length;
 
-  const fitnessExtraMissing =
-    fitnessRows.filter(
-      (row) =>
-        !row.slots
-          .slice(1)
-          .some((slot) => slot.url),
-    ).length;
+  const fitnessVariationMissing =
+    fitnessRows.reduce(
+      (sum, row) =>
+        sum +
+        row.slots.filter(
+          (slot) => !slot.url,
+        ).length,
+      0,
+    );
+
+  const fitnessProductOptions: MarketingFitnessProductOption[] =
+    (fitnessProductsResult.data ?? []).map(
+      (product) => ({
+        id: String(product.id),
+        name: String(product.name),
+      }),
+    );
 
   const canEditSupplements =
     access.role === "admin" ||
@@ -265,7 +427,7 @@ export default async function MarketingProductsPage() {
       <PageHeader
         eyebrow="Central · Marketing"
         title="Produtos e banco de fotos"
-        description="Selecione para baixar em lote ou clique diretamente em qualquer foto para adicionar ou substituir sem sair desta tela."
+        description="Suplementos seguem por Foto 01, 02 e 03. Em Fitness, cada quadrado representa uma cor real cadastrada no produto."
       />
 
       <section className="marketing-product-pending-summary-v4533">
@@ -294,10 +456,10 @@ export default async function MarketingProductsPage() {
         </article>
 
         <article>
-          <span>Fitness · fotos extras faltando</span>
-          <strong>{fitnessExtraMissing}</strong>
+          <span>Fitness · cores sem foto</span>
+          <strong>{fitnessVariationMissing}</strong>
           <small>
-            A foto principal continua preservada.
+            Cada cor aparece separadamente para revisão da importação.
           </small>
         </article>
       </section>
@@ -306,6 +468,7 @@ export default async function MarketingProductsPage() {
         rows={rows}
         canEditSupplements={canEditSupplements}
         canEditFitness={canEditFitness}
+        fitnessProducts={fitnessProductOptions}
       />
     </>
   );
