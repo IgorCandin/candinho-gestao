@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { BankPullToRefresh } from "@/components/bank-pull-to-refresh";
+import { NavigationStabilityV4537R1 } from "@/components/navigation-stability-v45-37-r1";
 import { RouteTabIdentity } from "@/components/route-tab-identity";
 import "./globals.css";
 import "./ux-homologation.css";
@@ -31,14 +32,6 @@ export const metadata: Metadata = {
     "Candinho Company",
   manifest:
     "/manifest.webmanifest",
-  icons: {
-    icon:
-      "/favicons/cc.png",
-    shortcut:
-      "/favicons/cc.png",
-    apple:
-      "/favicons/cc-v44-180.png",
-  },
 };
 
 export const viewport: Viewport = {
@@ -64,6 +57,17 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        <link
+          id="candinho-route-favicon"
+          rel="icon"
+          type="image/png"
+          href="/favicons/cc.png?v=45.37.1"
+        />
+        <link
+          rel="apple-touch-icon"
+          href="/favicons/cc-v44-180.png"
+        />
+
         {supabaseOrigin && (
           <>
             <link
@@ -80,6 +84,8 @@ export default function RootLayout({
       </head>
 
       <body>
+        <NavigationStabilityV4537R1 />
+
         <Suspense fallback={null}>
           <RouteTabIdentity />
         </Suspense>

@@ -11,7 +11,7 @@ type Operation =
   | "central"
   | "physique";
 
-const FAVICON_VERSION = "45.35.1";
+const FAVICON_VERSION = "45.37.1";
 
 const OPERATION = {
   company: {
@@ -150,26 +150,16 @@ const LABELS: Array<[string, string]> = [
   ["/promocoes", "Promoções"],
 ];
 
-function startsWithRoute(
-  pathname: string,
-  route: string,
-) {
+function startsWithRoute(pathname: string, route: string) {
   return (
     pathname === route ||
     pathname.startsWith(`${route}/`)
   );
 }
 
-function operationFor(
-  pathname: string,
-): Operation {
-  if (startsWithRoute(pathname, "/bank")) {
-    return "bank";
-  }
-
-  if (startsWithRoute(pathname, "/fitness")) {
-    return "fitness";
-  }
+function operationFor(pathname: string): Operation {
+  if (startsWithRoute(pathname, "/bank")) return "bank";
+  if (startsWithRoute(pathname, "/fitness")) return "fitness";
 
   if (
     startsWithRoute(pathname, "/central") ||
@@ -258,99 +248,20 @@ function identityFor(pathname: string) {
     return OPERATION.company;
   }
 
-  if (pathname === "/bank") {
-    return OPERATION.bank;
-  }
-
-  if (pathname === "/fitness") {
-    return OPERATION.fitness;
-  }
-
-  if (pathname === "/central") {
-    return OPERATION.central;
-  }
-
-  if (pathname === "/suplementos") {
-    return OPERATION.supplements;
-  }
-
-  if (pathname === "/physique") {
-    return OPERATION.physique;
-  }
-
-  const operation =
-    operationFor(pathname);
+  if (pathname === "/bank") return OPERATION.bank;
+  if (pathname === "/fitness") return OPERATION.fitness;
+  if (pathname === "/central") return OPERATION.central;
+  if (pathname === "/suplementos") return OPERATION.supplements;
+  if (pathname === "/physique") return OPERATION.physique;
 
   const config =
-    OPERATION[operation];
+    OPERATION[operationFor(pathname)];
 
   return {
     ...config,
     brandTitle:
       `${labelFor(pathname)} - ${config.suffix}`,
   };
-}
-
-function versioned(
-  href: string,
-) {
-  return `${href}?v=${FAVICON_VERSION}`;
-}
-
-function removeCompetingFavicons() {
-  const icons = Array.from(
-    document.head.querySelectorAll<HTMLLinkElement>(
-      'link[rel="icon"], link[rel="shortcut icon"]',
-    ),
-  );
-
-  for (const icon of icons) {
-    if (
-      icon.dataset.routeTabIdentity !== "true"
-    ) {
-      icon.remove();
-    }
-  }
-}
-
-function ensureManagedFavicon(
-  href: string,
-) {
-  removeCompetingFavicons();
-
-  let icon =
-    document.head.querySelector<HTMLLinkElement>(
-      'link[data-route-tab-identity="true"]',
-    );
-
-  if (!icon) {
-    icon = document.createElement("link");
-    icon.rel = "icon";
-    icon.type = "image/png";
-    icon.dataset.routeTabIdentity = "true";
-    document.head.appendChild(icon);
-  }
-
-  const next = versioned(href);
-
-  if (
-    icon.getAttribute("href") !== next
-  ) {
-    icon.setAttribute("href", next);
-  }
-
-  return icon;
-}
-
-function applyIdentity(
-  title: string,
-  icon: string,
-) {
-  if (document.title !== title) {
-    document.title = title;
-  }
-
-  ensureManagedFavicon(icon);
 }
 
 export function RouteTabIdentity() {
@@ -360,34 +271,26 @@ export function RouteTabIdentity() {
     const identity =
       identityFor(pathname || "/");
 
-    const apply = () => {
-      applyIdentity(
-        identity.brandTitle,
-        identity.icon,
-      );
-    };
+    document.title =
+      identity.brandTitle;
 
-    // Aplica no início e reaplica em janelas curtas nas quais
-    // o Next pode reescrever metadata. Depois encerra: nada de
-    // observar o <head> indefinidamente.
-    apply();
+    /*
+     * Importante:
+     * não removemos mais nenhum elemento do <head>.
+     * O Next gerencia o próprio head durante navegação e a versão anterior
+     * removia links de favicon criados por ele.
+     *
+     * Agora alteramos SOMENTE o link estável que já nasce no RootLayout.
+     */
+    const icon =
+      document.getElementById(
+        "candinho-route-favicon",
+      ) as HTMLLinkElement | null;
 
-    const frame =
-      window.requestAnimationFrame(apply);
-
-    const timers = [
-      window.setTimeout(apply, 120),
-      window.setTimeout(apply, 420),
-      window.setTimeout(apply, 1100),
-    ];
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-
-      for (const timer of timers) {
-        window.clearTimeout(timer);
-      }
-    };
+    if (icon) {
+      icon.href =
+        `${identity.icon}?v=${FAVICON_VERSION}`;
+    }
   }, [pathname]);
 
   return null;
