@@ -365,3 +365,126 @@
     transform: translateY(0) scale(1);
   }
 }
+
+
+/* =========================================================
+   V45.32.R2 · Corrige cards comprimidos dentro dos objetivos
+   ========================================================= */
+
+.modal .productGrid {
+  grid-auto-rows: max-content;
+  align-items: stretch;
+}
+
+.modal .productCard {
+  display: grid !important;
+  grid-template-rows: 150px minmax(132px, auto) !important;
+  min-height: 282px !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  align-self: stretch !important;
+  align-items: stretch !important;
+  white-space: normal !important;
+  overflow: hidden !important;
+}
+
+.modal .productImage {
+  width: 100% !important;
+  height: 150px !important;
+  min-height: 150px !important;
+  max-height: 150px !important;
+  aspect-ratio: auto !important;
+  overflow: hidden !important;
+  display: grid !important;
+  place-items: center !important;
+}
+
+.modal .productImage img {
+  display: block !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.modal .productCopy {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 132px !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 12px 13px 13px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  overflow: visible !important;
+  white-space: normal !important;
+}
+
+.modal .productCopy > span,
+.modal .productCopy > strong,
+.modal .productCopy > p,
+.modal .productCopy > small {
+  width: 100%;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+}
+
+.modal .productCopy > strong {
+  min-height: 34px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden !important;
+}
+
+@media (max-width: 900px) {
+  .modal .productCard {
+    grid-template-rows: 138px minmax(126px, auto) !important;
+    min-height: 264px !important;
+  }
+
+  .modal .productImage {
+    height: 138px !important;
+    min-height: 138px !important;
+    max-height: 138px !important;
+  }
+}
+
+@media (max-width: 700px) {
+  .modal .productCard {
+    grid-template-rows: 112px minmax(118px, auto) !important;
+    min-height: 230px !important;
+  }
+
+  .modal .productImage {
+    height: 112px !important;
+    min-height: 112px !important;
+    max-height: 112px !important;
+  }
+
+  .modal .productCopy {
+    min-height: 118px !important;
+    padding: 10px 10px 11px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .modal .productCard {
+    grid-template-rows: 102px minmax(116px, auto) !important;
+    min-height: 218px !important;
+  }
+
+  .modal .productImage {
+    height: 102px !important;
+    min-height: 102px !important;
+    max-height: 102px !important;
+  }
+}
