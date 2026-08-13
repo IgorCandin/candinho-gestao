@@ -103,20 +103,9 @@ function VitrineProductCoinV45243({
     useState<CompanyShowcaseProductV45243 | null>(
       firstSupplement,
     );
-
   const [backProduct, setBackProduct] =
     useState<CompanyShowcaseProductV45243 | null>(
       firstFitness,
-    );
-
-  const [mobileProduct, setMobileProduct] =
-    useState<CompanyShowcaseProductV45243 | null>(
-      firstSupplement,
-    );
-
-  const mobileSourceRef =
-    useRef<CompanyShowcaseProductV45243["source"]>(
-      "fitness",
     );
 
   useEffect(() => {
@@ -129,16 +118,11 @@ function VitrineProductCoinV45243({
     if (!backProduct) {
       setBackProduct(firstFitness);
     }
-
-    if (!mobileProduct) {
-      setMobileProduct(firstSupplement);
-    }
   }, [
     backProduct,
     firstFitness,
     firstSupplement,
     frontProduct,
-    mobileProduct,
     products.length,
   ]);
 
@@ -177,52 +161,7 @@ function VitrineProductCoinV45243({
     products,
   ]);
 
-  useEffect(() => {
-    if (!active || products.length <= 1) {
-      return;
-    }
-
-    let interval: number | null = null;
-
-    function swapMobileProduct() {
-      const source = mobileSourceRef.current;
-
-      setMobileProduct((current) =>
-        pickProduct(
-          products,
-          source,
-          current?.id,
-        ),
-      );
-
-      mobileSourceRef.current =
-        source === "supplements"
-          ? "fitness"
-          : "supplements";
-    }
-
-    const firstSwap = window.setTimeout(() => {
-      swapMobileProduct();
-
-      interval = window.setInterval(
-        swapMobileProduct,
-        3300,
-      );
-    }, 1650);
-
-    return () => {
-      window.clearTimeout(firstSwap);
-
-      if (interval !== null) {
-        window.clearInterval(interval);
-      }
-    };
-  }, [
-    active,
-    products,
-  ]);
-
-  if (!frontProduct && !backProduct && !mobileProduct) {
+  if (!frontProduct && !backProduct) {
     return (
       <div
         className="company-vitrine-coin-v45243"
@@ -244,7 +183,7 @@ function VitrineProductCoinV45243({
       aria-hidden="true"
     >
       <div className="company-vitrine-coin-float-v45243">
-        <div className="company-vitrine-coin-inner-v45243 company-vitrine-coin-desktop-v4525">
+        <div className="company-vitrine-coin-inner-v45243">
           <span className="company-vitrine-coin-face-v45243 front">
             {frontProduct && (
               <>
@@ -267,25 +206,6 @@ function VitrineProductCoinV45243({
                   draggable={false}
                 />
                 <small>Fitness</small>
-              </>
-            )}
-          </span>
-        </div>
-
-        <div className="company-vitrine-coin-mobile-v4525">
-          <span className="company-vitrine-coin-face-v45243 company-vitrine-coin-mobile-face-v4525">
-            {mobileProduct && (
-              <>
-                <img
-                  src={mobileProduct.imageUrl}
-                  alt=""
-                  draggable={false}
-                />
-                <small>
-                  {mobileProduct.source === "fitness"
-                    ? "Fitness"
-                    : "Suplementos"}
-                </small>
               </>
             )}
           </span>
@@ -318,9 +238,6 @@ export function CompanyOperationCarouselV4514({
   ] = useState(0);
   const [reducedMotion, setReducedMotion] =
     useState(false);
-  const [hoveringActive, setHoveringActive] =
-    useState(false);
-
   const loopSlides = useMemo<LoopSlide[]>(() => {
     if (operations.length <= 1) {
       return operations.map(
@@ -473,7 +390,6 @@ export function CompanyOperationCarouselV4514({
   useEffect(() => {
     if (
       reducedMotion ||
-      hoveringActive ||
       operations.length <= 1
     ) {
       return;
@@ -487,7 +403,6 @@ export function CompanyOperationCarouselV4514({
       window.clearTimeout(timer);
   }, [
     activeIndex,
-    hoveringActive,
     goBy,
     operations.length,
     reducedMotion,
@@ -660,16 +575,7 @@ export function CompanyOperationCarouselV4514({
                     if (active) return;
 
                     event.preventDefault();
-                    setHoveringActive(false);
                     scrollPhysicalTo(physicalIndex);
-                  }}
-                  onMouseMove={() => {
-                    if (active) {
-                      setHoveringActive(true);
-                    }
-                  }}
-                  onMouseLeave={() => {
-                    setHoveringActive(false);
                   }}
                   className={`company-operation-slide-v4514 tone-${operation.tone}`}
                   data-active={

@@ -29,6 +29,18 @@ export function NavigationStabilityV4537R1() {
 
       if (!anchor) return;
 
+      /*
+       * V45.37.R2: card lateral da Company ainda nao e navegacao.
+       * A R1 continua fazendo hard-navigation para links normais e para
+       * o card central, mas deixa o proprio carrossel centralizar laterais.
+       */
+      if (
+        anchor.classList.contains("company-operation-slide-v4514") &&
+        anchor.dataset.active === "false"
+      ) {
+        return;
+      }
+
       if (
         anchor.target &&
         anchor.target.toLowerCase() !== "_self"

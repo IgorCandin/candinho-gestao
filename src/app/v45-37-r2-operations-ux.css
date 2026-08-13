@@ -1,0 +1,59 @@
+/* V45.37.R2
+   Fechamento do UX Doctor: contenção responsiva específica do Physique.
+   Não usa overflow-x:hidden no body e não altera desktop. */
+
+@media (max-width: 820px) {
+  .physique-standalone-content-v4526,
+  .physique-standalone-content-v4526 .physique-ux-page,
+  .physique-standalone-content-v4526 .physique-ux-page > *,
+  .physique-standalone-content-v4526 .physique-ux-page article,
+  .physique-standalone-content-v4526 .physique-ux-page section,
+  .physique-standalone-content-v4526 .physique-ux-page form,
+  .physique-standalone-content-v4526 .physique-ux-page fieldset {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .physique-standalone-content-v4526 .physique-ux-page-header,
+  .physique-standalone-content-v4526 .physique-ux-browser-toolbar,
+  .physique-standalone-content-v4526 .physique-ux-day-tabs,
+  .physique-standalone-content-v4526 .physique-ux-day-focus-v4526 {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .physique-standalone-content-v4526 .physique-ux-day-tabs {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .physique-standalone-content-v4526 .physique-ux-day-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .physique-standalone-content-v4526 .physique-ux-page img,
+  .physique-standalone-content-v4526 .physique-ux-page video,
+  .physique-standalone-content-v4526 .physique-ux-page canvas,
+  .physique-standalone-content-v4526 .physique-ux-page input,
+  .physique-standalone-content-v4526 .physique-ux-page select,
+  .physique-standalone-content-v4526 .physique-ux-page textarea,
+  .physique-standalone-content-v4526 .physique-ux-page button {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .physique-standalone-content-v4526 .physique-ux-page h1,
+  .physique-standalone-content-v4526 .physique-ux-page h2,
+  .physique-standalone-content-v4526 .physique-ux-page h3,
+  .physique-standalone-content-v4526 .physique-ux-page p,
+  .physique-standalone-content-v4526 .physique-ux-page strong,
+  .physique-standalone-content-v4526 .physique-ux-page span {
+    overflow-wrap: anywhere;
+  }
+}
