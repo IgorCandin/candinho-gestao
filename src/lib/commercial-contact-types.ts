@@ -1,7 +1,7 @@
 export type CommercialContactSourceType = "lead" | "repurchase";
 export type CommercialContactStage = "contact" | "response_check";
 
-export type CommercialContactQueueItem = {
+export type CommercialContactContext = {
   queue_key: string;
   source_type: CommercialContactSourceType;
   source_id: string;
@@ -28,6 +28,11 @@ export type CommercialContactQueueItem = {
   source_created_at: string;
 };
 
+export type CommercialContactQueueItem = CommercialContactContext & {
+  context_count?: number;
+  contexts?: CommercialContactContext[];
+};
+
 export type CommercialContactQueueSnapshot = {
   today: string;
   goal: number;
@@ -35,6 +40,7 @@ export type CommercialContactQueueSnapshot = {
   remaining: number;
   completed: boolean;
   total_eligible: number;
+  total_contexts?: number;
   lead_eligible: number;
   repurchase_eligible: number;
   items: CommercialContactQueueItem[];
@@ -57,6 +63,7 @@ export function emptyCommercialContactQueue(
     remaining: 12,
     completed: false,
     total_eligible: 0,
+    total_contexts: 0,
     lead_eligible: 0,
     repurchase_eligible: 0,
     items: [],

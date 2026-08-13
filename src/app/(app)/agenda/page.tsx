@@ -71,7 +71,7 @@ export default async function AgendaPage() {
       .from("operational_tasks")
       .select("id")
       .eq("operation_scope", "supplements"),
-    supabase.rpc("commercial_contact_queue_v1", { p_limit: 1 }),
+    supabase.rpc("commercial_contact_queue_people_v1", { p_limit: 1 }),
   ]);
 
   if (taskScopeResult.error) throw taskScopeResult.error;

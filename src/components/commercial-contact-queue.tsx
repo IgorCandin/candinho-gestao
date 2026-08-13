@@ -19,6 +19,7 @@ import {
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type {
+  CommercialContactContext,
   CommercialContactQueueItem,
   CommercialContactQueueSnapshot,
 } from "@/lib/commercial-contact-types";
@@ -31,13 +32,13 @@ function whatsappUrl(phone: string | null) {
   return `https://wa.me/${digits.startsWith("55") ? digits : `55${digits}`}`;
 }
 
-function originLabel(item: CommercialContactQueueItem) {
+function originLabel(item: CommercialContactContext) {
   return item.source_type === "repurchase" ? "Recompra" : item.lead_status || "Lead";
 }
 
-function reasonText(item: CommercialContactQueueItem) {
+function reasonText(item: CommercialContactContext) {
   if (item.stage === "response_check") {
-    return "Você já chamou este contato. Agora vale confirmar se respondeu ou se precisa de uma nova tentativa.";
+    return "Você já chamou por este assunto. Agora vale confirmar se respondeu ou se precisa de uma nova tentativa.";
   }
   if (item.source_type === "repurchase") {
     return item.last_purchase_on
@@ -46,6 +47,22 @@ function reasonText(item: CommercialContactQueueItem) {
   }
   if (item.source_notes) return item.source_notes;
   return `Lead classificado como “${item.lead_status ?? "em acompanhamento"}”.`;
+}
+
+function contextsOf(item: CommercialContactQueueItem): CommercialContactContext[] {
+  return item.contexts?.length ? item.contexts : [item];
+}
+
+function previewText(item: CommercialContactQueueItem) {
+  const contexts = contextsOf(item);
+  if (contexts.length === 1) return contexts[0].product_name;
+
+  const names = contexts
+    .map((context) => context.product_name)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  return `${contexts.length} contextos · ${names.join(" · ")}${contexts.length > 2 ? "…" : ""}`;
 }
 
 export function CommercialContactQueue({
@@ -72,22 +89,31 @@ export function CommercialContactQueue({
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.rpc("commercial_contact_action_v1", {
-        p_source_type: item.source_type,
-        p_source_id: item.source_id,
-        p_action: action,
-        p_notes: null,
-      });
+      const { data, error } = await supabase.rpc(
+        "commercial_contact_customer_action_v1",
+        {
+          p_customer_id: item.customer_id,
+          p_action: action,
+          p_notes: null,
+        },
+      );
       if (error) throw error;
+
+      const contextCount =
+        Number(
+          data && typeof data === "object" && "context_count" in data
+            ? (data as { context_count?: unknown }).context_count
+            : item.context_count,
+        ) || contextsOf(item).length;
 
       setMessage(
         action === "contacted"
-          ? "Contato marcado como chamado. O próximo já entrou na frente."
+          ? `Pessoa marcada como chamada. ${contextCount} contexto(s) avançaram juntos.`
           : action === "skipped"
-            ? "Pulou. Esse contato saiu da fila de hoje e volta no próximo dia elegível."
+            ? "Pulou. Essa pessoa saiu da fila de hoje e todos os assuntos exibidos voltam no próximo dia elegível."
             : action === "no_response"
-              ? "Sem resposta registrada. Ele volta depois, sem poluir sua Agenda."
-              : "Resposta registrada. O Nexus segura este contato antes de trazer de novo.",
+              ? "Sem resposta registrada. Todos os assuntos exibidos entram no mesmo cooldown."
+              : "Resposta registrada. Todos os contextos desta pessoa avançaram juntos.",
       );
       window.location.reload();
     } catch (error) {
@@ -106,6 +132,8 @@ export function CommercialContactQueue({
     }
   }
 
+  const currentContexts = current ? contextsOf(current) : [];
+
   return (
     <section className="v4530-commercial-queue">
       <div className="v4530-commercial-summary">
@@ -116,23 +144,27 @@ export function CommercialContactQueue({
           <small>
             {snapshot.completed
               ? "Meta concluída — continuar é opcional."
-              : `${snapshot.remaining} contato(s) para bater a meta.`}
+              : `${snapshot.remaining} pessoa(s) para bater a meta.`}
           </small>
         </article>
         <article>
-          <span><UserRound size={16} /> Leads elegíveis</span>
+          <span><UserRound size={16} /> Pessoas com lead</span>
           <strong>{snapshot.lead_eligible}</strong>
-          <small>Mais próximos da compra entram antes.</small>
+          <small>Cada pessoa aparece uma vez, mesmo com mais de um lead.</small>
         </article>
         <article>
-          <span><RotateCcw size={16} /> Recompras elegíveis</span>
+          <span><RotateCcw size={16} /> Pessoas em recompra</span>
           <strong>{snapshot.repurchase_eligible}</strong>
-          <small>Só entram produtos com estoque disponível.</small>
+          <small>Uma pessoa pode ter recompra e lead no mesmo card.</small>
         </article>
         <article>
-          <span><PackageCheck size={16} /> Fila disponível</span>
+          <span><PackageCheck size={16} /> Pessoas na fila</span>
           <strong>{snapshot.total_eligible}</strong>
-          <small>Você pode continuar mesmo depois de 12.</small>
+          <small>
+            {snapshot.total_contexts && snapshot.total_contexts > snapshot.total_eligible
+              ? `${snapshot.total_contexts} contextos comerciais agrupados.`
+              : "Você pode continuar mesmo depois de 12."}
+          </small>
         </article>
       </div>
 
@@ -141,34 +173,87 @@ export function CommercialContactQueue({
           <header>
             <div>
               <span className={`v4530-contact-kind ${current.source_type}`}>
-                {originLabel(current)}
+                {currentContexts.length > 1
+                  ? `${currentContexts.length} contextos`
+                  : originLabel(current)}
               </span>
               {current.stage === "response_check" && (
                 <span className="v4530-contact-kind response"><Clock3 size={12} /> Checar resposta</span>
               )}
             </div>
-            <span className="v4530-contact-stock">Estoque: {current.stock_quantity}</span>
+            <span className="v4530-contact-stock">
+              {currentContexts.length > 1
+                ? "1 pessoa · vários assuntos"
+                : `Estoque: ${current.stock_quantity}`}
+            </span>
           </header>
 
           <div className="v4530-contact-main">
             <div>
-              <small>Próxima ação</small>
+              <small>Próxima pessoa</small>
               <h2>{current.customer_name}</h2>
-              <p>{current.product_name}</p>
+              <p>
+                {currentContexts.length > 1
+                  ? `Aproveite o mesmo contato para tratar ${currentContexts.length} assuntos.`
+                  : current.product_name}
+              </p>
             </div>
             <div className="v4530-contact-location">
               {current.city && <span>{current.city}</span>}
-              {current.reference && <small>{current.reference}</small>}
+              {current.reference && currentContexts.length === 1 && (
+                <small>{current.reference}</small>
+              )}
             </div>
           </div>
 
-          <div className="v4530-contact-reason">
-            <strong>Por que o Nexus colocou agora?</strong>
-            <p>{reasonText(current)}</p>
-            {current.source_type === "repurchase" && current.estimated_due_on && (
-              <small>Reposição estimada originalmente: {formatDateOnly(current.estimated_due_on)}</small>
-            )}
-          </div>
+          {currentContexts.length > 1 ? (
+            <div style={{ display: "grid", gap: 8 }}>
+              {currentContexts.map((context, index) => (
+                <div
+                  className="v4530-contact-reason"
+                  key={context.queue_key}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <strong>
+                      {index + 1}. {context.product_name}
+                    </strong>
+                    <span
+                      className={`v4530-contact-kind ${context.source_type}`}
+                    >
+                      {originLabel(context)}
+                    </span>
+                  </div>
+                  <p>{reasonText(context)}</p>
+                  {context.source_type === "repurchase" &&
+                    context.estimated_due_on && (
+                      <small>
+                        Reposição estimada originalmente:{" "}
+                        {formatDateOnly(context.estimated_due_on)}
+                      </small>
+                    )}
+                  {context.reference && (
+                    <small>{context.reference}</small>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="v4530-contact-reason">
+              <strong>Por que o Nexus colocou agora?</strong>
+              <p>{reasonText(current)}</p>
+              {current.source_type === "repurchase" && current.estimated_due_on && (
+                <small>Reposição estimada originalmente: {formatDateOnly(current.estimated_due_on)}</small>
+              )}
+            </div>
+          )}
 
           <div className="v4530-contact-actions">
             {whatsappUrl(current.phone) ? (
@@ -233,7 +318,7 @@ export function CommercialContactQueue({
             )}
 
             <Link className="button ghost" href={current.href}>
-              <ExternalLink size={15} /> Abrir histórico
+              <ExternalLink size={15} /> Abrir cliente
             </Link>
           </div>
         </article>
@@ -241,7 +326,7 @@ export function CommercialContactQueue({
         <article className="panel v4530-commercial-empty">
           <CheckCircle2 size={28} />
           <div>
-            <h2>Nenhum contato elegível agora.</h2>
+            <h2>Nenhuma pessoa elegível agora.</h2>
             <p>Leads dependentes de estoque continuam como obrigação na Agenda; recompras sem estoque ficam fora desta fila até existir produto para vender.</p>
           </div>
         </article>
@@ -252,16 +337,20 @@ export function CommercialContactQueue({
           <header>
             <div>
               <span className="eyebrow">Depois deste</span>
-              <h2>Próximos da fila</h2>
+              <h2>Próximas pessoas</h2>
             </div>
-            <small>Prévia curta — nada de 12 cards espalhados.</small>
+            <small>Uma pessoa por posição, mesmo com vários assuntos.</small>
           </header>
           <div>
             {next.map((item, index) => (
               <div key={item.queue_key}>
                 <span>{index + 2}</span>
-                <p><strong>{item.customer_name}</strong><small>{item.product_name}</small></p>
-                <em>{originLabel(item)}</em>
+                <p><strong>{item.customer_name}</strong><small>{previewText(item)}</small></p>
+                <em>
+                  {contextsOf(item).length > 1
+                    ? `${contextsOf(item).length} contextos`
+                    : originLabel(item)}
+                </em>
                 <ArrowRight size={14} />
               </div>
             ))}

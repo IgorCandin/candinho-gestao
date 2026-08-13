@@ -17,7 +17,7 @@ export default async function CommercialContactQueuePage() {
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.rpc("commercial_contact_queue_v1", {
+  const { data, error } = await supabase.rpc("commercial_contact_queue_people_v1", {
     p_limit: 40,
   });
 
@@ -33,7 +33,7 @@ export default async function CommercialContactQueuePage() {
       <PageHeader
         eyebrow="Candinho Suplementos"
         title="Fila Comercial"
-        description="Uma pessoa por vez. Leads e recompras entram pela prioridade do Nexus; pagamentos, pós-venda, fornecedor e promessas com data continuam na Agenda normal."
+        description="Uma pessoa por vez. Se o mesmo cliente tiver mais de um motivo comercial, o Nexus junta tudo no mesmo contato e mantém a prioridade pelo assunto mais urgente."
       />
       <CommercialContactQueue snapshot={snapshot} />
     </>
