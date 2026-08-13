@@ -57,3 +57,36 @@
     overflow-wrap: anywhere;
   }
 }
+
+/* V45.37.R4 · Bank
+   Quando o menu desktop é recolhido, a sidebar precisa desaparecer de verdade.
+   Mantém o trilho de 48px do botão, mas elimina a "sidebar fantasma" sem clique. */
+@media (min-width: 821px) {
+  .app-shell.theme-bank.sidebar-collapsed > .sidebar {
+    min-width: 0 !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    border-right: 0 !important;
+    transform: translateX(-110%) !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    overflow: hidden !important;
+  }
+
+  .app-shell.theme-bank.sidebar-collapsed > .sidebar * {
+    pointer-events: none !important;
+  }
+
+  .app-shell.theme-bank:not(.sidebar-collapsed) > .sidebar {
+    min-width: 252px !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: translateX(0) !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+}
