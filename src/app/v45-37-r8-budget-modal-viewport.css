@@ -301,3 +301,74 @@ body.v4515-confirm-flow-open {
     grid-column: auto !important;
   }
 }
+
+/* =========================================================
+   V45.37.R12 · Scroll estrutural do fluxo Orçamento → Venda
+   - O miolo confirmado recebe altura explícita em dvh.
+   - Touch/wheel rolam o próprio painel, mesmo com body travado.
+   - Modais nativos altos começam no topo da área útil e rolam internamente.
+   ========================================================= */
+.budget-choice-backdrop {
+  align-items: flex-start !important;
+  justify-items: center !important;
+  place-items: start center !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+.budget-choice-modal {
+  flex: 0 0 auto;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+body.v4515-confirm-flow-open .new-sale-side {
+  overflow-x: hidden !important;
+  overflow-y: scroll !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-x: none !important;
+  overscroll-behavior-y: contain !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scroll-behavior: auto !important;
+  scroll-padding-block: 12px 20px;
+}
+
+@media (min-width: 721px) {
+  body.v4515-confirm-flow-open .new-sale-side {
+    bottom: auto !important;
+    height: calc(100dvh - 172px) !important;
+    max-height: calc(100dvh - 172px) !important;
+    min-height: 220px !important;
+  }
+}
+
+@media (max-width: 720px) {
+  body.v4515-confirm-flow-open .new-sale-side {
+    bottom: auto !important;
+    height: calc(
+      100dvh - 148px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    ) !important;
+    max-height: calc(
+      100dvh - 148px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    ) !important;
+    min-height: 180px !important;
+    padding-bottom: 18px !important;
+  }
+
+  .budget-choice-backdrop {
+    min-height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+
+  .budget-choice-modal {
+    width: 100% !important;
+    max-height: calc(
+      100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+    ) !important;
+    overflow-y: scroll !important;
+  }
+}

@@ -1,0 +1,139 @@
+.panelWithInterest {
+  grid-template-rows: auto minmax(0, 1fr) auto auto !important;
+}
+
+.interestBox {
+  padding: 12px 14px 14px;
+  border-top: 1px solid rgba(239, 75, 154, .18);
+  display: grid;
+  gap: 10px;
+  background:
+    radial-gradient(circle at 0 0, rgba(239,75,154,.08), transparent 42%),
+    rgba(255,255,255,.012);
+}
+
+.interestCopy {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  color: #f2f4f7;
+}
+
+.interestCopy > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #ff77b8;
+}
+
+.interestCopy strong,
+.interestCopy span {
+  display: block;
+}
+
+.interestCopy strong {
+  font-size: 12px;
+}
+
+.interestCopy span {
+  margin-top: 2px;
+  color: #969eac;
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.form input,
+.form button {
+  min-width: 0;
+  min-height: 38px;
+  border-radius: 10px;
+  font: inherit;
+}
+
+.form input {
+  width: 100%;
+  padding: 0 11px;
+  border: 1px solid rgba(174,181,194,.16);
+  outline: none;
+  background: #0e131b;
+  color: #f4f6f8;
+  font-size: 10px;
+}
+
+.form input:focus {
+  border-color: rgba(239,75,154,.55);
+  box-shadow: 0 0 0 3px rgba(239,75,154,.10);
+}
+
+.form button {
+  padding: 0 14px;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: linear-gradient(145deg, #f36cac, #c92f78);
+  color: #12080e;
+  font-size: 10px;
+  font-weight: 900;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.form button:disabled {
+  opacity: .68;
+  cursor: wait;
+}
+
+.success {
+  padding: 10px 11px;
+  border: 1px solid rgba(70,195,123,.22);
+  border-radius: 10px;
+  background: rgba(70,195,123,.07);
+  color: #8be8af;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.error {
+  color: #ff9898;
+  font-size: 9px;
+}
+
+@media (max-width: 680px) {
+  .panelWithInterest {
+    grid-template-rows: auto minmax(0, 1fr) auto auto !important;
+  }
+
+  .interestBox {
+    padding:
+      11px
+      12px
+      calc(12px + env(safe-area-inset-bottom));
+    gap: 9px;
+  }
+
+  .interestCopy strong {
+    font-size: 13px;
+  }
+
+  .interestCopy span {
+    font-size: 10px;
+  }
+
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .form input,
+  .form button {
+    min-height: 43px;
+    font-size: 11px;
+  }
+}

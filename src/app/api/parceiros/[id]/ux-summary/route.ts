@@ -145,26 +145,40 @@ export async function GET(
 
   const targetSales = numberValue(partner.target_sales);
   const totalSales = numberValue(partner.all_time_sales_count);
-  const coveredSales = numberValue(partner.reward_sales_covered);
+  const coveredSales = Math.max(
+    0,
+    numberValue(partner.reward_sales_covered),
+  );
   const isGift =
     rewardType === "gift_per_sales" &&
     targetSales > 0;
 
+  /*
+   * R12 · meta antecipada é meta quitada.
+   * O valor canônico nunca pode ficar atrás de covered_sales + intervalo.
+   * Assim, se o brinde da meta 80 foi dado com 78 vendas, covered=80 e a
+   * interface necessariamente passa a trabalhar com a meta 90.
+   */
   const nextRewardAt = isGift
-    ? numberValue(partner.next_reward_at_sales) ||
-      coveredSales + targetSales
-    : 0;
-
-  const salesToNext = isGift
     ? Math.max(
-        0,
-        partner.sales_to_next_reward == null
-          ? nextRewardAt - totalSales
-          : numberValue(partner.sales_to_next_reward),
+        coveredSales + targetSales,
+        numberValue(partner.next_reward_at_sales),
       )
     : 0;
 
-  const rewardUnitsDue = numberValue(partner.reward_units_due);
+  const salesToNext = isGift
+    ? Math.max(0, nextRewardAt - totalSales)
+    : 0;
+
+  const canonicalDueUnits =
+    isGift && targetSales > 0
+      ? Math.max(
+          Math.floor(totalSales / targetSales) -
+            Math.floor(coveredSales / targetSales),
+          0,
+        )
+      : 0;
+
   const cycleProgressPct =
     isGift && targetSales > 0
       ? salesToNext > targetSales
@@ -200,10 +214,8 @@ export async function GET(
         covered_sales: coveredSales,
         next_reward_at: nextRewardAt,
         sales_to_next: salesToNext,
-        due_units: rewardUnitsDue,
-        available:
-          isGift &&
-          (rewardUnitsDue > 0 || salesToNext === 0),
+        due_units: canonicalDueUnits,
+        available: isGift && canonicalDueUnits > 0,
         progress_pct: cycleProgressPct,
       },
     },

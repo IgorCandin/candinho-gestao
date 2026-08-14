@@ -4,12 +4,16 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageIcon,
+  LoaderCircle,
+  Send,
+  UserRoundCheck,
   X,
 } from "lucide-react";
 import {
   useEffect,
   useMemo,
   useState,
+  type FormEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import type {
@@ -17,6 +21,7 @@ import type {
   PublicStorefrontSnapshot,
 } from "@/lib/public-storefront-data";
 import styles from "./public-storefront-visual-enhancer.module.css";
+import interestStyles from "./public-fitness-interest-v45-37-r12.module.css";
 
 function normalize(value: string) {
   return value
@@ -37,6 +42,11 @@ export function PublicStorefrontVisualEnhancer({
   snapshot: PublicStorefrontSnapshot;
 }) {
   const [open, setOpen] = useState<OpenGallery | null>(null);
+  const [leadName, setLeadName] = useState("");
+  const [leadPhone, setLeadPhone] = useState("");
+  const [leadSending, setLeadSending] = useState(false);
+  const [leadDone, setLeadDone] = useState(false);
+  const [leadError, setLeadError] = useState<string | null>(null);
 
   const productIndex = useMemo(() => {
     const byName = new Map<string, PublicStorefrontProduct>();
@@ -157,8 +167,6 @@ export function PublicStorefrontVisualEnhancer({
 
       if (!image || slides.length === 0) return;
 
-      // Referências não-nulas estabilizadas antes dos callbacks.
-      // O TS não mantém o narrowing original dentro de closures.
       const productImage = image;
       const productSlides = slides;
       let index = 0;
@@ -192,7 +200,6 @@ export function PublicStorefrontVisualEnhancer({
         if (counter) {
           counter.textContent = `${index + 1}/${productSlides.length}`;
         }
-
       }
 
       const zoom = document.createElement("button");
@@ -388,6 +395,14 @@ export function PublicStorefrontVisualEnhancer({
     };
   }, [open]);
 
+  useEffect(() => {
+    setLeadName("");
+    setLeadPhone("");
+    setLeadSending(false);
+    setLeadDone(false);
+    setLeadError(null);
+  }, [open?.item.id]);
+
   if (!open || typeof document === "undefined") return null;
 
   const slides =
@@ -421,6 +436,67 @@ export function PublicStorefrontVisualEnhancer({
     });
   }
 
+  async function submitFitnessInterest(
+    event: FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (open.item.operation !== "fitness" || leadSending) {
+      return;
+    }
+
+    setLeadSending(true);
+    setLeadError(null);
+
+    try {
+      const variation = current.color || current.label || null;
+      const response = await fetch(
+        "/api/catalogo/fitness-interesse",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: leadName,
+            phone: leadPhone,
+            fitness_product_id: open.item.id,
+            context_summary: [
+              `Produto Fitness: ${open.item.name}`,
+              variation ? `Variação visualizada: ${variation}` : null,
+              "Origem: botão Me interessei da Vitrine Fitness",
+            ]
+              .filter(Boolean)
+              .join("\n"),
+            source: "catalog_fitness_lightbox",
+          }),
+        },
+      );
+
+      const payload = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+      };
+
+      if (!response.ok || !payload.ok) {
+        throw new Error(
+          payload.error ||
+            "Não foi possível registrar seu interesse agora.",
+        );
+      }
+
+      setLeadDone(true);
+    } catch (error) {
+      setLeadError(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível registrar seu interesse agora.",
+      );
+    } finally {
+      setLeadSending(false);
+    }
+  }
+
+  const fitnessInterest = open.item.operation === "fitness";
+
   return createPortal(
     <div
       className={styles.lightbox}
@@ -430,7 +506,9 @@ export function PublicStorefrontVisualEnhancer({
       onClick={() => setOpen(null)}
     >
       <div
-        className={styles.lightboxPanel}
+        className={`${styles.lightboxPanel} ${
+          fitnessInterest ? interestStyles.panelWithInterest : ""
+        }`}
         onClick={(event) => event.stopPropagation()}
       >
         <div className={styles.lightboxHead}>
@@ -519,6 +597,62 @@ export function PublicStorefrontVisualEnhancer({
             ))}
           </div>
         </div>
+
+        {fitnessInterest && (
+          <section className={interestStyles.interestBox}>
+            <div className={interestStyles.interestCopy}>
+              <UserRoundCheck size={18} />
+              <div>
+                <strong>Me interessei</strong>
+                <span>
+                  Deixe seu nome e WhatsApp. Essa peça entra direto na fila
+                  comercial da Candinho para alguém falar com você.
+                </span>
+              </div>
+            </div>
+
+            {leadDone ? (
+              <div className={interestStyles.success}>
+                Pronto. Seu interesse entrou no CRM e a Candinho vai continuar
+                o atendimento pelo seu telefone.
+              </div>
+            ) : (
+              <form
+                className={interestStyles.form}
+                onSubmit={submitFitnessInterest}
+              >
+                <input
+                  required
+                  minLength={2}
+                  value={leadName}
+                  onChange={(event) => setLeadName(event.target.value)}
+                  placeholder="Seu nome"
+                  autoComplete="name"
+                />
+                <input
+                  required
+                  value={leadPhone}
+                  onChange={(event) => setLeadPhone(event.target.value)}
+                  placeholder="WhatsApp / telefone"
+                  inputMode="tel"
+                  autoComplete="tel"
+                />
+                <button type="submit" disabled={leadSending}>
+                  {leadSending ? (
+                    <LoaderCircle className="spin" size={16} />
+                  ) : (
+                    <Send size={16} />
+                  )}
+                  {leadSending ? "Enviando" : "Me interessei"}
+                </button>
+              </form>
+            )}
+
+            {leadError && (
+              <span className={interestStyles.error}>{leadError}</span>
+            )}
+          </section>
+        )}
       </div>
     </div>,
     document.body,

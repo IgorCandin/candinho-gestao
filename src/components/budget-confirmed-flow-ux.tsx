@@ -69,6 +69,86 @@ function findContinueWithoutPdf() {
   ) ?? null;
 }
 
+/*
+ * R12: o refinamento comercial legado procura o primeiro .budget-choice-modal
+ * e, sem distinguir o passo final, podia reescrever o prompt de PDF com a
+ * cópia da escolha "Orçamento confirmado / Apenas orçamento". Este guard
+ * restaura a semântica correta depois de qualquer mutação desse modal.
+ */
+function restoreSavedBudgetPdfPrompt() {
+  const modal =
+    document.querySelector<HTMLElement>(
+      ".budget-pdf-prompt",
+    );
+
+  if (!modal) return;
+
+  const heading = modal.querySelector<HTMLElement>(
+    ".budget-choice-heading",
+  );
+  const eyebrow = heading?.querySelector<HTMLElement>("span");
+  const title = modal.querySelector<HTMLElement>("#budget-pdf-title");
+  const description = heading?.querySelector<HTMLElement>("p");
+  const openPdf = modal.querySelector<HTMLElement>(
+    ".budget-choice-card.confirmed",
+  );
+  const continueWithoutPdf = modal.querySelector<HTMLElement>(
+    ".budget-choice-card.quote",
+  );
+
+  const openTitle = openPdf?.querySelector<HTMLElement>("strong");
+  const openDescription = openPdf?.querySelector<HTMLElement>("small");
+  const continueTitle =
+    continueWithoutPdf?.querySelector<HTMLElement>("strong");
+  const continueDescription =
+    continueWithoutPdf?.querySelector<HTMLElement>("small");
+
+  if (eyebrow && eyebrow.textContent !== "Orçamento salvo") {
+    eyebrow.textContent = "Orçamento salvo";
+  }
+
+  if (title && title.textContent !== "Deseja abrir o PDF agora?") {
+    title.textContent = "Deseja abrir o PDF agora?";
+  }
+
+  const expectedDescription =
+    "O registro já foi salvo. Você pode abrir o PDF agora ou continuar para o registro correspondente.";
+
+  if (description && description.textContent !== expectedDescription) {
+    description.textContent = expectedDescription;
+  }
+
+  if (openTitle && openTitle.textContent !== "Abrir PDF") {
+    openTitle.textContent = "Abrir PDF";
+  }
+
+  const expectedOpen =
+    "Abre o PDF em uma nova guia e depois segue para o registro salvo.";
+
+  if (openDescription && openDescription.textContent !== expectedOpen) {
+    openDescription.textContent = expectedOpen;
+  }
+
+  if (
+    continueTitle &&
+    continueTitle.textContent !== "Continuar sem PDF"
+  ) {
+    continueTitle.textContent = "Continuar sem PDF";
+  }
+
+  const expectedContinue =
+    "Segue direto para a venda confirmada ou para o orçamento salvo.";
+
+  if (
+    continueDescription &&
+    continueDescription.textContent !== expectedContinue
+  ) {
+    continueDescription.textContent = expectedContinue;
+  }
+
+  modal.dataset.v4537R12PdfCopy = "true";
+}
+
 export function BudgetConfirmedFlowUX() {
   const pathname = usePathname();
   const confirmedButtonRef =
@@ -81,11 +161,17 @@ export function BudgetConfirmedFlowUX() {
   const [committing, setCommitting] = useState(false);
 
   useEffect(() => {
-    if (pathname !== "/vendas/nova" && pathname !== "/suplementos/vendas/nova") return;
+    if (
+      pathname !== "/vendas/nova" &&
+      pathname !== "/suplementos/vendas/nova"
+    ) {
+      return;
+    }
 
     document.body.classList.add(FLOW_CLASS);
 
     let frame = 0;
+    let promptRepairTimer: ReturnType<typeof setTimeout> | null = null;
 
     function classify() {
       cancelAnimationFrame(frame);
@@ -98,6 +184,7 @@ export function BudgetConfirmedFlowUX() {
 
         if (side) {
           side.dataset.v4515BudgetSide = "true";
+          side.setAttribute("tabindex", "0");
 
           for (const panel of side.querySelectorAll<HTMLElement>(
             ":scope > article.panel",
@@ -122,6 +209,19 @@ export function BudgetConfirmedFlowUX() {
           .forEach((element) => {
             element.dataset.v4515PrematureChoice = "true";
           });
+
+        restoreSavedBudgetPdfPrompt();
+
+        if (promptRepairTimer) {
+          clearTimeout(promptRepairTimer);
+        }
+
+        /* O refinamento legado também observa o DOM. Rodamos uma segunda
+           correção no tick seguinte para vencer qualquer ordem de observers. */
+        promptRepairTimer = setTimeout(
+          restoreSavedBudgetPdfPrompt,
+          0,
+        );
 
         if (skipConfirmedPdfRef.current) {
           const continueButton = findContinueWithoutPdf();
@@ -190,6 +290,7 @@ export function BudgetConfirmedFlowUX() {
       childList: true,
       subtree: true,
       attributes: true,
+      characterData: true,
       attributeFilter: ["class", "disabled"],
     });
 
@@ -221,8 +322,40 @@ export function BudgetConfirmedFlowUX() {
       if (skipResetTimerRef.current) {
         clearTimeout(skipResetTimerRef.current);
       }
+
+      if (promptRepairTimer) {
+        clearTimeout(promptRepairTimer);
+      }
     };
   }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const side = document.querySelector<HTMLElement>(
+      ".new-sale-side",
+    );
+
+    if (!side) return;
+
+    side.scrollTop = 0;
+    side.focus({ preventScroll: true });
+
+    /* Desktop/notebook: garante que o wheel seja consumido pelo miolo do
+       modal e não pelo backdrop/body travado. */
+    function onWheel(event: WheelEvent) {
+      if (side.scrollHeight <= side.clientHeight) return;
+
+      side.scrollTop += event.deltaY;
+      event.preventDefault();
+    }
+
+    side.addEventListener("wheel", onWheel, { passive: false });
+
+    return () => {
+      side.removeEventListener("wheel", onWheel);
+    };
+  }, [open]);
 
   function backToChoice() {
     if (committing) return;
@@ -272,7 +405,13 @@ export function BudgetConfirmedFlowUX() {
     });
   }
 
-  if ((pathname !== "/vendas/nova" && pathname !== "/suplementos/vendas/nova") || !open) {
+  if (
+    (
+      pathname !== "/vendas/nova" &&
+      pathname !== "/suplementos/vendas/nova"
+    ) ||
+    !open
+  ) {
     return null;
   }
 
