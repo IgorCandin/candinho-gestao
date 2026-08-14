@@ -405,13 +405,18 @@ export function PublicStorefrontVisualEnhancer({
 
   if (!open || typeof document === "undefined") return null;
 
+  // R12.2: estabiliza o narrowing do estado para todos os callbacks abaixo.
+  // `open` é estado React e o TypeScript não preserva o narrowing em funções
+  // assíncronas/closures; a referência local é garantidamente não nula.
+  const activeOpen = open;
+
   const slides =
-    open.item.images.length > 0
-      ? open.item.images
-      : open.item.image_url
+    activeOpen.item.images.length > 0
+      ? activeOpen.item.images
+      : activeOpen.item.image_url
         ? [
             {
-              url: open.item.image_url,
+              url: activeOpen.item.image_url,
               color: null,
               label: null,
               kind: "product" as const,
@@ -420,7 +425,7 @@ export function PublicStorefrontVisualEnhancer({
           ]
         : [];
 
-  const current = slides[open.index] ?? slides[0];
+  const current = slides[activeOpen.index] ?? slides[0];
   if (!current) return null;
 
   function move(direction: -1 | 1) {
@@ -441,7 +446,7 @@ export function PublicStorefrontVisualEnhancer({
   ) {
     event.preventDefault();
 
-    if (open.item.operation !== "fitness" || leadSending) {
+    if (activeOpen.item.operation !== "fitness" || leadSending) {
       return;
     }
 
@@ -458,9 +463,9 @@ export function PublicStorefrontVisualEnhancer({
           body: JSON.stringify({
             name: leadName,
             phone: leadPhone,
-            fitness_product_id: open.item.id,
+            fitness_product_id: activeOpen.item.id,
             context_summary: [
-              `Produto Fitness: ${open.item.name}`,
+              `Produto Fitness: ${activeOpen.item.name}`,
               variation ? `Variação visualizada: ${variation}` : null,
               "Origem: botão Me interessei da Vitrine Fitness",
             ]
@@ -495,14 +500,14 @@ export function PublicStorefrontVisualEnhancer({
     }
   }
 
-  const fitnessInterest = open.item.operation === "fitness";
+  const fitnessInterest = activeOpen.item.operation === "fitness";
 
   return createPortal(
     <div
       className={styles.lightbox}
       role="dialog"
       aria-modal="true"
-      aria-label={`Galeria de ${open.item.name}`}
+      aria-label={`Galeria de ${activeOpen.item.name}`}
       onClick={() => setOpen(null)}
     >
       <div
@@ -513,7 +518,7 @@ export function PublicStorefrontVisualEnhancer({
       >
         <div className={styles.lightboxHead}>
           <div>
-            <strong>{open.item.name}</strong>
+            <strong>{activeOpen.item.name}</strong>
             <span>
               {current.color ||
                 current.label ||
@@ -549,7 +554,7 @@ export function PublicStorefrontVisualEnhancer({
           <img
             src={current.url}
             alt={[
-              open.item.name,
+              activeOpen.item.name,
               current.color || current.label,
             ]
               .filter(Boolean)
@@ -571,7 +576,7 @@ export function PublicStorefrontVisualEnhancer({
         <div className={styles.lightboxFooter}>
           <span>
             <ImageIcon size={14} />
-            {open.index + 1} de {slides.length}
+            {activeOpen.index + 1} de {slides.length}
           </span>
 
           <div>
@@ -580,7 +585,7 @@ export function PublicStorefrontVisualEnhancer({
                 key={`${slide.url}-${index}`}
                 type="button"
                 data-active={
-                  index === open.index
+                  index === activeOpen.index
                     ? "true"
                     : "false"
                 }
