@@ -43,8 +43,15 @@ type Summary = {
 };
 
 function partnerIdFromPath(pathname: string) {
+  /*
+   * R12.3:
+   * O shell operacional expõe a mesma tela nas rotas
+   * /parceiros/:id e /suplementos/parceiros/:id.
+   * Antes o overlay reconhecia apenas a primeira e, na operação real,
+   * nunca aplicava o resumo canônico da recompensa.
+   */
   const match = pathname.match(
-    /^\/parceiros\/([0-9a-f]{8}-[0-9a-f-]{27,})$/i,
+    /^(?:\/suplementos)?\/parceiros\/([0-9a-f]{8}-[0-9a-f-]{27,})$/i,
   );
 
   return match?.[1] ?? null;
@@ -252,6 +259,13 @@ export function PartnerUxOverlay({
     function patchRewardReadout() {
       frame = 0;
 
+      /*
+       * Fonte canônica:
+       * API /ux-summary lê os campos crus de partner_management_overview.
+       * Para Pâmella hoje: 87 vendas, 80 já cobertas, próxima meta 90,
+       * faltando 3. O DOM legado não pode recalcular isso por target_sales.
+       */
+
       const statCards = Array.from(
         document.querySelectorAll<HTMLElement>(
           ".partner-detail-stats .stat-card",
@@ -332,6 +346,48 @@ export function PartnerUxOverlay({
         }
       }
 
+      /*
+       * R12.3 · terceiro ponto que antes ficava com a leitura antiga:
+       * o painel "Recompensas da parceria" possui outro progress-large.
+       */
+      const rewardPanel =
+        document.querySelector<HTMLElement>(
+          ".partner-settlement-panel",
+        );
+
+      const rewardPanelBoxes = rewardPanel
+        ? Array.from(
+            rewardPanel.querySelectorAll<HTMLElement>(
+              ":scope > .panel-body .partner-progress-large > div",
+            ),
+          )
+        : [];
+
+      const rewardPanelSecondBox = rewardPanelBoxes[1] ?? null;
+
+      if (rewardPanelSecondBox) {
+        const strong =
+          rewardPanelSecondBox.querySelector<HTMLElement>("strong");
+        const caption =
+          rewardPanelSecondBox.querySelector<HTMLElement>("span");
+
+        const expectedStrong = reward.available
+          ? "Meta alcançada"
+          : `${reward.sales_to_next}`;
+
+        const expectedCaption = reward.available
+          ? "recompensa disponível"
+          : `venda(s) para a próxima recompensa · meta ${reward.next_reward_at}`;
+
+        if (strong && strong.textContent !== expectedStrong) {
+          strong.textContent = expectedStrong;
+        }
+
+        if (caption && caption.textContent !== expectedCaption) {
+          caption.textContent = expectedCaption;
+        }
+      }
+
       const track =
         progressPanel?.querySelector<HTMLElement>(
           ".partner-progress-track.large > span",
@@ -362,6 +418,7 @@ export function PartnerUxOverlay({
     observer.observe(document.body, {
       childList: true,
       subtree: true,
+      characterData: true,
     });
 
     return () => {
