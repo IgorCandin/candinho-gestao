@@ -176,3 +176,128 @@ body.v4515-confirm-flow-open {
     min-height: 0 !important;
   }
 }
+
+/* =========================================================
+   V45.37.R11 · Fechamento de navegação + responsivo da Nova Venda
+   1) A Agenda oficial já existe no AppShell; o OperationToolSearch ainda
+      injeta uma segunda Agenda como atalho extra. Ocultamos apenas o clone
+      extra, preservando Nexus IA e a Agenda canônica do menu.
+   2) Em janela desktop estreita, o breakpoint antigo de 980px considerava a
+      viewport inteira e ignorava os 252px da sidebar. A Nova Venda acabava
+      tentando manter duas colunas sem espaço real e recortava formulários.
+   3) Os cards-resumo de parcelas herdavam o círculo decorativo dos stat-card;
+      em cards compactos ele parecia uma interface cortada. Removemos só aqui.
+   ========================================================= */
+
+/* Agenda duplicada injetada pelo OperationToolSearch.
+   Cobre o href legado e o href já canonicalizado. */
+[data-operation-extra-nav="desktop"] > a.nav-link[href="/agenda"],
+[data-operation-extra-nav="desktop"] > a.nav-link[href="/suplementos/agenda"],
+[data-operation-extra-nav="mobile"] > a.mobile-menu-link[href="/agenda"],
+[data-operation-extra-nav="mobile"] > a.mobile-menu-link[href="/suplementos/agenda"] {
+  display: none !important;
+}
+
+/* A sidebar ocupa parte da viewport. Em janelas até 1280px, a Nova Venda de
+   Suplementos precisa trabalhar em uma coluna mesmo que a viewport bruta ainda
+   esteja acima do breakpoint legado de 980px. */
+@media (min-width: 821px) and (max-width: 1280px) {
+  body:not(.v4515-confirm-flow-open)
+    .app-shell.theme-supplements
+    .new-sale-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  body:not(.v4515-confirm-flow-open)
+    .app-shell.theme-supplements
+    .new-sale-main,
+  body:not(.v4515-confirm-flow-open)
+    .app-shell.theme-supplements
+    .new-sale-side {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+
+  body:not(.v4515-confirm-flow-open)
+    .app-shell.theme-supplements
+    .new-sale-side {
+    position: static !important;
+    inset: auto !important;
+    top: auto !important;
+    transform: none !important;
+  }
+
+  body:not(.v4515-confirm-flow-open)
+    .app-shell.theme-supplements
+    .sale-form-item-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(110px, .5fr) minmax(140px, .65fr) !important;
+  }
+}
+
+/* Segurança interna: nada do formulário lateral pode forçar a largura do
+   painel. O editor de parcelas continua responsivo sem mascarar controles. */
+.new-sale-side,
+.new-sale-side > *,
+.new-sale-side .panel-body,
+.new-sale-side .option-stack,
+.new-sale-side .conditional-fields,
+.new-sale-side .form-grid-two,
+.new-sale-side .sale-action-form,
+.new-sale-side .sale-action-form-head {
+  min-width: 0 !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.new-sale-side .panel-actions {
+  min-width: 0 !important;
+  max-width: 100%;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.new-sale-side .panel-actions .form-help {
+  min-width: 0 !important;
+  flex: 1 1 260px;
+}
+
+/* Em cards compactos de total/distribuído/diferença, o halo global de
+   .stat-card::after virava um semicírculo que parecia conteúdo cortado. */
+.new-sale-side .stat-card::after {
+  display: none !important;
+}
+
+/* O modo "Finalizar venda" é um overlay: damos uma superfície própria ao
+   miolo para que cards/contornos da página original não apareçam pelas frestas. */
+.v4515-confirm-flow-open .new-sale-side {
+  isolation: isolate;
+  box-sizing: border-box !important;
+  padding: 10px !important;
+  border: 1px solid rgba(217, 166, 61, .14);
+  border-radius: 17px;
+  background: rgba(8, 11, 16, .99) !important;
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .48);
+}
+
+.v4515-confirm-flow-open .new-sale-side > article[data-v4515-stage],
+.v4515-confirm-flow-open .new-sale-side > .sale-form-summary {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Quando a área útil cai mais, as parcelas passam a uma coluna antes de
+   qualquer input começar a comprimir ou cortar. */
+@media (max-width: 1040px) {
+  .new-sale-side .form-grid-two {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .new-sale-side .field-span-two {
+    grid-column: auto !important;
+  }
+}
