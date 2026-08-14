@@ -338,22 +338,32 @@ export function BudgetConfirmedFlowUX() {
 
     if (!side) return;
 
-    side.scrollTop = 0;
-    side.focus({ preventScroll: true });
+    // Preserva o narrowing do HTMLElement dentro dos callbacks abaixo.
+    const scrollContainer = side;
+
+    scrollContainer.scrollTop = 0;
+    scrollContainer.focus({ preventScroll: true });
 
     /* Desktop/notebook: garante que o wheel seja consumido pelo miolo do
        modal e não pelo backdrop/body travado. */
     function onWheel(event: WheelEvent) {
-      if (side.scrollHeight <= side.clientHeight) return;
+      if (
+        scrollContainer.scrollHeight <=
+        scrollContainer.clientHeight
+      ) {
+        return;
+      }
 
-      side.scrollTop += event.deltaY;
+      scrollContainer.scrollTop += event.deltaY;
       event.preventDefault();
     }
 
-    side.addEventListener("wheel", onWheel, { passive: false });
+    scrollContainer.addEventListener("wheel", onWheel, {
+      passive: false,
+    });
 
     return () => {
-      side.removeEventListener("wheel", onWheel);
+      scrollContainer.removeEventListener("wheel", onWheel);
     };
   }, [open]);
 
