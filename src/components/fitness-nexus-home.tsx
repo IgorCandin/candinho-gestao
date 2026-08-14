@@ -25,8 +25,7 @@ export function FitnessNexusHome({
           </span>
           <h2>O que vale olhar hoje</h2>
           <p>
-            Uma leitura simples de estoque, giro e reposição para não precisar
-            abrir cada tela antes de decidir o que fazer.
+            Uma leitura simples de estoque, giro e comportamento de compra. O histórico ajuda a escolher o próximo mix, mas não manda repetir o mesmo modelo.
           </p>
         </div>
 
@@ -54,7 +53,7 @@ export function FitnessNexusHome({
             <span>Operação tranquila</span>
             <strong>Nenhuma prioridade forte agora</strong>
             <small>
-              O Nexus continua acompanhando estoque, giro e reposições.
+              O Nexus continua acompanhando estoque, giro e sinais do mix.
             </small>
           </article>
         )}

@@ -43,14 +43,35 @@ const day = (offset = 0) => {
   }).format(date);
 };
 
+const SOURCES = [
+  "Vitrine Fitness",
+  "Instagram",
+  "WhatsApp",
+  "Indicação",
+  "Academia",
+  "Cliente antigo",
+  "Candinho Company",
+  "Outro",
+];
+
 export function FitnessQuoteForm({
   stock,
   customers,
   responsible,
+  initialCustomerId = null,
+  initialCustomerName = null,
+  initialCustomerPhone = null,
+  initialSource = null,
+  initialNotes = null,
 }: {
   stock: FitnessStockRow[];
   customers: FitnessCustomerRow[];
   responsible: string;
+  initialCustomerId?: string | null;
+  initialCustomerName?: string | null;
+  initialCustomerPhone?: string | null;
+  initialSource?: string | null;
+  initialNotes?: string | null;
 }) {
   const router = useRouter();
 
@@ -71,22 +92,36 @@ export function FitnessQuoteForm({
     [stock],
   );
 
-  const [customerId, setCustomerId] =
-    useState("");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [instagram, setInstagram] =
-    useState("");
-  const [city, setCity] = useState("");
-  const [source, setSource] = useState("");
+  const initialCustomer =
+    customers.find(
+      (item) => item.id === initialCustomerId,
+    ) ?? null;
 
-  const [quotedOn, setQuotedOn] =
-    useState(day());
-  const [validUntil, setValidUntil] =
-    useState(day(7));
-  const [discount, setDiscount] =
-    useState("0");
-  const [notes, setNotes] = useState("");
+  const [customerId, setCustomerId] = useState(
+    initialCustomer?.id ?? initialCustomerId ?? "",
+  );
+  const [name, setName] = useState(
+    initialCustomer?.name ?? initialCustomerName ?? "",
+  );
+  const [phone, setPhone] = useState(
+    initialCustomer?.phone ?? initialCustomerPhone ?? "",
+  );
+  const [instagram, setInstagram] = useState(
+    initialCustomer?.instagram ?? "",
+  );
+  const [city, setCity] = useState(
+    initialCustomer?.city ?? "",
+  );
+  const [source, setSource] = useState(
+    initialSource ?? initialCustomer?.source ?? "",
+  );
+
+  const [quotedOn, setQuotedOn] = useState(day());
+  const [validUntil, setValidUntil] = useState(day(7));
+  const [discount, setDiscount] = useState("0");
+  const [notes, setNotes] = useState(
+    initialNotes ?? "",
+  );
 
   const [items, setItems] = useState<Draft[]>([
     {
@@ -97,8 +132,7 @@ export function FitnessQuoteForm({
     },
   ]);
 
-  const [loading, setLoading] =
-    useState(false);
+  const [loading, setLoading] = useState(false);
   const [message, setMessage] =
     useState<string | null>(null);
 
@@ -164,9 +198,7 @@ export function FitnessQuoteForm({
 
     try {
       if (!name.trim()) {
-        throw new Error(
-          "Informe a cliente.",
-        );
+        throw new Error("Informe a cliente.");
       }
 
       if (
@@ -201,18 +233,13 @@ export function FitnessQuoteForm({
             p_valid_until: validUntil,
             p_items: items.map((item) => ({
               variant_id: item.variantId,
-              quantity: Number(
-                item.quantity,
-              ),
-              unit_price: Number(
-                item.unitPrice,
-              ),
+              quantity: Number(item.quantity),
+              unit_price: Number(item.unitPrice),
             })),
             p_discount_amount:
               Number(discount) || 0,
             p_responsible: responsible,
-            p_notes:
-              notes.trim() || null,
+            p_notes: notes.trim() || null,
           },
         );
 
@@ -244,8 +271,7 @@ export function FitnessQuoteForm({
             <div>
               <h2>Cliente</h2>
               <p>
-                Busque na base unificada da Candinho.
-                Cliente de Suplementos já aparece aqui.
+                A busca usa a identidade única da Candinho Company. Se o contato veio da Vitrine, os dados já aparecem preenchidos.
               </p>
             </div>
           </div>
@@ -290,9 +316,7 @@ export function FitnessQuoteForm({
                 className="input"
                 value={instagram}
                 onChange={(event) =>
-                  setInstagram(
-                    event.target.value,
-                  )
+                  setInstagram(event.target.value)
                 }
               />
             </label>
@@ -307,6 +331,26 @@ export function FitnessQuoteForm({
                 }
               />
             </label>
+
+            <label className="field field-span-two">
+              <span>Origem do contato</span>
+              <select
+                className="select"
+                value={source}
+                onChange={(event) =>
+                  setSource(event.target.value)
+                }
+              >
+                <option value="">
+                  Não informado
+                </option>
+                {SOURCES.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
         </article>
 
@@ -315,9 +359,7 @@ export function FitnessQuoteForm({
             <div>
               <h2>Itens da proposta</h2>
               <p>
-                O orçamento não reserva estoque. A
-                disponibilidade é validada ao converter
-                em venda.
+                O orçamento não reserva estoque. A disponibilidade real é validada quando a proposta vira venda.
               </p>
             </div>
 
@@ -343,9 +385,7 @@ export function FitnessQuoteForm({
 
           <div className="panel-body sale-form-items">
             {items.map((item, index) => {
-              const row = rowFor(
-                item.variantId,
-              );
+              const row = rowFor(item.variantId);
 
               return (
                 <div
@@ -353,22 +393,18 @@ export function FitnessQuoteForm({
                   key={item.key}
                 >
                   <div className="sale-form-item-head">
-                    <strong>
-                      Item {index + 1}
-                    </strong>
+                    <strong>Item {index + 1}</strong>
 
                     {items.length > 1 && (
                       <button
                         type="button"
                         className="icon-button"
                         onClick={() =>
-                          setItems(
-                            (current) =>
-                              current.filter(
-                                (value) =>
-                                  value.key !==
-                                  item.key,
-                              ),
+                          setItems((current) =>
+                            current.filter(
+                              (value) =>
+                                value.key !== item.key,
+                            ),
                           )
                         }
                       >
@@ -384,10 +420,9 @@ export function FitnessQuoteForm({
                         className="select"
                         value={item.variantId}
                         onChange={(event) => {
-                          const selected =
-                            rowFor(
-                              event.target.value,
-                            );
+                          const selected = rowFor(
+                            event.target.value,
+                          );
 
                           update(item.key, {
                             variantId:
@@ -404,28 +439,17 @@ export function FitnessQuoteForm({
                           Selecione
                         </option>
 
-                        {options.map(
-                          (option) => (
-                            <option
-                              key={
-                                option.variant_id
-                              }
-                              value={
-                                option.variant_id
-                              }
-                            >
-                              {
-                                option.product_name
-                              }{" "}
-                              · {option.size} ·{" "}
-                              {option.color}
-                              {option.available_quantity >
-                              0
-                                ? ` · disp. ${option.available_quantity}`
-                                : ""}
-                            </option>
-                          ),
-                        )}
+                        {options.map((option) => (
+                          <option
+                            key={option.variant_id}
+                            value={option.variant_id}
+                          >
+                            {option.product_name} · {option.size} · {option.color}
+                            {option.available_quantity > 0
+                              ? ` · disp. ${option.available_quantity}`
+                              : ""}
+                          </option>
+                        ))}
                       </select>
                     </label>
 
@@ -468,17 +492,13 @@ export function FitnessQuoteForm({
                       <span>
                         Disponível{" "}
                         <strong>
-                          {
-                            row.available_quantity
-                          }
+                          {row.available_quantity}
                         </strong>
                       </span>
                       <span>
                         A caminho{" "}
                         <strong>
-                          {
-                            row.incoming_quantity
-                          }
+                          {row.incoming_quantity}
                         </strong>
                       </span>
                       <span>
@@ -500,13 +520,16 @@ export function FitnessQuoteForm({
         <article className="panel">
           <div className="panel-head">
             <div>
-              <h2>Observações</h2>
+              <h2>Contexto do atendimento</h2>
+              <p>
+                Use este campo para guardar o que a cliente pediu, modelo parecido, cor desejada ou observações da Vitrine.
+              </p>
             </div>
           </div>
           <div className="panel-body">
             <textarea
               className="textarea"
-              rows={4}
+              rows={5}
               value={notes}
               onChange={(event) =>
                 setNotes(event.target.value)
@@ -521,6 +544,7 @@ export function FitnessQuoteForm({
           <div className="panel-head">
             <div>
               <h2>Validade</h2>
+              <p>Prazo da proposta e desconto negociado.</p>
             </div>
           </div>
 
@@ -532,9 +556,7 @@ export function FitnessQuoteForm({
                 type="date"
                 value={quotedOn}
                 onChange={(event) =>
-                  setQuotedOn(
-                    event.target.value,
-                  )
+                  setQuotedOn(event.target.value)
                 }
               />
             </label>
@@ -546,9 +568,7 @@ export function FitnessQuoteForm({
                 type="date"
                 value={validUntil}
                 onChange={(event) =>
-                  setValidUntil(
-                    event.target.value,
-                  )
+                  setValidUntil(event.target.value)
                 }
               />
             </label>
@@ -562,9 +582,7 @@ export function FitnessQuoteForm({
                 step="0.01"
                 value={discount}
                 onChange={(event) =>
-                  setDiscount(
-                    event.target.value,
-                  )
+                  setDiscount(event.target.value)
                 }
               />
             </label>
@@ -576,15 +594,11 @@ export function FitnessQuoteForm({
             <dl>
               <div>
                 <dt>Subtotal</dt>
-                <dd>
-                  {formatCurrency(gross)}
-                </dd>
+                <dd>{formatCurrency(gross)}</dd>
               </div>
               <div>
                 <dt>Total</dt>
-                <dd>
-                  {formatCurrency(total)}
-                </dd>
+                <dd>{formatCurrency(total)}</dd>
               </div>
             </dl>
 
@@ -606,7 +620,9 @@ export function FitnessQuoteForm({
               ) : (
                 <Save size={17} />
               )}
-              Salvar orçamento
+              {loading
+                ? "Salvando"
+                : "Salvar orçamento"}
             </button>
           </div>
         </article>

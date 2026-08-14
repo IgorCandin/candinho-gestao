@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { BankPullToRefresh } from "@/components/bank-pull-to-refresh";
+import { FitnessSectorNavigationV4537R13 } from "@/components/fitness-sector-navigation-v45-37-r13";
 import { NavigationStabilityV4537R1 } from "@/components/navigation-stability-v45-37-r1";
 import { RouteTabIdentity } from "@/components/route-tab-identity";
 import "./globals.css";
@@ -26,6 +27,7 @@ import "./v45-37-media-fitness.css";
 import "./v45-37-r2-operations-ux.css";
 import "./v45-37-r8-budget-modal-viewport.css";
 import "./v45-37-r9-storefront-mobile.css";
+import "./v45-37-r13-fitness-1-0.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
@@ -88,6 +90,7 @@ export default function RootLayout({
 
       <body>
         <NavigationStabilityV4537R1 />
+        <FitnessSectorNavigationV4537R13 />
 
         <Suspense fallback={null}>
           <RouteTabIdentity />

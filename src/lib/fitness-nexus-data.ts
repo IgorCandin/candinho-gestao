@@ -132,36 +132,36 @@ export function fitnessSignalCopy(product: FitnessNexusProduct) {
   if (product.signal_type === "reorder") {
     return {
       tone: "urgent",
-      label: "Reposição",
-      title: `${product.name} merece reposição`,
-      body: `Está sem estoque e teve ${product.sold_90d} unidade(s) vendida(s) nos últimos 90 dias.`,
+      label: "Verificar estoque",
+      title: `${product.name}: demanda comprovada`,
+      body: `O modelo zerou depois de ${product.sold_90d} saída(s) em 90 dias. Use isso como pista de demanda: confira tamanho e cor e procure um modelo novo da mesma família, inclusive em outro fornecedor, antes de repetir a mesma peça.`,
     };
   }
 
   if (product.signal_type === "protect_stock") {
     return {
       tone: "attention",
-      label: "Não promover agora",
-      title: `Segure a promoção de ${product.name}`,
-      body: `A peça está girando, mas restam somente ${product.available_quantity} unidade(s).`,
+      label: "Poucas peças",
+      title: `Segure a divulgação de ${product.name}`,
+      body: `A peça está girando, mas restam somente ${product.available_quantity} unidade(s). Preserve o saldo até decidir o próximo mix.`,
     };
   }
 
   if (product.signal_type === "promote") {
     return {
       tone: "opportunity",
-      label: "Promover agora",
-      title: `${product.name} pede divulgação`,
-      body: `Há ${product.available_quantity} unidade(s) disponíveis e pouco giro recente.`,
+      label: "Dar visibilidade",
+      title: `${product.name} merece exposição`,
+      body: `Há ${product.available_quantity} unidade(s) disponíveis e pouco giro recente. Teste vitrine, Story ou combinação de look antes de pensar em desconto.`,
     };
   }
 
   if (product.signal_type === "stagnant") {
     return {
       tone: "opportunity",
-      label: "Estoque parado",
-      title: `${product.name} pode virar campanha`,
-      body: `Há ${product.available_quantity} unidade(s) e nenhum giro registrado nos últimos 90 dias.`,
+      label: "Revisar exposição",
+      title: `${product.name} está parado no mix`,
+      body: `Há ${product.available_quantity} unidade(s) e nenhum giro registrado nos últimos 90 dias. Revise foto, combinação, exposição e preço antes de comprar mais.`,
     };
   }
 
@@ -170,14 +170,14 @@ export function fitnessSignalCopy(product: FitnessNexusProduct) {
       tone: "positive",
       label: "Em alta",
       title: `${product.name} está com movimento`,
-      body: `Teve ${product.sold_30d} unidade(s) em 30 dias e ainda possui estoque.`,
+      body: `Teve ${product.sold_30d} unidade(s) em 30 dias e ainda possui estoque. Guarde esse padrão de tamanho/cor como referência para próximas compras.`,
     };
   }
 
   return {
     tone: "neutral",
-    label: "Acompanhar",
+    label: "Acompanhar mix",
     title: product.name,
-    body: `${product.available_quantity} unidade(s) disponíveis · ${product.sold_90d} vendida(s) em 90 dias.`,
+    body: `${product.available_quantity} unidade(s) disponíveis · ${product.sold_90d} vendida(s) em 90 dias. O histórico fica como referência, sem obrigar recompra do mesmo modelo.`,
   };
 }

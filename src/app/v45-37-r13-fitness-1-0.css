@@ -1,0 +1,478 @@
+/* =========================================================
+   V45.37.R13 · FITNESS 1.0
+   - Fitness organizado por Setor de Vendas e Setor Operacional.
+   - Rotas profundas continuam existindo, mas deixam de poluir a navegação.
+   - Linguagem de estoque respeita moda: histórico orienta o mix; não obriga
+     recompra do mesmo modelo.
+   - Desktop do fluxo Orçamento → Venda usa a mesma estrutura estável do mobile.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   FITNESS · navegação por setores
+   --------------------------------------------------------- */
+
+/* O Nexus/Agenda extra injetado por camadas auxiliares não precisa virar
+   outra aba. Ele continua disponível dentro dos hubs de setor. */
+.app-shell.theme-fitness [data-operation-extra-nav="desktop"],
+.app-shell.theme-fitness [data-operation-extra-nav="mobile"] {
+  display: none !important;
+}
+
+/* Menu principal: preservamos as rotas, mas exibimos somente os dois setores
+   e o Menu de entrada. */
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/agenda"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/painel"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/produtos"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/clientes"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/pedidos"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/fornecedores"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/movimentacoes"] {
+  display: none !important;
+}
+
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness"],
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness/agenda"],
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness/painel"],
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness/produtos"],
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness/clientes"],
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness/pedidos"],
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness/fornecedores"],
+.app-shell.theme-fitness .mobile-menu-panel > a.mobile-menu-link[href="/fitness/movimentacoes"] {
+  display: none !important;
+}
+
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/vendas"],
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/estoque"] {
+  min-height: 52px;
+  border: 1px solid rgba(239, 75, 154, .10);
+  background: rgba(239, 75, 154, .018);
+}
+
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/vendas"].primary,
+.app-shell.theme-fitness .sidebar .nav > a.nav-link[href="/fitness/estoque"].primary {
+  border-color: rgba(239, 75, 154, .26);
+  background: rgba(239, 75, 154, .08);
+}
+
+/* Entrada da operação: Comercial (3º) e Estoque (5º) passam a representar
+   os dois setores. Os demais caminhos permanecem dentro deles. */
+.tone-fitness.v4522-operation-entry {
+  --entry-columns: 2 !important;
+  --entry-menu-max: 680px !important;
+}
+
+.tone-fitness .v4521-entry-menu > button {
+  display: none !important;
+}
+
+.tone-fitness .v4521-entry-menu > button:nth-child(3),
+.tone-fitness .v4521-entry-menu > button:nth-child(5) {
+  display: flex !important;
+}
+
+/* ---------------------------------------------------------
+   FITNESS · hubs de setor
+   --------------------------------------------------------- */
+
+.fitness-sector-intro {
+  margin-bottom: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(239, 75, 154, .14);
+  border-radius: 15px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(239,75,154,.08), transparent 36%),
+    rgba(255,255,255,.012);
+}
+
+.fitness-sector-intro strong,
+.fitness-sector-intro span {
+  display: block;
+}
+
+.fitness-sector-intro strong {
+  font-size: 13px;
+}
+
+.fitness-sector-intro span {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.fitness-sector-action-grid {
+  margin-bottom: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fitness-sector-action {
+  min-width: 0;
+  min-height: 96px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  color: var(--text);
+  background: rgba(255,255,255,.012);
+  text-decoration: none;
+  transition: border-color .18s ease, transform .18s ease, background .18s ease;
+}
+
+.fitness-sector-action:hover {
+  border-color: rgba(239,75,154,.28);
+  background: rgba(239,75,154,.035);
+  transform: translateY(-1px);
+}
+
+.fitness-sector-action > svg {
+  flex: 0 0 auto;
+  color: #ef4b9a;
+}
+
+.fitness-sector-action strong,
+.fitness-sector-action small {
+  display: block;
+}
+
+.fitness-sector-action strong {
+  font-size: 12px;
+}
+
+.fitness-sector-action small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+.fitness-interest-list {
+  display: grid;
+  gap: 8px;
+}
+
+.fitness-interest-card {
+  min-width: 0;
+  padding: 12px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,.008);
+}
+
+.fitness-interest-card strong,
+.fitness-interest-card span,
+.fitness-interest-card small {
+  display: block;
+}
+
+.fitness-interest-card span,
+.fitness-interest-card small {
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.fitness-interest-card strong {
+  font-size: 11px;
+}
+
+.fitness-interest-card .fitness-interest-product {
+  color: #f2b2d2;
+}
+
+/* ---------------------------------------------------------
+   FITNESS · finalização de orçamento mais completa
+   --------------------------------------------------------- */
+
+.fitness-finalize-flow {
+  display: grid;
+  gap: 11px;
+}
+
+.fitness-finalize-stage {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255,255,255,.01);
+}
+
+.fitness-finalize-stage[data-emphasis="true"] {
+  border-color: rgba(239,75,154,.20);
+  background:
+    radial-gradient(circle at 0 0, rgba(239,75,154,.06), transparent 44%),
+    rgba(255,255,255,.01);
+}
+
+.fitness-finalize-stage-head {
+  margin-bottom: 11px;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.fitness-finalize-stage-head svg {
+  flex: 0 0 auto;
+  color: #ef4b9a;
+}
+
+.fitness-finalize-stage-head strong,
+.fitness-finalize-stage-head small {
+  display: block;
+}
+
+.fitness-finalize-stage-head strong {
+  font-size: 12px;
+}
+
+.fitness-finalize-stage-head small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.fitness-finalize-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fitness-finalize-choice {
+  min-width: 0;
+  min-height: 78px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  background: rgba(255,255,255,.012);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fitness-finalize-choice.active {
+  border-color: rgba(239,75,154,.42);
+  background: rgba(239,75,154,.08);
+}
+
+.fitness-finalize-choice strong,
+.fitness-finalize-choice small {
+  display: block;
+}
+
+.fitness-finalize-choice strong {
+  font-size: 11px;
+}
+
+.fitness-finalize-choice small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.fitness-finalize-fields {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fitness-finalize-next {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fitness-finalize-next > div {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 11px;
+  background: rgba(255,255,255,.01);
+}
+
+.fitness-finalize-next strong,
+.fitness-finalize-next span {
+  display: block;
+}
+
+.fitness-finalize-next strong {
+  font-size: 10px;
+}
+
+.fitness-finalize-next span {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 8.5px;
+  line-height: 1.4;
+}
+
+.fitness-quote-flow-strip {
+  margin: 12px 0 16px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.fitness-quote-flow-strip > div {
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255,255,255,.008);
+}
+
+.fitness-quote-flow-strip span,
+.fitness-quote-flow-strip strong,
+.fitness-quote-flow-strip small {
+  display: block;
+}
+
+.fitness-quote-flow-strip span {
+  color: #ef4b9a;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: .08em;
+}
+
+.fitness-quote-flow-strip strong {
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+.fitness-quote-flow-strip small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 8px;
+  line-height: 1.4;
+}
+
+/* ---------------------------------------------------------
+   SUPLEMENTOS · R13 apenas corrige o desktop do modal já existente.
+   Nenhum menu, dado ou regra de Suplementos é alterado.
+   O desktop passa a usar o mesmo fluxo natural dos cards que já funcionava
+   no mobile, mantendo a caixa central e o scroll interno.
+   --------------------------------------------------------- */
+@media (min-width: 721px) {
+  body.v4515-confirm-flow-open .new-sale-side {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    align-content: normal !important;
+    grid-template-columns: none !important;
+    grid-auto-rows: auto !important;
+    gap: 10px !important;
+    min-height: 0 !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage],
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > .sale-form-summary {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    z-index: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    flex: 0 0 auto !important;
+    grid-row: auto !important;
+    grid-column: auto !important;
+    margin: 0 !important;
+    transform: none !important;
+    overflow: hidden !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    > .panel-head,
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    > .panel-body,
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > .sale-form-summary {
+    position: relative !important;
+    inset: auto !important;
+    transform: none !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    > .panel-body {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > .sale-form-summary {
+    display: flex !important;
+    flex: 0 0 auto !important;
+  }
+}
+
+@media (max-width: 1050px) {
+  .fitness-sector-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fitness-interest-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .fitness-interest-card > :nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .fitness-finalize-choice-grid,
+  .fitness-finalize-next,
+  .fitness-quote-flow-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .fitness-sector-action-grid,
+  .fitness-finalize-choice-grid,
+  .fitness-finalize-fields,
+  .fitness-finalize-next,
+  .fitness-quote-flow-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fitness-interest-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .fitness-interest-card > :nth-child(2) {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .fitness-interest-card .button {
+    width: 100%;
+  }
+}

@@ -11,13 +11,13 @@ export default async function FitnessNexusPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Candinho Fitness · Nexus"
+        eyebrow="Candinho Fitness · Setor Operacional"
         title="Nexus Fitness"
-        description="Estoque, giro, reposição e campanhas organizados em próximos passos simples."
+        description="Estoque, giro, mix e sinais de demanda organizados em próximos passos. O histórico orienta família, tamanho e cor; a escolha do novo modelo e do fornecedor continua humana."
         action={
-          <Link className="button ghost" href="/fitness">
+          <Link className="button ghost" href="/fitness/estoque">
             <ArrowLeft size={16} />
-            Voltar
+            Voltar ao Setor Operacional
           </Link>
         }
       />
