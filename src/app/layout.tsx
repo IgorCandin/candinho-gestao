@@ -5,6 +5,7 @@ import type {
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { AgendaDeliveryFinalizationBridge } from "@/components/agenda-delivery-finalization-bridge";
 import { BankPullToRefresh } from "@/components/bank-pull-to-refresh";
 import { FitnessSectorNavigationV4537R13 } from "@/components/fitness-sector-navigation-v45-37-r13";
 import { NavigationStabilityV4537R1 } from "@/components/navigation-stability-v45-37-r1";
@@ -92,6 +93,7 @@ export default function RootLayout({
       <body>
         <NavigationStabilityV4537R1 />
         <FitnessSectorNavigationV4537R13 />
+        <AgendaDeliveryFinalizationBridge />
 
         <Suspense fallback={null}>
           <RouteTabIdentity />

@@ -12,6 +12,9 @@ import {
   useRef,
   useState,
 } from "react";
+import {
+  saveDeliveryFinalizationIntent,
+} from "@/lib/delivery-finalization-intent";
 
 const FLOW_CLASS = "v4515-budget-flow";
 const CONFIRM_CLASS = "v4515-confirm-flow-open";
@@ -34,10 +37,18 @@ function stageForTitle(title: string) {
 function ensurePostSaleAutomaticNote(panel: HTMLElement) {
   panel.classList.add("v4510-postsale-native");
 
-  const body = panel.querySelector<HTMLElement>(".panel-body");
+  const body =
+    panel.querySelector<HTMLElement>(".panel-body");
+
   if (!body) return;
 
-  if (body.querySelector(".v4510-postsale-auto-note")) return;
+  if (
+    body.querySelector(
+      ".v4510-postsale-auto-note",
+    )
+  ) {
+    return;
+  }
 
   const note = document.createElement("div");
   note.className = "v4510-postsale-auto-note";
@@ -60,21 +71,19 @@ function findContinueWithoutPdf() {
 
   if (!modal) return null;
 
-  return Array.from(
-    modal.querySelectorAll<HTMLButtonElement>(
-      "button.budget-choice-card",
-    ),
-  ).find((button) =>
-    /continuar sem pdf/i.test(button.textContent ?? ""),
-  ) ?? null;
+  return (
+    Array.from(
+      modal.querySelectorAll<HTMLButtonElement>(
+        "button.budget-choice-card",
+      ),
+    ).find((button) =>
+      /continuar sem pdf/i.test(
+        button.textContent ?? "",
+      ),
+    ) ?? null
+  );
 }
 
-/*
- * R12: o refinamento comercial legado procura o primeiro .budget-choice-modal
- * e, sem distinguir o passo final, podia reescrever o prompt de PDF com a
- * cópia da escolha "Orçamento confirmado / Apenas orçamento". Este guard
- * restaura a semântica correta depois de qualquer mutação desse modal.
- */
 function restoreSavedBudgetPdfPrompt() {
   const modal =
     document.querySelector<HTMLElement>(
@@ -83,57 +92,93 @@ function restoreSavedBudgetPdfPrompt() {
 
   if (!modal) return;
 
-  const heading = modal.querySelector<HTMLElement>(
-    ".budget-choice-heading",
-  );
-  const eyebrow = heading?.querySelector<HTMLElement>("span");
-  const title = modal.querySelector<HTMLElement>("#budget-pdf-title");
-  const description = heading?.querySelector<HTMLElement>("p");
-  const openPdf = modal.querySelector<HTMLElement>(
-    ".budget-choice-card.confirmed",
-  );
-  const continueWithoutPdf = modal.querySelector<HTMLElement>(
-    ".budget-choice-card.quote",
-  );
+  const heading =
+    modal.querySelector<HTMLElement>(
+      ".budget-choice-heading",
+    );
+  const eyebrow =
+    heading?.querySelector<HTMLElement>("span");
+  const title =
+    modal.querySelector<HTMLElement>(
+      "#budget-pdf-title",
+    );
+  const description =
+    heading?.querySelector<HTMLElement>("p");
+  const openPdf =
+    modal.querySelector<HTMLElement>(
+      ".budget-choice-card.confirmed",
+    );
+  const continueWithoutPdf =
+    modal.querySelector<HTMLElement>(
+      ".budget-choice-card.quote",
+    );
 
-  const openTitle = openPdf?.querySelector<HTMLElement>("strong");
-  const openDescription = openPdf?.querySelector<HTMLElement>("small");
+  const openTitle =
+    openPdf?.querySelector<HTMLElement>("strong");
+  const openDescription =
+    openPdf?.querySelector<HTMLElement>("small");
   const continueTitle =
-    continueWithoutPdf?.querySelector<HTMLElement>("strong");
+    continueWithoutPdf?.querySelector<HTMLElement>(
+      "strong",
+    );
   const continueDescription =
-    continueWithoutPdf?.querySelector<HTMLElement>("small");
+    continueWithoutPdf?.querySelector<HTMLElement>(
+      "small",
+    );
 
-  if (eyebrow && eyebrow.textContent !== "Orçamento salvo") {
+  if (
+    eyebrow &&
+    eyebrow.textContent !== "Orçamento salvo"
+  ) {
     eyebrow.textContent = "Orçamento salvo";
   }
 
-  if (title && title.textContent !== "Deseja abrir o PDF agora?") {
-    title.textContent = "Deseja abrir o PDF agora?";
+  if (
+    title &&
+    title.textContent !==
+      "Deseja abrir o PDF agora?"
+  ) {
+    title.textContent =
+      "Deseja abrir o PDF agora?";
   }
 
   const expectedDescription =
     "O registro já foi salvo. Você pode abrir o PDF agora ou continuar para o registro correspondente.";
 
-  if (description && description.textContent !== expectedDescription) {
-    description.textContent = expectedDescription;
+  if (
+    description &&
+    description.textContent !==
+      expectedDescription
+  ) {
+    description.textContent =
+      expectedDescription;
   }
 
-  if (openTitle && openTitle.textContent !== "Abrir PDF") {
+  if (
+    openTitle &&
+    openTitle.textContent !== "Abrir PDF"
+  ) {
     openTitle.textContent = "Abrir PDF";
   }
 
   const expectedOpen =
     "Abre o PDF em uma nova guia e depois segue para o registro salvo.";
 
-  if (openDescription && openDescription.textContent !== expectedOpen) {
-    openDescription.textContent = expectedOpen;
+  if (
+    openDescription &&
+    openDescription.textContent !== expectedOpen
+  ) {
+    openDescription.textContent =
+      expectedOpen;
   }
 
   if (
     continueTitle &&
-    continueTitle.textContent !== "Continuar sem PDF"
+    continueTitle.textContent !==
+      "Continuar sem PDF"
   ) {
-    continueTitle.textContent = "Continuar sem PDF";
+    continueTitle.textContent =
+      "Continuar sem PDF";
   }
 
   const expectedContinue =
@@ -141,29 +186,81 @@ function restoreSavedBudgetPdfPrompt() {
 
   if (
     continueDescription &&
-    continueDescription.textContent !== expectedContinue
+    continueDescription.textContent !==
+      expectedContinue
   ) {
-    continueDescription.textContent = expectedContinue;
+    continueDescription.textContent =
+      expectedContinue;
   }
 
   modal.dataset.v4537R12PdfCopy = "true";
+}
+
+function preserveDeliveryIntentBeforeSale() {
+  const deliveryPanel =
+    document.querySelector<HTMLElement>(
+      '[data-v4515-stage="delivery"]',
+    );
+
+  if (!deliveryPanel) return false;
+
+  const deliveredCheckbox =
+    deliveryPanel.querySelector<HTMLInputElement>(
+      'input[type="checkbox"]',
+    );
+
+  if (
+    !deliveredCheckbox ||
+    !deliveredCheckbox.checked
+  ) {
+    return false;
+  }
+
+  const deliveredOn =
+    deliveryPanel.querySelector<HTMLInputElement>(
+      'input[type="date"]',
+    )?.value ?? "";
+
+  saveDeliveryFinalizationIntent({
+    source: "budget-confirmed",
+    deliveredOn:
+      deliveredOn ||
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+      }).format(new Date()),
+  });
+
+  /*
+   * Não deixamos a cotação criar a venda já entregue.
+   * Primeiro a venda nasce como "a entregar" e, ao abrir
+   * a ficha criada, o MESMO fechamento de entrega solicita
+   * sacola/cartão e então registra a entrega.
+   */
+  deliveredCheckbox.click();
+
+  return true;
 }
 
 export function BudgetConfirmedFlowUX() {
   const pathname = usePathname();
   const confirmedButtonRef =
     useRef<HTMLButtonElement | null>(null);
-  const skipConfirmedPdfRef = useRef(false);
+  const skipConfirmedPdfRef =
+    useRef(false);
   const skipResetTimerRef =
-    useRef<ReturnType<typeof setTimeout> | null>(null);
+    useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
 
   const [open, setOpen] = useState(false);
-  const [committing, setCommitting] = useState(false);
+  const [committing, setCommitting] =
+    useState(false);
 
   useEffect(() => {
     if (
       pathname !== "/vendas/nova" &&
-      pathname !== "/suplementos/vendas/nova"
+      pathname !==
+        "/suplementos/vendas/nova"
     ) {
       return;
     }
@@ -171,7 +268,9 @@ export function BudgetConfirmedFlowUX() {
     document.body.classList.add(FLOW_CLASS);
 
     let frame = 0;
-    let promptRepairTimer: ReturnType<typeof setTimeout> | null = null;
+    let promptRepairTimer:
+      | ReturnType<typeof setTimeout>
+      | null = null;
 
     function classify() {
       cancelAnimationFrame(frame);
@@ -183,21 +282,26 @@ export function BudgetConfirmedFlowUX() {
           );
 
         if (side) {
-          side.dataset.v4515BudgetSide = "true";
+          side.dataset.v4515BudgetSide =
+            "true";
           side.setAttribute("tabindex", "0");
 
           for (const panel of side.querySelectorAll<HTMLElement>(
             ":scope > article.panel",
           )) {
             const title = panelTitle(panel);
-            const stage = stageForTitle(title);
+            const stage =
+              stageForTitle(title);
 
             if (stage) {
-              panel.dataset.v4515Stage = stage;
+              panel.dataset.v4515Stage =
+                stage;
             }
 
             if (stage === "post-sale") {
-              ensurePostSaleAutomaticNote(panel);
+              ensurePostSaleAutomaticNote(
+                panel,
+              );
             }
           }
         }
@@ -207,31 +311,44 @@ export function BudgetConfirmedFlowUX() {
             ".v458-budget-stage-note, .v4510-intent-card",
           )
           .forEach((element) => {
-            element.dataset.v4515PrematureChoice = "true";
+            element.dataset.v4515PrematureChoice =
+              "true";
           });
 
         restoreSavedBudgetPdfPrompt();
 
         if (promptRepairTimer) {
-          clearTimeout(promptRepairTimer);
+          clearTimeout(
+            promptRepairTimer,
+          );
         }
 
-        /* O refinamento legado também observa o DOM. Rodamos uma segunda
-           correção no tick seguinte para vencer qualquer ordem de observers. */
         promptRepairTimer = setTimeout(
           restoreSavedBudgetPdfPrompt,
           0,
         );
 
-        if (skipConfirmedPdfRef.current) {
-          const continueButton = findContinueWithoutPdf();
+        if (
+          skipConfirmedPdfRef.current
+        ) {
+          const continueButton =
+            findContinueWithoutPdf();
 
-          if (continueButton && !continueButton.disabled) {
-            skipConfirmedPdfRef.current = false;
+          if (
+            continueButton &&
+            !continueButton.disabled
+          ) {
+            skipConfirmedPdfRef.current =
+              false;
 
-            if (skipResetTimerRef.current) {
-              clearTimeout(skipResetTimerRef.current);
-              skipResetTimerRef.current = null;
+            if (
+              skipResetTimerRef.current
+            ) {
+              clearTimeout(
+                skipResetTimerRef.current,
+              );
+              skipResetTimerRef.current =
+                null;
             }
 
             requestAnimationFrame(() => {
@@ -242,19 +359,27 @@ export function BudgetConfirmedFlowUX() {
       });
     }
 
-    function onClickCapture(event: MouseEvent) {
+    function onClickCapture(
+      event: MouseEvent,
+    ) {
       const element = event.target;
 
-      if (!(element instanceof Element)) return;
+      if (!(element instanceof Element))
+        return;
 
-      const confirmed = element.closest<HTMLButtonElement>(
-        ".budget-choice-modal:not(.budget-pdf-prompt) .budget-choice-card.confirmed",
-      );
+      const confirmed =
+        element.closest<HTMLButtonElement>(
+          ".budget-choice-modal:not(.budget-pdf-prompt) .budget-choice-card.confirmed",
+        );
 
       if (!confirmed) return;
 
-      if (confirmed.dataset.v4515Bypass === "true") {
-        delete confirmed.dataset.v4515Bypass;
+      if (
+        confirmed.dataset.v4515Bypass ===
+        "true"
+      ) {
+        delete confirmed.dataset
+          .v4515Bypass;
         return;
       }
 
@@ -264,13 +389,20 @@ export function BudgetConfirmedFlowUX() {
       event.stopPropagation();
       event.stopImmediatePropagation();
 
-      confirmedButtonRef.current = confirmed;
+      confirmedButtonRef.current =
+        confirmed;
 
       confirmed
-        .closest<HTMLElement>(".budget-choice-backdrop")
-        ?.classList.add("v4515-choice-suspended");
+        .closest<HTMLElement>(
+          ".budget-choice-backdrop",
+        )
+        ?.classList.add(
+          "v4515-choice-suspended",
+        );
 
-      document.body.classList.add(CONFIRM_CLASS);
+      document.body.classList.add(
+        CONFIRM_CLASS,
+      );
 
       setCommitting(false);
       setOpen(true);
@@ -285,13 +417,18 @@ export function BudgetConfirmedFlowUX() {
       true,
     );
 
-    const observer = new MutationObserver(classify);
+    const observer =
+      new MutationObserver(classify);
+
     observer.observe(document.body, {
       childList: true,
       subtree: true,
       attributes: true,
       characterData: true,
-      attributeFilter: ["class", "disabled"],
+      attributeFilter: [
+        "class",
+        "disabled",
+      ],
     });
 
     return () => {
@@ -319,12 +456,18 @@ export function BudgetConfirmedFlowUX() {
           ),
         );
 
-      if (skipResetTimerRef.current) {
-        clearTimeout(skipResetTimerRef.current);
+      if (
+        skipResetTimerRef.current
+      ) {
+        clearTimeout(
+          skipResetTimerRef.current,
+        );
       }
 
       if (promptRepairTimer) {
-        clearTimeout(promptRepairTimer);
+        clearTimeout(
+          promptRepairTimer,
+        );
       }
     };
   }, [pathname]);
@@ -332,21 +475,23 @@ export function BudgetConfirmedFlowUX() {
   useEffect(() => {
     if (!open) return;
 
-    const side = document.querySelector<HTMLElement>(
-      ".new-sale-side",
-    );
+    const side =
+      document.querySelector<HTMLElement>(
+        ".new-sale-side",
+      );
 
     if (!side) return;
 
-    // Preserva o narrowing do HTMLElement dentro dos callbacks abaixo.
     const scrollContainer = side;
 
     scrollContainer.scrollTop = 0;
-    scrollContainer.focus({ preventScroll: true });
+    scrollContainer.focus({
+      preventScroll: true,
+    });
 
-    /* Desktop/notebook: garante que o wheel seja consumido pelo miolo do
-       modal e não pelo backdrop/body travado. */
-    function onWheel(event: WheelEvent) {
+    function onWheel(
+      event: WheelEvent,
+    ) {
       if (
         scrollContainer.scrollHeight <=
         scrollContainer.clientHeight
@@ -354,23 +499,33 @@ export function BudgetConfirmedFlowUX() {
         return;
       }
 
-      scrollContainer.scrollTop += event.deltaY;
+      scrollContainer.scrollTop +=
+        event.deltaY;
       event.preventDefault();
     }
 
-    scrollContainer.addEventListener("wheel", onWheel, {
-      passive: false,
-    });
+    scrollContainer.addEventListener(
+      "wheel",
+      onWheel,
+      {
+        passive: false,
+      },
+    );
 
     return () => {
-      scrollContainer.removeEventListener("wheel", onWheel);
+      scrollContainer.removeEventListener(
+        "wheel",
+        onWheel,
+      );
     };
   }, [open]);
 
   function backToChoice() {
     if (committing) return;
 
-    document.body.classList.remove(CONFIRM_CLASS);
+    document.body.classList.remove(
+      CONFIRM_CLASS,
+    );
 
     document
       .querySelectorAll<HTMLElement>(
@@ -388,8 +543,13 @@ export function BudgetConfirmedFlowUX() {
   function confirmSale() {
     if (committing) return;
 
-    const confirmed = confirmedButtonRef.current;
-    if (!confirmed || !confirmed.isConnected) {
+    const confirmed =
+      confirmedButtonRef.current;
+
+    if (
+      !confirmed ||
+      !confirmed.isConnected
+    ) {
       backToChoice();
       return;
     }
@@ -397,29 +557,57 @@ export function BudgetConfirmedFlowUX() {
     setCommitting(true);
 
     if (skipResetTimerRef.current) {
-      clearTimeout(skipResetTimerRef.current);
+      clearTimeout(
+        skipResetTimerRef.current,
+      );
     }
 
-    skipResetTimerRef.current = setTimeout(() => {
-      skipConfirmedPdfRef.current = false;
-      skipResetTimerRef.current = null;
-    }, 15000);
+    skipResetTimerRef.current =
+      setTimeout(() => {
+        skipConfirmedPdfRef.current =
+          false;
+        skipResetTimerRef.current =
+          null;
+      }, 15000);
 
-    confirmed.dataset.v4515Bypass = "true";
+    confirmed.dataset.v4515Bypass =
+      "true";
 
-    document.body.classList.remove(CONFIRM_CLASS);
+    const hadImmediateDelivery =
+      preserveDeliveryIntentBeforeSale();
+
+    document.body.classList.remove(
+      CONFIRM_CLASS,
+    );
     setOpen(false);
 
-    requestAnimationFrame(() => {
-      confirmed.click();
-    });
+    const commit = () => {
+      if (
+        confirmed.isConnected &&
+        !confirmed.disabled
+      ) {
+        confirmed.click();
+      }
+    };
+
+    /*
+     * Se alteramos "Já foi entregue" para falso,
+     * damos dois frames para o estado controlado do React
+     * sincronizar antes de salvar/confirmar o orçamento.
+     */
+    if (hadImmediateDelivery) {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(commit);
+      });
+    } else {
+      requestAnimationFrame(commit);
+    }
   }
 
   if (
-    (
-      pathname !== "/vendas/nova" &&
-      pathname !== "/suplementos/vendas/nova"
-    ) ||
+    (pathname !== "/vendas/nova" &&
+      pathname !==
+        "/suplementos/vendas/nova") ||
     !open
   ) {
     return null;
@@ -442,13 +630,15 @@ export function BudgetConfirmedFlowUX() {
 
       <header className="v4515-confirm-header">
         <div>
-          <span>ORÇAMENTO CONFIRMADO</span>
+          <span>
+            ORÇAMENTO CONFIRMADO
+          </span>
           <strong id="v4515-confirm-title">
             Finalize a venda
           </strong>
           <small>
-            Agora informe somente o que muda quando o
-            cliente realmente fechou.
+            Agora informe somente o que muda
+            quando o cliente realmente fechou.
           </small>
         </div>
 
