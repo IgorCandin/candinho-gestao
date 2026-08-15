@@ -1,0 +1,164 @@
+/* =========================================================
+   V45.37.R13.1 · FINALIZAR VENDA DESKTOP — FLUXO NORMAL
+   Corrige o empilhamento/recorte dos cards no overlay de Suplementos.
+
+   Regra:
+   - mobile continua usando o fluxo já aprovado;
+   - desktop deixa de usar flex/grid para os cards do miolo;
+   - cada etapa volta ao fluxo de bloco normal;
+   - o scroll continua no container central do overlay;
+   - não altera formulário, RPC, estoque, pagamento ou regras comerciais.
+   ========================================================= */
+
+@media (min-width: 721px) {
+  body.v4515-confirm-flow-open .new-sale-side {
+    display: block !important;
+    align-items: initial !important;
+    align-content: initial !important;
+    justify-content: initial !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    grid-auto-rows: initial !important;
+
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    -webkit-overflow-scrolling: touch;
+
+    box-sizing: border-box !important;
+    scrollbar-gutter: stable;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage] {
+    display: block !important;
+    position: static !important;
+    inset: auto !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: max-content !important;
+    max-height: none !important;
+
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+
+    flex: none !important;
+    grid-row: auto !important;
+    grid-column: auto !important;
+
+    contain: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    > .panel-head {
+    display: flex !important;
+    position: static !important;
+    inset: auto !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    > .panel-body {
+    display: grid !important;
+    position: static !important;
+    inset: auto !important;
+
+    width: 100% !important;
+    height: auto !important;
+    min-height: max-content !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+    gap: 10px !important;
+
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    .option-stack,
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    .conditional-fields,
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    .form-grid-two,
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]
+    .sale-action-form {
+    position: static !important;
+    inset: auto !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > .sale-form-summary {
+    display: flex !important;
+    position: static !important;
+    inset: auto !important;
+
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: max-content !important;
+    max-height: none !important;
+
+    margin: 0 !important;
+
+    flex: none !important;
+    grid-row: auto !important;
+    grid-column: auto !important;
+
+    contain: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+  }
+
+  /* O último card não precisa de margem extra;
+     o padding do próprio container já cria respiro antes do rodapé. */
+  body.v4515-confirm-flow-open
+    .new-sale-side
+    > article[data-v4515-stage]:last-of-type {
+    margin-bottom: 10px !important;
+  }
+}
