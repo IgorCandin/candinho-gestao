@@ -45,8 +45,8 @@ pipeline do Nexus o reconcilia.
 - Projeto verificado: `candinho-suplementos`, PostgreSQL 17, saudável.
 - A RPC atual de status do Nexus ainda permitia `resolve` para sinais do engine,
   confirmando a divergência entre interface e fonte de verdade.
-- Foram lidas somente definições e contagens agregadas. Nenhum dado real foi
-  alterado e a migration R14 não foi aplicada.
+- A migration R14 foi aplicada em produção após aprovação, sem alterar linhas de
+  sinais ou outras entidades empresariais.
 
 ## Migration
 
@@ -61,8 +61,8 @@ pipeline do Nexus o reconcilia.
 
 - Sinais já resolvidos manualmente no passado não foram reabertos para evitar
   alterações em dados reais; o refresh volta a abrir a condição quando aplicável.
-- A migration precisa ser validada e aplicada antes do deploy da interface para
-  fechar também clientes antigos ou chamadas diretas à RPC.
+- A migration foi registrada em produção como `20260815140344` e fecha também
+  clientes antigos ou chamadas diretas à RPC.
 - Não há suíte automatizada de banco no repositório; a validação SQL recomendada é
   executar a migration em branch/local, tentar resolver um sinal `engine` (deve
   falhar) e um sinal não-engine de teste (deve manter o comportamento).
@@ -79,8 +79,10 @@ pipeline do Nexus o reconcilia.
   expirou duas vezes. A execução parcial do TypeScript falhou por dependências não
   vinculadas, não por diagnóstico dos quatro arquivos R14.
 - Build e lint: não executados pelo mesmo bloqueio de instalação.
-- Teste SQL: não executado em produção; a migration permanece somente no
-  repositório para validação em branch/local antes de ser aplicada.
+- Verificação SQL em produção: migration registrada, trava presente na definição,
+  `anon` sem execução e `authenticated`/`service_role` com acesso esperado.
+- Advisors de segurança e performance executados; não surgiu alerta novo causado
+  pela R14. Permanecem alertas preexistentes de views, policies e índices legados.
 
 ## Commit sugerido
 
