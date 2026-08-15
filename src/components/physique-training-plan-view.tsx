@@ -25,29 +25,107 @@ type Exercise = {
   notes: string | null;
 };
 
+const movementVisuals = [
+  {
+    src: "/images/physique/exercises/bike.webp",
+    label: "Core e condicionamento",
+    terms: ["bike", "bicicleta", "spinning"],
+  },
+  {
+    src: "/images/physique/exercises/hip-thrust.webp",
+    label: "Glúteos e posteriores",
+    terms: ["elevação pélvica", "elevacao pelvica", "hip thrust", "ponte de glúteo", "ponte de gluteo"],
+  },
+  {
+    src: "/images/physique/exercises/calf-raise.webp",
+    label: "Panturrilhas",
+    terms: ["panturrilha", "gêmeos", "gemeos"],
+  },
+  {
+    src: "/images/physique/exercises/knee-extension.webp",
+    label: "Quadríceps",
+    terms: ["cadeira extensora", "extensora"],
+  },
+  {
+    src: "/images/physique/exercises/leg-curl.webp",
+    label: "Posteriores de coxa",
+    terms: ["mesa flexora", "cadeira flexora", "flexora", "leg curl"],
+  },
+  {
+    src: "/images/physique/exercises/leg-press.webp",
+    label: "Pernas e glúteos",
+    terms: ["leg press"],
+  },
+  {
+    src: "/images/physique/exercises/romanian-deadlift.webp",
+    label: "Posteriores e glúteos",
+    terms: ["stiff", "terra romeno", "levantamento romeno", "rdl"],
+  },
+  {
+    src: "/images/physique/exercises/squat.webp",
+    label: "Pernas e glúteos",
+    terms: ["agachamento", "agach", "sumô", "sumo", "afundo", "passada", "avanço", "avanco"],
+  },
+  {
+    src: "/images/physique/exercises/reverse-fly.webp",
+    label: "Posterior de ombro e costas",
+    terms: ["crucifixo inverso", "face pull", "voador inverso", "reverse fly"],
+  },
+  {
+    src: "/images/physique/exercises/pulldown.webp",
+    label: "Costas e bíceps",
+    terms: ["puxada", "pulldown", "pulley frente", "barra fixa"],
+  },
+  {
+    src: "/images/physique/exercises/row.webp",
+    label: "Costas e bíceps",
+    terms: ["remada"],
+  },
+  {
+    src: "/images/physique/exercises/biceps-curl.webp",
+    label: "Bíceps e braquial",
+    terms: ["rosca", "curl"],
+  },
+  {
+    src: "/images/physique/exercises/lateral-raise.webp",
+    label: "Ombros",
+    terms: ["elevação lateral", "elevacao lateral"],
+  },
+  {
+    src: "/images/physique/exercises/triceps-cable.webp",
+    label: "Tríceps",
+    terms: ["tríceps", "triceps"],
+  },
+  {
+    src: "/images/physique/exercises/chest-press.webp",
+    label: "Peito e tríceps",
+    terms: ["supino", "flexão", "flexao", "crucifixo", "peitoral", "paralela", "mergulho"],
+  },
+] as const;
+
 const exerciseVisuals = [
   {
-    src: "/images/physique/exercises/back-biceps.png",
+    src: "/images/physique/exercises/back-biceps.webp",
     label: "Costas e bíceps",
     terms: ["puxad", "remad", "barra fixa", "pulley", "dorsal", "costas", "rosca", "biceps", "bíceps"],
   },
   {
-    src: "/images/physique/exercises/chest-triceps.png",
+    src: "/images/physique/exercises/chest-triceps.webp",
     label: "Peito e tríceps",
     terms: ["supino", "peitoral", "crucifixo", "flexao", "flexão", "triceps", "tríceps", "mergulho", "paralela"],
   },
   {
-    src: "/images/physique/exercises/legs-glutes.png",
+    src: "/images/physique/exercises/legs-glutes.webp",
     label: "Pernas e glúteos",
     terms: ["agach", "leg press", "extensora", "flexora", "stiff", "terra", "panturrilha", "glute", "glúte", "avanco", "avanço", "passada", "afundo", "adutor", "abdutor"],
   },
   {
-    src: "/images/physique/exercises/shoulders.png",
+    src: "/images/physique/exercises/shoulders.webp",
     label: "Ombros",
     terms: ["ombro", "deltoid", "elevação lateral", "elevacao lateral", "desenvolvimento", "face pull", "encolhimento"],
   },
   {
-    src: "/images/physique/exercises/core-cardio.png",
+    src: "/images/physique/exercises/core-cardio.webp",
     label: "Core e condicionamento",
     terms: ["abdominal", "prancha", "core", "bike", "bicicleta", "esteira", "corrida", "eliptico", "elíptico", "cardio", "aquecimento"],
   },
@@ -55,7 +133,9 @@ const exerciseVisuals = [
 
 function getExerciseVisual(exerciseName: string) {
   const normalized = exerciseName.toLocaleLowerCase("pt-BR");
-  return exerciseVisuals.find((visual) =>
+  return movementVisuals.find((visual) =>
+    visual.terms.some((term) => normalized.includes(term)),
+  ) ?? exerciseVisuals.find((visual) =>
     visual.terms.some((term) => normalized.includes(term)),
   ) ?? null;
 }

@@ -165,6 +165,15 @@
       rgba(255,255,255,.012);
   }
 
+  /* Physique tem quatro destinos: no mobile, uma grade 2 × 2 simétrica
+     mantém o mesmo ritmo e centralização do menu desktop. */
+  .v4522-operation-entry.tone-physique
+    .v4521-entry-menu
+    button.is-primary {
+    grid-column: auto;
+    min-height: 76px;
+  }
+
   .v4522-operation-entry .v4521-entry-menu button > svg {
     width: 20px;
     height: 20px;
