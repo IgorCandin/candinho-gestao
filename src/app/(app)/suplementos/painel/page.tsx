@@ -117,7 +117,7 @@ export default async function SupplementsDashboardPage() {
       <section className="dashboard-operational-grid">
         <article className="panel dashboard-priorities-panel">
           <div className="panel-head">
-            <div><h2>Prioridades</h2><p>Cobranças, estoque e leads organizados por categoria.</p></div>
+            <div><h2>Exceções de gestão</h2><p>Riscos e pendências para supervisão. Para executar o dia, use Hoje; para a fila completa, use Fila Única.</p></div>
             <span className="dashboard-priority-count">{data.priorities.length}</span>
           </div>
           {data.priorities.length === 0 ? (
