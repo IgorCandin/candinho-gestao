@@ -58,7 +58,10 @@
   color:#8fe9cd; background:rgba(87,216,184,.06); display:grid; place-items:center;
 }
 
-.physique-ux-athlete-grid, .physique-ux-plan-grid {
+.physique-ux-athlete-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(min(100%,480px),640px)); gap:12px;
+}
+.physique-ux-plan-grid {
   display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px;
 }
 .physique-ux-athlete-card, .physique-ux-plan-card {
@@ -69,9 +72,15 @@
 .physique-ux-athlete-card:hover, .physique-ux-plan-card:hover {
   transform:translateY(-2px); border-color:rgba(87,216,184,.24); background:rgba(87,216,184,.035);
 }
+.physique-ux-athlete-card {
+  padding:10px; display:grid; grid-template-columns:148px minmax(0,1fr); gap:18px; align-items:stretch;
+}
+.physique-ux-athlete-card-media { position:relative; min-width:0; }
 .physique-ux-athlete-card-top, .physique-ux-plan-card-top {
   display:flex; align-items:center; justify-content:space-between; gap:12px;
 }
+.physique-ux-athlete-card-top > strong { font-size:18px; }
+.physique-ux-athlete-card-body { min-width:0; padding:10px 8px 7px 0; display:flex; flex-direction:column; }
 .physique-ux-status {
   width:fit-content; padding:5px 8px; border-radius:999px;
   color:rgba(232,239,247,.65); background:rgba(255,255,255,.05);
@@ -79,19 +88,20 @@
 }
 .physique-ux-status.active { color:#9ff1d8; background:rgba(87,216,184,.09); }
 .physique-ux-athlete-avatar {
-  width:48px; height:48px; margin:20px 0 14px; border:1px solid rgba(87,216,184,.18);
-  border-radius:15px; color:#8fe9cd; background:rgba(87,216,184,.06);
-  display:grid; place-items:center;
+  width:100%; height:auto; aspect-ratio:1; margin:0; overflow:hidden; border:1px solid rgba(87,216,184,.18);
+  border-radius:15px; color:#8fe9cd; background:rgba(87,216,184,.06); display:grid; place-items:center;
 }
+.physique-ux-athlete-card-media .physique-ux-status { position:absolute; left:9px; bottom:9px; backdrop-filter:blur(10px); }
 .physique-ux-athlete-avatar.large { width:62px; height:62px; margin:0; border-radius:18px; }
-.physique-ux-athlete-card > strong, .physique-ux-plan-card > strong { display:block; font-size:16px; }
-.physique-ux-athlete-card > p, .physique-ux-plan-card > p {
+.physique-ux-plan-card > strong { display:block; font-size:16px; }
+.physique-ux-athlete-card-body > p, .physique-ux-plan-card > p {
   min-height:36px; margin:5px 0 0; color:rgba(232,239,247,.64); font-size:11px; line-height:1.5;
 }
 .physique-ux-athlete-numbers, .physique-ux-plan-kpis {
   margin-top:16px; padding-top:13px; border-top:1px solid rgba(255,255,255,.07);
   color:rgba(232,239,247,.62); display:flex; justify-content:space-between; gap:10px; font-size:9px;
 }
+.physique-ux-athlete-card-body .physique-ux-athlete-numbers { margin-top:auto; }
 .physique-ux-athlete-numbers span, .physique-ux-plan-kpis span { display:flex; align-items:center; gap:5px; }
 .physique-ux-plan-card > small { display:block; margin-top:18px; color:#dcc46c; font-size:9px; font-weight:850; }
 .physique-ux-plan-card footer {
@@ -213,15 +223,21 @@
 
 .physique-ux-exercise-grid { margin-top:13px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
 .physique-ux-exercise-card {
-  min-width:0; padding:13px; border:1px solid rgba(255,255,255,.06); border-radius:13px;
-  background:rgba(0,0,0,.14); display:flex; align-items:flex-start; gap:11px;
+  min-width:0; padding:9px; border:1px solid rgba(255,255,255,.06); border-radius:15px;
+  background:rgba(0,0,0,.14); display:grid; grid-template-columns:132px minmax(0,1fr); align-items:stretch; gap:14px;
 }
-.physique-ux-exercise-number {
-  width:28px; height:28px; flex:0 0 auto; border-radius:9px; color:#9ff1d8;
-  background:rgba(87,216,184,.08); display:grid; place-items:center; font-size:10px; font-weight:900;
+.physique-ux-exercise-visual {
+  position:relative; width:100%; aspect-ratio:1; overflow:hidden; border-radius:11px; background:#fff;
 }
-.physique-ux-exercise-copy { min-width:0; }
-.physique-ux-exercise-copy > strong { font-size:12px; }
+.physique-ux-exercise-visual > img { object-fit:cover; }
+.physique-ux-exercise-visual > span {
+  position:absolute; left:7px; top:7px; z-index:1; width:25px; height:25px; border-radius:8px;
+  color:#07110e; background:#9ff1d8; display:grid; place-items:center; font-size:9px; font-weight:950;
+}
+.physique-ux-exercise-visual-fallback { width:100%; height:100%; color:#8fe9cd; background:#111a19; display:grid; place-items:center; }
+.physique-ux-exercise-copy { min-width:0; padding:5px 6px 5px 0; }
+.physique-ux-exercise-copy > strong { display:block; font-size:13px; line-height:1.3; }
+.physique-ux-exercise-muscles { display:block; margin-top:4px; color:#e5ad83; font-size:8px; font-weight:850; text-transform:uppercase; letter-spacing:.06em; }
 .physique-ux-exercise-meta {
   margin-top:5px; color:rgba(232,239,247,.58); display:flex; gap:9px; flex-wrap:wrap; font-size:9px;
 }
@@ -371,6 +387,15 @@
   .physique-ux-import-stage > header { flex-wrap:wrap; }
   .physique-ux-import-summary-kpis { width:100%; margin-left:0; }
   .physique-ux-import-summary-kpis b { flex:1; }
+  .physique-ux-athlete-card { grid-template-columns:112px minmax(0,1fr); gap:13px; padding:8px; }
+  .physique-ux-athlete-card-body { padding:7px 5px 5px 0; }
+  .physique-ux-athlete-card-top > strong { font-size:15px; }
+  .physique-ux-athlete-card-body > p { min-height:0; font-size:9px; }
+  .physique-ux-athlete-numbers { align-items:flex-start; flex-direction:column; gap:5px; margin-top:10px !important; padding-top:9px; }
+  .physique-ux-day-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); overflow:visible; }
+  .physique-ux-day-tabs button { min-width:0; }
+  .physique-ux-exercise-card { grid-template-columns:104px minmax(0,1fr); gap:11px; padding:8px; }
+  .physique-ux-exercise-copy { padding:3px 3px 3px 0; }
 }
 
 /* V45.25.R1 · Physique integrado ao AppShell */

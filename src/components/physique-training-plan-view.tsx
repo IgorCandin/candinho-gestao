@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Clock3, Dumbbell } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -23,6 +24,41 @@ type Exercise = {
   load_guidance: string | null;
   notes: string | null;
 };
+
+const exerciseVisuals = [
+  {
+    src: "/images/physique/exercises/back-biceps.png",
+    label: "Costas e bíceps",
+    terms: ["puxad", "remad", "barra fixa", "pulley", "dorsal", "costas", "rosca", "biceps", "bíceps"],
+  },
+  {
+    src: "/images/physique/exercises/chest-triceps.png",
+    label: "Peito e tríceps",
+    terms: ["supino", "peitoral", "crucifixo", "flexao", "flexão", "triceps", "tríceps", "mergulho", "paralela"],
+  },
+  {
+    src: "/images/physique/exercises/legs-glutes.png",
+    label: "Pernas e glúteos",
+    terms: ["agach", "leg press", "extensora", "flexora", "stiff", "terra", "panturrilha", "glute", "glúte", "avanco", "avanço", "passada", "afundo", "adutor", "abdutor"],
+  },
+  {
+    src: "/images/physique/exercises/shoulders.png",
+    label: "Ombros",
+    terms: ["ombro", "deltoid", "elevação lateral", "elevacao lateral", "desenvolvimento", "face pull", "encolhimento"],
+  },
+  {
+    src: "/images/physique/exercises/core-cardio.png",
+    label: "Core e condicionamento",
+    terms: ["abdominal", "prancha", "core", "bike", "bicicleta", "esteira", "corrida", "eliptico", "elíptico", "cardio", "aquecimento"],
+  },
+] as const;
+
+function getExerciseVisual(exerciseName: string) {
+  const normalized = exerciseName.toLocaleLowerCase("pt-BR");
+  return exerciseVisuals.find((visual) =>
+    visual.terms.some((term) => normalized.includes(term)),
+  ) ?? null;
+}
 
 export function PhysiqueTrainingPlanView({
   days,
@@ -91,13 +127,34 @@ export function PhysiqueTrainingPlanView({
             const prescription = [exercise.sets_text, exercise.reps_text]
               .filter(Boolean)
               .join(" × ");
+            const visual = getExerciseVisual(exercise.exercise_name);
 
             return (
               <article className="physique-ux-exercise-card" key={exercise.id}>
-                <div className="physique-ux-exercise-number">{exercise.exercise_order}</div>
+                <div className="physique-ux-exercise-visual">
+                  {visual ? (
+                    <Image
+                      alt={`Grupo muscular: ${visual.label}`}
+                      fill
+                      sizes="(max-width: 720px) 104px, 132px"
+                      src={visual.src}
+                    />
+                  ) : (
+                    <div className="physique-ux-exercise-visual-fallback">
+                      <Dumbbell size={28} />
+                    </div>
+                  )}
+                  <span>{exercise.exercise_order}</span>
+                </div>
 
                 <div className="physique-ux-exercise-copy">
                   <strong>{exercise.exercise_name}</strong>
+
+                  {visual && (
+                    <small className="physique-ux-exercise-muscles">
+                      {visual.label}
+                    </small>
+                  )}
 
                   <div className="physique-ux-exercise-meta">
                     <span>{prescription || "Séries/repetições não informadas"}</span>

@@ -56,37 +56,42 @@ export default async function PhysiqueAthletesPage() {
                 href={`/physique/atletas/${athlete.id}`}
                 key={athlete.id}
               >
-                <div className="physique-ux-athlete-card-top">
+                <div className="physique-ux-athlete-card-media">
+                  <div className="physique-ux-athlete-avatar">
+                    {avatar ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        className={styles.avatarImage}
+                        src={avatar}
+                        alt={athlete.display_name}
+                      />
+                    ) : (
+                      <UserRound size={34} />
+                    )}
+                  </div>
+
                   <span className="physique-ux-status active">
                     {athlete.status}
                   </span>
-                  <ArrowUpRight size={17} />
                 </div>
 
-                <div className="physique-ux-athlete-avatar">
-                  {avatar ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      className={styles.avatarImage}
-                      src={avatar}
-                      alt={athlete.display_name}
-                    />
-                  ) : (
-                    <UserRound size={24} />
-                  )}
-                </div>
+                <div className="physique-ux-athlete-card-body">
+                  <div className="physique-ux-athlete-card-top">
+                    <strong>{athlete.display_name}</strong>
+                    <ArrowUpRight size={17} />
+                  </div>
 
-                <strong>{athlete.display_name}</strong>
-                <p>
-                  {athlete.primary_goal ?? "Objetivo ainda não informado"}
-                </p>
+                  <p>
+                    {athlete.primary_goal ?? "Objetivo ainda não informado"}
+                  </p>
 
-                <div className="physique-ux-athlete-numbers">
-                  <span>
-                    <Dumbbell size={14} />
-                    <b>{athlete.active_training_plan_count}</b> ativa(s)
-                  </span>
-                  <span>{athlete.training_plan_count} ficha(s) no histórico</span>
+                  <div className="physique-ux-athlete-numbers">
+                    <span>
+                      <Dumbbell size={14} />
+                      <b>{athlete.active_training_plan_count}</b> ativa(s)
+                    </span>
+                    <span>{athlete.training_plan_count} ficha(s) no histórico</span>
+                  </div>
                 </div>
               </Link>
             );
