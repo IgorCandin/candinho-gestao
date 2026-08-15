@@ -4,7 +4,6 @@ import Link from "next/link";
 import {
   ArrowRight,
   BellOff,
-  CheckCircle2,
   CircleAlert,
   Clock3,
   Lightbulb,
@@ -105,18 +104,6 @@ export function NexusSignalCard({
             component="nexus_signal"
           />
         )}
-
-        <NexusActionPreviewButton
-          actionKind="signal_status"
-          payload={{
-            signal_id: signal.id,
-            action: "resolve",
-            snooze_days: 3,
-          }}
-          label={compact ? "Concluir" : "Concluir sinal"}
-          component="nexus_signal"
-          onExecuted={() => changed("resolve")}
-        />
 
         <NexusActionPreviewButton
           actionKind="signal_status"

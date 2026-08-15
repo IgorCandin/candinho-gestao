@@ -123,17 +123,6 @@ function QueueRow({
               actionKind="signal_status"
               payload={{
                 signal_id: item.source_id,
-                action: "resolve",
-                snooze_days: 3,
-              }}
-              label="Concluir"
-              component="unified_queue"
-              onExecuted={() => onSignalChanged(item.queue_id)}
-            />
-            <NexusActionPreviewButton
-              actionKind="signal_status"
-              payload={{
-                signal_id: item.source_id,
                 action: "snooze",
                 snooze_days: 3,
               }}
