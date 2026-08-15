@@ -64,7 +64,7 @@
    Marketing, Vitrine, Parceiro e qualquer outra rota que use .app-shell. */
 @media (min-width: 821px) {
   .app-shell.sidebar-collapsed {
-    grid-template-columns: 48px minmax(0, 1fr) !important;
+    grid-template-columns: 0 minmax(0, 1fr) !important;
   }
 
   .app-shell.sidebar-collapsed > .sidebar {
