@@ -99,7 +99,7 @@ const movementVisuals = [
   {
     src: "/images/physique/exercises/chest-press.webp",
     label: "Peito e tríceps",
-    terms: ["supino", "flexão", "flexao", "crucifixo", "peitoral", "paralela", "mergulho"],
+    terms: ["supino", "flexão", "flexao", "crucifixo", "crossover", "peitoral", "paralela", "mergulho"],
   },
 ] as const;
 
