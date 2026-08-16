@@ -7,6 +7,7 @@ import { InventoryActions } from "@/components/inventory-actions";
 import { PageHeader } from "@/components/page-header";
 import { getInventoryLocationOverview, getInventoryOverview, getInventoryProductDetails, getSaleLocations } from "@/lib/data";
 import { formatCurrency, formatDate, formatDateOnly } from "@/lib/format";
+import { getReservationStatusLabel } from "@/lib/reservation-status";
 import { createClient } from "@/lib/supabase/server";
 
 const MOVEMENT_LABELS: Record<string, string> = {
@@ -17,13 +18,6 @@ const MOVEMENT_LABELS: Record<string, string> = {
   transfer_out: "Transferência enviada",
   sale: "Venda entregue",
   adjustment: "Ajuste",
-};
-
-const RESERVATION_LABELS: Record<string, string> = {
-  reserved: "Reservado",
-  partial: "Reserva parcial",
-  awaiting_stock: "Aguardando estoque",
-  fulfilled: "Atendido",
 };
 
 export default async function InventoryProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -223,7 +217,7 @@ export default async function InventoryProductPage({ params }: { params: Promise
                     </div>
                     <strong>{reservation.quantity_reserved}/{reservation.quantity_requested}</strong>
                     <small className={reservation.status === "awaiting_stock" ? "warning-text" : "positive"}>
-                      {RESERVATION_LABELS[reservation.status] ?? reservation.status}
+                      {getReservationStatusLabel(reservation.status, "inventory")}
                       {reservation.quantity_missing > 0 ? ` · faltam ${reservation.quantity_missing}` : ""}
                     </small>
                   </div>

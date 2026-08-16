@@ -1,3 +1,16 @@
+import {
+  getReservationStatusLabel,
+  isReservationStatus,
+  type ReservationStatusContext,
+} from "@/lib/reservation-status";
+
+const reservationColors = {
+  reserved: "blue",
+  partial: "orange",
+  awaiting_stock: "orange",
+  fulfilled: "green",
+} as const;
+
 const map: Record<string, { label: string; color: string }> = {
   finalized: { label: "Finalizado", color: "green" },
   active: { label: "Ativo", color: "blue" },
@@ -33,16 +46,30 @@ const map: Record<string, { label: string; color: string }> = {
   post_sale: { label: "Pós-venda", color: "green" },
   note: { label: "Anotação", color: "gray" },
   available: { label: "Disponível", color: "green" },
-  reserved: { label: "Reservado", color: "blue" },
-  partial: { label: "Parcial", color: "orange" },
   incoming: { label: "A caminho", color: "blue" },
   low_stock: { label: "Estoque baixo", color: "orange" },
   out_of_stock: { label: "Zerado", color: "red" },
-  awaiting_stock: { label: "Aguardando estoque", color: "orange" },
-  fulfilled: { label: "Atendido", color: "green" },
 };
 
-export function Badge({ value }: { value: string }) {
-  const item = map[value] ?? { label: value.replaceAll("_", " "), color: "gray" };
+export function Badge({
+  value,
+  reservationContext,
+}: {
+  value: string;
+  reservationContext?: ReservationStatusContext;
+}) {
+  const item = isReservationStatus(value)
+    ? {
+        label: getReservationStatusLabel(
+          value,
+          reservationContext ?? "inventory",
+        ),
+        color: reservationColors[value],
+      }
+    : map[value]
+    ? {
+        ...map[value],
+      }
+    : { label: value.replaceAll("_", " "), color: "gray" };
   return <span className={`badge ${item.color}`}><span className="dot" />{item.label}</span>;
 }

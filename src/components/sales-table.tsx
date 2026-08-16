@@ -15,6 +15,7 @@ import {
   formatDate,
   formatDateOnly,
 } from "@/lib/format";
+import { getReservationStatusLabel } from "@/lib/reservation-status";
 import type {
   SalesOperationalRow,
 } from "@/lib/sales-operational-data";
@@ -339,9 +340,9 @@ export function SalesTable({
                     <div
                       className={`cell-sub reservation-${sale.reservation_status}`}
                     >
-                      {sale.reservation_status.replaceAll(
-                        "_",
-                        " ",
+                      {getReservationStatusLabel(
+                        sale.reservation_status,
+                        "commercial",
                       )}
                     </div>
                   )}
