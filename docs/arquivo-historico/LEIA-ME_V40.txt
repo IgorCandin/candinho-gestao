@@ -48,7 +48,7 @@ APLICAÇÃO RÁPIDA
    Commit: V40 - adiciona Nexus Bank com preview e auditoria
    Push origin
 4. Supabase > SQL Editor:
-   abra RODAR_NO_SUPABASE_V40.sql
+   abra supabase/legacy/RODAR_NO_SUPABASE_V40.sql
    copie tudo
    Run
 5. Configure OPENAI_API_KEY no Vercel (uma única vez).
