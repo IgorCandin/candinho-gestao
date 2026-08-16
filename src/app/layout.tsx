@@ -30,6 +30,7 @@ import "./v45-37-r8-budget-modal-viewport.css";
 import "./v45-37-r9-storefront-mobile.css";
 import "./v45-37-r13-fitness-1-0.css";
 import "./v45-37-r13-1-confirm-sale-desktop.css";
+import "./v45-38-mobile-harmony.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
