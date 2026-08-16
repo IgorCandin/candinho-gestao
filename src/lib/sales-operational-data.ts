@@ -6,9 +6,17 @@ export type SalesOperationalView =
   | "finalized"
   | "all";
 
+export type SalesOperationalProduct = {
+  id: string;
+  name: string;
+  image_url: string | null;
+  quantity: number;
+};
+
 export type SalesOperationalRow =
   SaleRow & {
     city: string | null;
+    products: SalesOperationalProduct[];
   };
 
 export type SalesOperationalPage = {
@@ -30,6 +38,21 @@ const text = (
   value.trim()
     ? value
     : fallback;
+
+function oneRelation(
+  value: unknown,
+): Record<string, unknown> | null {
+  if (Array.isArray(value)) {
+    const first = value[0];
+    return first && typeof first === "object"
+      ? (first as Record<string, unknown>)
+      : null;
+  }
+
+  return value && typeof value === "object"
+    ? (value as Record<string, unknown>)
+    : null;
+}
 
 function normalizeSale(
   row: Record<string, unknown>,
@@ -149,6 +172,7 @@ function normalizeSale(
       row.city.trim()
         ? row.city
         : null,
+    products: [],
   };
 }
 
@@ -300,18 +324,121 @@ export async function getSalesOperationalPage({
 
   if (error) throw error;
 
+  const rows = (data ?? []).map(
+    (row) =>
+      normalizeSale(
+        row as Record<
+          string,
+          unknown
+        >,
+      ),
+  );
+
+  if (rows.length > 0) {
+    const {
+      data: itemData,
+      error: itemError,
+    } = await supabase
+      .from("sale_items")
+      .select(
+        "id,sale_id,product_id,quantity,product:products(id,name,image_url)",
+      )
+      .in(
+        "sale_id",
+        rows.map((sale) => sale.id),
+      );
+
+    if (itemError) throw itemError;
+
+    const productsBySale = new Map<
+      string,
+      Map<string, SalesOperationalProduct>
+    >();
+
+    for (const item of itemData ?? []) {
+      const itemRow =
+        item as Record<string, unknown>;
+      const saleId = String(
+        itemRow.sale_id ?? "",
+      );
+      const product = oneRelation(
+        itemRow.product,
+      );
+      const productId = String(
+        itemRow.product_id ??
+          product?.id ??
+          "",
+      );
+
+      if (!saleId || !productId) continue;
+
+      const saleProducts =
+        productsBySale.get(saleId) ??
+        new Map<
+          string,
+          SalesOperationalProduct
+        >();
+      const current =
+        saleProducts.get(productId);
+      const quantity = Math.max(
+        number(itemRow.quantity),
+        1,
+      );
+
+      saleProducts.set(productId, {
+        id: productId,
+        name: text(
+          product?.name,
+          "Produto",
+        ),
+        image_url:
+          typeof product?.image_url ===
+          "string"
+            ? product.image_url
+            : null,
+        quantity:
+          (current?.quantity ?? 0) +
+          quantity,
+      });
+      productsBySale.set(
+        saleId,
+        saleProducts,
+      );
+    }
+
+    for (const sale of rows) {
+      const products = Array.from(
+        productsBySale
+          .get(sale.id)
+          ?.values() ?? [],
+      );
+
+      sale.products =
+        products.length > 0
+          ? products
+          : sale.primary_product_id
+            ? [
+                {
+                  id: sale.primary_product_id,
+                  name:
+                    sale.product_summary ??
+                    "Produto",
+                  image_url:
+                    sale.primary_image_url,
+                  quantity: Math.max(
+                    sale.total_items,
+                    1,
+                  ),
+                },
+              ]
+            : [];
+    }
+  }
+
   const total = count ?? 0;
 
   return {
-    rows: (data ?? []).map(
-      (row) =>
-        normalizeSale(
-          row as Record<
-            string,
-            unknown
-          >,
-        ),
-    ),
+    rows,
     page: currentPage,
     pageSize: size,
     total,

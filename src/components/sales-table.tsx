@@ -3,10 +3,7 @@
 
 import Link from "next/link";
 import { ImageIcon } from "lucide-react";
-import {
-  useMemo,
-  useState,
-} from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/badge";
 import { SalePartnerLinker } from "@/components/sale-partner-linker";
@@ -20,6 +17,104 @@ import type {
   SalesOperationalRow,
 } from "@/lib/sales-operational-data";
 
+function PaymentStatus({
+  sale,
+}: {
+  sale: SalesOperationalRow;
+}) {
+  if (sale.paid_at) {
+    return (
+      <span className="date-status green">
+        {formatDate(sale.paid_at)}
+      </span>
+    );
+  }
+
+  if (sale.payment_due_at) {
+    return (
+      <span className="date-status orange">
+        {formatDateOnly(
+          sale.payment_due_at,
+        )}
+      </span>
+    );
+  }
+
+  return <Badge value={sale.payment_status} />;
+}
+
+function DeliveryStatus({
+  sale,
+}: {
+  sale: SalesOperationalRow;
+}) {
+  if (sale.delivered_at) {
+    return (
+      <span className="date-status green">
+        {formatDate(sale.delivered_at)}
+      </span>
+    );
+  }
+
+  return <Badge value={sale.delivery_status} />;
+}
+
+function ProductTiles({
+  sale,
+}: {
+  sale: SalesOperationalRow;
+}) {
+  if (sale.products.length === 0) {
+    return (
+      <span
+        className="sales-product-tile empty"
+        title="Produto não informado"
+      >
+        <ImageIcon size={19} />
+      </span>
+    );
+  }
+
+  return (
+    <div
+      className="sales-product-tiles"
+      aria-label="Produtos da venda"
+    >
+      {sale.products.map((product) => (
+        <Link
+          key={product.id}
+          className="sales-product-tile"
+          href={`/produtos/${product.id}`}
+          title={`${product.name} ×${product.quantity}`}
+          aria-label={`${product.name}, ${product.quantity} unidade${product.quantity === 1 ? "" : "s"}`}
+          onClick={(event) =>
+            event.stopPropagation()
+          }
+          onKeyDown={(event) =>
+            event.stopPropagation()
+          }
+        >
+          {product.image_url ? (
+            <img
+              src={product.image_url}
+              alt=""
+              loading="lazy"
+            />
+          ) : (
+            <ImageIcon size={19} />
+          )}
+
+          {product.quantity > 1 && (
+            <span className="sales-product-quantity">
+              ×{product.quantity}
+            </span>
+          )}
+        </Link>
+      ))}
+    </div>
+  );
+}
+
 export function SalesTable({
   sales,
 }: {
@@ -31,11 +126,10 @@ export function SalesTable({
       () => new Set(),
     );
 
-  const selectedIds =
-    useMemo(
-      () => Array.from(selected),
-      [selected],
-    );
+  const selectedIds = useMemo(
+    () => Array.from(selected),
+    [selected],
+  );
 
   const allSelected =
     sales.length > 0 &&
@@ -43,13 +137,9 @@ export function SalesTable({
       selected.has(sale.id),
     );
 
-  function toggle(
-    id: string,
-  ) {
+  function toggle(id: string) {
     setSelected((current) => {
-      const next = new Set(
-        current,
-      );
+      const next = new Set(current);
 
       if (next.has(id)) {
         next.delete(id);
@@ -64,9 +154,7 @@ export function SalesTable({
   function toggleAll() {
     setSelected((current) => {
       if (allSelected) {
-        const next = new Set(
-          current,
-        );
+        const next = new Set(current);
 
         for (const sale of sales) {
           next.delete(sale.id);
@@ -75,9 +163,7 @@ export function SalesTable({
         return next;
       }
 
-      const next = new Set(
-        current,
-      );
+      const next = new Set(current);
 
       for (const sale of sales) {
         next.add(sale.id);
@@ -88,22 +174,9 @@ export function SalesTable({
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gap: 10,
-      }}
-    >
+    <div className="sales-history-shell">
       {selectedIds.length > 0 && (
-        <div
-          className="panel-body"
-          style={{
-            display: "grid",
-            gap: 8,
-            borderBottom:
-              "1px solid var(--line)",
-          }}
-        >
+        <div className="sales-selection-panel panel-body">
           <div>
             <strong>
               {selectedIds.length} venda
@@ -115,13 +188,7 @@ export function SalesTable({
                 ? ""
                 : "s"}
             </strong>
-            <small
-              style={{
-                display: "block",
-                marginTop: 3,
-                color: "var(--muted)",
-              }}
-            >
+            <small>
               Use isto para corrigir
               parcerias antigas em lote.
             </small>
@@ -137,218 +204,158 @@ export function SalesTable({
         </div>
       )}
 
-      <div className="table-wrap">
-        <table className="sales-history-table">
-          <thead>
-            <tr>
-              <th
-                style={{
-                  width: 36,
-                }}
-              >
-                <input
-                  aria-label="Selecionar vendas desta página"
-                  type="checkbox"
-                  checked={allSelected}
-                  onChange={toggleAll}
-                />
-              </th>
-              <th>Venda</th>
-              <th>Produto</th>
-              <th>
-                Data do orçamento
-              </th>
-              <th>Pagamento</th>
-              <th>Entrega</th>
-              <th>Estoque</th>
-              <th>Parceria</th>
-              <th>Total</th>
-              <th>Lucro</th>
-            </tr>
-          </thead>
+      <div className="sales-list-heading">
+        <label>
+          <input
+            aria-label="Selecionar vendas desta página"
+            type="checkbox"
+            checked={allSelected}
+            onChange={toggleAll}
+          />
+          Selecionar todas
+        </label>
+        <span>
+          Clique em uma venda para abrir os detalhes
+        </span>
+      </div>
 
-          <tbody>
-            {sales.map((sale) => (
-              <tr
-                key={sale.id}
-                className="clickable-order-row"
-                role="link"
-                tabIndex={0}
-                onClick={() =>
-                  router.push(
-                    `/vendas/${sale.id}`,
-                  )
+      <div className="sales-history-list">
+        {sales.map((sale) => (
+          <article
+            key={sale.id}
+            className="sales-history-card clickable-order-row"
+            role="link"
+            tabIndex={0}
+            onClick={() =>
+              router.push(
+                `/vendas/${sale.id}`,
+              )
+            }
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" ||
+                event.key === " "
+              ) {
+                event.preventDefault();
+                router.push(
+                  `/vendas/${sale.id}`,
+                );
+              }
+            }}
+          >
+            <div
+              className="sales-card-select"
+              onClick={(event) =>
+                event.stopPropagation()
+              }
+              onKeyDown={(event) =>
+                event.stopPropagation()
+              }
+            >
+              <input
+                aria-label={`Selecionar venda de ${sale.customer_name}`}
+                type="checkbox"
+                checked={selected.has(
+                  sale.id,
+                )}
+                onChange={() =>
+                  toggle(sale.id)
                 }
-                onKeyDown={(
-                  event,
-                ) => {
-                  if (
-                    event.key ===
-                      "Enter" ||
-                    event.key === " "
-                  ) {
-                    event.preventDefault();
-                    router.push(
-                      `/vendas/${sale.id}`,
-                    );
-                  }
-                }}
-              >
-                <td
-                  onClick={(event) =>
-                    event.stopPropagation()
-                  }
-                  onKeyDown={(event) =>
-                    event.stopPropagation()
-                  }
-                >
-                  <input
-                    aria-label={`Selecionar venda de ${sale.customer_name}`}
-                    type="checkbox"
-                    checked={selected.has(
-                      sale.id,
-                    )}
-                    onChange={() =>
-                      toggle(sale.id)
-                    }
-                  />
-                </td>
+              />
+            </div>
 
-                <td>
-                  <div className="pending-order-customer">
-                    <div className="pending-order-thumb">
-                      {sale.primary_image_url ? (
-                        <img
-                          src={sale.primary_image_url}
-                          alt={
-                            sale.product_summary ??
-                            "Produto"
-                          }
-                        />
-                      ) : (
-                        <ImageIcon
-                          size={20}
-                        />
-                      )}
-                    </div>
-
-                    <div>
-                      {sale.customer_id ? (
-                        <Link
-                          className="cell-main table-link"
-                          href={`/clientes/${sale.customer_id}`}
-                          onClick={(
-                            event,
-                          ) =>
-                            event.stopPropagation()
-                          }
-                        >
-                          {
-                            sale.customer_name
-                          }
-                        </Link>
-                      ) : (
-                        <div className="cell-main">
-                          {
-                            sale.customer_name
-                          }
-                        </div>
-                      )}
-
-                      <div className="cell-sub">
-                        {[
-                          sale.city,
-                          sale.price_condition,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ") ||
-                          "Clique para abrir os detalhes"}
-                      </div>
-                    </div>
-                  </div>
-                </td>
-
-                <td className="multiline">
-                  {sale.primary_product_id ? (
+            <div className="sales-card-content">
+              <div className="sales-card-line sales-card-line-primary">
+                <div className="sales-card-cell sales-card-customer">
+                  <span className="sales-card-label">
+                    Cliente
+                  </span>
+                  {sale.customer_id ? (
                     <Link
-                      className="table-link"
-                      href={`/produtos/${sale.primary_product_id}`}
-                      onClick={(
-                        event,
-                      ) =>
+                      className="cell-main table-link"
+                      href={`/clientes/${sale.customer_id}`}
+                      onClick={(event) =>
+                        event.stopPropagation()
+                      }
+                      onKeyDown={(event) =>
                         event.stopPropagation()
                       }
                     >
-                      {sale.product_summary ??
-                        "—"}
+                      {sale.customer_name}
                     </Link>
                   ) : (
-                    sale.product_summary ??
-                    "—"
+                    <strong className="cell-main">
+                      {sale.customer_name}
+                    </strong>
                   )}
-                </td>
+                  <span className="cell-sub">
+                    {[
+                      sale.city,
+                      sale.price_condition,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ") ||
+                      "Detalhes da venda"}
+                  </span>
+                </div>
 
-                <td>
-                  {formatDate(
-                    sale.quoted_at,
-                  )}
-                </td>
+                <div className="sales-card-cell">
+                  <span className="sales-card-label">
+                    Data do orçamento
+                  </span>
+                  <strong>
+                    {formatDate(
+                      sale.quoted_at,
+                    )}
+                  </strong>
+                </div>
 
-                <td>
-                  {sale.paid_at ? (
-                    <span className="date-status green">
-                      {formatDate(
-                        sale.paid_at,
-                      )}
-                    </span>
-                  ) : sale.payment_due_at ? (
-                    <span className="date-status orange">
-                      {formatDateOnly(
-                        sale.payment_due_at,
-                      )}
-                    </span>
-                  ) : (
-                    <Badge
-                      value={
-                        sale.payment_status
-                      }
-                    />
-                  )}
-                </td>
+                <div className="sales-card-cell">
+                  <span className="sales-card-label">
+                    Pagamento
+                  </span>
+                  <PaymentStatus sale={sale} />
+                </div>
 
-                <td>
-                  {sale.delivered_at ? (
-                    <span className="date-status green">
-                      {formatDate(
-                        sale.delivered_at,
-                      )}
-                    </span>
-                  ) : (
-                    <Badge
-                      value={
-                        sale.delivery_status
-                      }
-                    />
-                  )}
-                </td>
+                <div className="sales-card-cell">
+                  <span className="sales-card-label">
+                    Entrega
+                  </span>
+                  <DeliveryStatus sale={sale} />
+                </div>
+              </div>
 
-                <td>
-                  <div className="cell-main">
+              <div className="sales-card-line sales-card-line-secondary">
+                <div className="sales-card-cell sales-card-products">
+                  <span className="sales-card-label">
+                    Produtos
+                  </span>
+                  <ProductTiles sale={sale} />
+                </div>
+
+                <div className="sales-card-cell">
+                  <span className="sales-card-label">
+                    Estoque
+                  </span>
+                  <strong>
                     {sale.location_code}
-                  </div>
+                  </strong>
                   {sale.reservation_status && (
-                    <div
+                    <span
                       className={`cell-sub reservation-${sale.reservation_status}`}
                     >
                       {getReservationStatusLabel(
                         sale.reservation_status,
                         "commercial",
                       )}
-                    </div>
+                    </span>
                   )}
-                </td>
+                </div>
 
-                <td>
+                <div className="sales-card-cell sales-card-partner">
+                  <span className="sales-card-label">
+                    Parceria
+                  </span>
                   {sale.partner_name ? (
                     <span className="badge green">
                       {sale.partner_name}
@@ -358,23 +365,26 @@ export function SalesTable({
                       Sem parceria
                     </span>
                   )}
-                </td>
+                </div>
+              </div>
+            </div>
 
-                <td className="amount">
-                  {formatCurrency(
-                    sale.total_amount,
-                  )}
-                </td>
-
-                <td className="amount positive">
-                  {formatCurrency(
-                    sale.total_profit,
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            <div className="sales-card-finance">
+              <span>Total</span>
+              <strong>
+                {formatCurrency(
+                  sale.total_amount,
+                )}
+              </strong>
+              <small>Lucro</small>
+              <b>
+                {formatCurrency(
+                  sale.total_profit,
+                )}
+              </b>
+            </div>
+          </article>
+        ))}
       </div>
     </div>
   );
