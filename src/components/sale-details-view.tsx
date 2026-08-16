@@ -26,6 +26,7 @@ import {
   formatDate,
   formatDateOnly,
 } from "@/lib/format";
+import { getReservationStatusLabel } from "@/lib/reservation-status";
 import type { SaleDetails } from "@/lib/types";
 
 function DetailLine({
@@ -59,11 +60,11 @@ function reservationLabel(
   }
 
   if (status === "awaiting_stock") {
-    return "Aguardando fornecedor";
+    return getReservationStatusLabel(status, "commercial");
   }
 
   if (status === "fulfilled") {
-    return "Baixado na entrega";
+    return getReservationStatusLabel(status, "commercial");
   }
 
   return null;

@@ -86,7 +86,7 @@ export function FitnessSalesTable({ sales }: { sales: Row[] }) {
               <td><Badge value={sale.delivery_status}/></td>
               <td>
                 {sale.reservation_status
-                  ? <Badge value={sale.reservation_status}/>
+                  ? <Badge value={sale.reservation_status} reservationContext="commercial"/>
                   : <span className="muted-value">—</span>}
               </td>
               <td>{formatCurrency(sale.total_amount)}</td>
