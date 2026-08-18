@@ -2,12 +2,7 @@
 
 import Link from "next/link";
 import {
-  Bot,
-  Building2,
-  ChartNoAxesCombined,
-  CircleDollarSign,
   HandCoins,
-  History,
   ShoppingBag,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
@@ -88,14 +83,6 @@ function setTrailingText(
   });
 }
 
-function pathnameOf(anchor: HTMLAnchorElement) {
-  try {
-    return new URL(anchor.href, window.location.origin).pathname;
-  } catch {
-    return anchor.getAttribute("href") ?? "";
-  }
-}
-
 function currency(value: number) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -126,56 +113,11 @@ export function BankV39Shell() {
     useState<HTMLElement | null>(null);
   const [incomeStatsHost, setIncomeStatsHost] =
     useState<HTMLElement | null>(null);
-  const [desktopBankNavHost, setDesktopBankNavHost] =
-    useState<HTMLElement | null>(null);
-
   const [noteSummary, setNoteSummary] = useState<NoteSummary | null>(null);
   const [monthSummary, setMonthSummary] = useState<MonthSummary | null>(null);
 
   useEffect(() => {
     const undo: Undo[] = [];
-
-    const hidden = new Set([
-      "/bank/atualizar",
-      "/bank/operacoes",
-      "/bank/cobrancas",
-      "/bank/mensalidades",
-      "/bank/visao-anual",
-      "/bank/fechamento",
-    ]);
-
-    const navAnchors = Array.from(
-      document.querySelectorAll<HTMLAnchorElement>(
-        ".sidebar .nav-link, .mobile-menu-panel .mobile-menu-link",
-      ),
-    );
-
-    for (const anchor of navAnchors) {
-      const href = pathnameOf(anchor);
-      if (!href.startsWith("/bank")) continue;
-
-      if (hidden.has(href)) {
-        setDisplay(anchor, "none", undo);
-        continue;
-      }
-
-      const label =
-        anchor.querySelector(".nav-label") ?? anchor.querySelector("span");
-
-      if (href === "/bank/entradas") {
-        setText(label, "Entradas", undo);
-      } else if (href === "/bank/emprestimos") {
-        setText(label, "Empréstimos", undo);
-      } else if (href === "/bank/contas") {
-        setHref(anchor, "/bank/organizar", undo);
-        setText(label, "Organizar", undo);
-      }
-    }
-
-    const oldMobileNav =
-      document.querySelector<HTMLElement>(".mobile-action-nav");
-
-    if (oldMobileNav) setDisplay(oldMobileNav, "none", undo);
 
     if (pathname === "/bank") {
       for (const card of Array.from(
@@ -437,65 +379,8 @@ export function BankV39Shell() {
     };
   }, [pathname]);
 
-  useEffect(() => {
-    if (!pathname.startsWith("/bank")) {
-      setDesktopBankNavHost(null);
-      return;
-    }
-
-    const host = document.querySelector<HTMLElement>(".sidebar .nav");
-    setDesktopBankNavHost(host);
-
-    return () => setDesktopBankNavHost(null);
-  }, [pathname]);
-
-  const items = [
-    { href: "/bank", label: "Mês", icon: ChartNoAxesCombined },
-    { href: "/bank/nexus", label: "Nexus", icon: Bot },
-    { href: "/bank/entradas", label: "Entradas", icon: CircleDollarSign },
-    { href: "/bank/faturas", label: "Faturas", icon: History },
-    { href: "/bank/organizar", label: "Mais", icon: Building2 },
-  ];
-
   return (
     <>
-      {desktopBankNavHost &&
-        createPortal(
-          <Link
-            className={`nav-link ${
-              pathname.startsWith("/bank/nexus") ? "primary" : ""
-            }`}
-            href="/bank/nexus"
-          >
-            <Bot size={18} />
-            <span className="nav-label">Nexus Bank</span>
-          </Link>,
-          desktopBankNavHost,
-        )}
-
-      <nav
-        className="bank-v39-mobile-nav"
-        aria-label="Atalhos do Candinho Bank"
-      >
-        {items.map(({ href, label, icon: Icon }) => {
-          const active =
-            href === "/bank"
-              ? pathname === "/bank"
-              : pathname.startsWith(href);
-
-          return (
-            <Link
-              className={active ? "active" : ""}
-              href={href}
-              key={href}
-            >
-              <Icon size={19} />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
       {homeReceivableHost &&
         monthSummary &&
         createPortal(

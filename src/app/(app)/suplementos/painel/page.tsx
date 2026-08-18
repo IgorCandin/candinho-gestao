@@ -7,6 +7,7 @@ import {
   Boxes,
   CircleDollarSign,
   ClipboardClock,
+  Handshake,
   HandCoins,
   ImageIcon,
   PackageCheck,
@@ -86,7 +87,7 @@ export default async function SupplementsDashboardPage() {
         </article>
       </section>
 
-      <section className="dashboard-action-grid dashboard-action-grid-five">
+      <section className="dashboard-action-grid dashboard-action-grid-six">
         <Link className="dashboard-action-card" href="/pedidos-pendentes">
           <span className="dashboard-action-icon orange"><ClipboardClock size={20} /></span>
           <div><span>Pedidos pendentes</span><strong>{data.pendingOrdersCount}</strong><small>{data.pendingDeliveryCount} entregar · {data.pendingPaymentCount} receber</small></div>
@@ -110,6 +111,11 @@ export default async function SupplementsDashboardPage() {
         <Link className="dashboard-action-card" href="/estoque">
           <span className="dashboard-action-icon red"><AlertTriangle size={20} /></span>
           <div><span>Estoque em atenção</span><strong>{data.operational.stock_attention_products}</strong><small>{data.operational.out_of_stock_products} produtos zerados</small></div>
+          <ArrowRight size={17} />
+        </Link>
+        <Link className="dashboard-action-card" href="/parceiros">
+          <span className="dashboard-action-icon gold"><Handshake size={20} /></span>
+          <div><span>Parceiros</span><strong>Rede</strong><small>Cadastros, acertos e acessos do portal</small></div>
           <ArrowRight size={17} />
         </Link>
       </section>

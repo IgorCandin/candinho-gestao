@@ -138,7 +138,6 @@ function supplementNavIsActive(
     return [
       "/suplementos/clientes",
       "/suplementos/pos-venda",
-      "/suplementos/agenda",
     ].some(
       (root) =>
         pathname === root ||

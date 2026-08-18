@@ -416,6 +416,8 @@ export default async function StockPage() {
         </div>
       </section>
 
+      <InventoryProductManagementV4521 />
+
       {(locationAttention.length > 0 ||
         productAttention.length > 0) && (
         <article className="panel inventory-attention-panel">
@@ -498,7 +500,6 @@ export default async function StockPage() {
           flavorMeta={flavorMeta}
         />
       </article>
-      <InventoryProductManagementV4521 />
     </>
   );
 }

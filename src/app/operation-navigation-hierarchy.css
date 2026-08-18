@@ -1,0 +1,45 @@
+/* Navegação operacional: funções de trabalho primeiro; retorno por último. */
+.app-shell .nav-link.operation-return-link {
+  position: relative;
+  margin-top: 10px;
+  border: 1px dashed color-mix(in srgb, var(--muted) 34%, transparent);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 56%, transparent);
+}
+
+.app-shell .nav-link.operation-return-link::before {
+  content: "RETORNO";
+  position: absolute;
+  right: 10px;
+  color: color-mix(in srgb, var(--muted) 70%, transparent);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.app-shell .nav-link.operation-return-link.primary {
+  border-style: solid;
+}
+
+.app-shell .mobile-menu-link.operation-return-link {
+  margin-top: 10px;
+  border: 1px dashed color-mix(in srgb, var(--muted) 36%, transparent);
+  color: var(--muted);
+  background: color-mix(in srgb, var(--panel) 60%, transparent);
+}
+
+.app-shell .mobile-menu-link.operation-return-link::after {
+  content: "Retornar";
+  margin-left: auto;
+  color: color-mix(in srgb, var(--muted) 72%, transparent);
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .app-shell.theme-bank .content {
+    padding-bottom: 96px;
+  }
+}

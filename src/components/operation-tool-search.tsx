@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import {
-  Bot,
-  CalendarDays,
   PackageSearch,
   Search,
   UserRoundPlus,
@@ -59,7 +57,7 @@ const TOOLS: ToolItem[] = [
   { label: "Central · Integrações", href: "/central/integracoes", operation: "central", keywords: "whatsapp meta openai integração" },
   { label: "Central · Governança", href: "/central/governanca", operation: "central", keywords: "permissões acessos segurança auditoria" },
 
-  { label: "Suplementos · Hoje", href: "/suplementos", operation: "supplements", keywords: "inicio home operação hoje" },
+  { label: "Suplementos · Home", href: "/suplementos/hoje", operation: "supplements", keywords: "inicio home operação hoje" },
   { label: "Suplementos · Nexus IA", href: "/suplementos/nexus", operation: "supplements", keywords: "nexus ia inteligência recomendação cliente suplemento conversa" },
   { label: "Suplementos · Agenda", href: "/agenda", operation: "supplements", keywords: "agenda calendário compromissos pós venda retorno tarefas hoje" },
   { label: "Suplementos · Novo Lead", href: "/leads/novo", operation: "supplements", keywords: "adicionar lead perguntou interesse cliente" },
@@ -90,7 +88,8 @@ const TOOLS: ToolItem[] = [
   { label: "Fitness · Fornecedores", href: "/fitness/fornecedores", operation: "fitness", keywords: "fornecedor" },
   { label: "Fitness · Movimentações", href: "/fitness/movimentacoes", operation: "fitness", keywords: "estoque entrada saída" },
 
-  { label: "Bank · Este mês", href: "/bank", operation: "bank", keywords: "banco financeiro mês caixa" },
+  { label: "Bank · Home", href: "/bank", operation: "bank", keywords: "banco financeiro mês caixa" },
+  { label: "Bank · Caixa", href: "/bank/organizar", operation: "bank", keywords: "organizar contas carteiras mensalidades caixa" },
   { label: "Bank · Atualização Rápida", href: "/bank/atualizar", operation: "bank", keywords: "saldo atualizar" },
   { label: "Bank · Entradas e receber", href: "/bank/entradas", operation: "bank", keywords: "receita entrada receber" },
   { label: "Bank · Cobranças", href: "/bank/cobrancas", operation: "bank", keywords: "contas pagar cobrança despesa" },
@@ -355,53 +354,6 @@ function SearchBox({
   );
 }
 
-function OperationExtraLinks({
-  pathname,
-  operation,
-  mobile = false,
-}: {
-  pathname: string;
-  operation: "supplements" | "fitness";
-  mobile?: boolean;
-}) {
-  const items =
-    operation === "fitness"
-      ? [
-          { href: "/fitness/nexus", label: "Nexus Fitness", icon: Bot },
-        ]
-      : [
-          { href: "/suplementos/nexus", label: "Nexus IA", icon: Bot },
-          { href: "/agenda", label: "Agenda", icon: CalendarDays },
-        ];
-
-  return (
-    <>
-      {items.map(({ href, label, icon: Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          className={
-            mobile
-              ? `mobile-menu-link ${pathname === href ? "primary" : ""}`
-              : `nav-link ${pathname === href ? "primary" : ""}`
-          }
-          onClick={
-            mobile
-              ? () =>
-                  document
-                    .querySelector<HTMLDetailsElement>(".mobile-menu")
-                    ?.removeAttribute("open")
-              : undefined
-          }
-        >
-          <Icon size={18} />
-          <span className="nav-label">{label}</span>
-        </Link>
-      ))}
-    </>
-  );
-}
-
 export function OperationToolSearch({ access }: { access: UserAccess }) {
   const pathname = usePathname();
   const [query, setQuery] = useState("");
@@ -410,10 +362,6 @@ export function OperationToolSearch({ access }: { access: UserAccess }) {
   const [desktopSearchHost, setDesktopSearchHost] =
     useState<HTMLElement | null>(null);
   const [mobileSearchHost, setMobileSearchHost] =
-    useState<HTMLElement | null>(null);
-  const [desktopExtraHost, setDesktopExtraHost] =
-    useState<HTMLElement | null>(null);
-  const [mobileExtraHost, setMobileExtraHost] =
     useState<HTMLElement | null>(null);
   const [leadHost, setLeadHost] = useState<HTMLElement | null>(null);
 
@@ -511,51 +459,22 @@ export function OperationToolSearch({ access }: { access: UserAccess }) {
 
     const desktopSearch = document.createElement("div");
     const mobileSearch = document.createElement("div");
-    const desktopExtras = document.createElement("div");
-    const mobileExtras = document.createElement("div");
     const lead = document.createElement("span");
 
     desktopSearch.dataset.operationToolSearch = "desktop";
     mobileSearch.dataset.operationToolSearch = "mobile";
-    desktopExtras.dataset.operationExtraNav = "desktop";
-    mobileExtras.dataset.operationExtraNav = "mobile";
     lead.dataset.operationLeadShortcut = "desktop";
 
     if (desktopNav) {
       desktopNav.prepend(desktopSearch);
       setDesktopSearchHost(desktopSearch);
 
-      if (currentOperation === "supplements" || currentOperation === "fitness") {
-        const firstNavLink =
-          desktopNav.querySelector<HTMLElement>(":scope > a.nav-link");
-
-        if (firstNavLink) {
-          firstNavLink.after(desktopExtras);
-          setDesktopExtraHost(desktopExtras);
-        }
-
-        if (currentOperation === "supplements" && pathname === "/agenda") {
-          const crmLink = desktopNav.querySelector<HTMLElement>(
-            'a.nav-link[href="/clientes"]',
-          );
-          crmLink?.classList.remove("primary");
-        }
-      }
     }
 
     if (mobilePanel) {
       mobilePanel.prepend(mobileSearch);
       setMobileSearchHost(mobileSearch);
 
-      if (currentOperation === "supplements" || currentOperation === "fitness") {
-        const firstMobileLink =
-          mobilePanel.querySelector<HTMLElement>(":scope > a.mobile-menu-link");
-
-        if (firstMobileLink) {
-          firstMobileLink.after(mobileExtras);
-          setMobileExtraHost(mobileExtras);
-        }
-      }
     }
 
     if (
@@ -570,23 +489,12 @@ export function OperationToolSearch({ access }: { access: UserAccess }) {
     return () => {
       desktopSearch.remove();
       mobileSearch.remove();
-      desktopExtras.remove();
-      mobileExtras.remove();
       lead.remove();
       setDesktopSearchHost(null);
       setMobileSearchHost(null);
-      setDesktopExtraHost(null);
-      setMobileExtraHost(null);
       setLeadHost(null);
     };
   }, [pathname, currentOperation, access.canWriteSupplements]);
-
-  const extraOperation =
-    currentOperation === "fitness"
-      ? "fitness"
-      : currentOperation === "supplements"
-        ? "supplements"
-        : null;
 
   return (
     <>
@@ -613,27 +521,6 @@ export function OperationToolSearch({ access }: { access: UserAccess }) {
             mobile
           />,
           mobileSearchHost,
-        )}
-
-      {desktopExtraHost &&
-        extraOperation &&
-        createPortal(
-          <OperationExtraLinks
-            pathname={pathname}
-            operation={extraOperation}
-          />,
-          desktopExtraHost,
-        )}
-
-      {mobileExtraHost &&
-        extraOperation &&
-        createPortal(
-          <OperationExtraLinks
-            pathname={pathname}
-            operation={extraOperation}
-            mobile
-          />,
-          mobileExtraHost,
         )}
 
       {leadHost &&

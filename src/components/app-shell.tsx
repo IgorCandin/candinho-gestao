@@ -5,15 +5,13 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import {
-  Archive,
   ArrowLeft,
   BadgePercent,
   BarChart3,
   Bell,
+  Bot,
   Boxes,
-  Building2,
   CalendarDays,
-  ChartNoAxesCombined,
   CircleDollarSign,
   ContactRound,
   Handshake,
@@ -31,7 +29,6 @@ import {
   MessageSquareText,
   PackageSearch,
   PackageX,
-  RefreshCcw,
   Rocket,
   Search,
   ShieldCheck,
@@ -40,60 +37,69 @@ import {
   UserRound,
   UsersRound,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 
-const supplementNav = [
-  { href: "/suplementos", label: "Menu", icon: Home },
-  { href: "/suplementos/hoje", label: "Hoje", icon: Home },
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  variant?: "operation-return";
+};
+
+const supplementNav: NavItem[] = [
+  { href: "/suplementos/hoje", label: "Home", icon: Home },
   { href: "/vendas", label: "Comercial", icon: ShoppingBag },
-  { href: "/clientes", label: "CRM e relacionamento", icon: ContactRound },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
-  { href: "/estoque", label: "Estoque e compras", icon: Boxes },
+  { href: "/clientes", label: "CRM", icon: ContactRound },
   { href: "/produtos", label: "Produtos", icon: PackageSearch },
-  { href: "/parceiros", label: "Parceiros", icon: Handshake },
+  { href: "/estoque", label: "Estoque e Compras", icon: Boxes },
   { href: "/suplementos/painel", label: "Gestão", icon: BarChart3 },
+  { href: "/suplementos/nexus", label: "Nexus IA", icon: Bot },
+  {
+    href: "/suplementos",
+    label: "Tela inicial",
+    icon: ArrowLeft,
+    variant: "operation-return",
+  },
 ];
 
-const supplementSalesNav = [
+const supplementSalesNav: NavItem[] = [
   { href: "/produtos", label: "Consulta de produtos", icon: PackageSearch },
 ];
 
-const fitnessNav = [
-  { href: "/fitness/inicio", label: "Menu", icon: Home },
-  { href: "/fitness", label: "Visão geral", icon: BarChart3 },
-  { href: "/fitness/agenda", label: "Agenda", icon: CalendarDays },
-  { href: "/fitness/painel", label: "Painel Gerencial", icon: BarChart3 },
-  { href: "/fitness/vendas", label: "Comercial", icon: ShoppingBag },
-  { href: "/fitness/produtos", label: "Produtos", icon: PackageSearch },
-  { href: "/fitness/estoque", label: "Estoque", icon: Boxes },
-  { href: "/fitness/clientes", label: "Clientes", icon: UsersRound },
-  { href: "/fitness/pedidos", label: "Pedidos", icon: Truck },
-  { href: "/fitness/fornecedores", label: "Fornecedores", icon: Handshake },
-  { href: "/fitness/movimentacoes", label: "Movimentações", icon: History },
+const fitnessNav: NavItem[] = [
+  { href: "/fitness/vendas", label: "Setor de Vendas", icon: ShoppingBag },
+  { href: "/fitness/estoque", label: "Setor Operacional", icon: Boxes },
+  {
+    href: "/fitness/inicio",
+    label: "Tela inicial",
+    icon: ArrowLeft,
+    variant: "operation-return",
+  },
 ];
 
-const fitnessSalesNav = [
+const fitnessSalesNav: NavItem[] = [
   { href: "/fitness/produtos", label: "Consulta de produtos", icon: PackageSearch },
   { href: "/fitness/estoque", label: "Consulta de estoque", icon: Boxes },
 ];
 
-const bankNav = [
-  { href: "/bank/inicio", label: "Menu", icon: Home },
-  { href: "/bank", label: "Este mês", icon: ChartNoAxesCombined },
-  { href: "/bank/atualizar", label: "Atualização Rápida", icon: RefreshCcw },
-  { href: "/bank/entradas", label: "Entradas e Receber", icon: CircleDollarSign },
-  { href: "/bank/operacoes", label: "À Receber Operações", icon: ShoppingBag },
-  { href: "/bank/cobrancas", label: "Cobranças", icon: CircleDollarSign },
+const bankNav: NavItem[] = [
+  { href: "/bank", label: "Home", icon: Home },
+  { href: "/bank/organizar", label: "Caixa", icon: CircleDollarSign },
+  { href: "/bank/emprestimos", label: "Empréstimos", icon: Handshake },
   { href: "/bank/faturas", label: "Faturas", icon: History },
-  { href: "/bank/emprestimos", label: "Empréstimos e Notinhas", icon: Handshake },
-  { href: "/bank/mensalidades", label: "Planos e Mensalidades", icon: CalendarDays },
-  { href: "/bank/contas", label: "Contas e Carteiras", icon: Building2 },
-  { href: "/bank/visao-anual", label: "Visão Anual", icon: CalendarDays },
-  { href: "/bank/fechamento", label: "Fechamento Mensal", icon: Archive },
+  { href: "/bank/nexus", label: "Nexus Bank", icon: Bot },
+  {
+    href: "/bank/inicio",
+    label: "Tela inicial",
+    icon: ArrowLeft,
+    variant: "operation-return",
+  },
 ];
 
-const centralNav = [
+const centralNav: NavItem[] = [
   { href: "/central/inicio", label: "Menu", icon: Home },
   { href: "/central/meu-dia", label: "Meu Dia", icon: ListChecks },
   { href: "/central", label: "Visão Geral", icon: HeartPulse },
@@ -114,12 +120,12 @@ const centralNav = [
   { href: "/configuracoes", label: "Perfil", icon: UserRound },
 ];
 
-const marketingNav = [
+const marketingNav: NavItem[] = [
   { href: "/marketing", label: "Visão geral", icon: Megaphone },
   { href: "/central/midia?scope=marketing", label: "Ideias e arquivos", icon: Images },
   { href: "/central/agenda?scope=marketing", label: "Planejamento", icon: CalendarDays },
 ];
-const vitrineNav = [
+const vitrineNav: NavItem[] = [
   { href: "/vitrine/inicio", label: "Menu", icon: Home },
   { href: "/vitrine", label: "Visão geral", icon: BarChart3 },
   { href: "/catalogo", label: "Vitrine pública", icon: ShoppingBag },
@@ -128,7 +134,7 @@ const vitrineNav = [
   { href: "/central/promocoes", label: "Promoções", icon: BadgePercent },
 ];
 
-const physiqueNav = [
+const physiqueNav: NavItem[] = [
   { href: "/physique/inicio", label: "Menu", icon: Home },
   { href: "/physique", label: "Visão geral", icon: BarChart3 },
   { href: "/physique/atletas", label: "Atletas", icon: UsersRound },
@@ -136,12 +142,14 @@ const physiqueNav = [
   { href: "/physique/atletas/novo", label: "Novo atleta", icon: ContactRound },
 ];
 
-const partnerNav = [
+const partnerNav: NavItem[] = [
   { href: "/parceiro", label: "Meu Painel", icon: Handshake },
   { href: "/parceiro/seguranca", label: "Segurança", icon: KeyRound },
 ];
 
-const hubNav = [{ href: "/dashboard", label: "Início", icon: Home }];
+const hubNav: NavItem[] = [
+  { href: "/dashboard", label: "Início", icon: Home },
+];
 
 type Operation =
   | "hub"
@@ -301,16 +309,16 @@ export function AppShell({
           : isBank
             ? [
                 {
-                  href: "/bank/atualizar",
-                  label: "Atualizar",
-                  icon: RefreshCcw,
-                  primary: false,
+                  href: "/bank",
+                  label: "Home",
+                  icon: Home,
+                  primary: true,
                 },
                 {
-                  href: "/bank",
-                  label: "Este mês",
-                  icon: ChartNoAxesCombined,
-                  primary: true,
+                  href: "/bank/organizar",
+                  label: "Caixa",
+                  icon: CircleDollarSign,
+                  primary: false,
                 },
                 {
                   href: "/bank/faturas",
@@ -488,8 +496,7 @@ export function AppShell({
     if (baseHref === "/clientes") {
       return (
         pathname.startsWith("/clientes") ||
-        pathname.startsWith("/pos-venda") ||
-        pathname === "/agenda"
+        pathname.startsWith("/pos-venda")
       );
     }
 
@@ -499,6 +506,28 @@ export function AppShell({
         pathname.startsWith("/movimentacoes") ||
         pathname.startsWith("/pedidos-fornecedor") ||
         pathname.startsWith("/fornecedores")
+      );
+    }
+
+    if (baseHref === "/fitness/vendas") {
+      return (
+        pathname.startsWith("/fitness/vendas") ||
+        pathname.startsWith("/fitness/clientes")
+      );
+    }
+
+    if (baseHref === "/fitness/estoque") {
+      return [
+        "/fitness",
+        "/fitness/agenda",
+        "/fitness/painel",
+        "/fitness/produtos",
+        "/fitness/estoque",
+        "/fitness/pedidos",
+        "/fitness/fornecedores",
+        "/fitness/movimentacoes",
+      ].some(
+        (route) => pathname === route || pathname.startsWith(`${route}/`),
       );
     }
 
@@ -602,9 +631,11 @@ export function AppShell({
             paddingRight: 3,
           }}
         >
-          {nav.map(({ href, label, icon: Icon }) => (
+          {nav.map(({ href, label, icon: Icon, variant }) => (
             <Link
-              className={`nav-link ${isActive(href) ? "primary" : ""}`}
+              className={`nav-link ${isActive(href) ? "primary" : ""} ${
+                variant === "operation-return" ? "operation-return-link" : ""
+              }`}
               href={href}
               key={href}
             >
@@ -691,10 +722,12 @@ export function AppShell({
           />
 
           <div className="mobile-menu-panel">
-            {nav.map(({ href, label, icon: Icon }) => (
+            {nav.map(({ href, label, icon: Icon, variant }) => (
               <Link
                 className={`mobile-menu-link ${
                   isActive(href) ? "primary" : ""
+                } ${
+                  variant === "operation-return" ? "operation-return-link" : ""
                 }`}
                 href={href}
                 key={href}
