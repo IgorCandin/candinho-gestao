@@ -7,7 +7,8 @@ update public.ux_health_signals
 set
   status = 'resolved',
   resolved_at = coalesce(resolved_at, now()),
-  updated_at = now()
+  resolution_note =
+    'Última ocorrência às 11:06 de 15/08; correção de hidratação publicada às 11:07, sem recorrência posterior.'
 where status = 'active'
   and signal_type = 'client_error'
   and route = '/suplementos/painel'
