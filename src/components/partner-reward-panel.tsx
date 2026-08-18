@@ -31,6 +31,16 @@ type LocationOption = {
   name: string;
 };
 
+type StockOption = {
+  product_id: string;
+  location_id: string;
+  available_quantity: number;
+};
+
+type FlavorStockOption = StockOption & {
+  flavor_id: string;
+};
+
 type RewardProgressPartner = PartnerOverview & {
   all_time_sales_count?: number;
   reward_sales_covered?: number;
@@ -73,6 +83,8 @@ export function PartnerRewardPanel({
   const [products, setProducts] = useState<ProductOption[]>([]);
   const [flavors, setFlavors] = useState<FlavorOption[]>([]);
   const [locations, setLocations] = useState<LocationOption[]>([]);
+  const [stock, setStock] = useState<StockOption[]>([]);
+  const [flavorStock, setFlavorStock] = useState<FlavorStockOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -86,6 +98,55 @@ export function PartnerRewardPanel({
   const productFlavors = flavors.filter(
     (item) => item.product_id === productId,
   );
+  const availableProducts = products.filter((product) =>
+    product.flavor_tracking_enabled
+      ? flavorStock.some(
+          (row) =>
+            row.product_id === product.id && row.available_quantity > 0,
+        )
+      : stock.some(
+          (row) =>
+            row.product_id === product.id && row.available_quantity > 0,
+        ),
+  );
+  const availableLocations = locations.filter((location) => {
+    if (!productId) return true;
+
+    return selectedProduct?.flavor_tracking_enabled
+      ? flavorStock.some(
+          (row) =>
+            row.product_id === productId &&
+            row.location_id === location.id &&
+            row.available_quantity > 0,
+        )
+      : stock.some(
+          (row) =>
+            row.product_id === productId &&
+            row.location_id === location.id &&
+            row.available_quantity > 0,
+        );
+  });
+  const availableFlavors = productFlavors.filter((flavor) =>
+    flavorStock.some(
+      (row) =>
+        row.flavor_id === flavor.id &&
+        row.location_id === locationId &&
+        row.available_quantity > 0,
+    ),
+  );
+  const selectedAvailableQuantity = selectedProduct?.flavor_tracking_enabled
+    ? Number(
+        flavorStock.find(
+          (row) =>
+            row.flavor_id === flavorId && row.location_id === locationId,
+        )?.available_quantity ?? 0,
+      )
+    : Number(
+        stock.find(
+          (row) =>
+            row.product_id === productId && row.location_id === locationId,
+        )?.available_quantity ?? 0,
+      );
 
   const totalSales = Number(metrics.all_time_sales_count ?? 0);
   const nextRewardAt = Number(
@@ -103,7 +164,13 @@ export function PartnerRewardPanel({
 
     async function loadOptions() {
       const supabase = createClient();
-      const [productResult, flavorResult, locationResult] = await Promise.all([
+      const [
+        productResult,
+        flavorResult,
+        locationResult,
+        stockResult,
+        flavorStockResult,
+      ] = await Promise.all([
         supabase
           .from("products")
           .select("id,name,flavor_tracking_enabled")
@@ -121,12 +188,23 @@ export function PartnerRewardPanel({
           .eq("active", true)
           .eq("tracks_inventory", true)
           .order("code"),
+        supabase
+          .from("sale_stock_availability")
+          .select("product_id,location_id,available_quantity"),
+        supabase
+          .from("product_flavor_inventory_overview")
+          .select("product_id,flavor_id,location_id,available_quantity")
+          .eq("active", true),
       ]);
 
       if (cancelled) return;
 
       const error =
-        productResult.error ?? flavorResult.error ?? locationResult.error;
+        productResult.error ??
+        flavorResult.error ??
+        locationResult.error ??
+        stockResult.error ??
+        flavorStockResult.error;
 
       if (error) {
         setMessage(error.message);
@@ -156,6 +234,23 @@ export function PartnerRewardPanel({
           name: String(item.name ?? ""),
         })),
       );
+
+      setStock(
+        (stockResult.data ?? []).map((item) => ({
+          product_id: String(item.product_id),
+          location_id: String(item.location_id),
+          available_quantity: Number(item.available_quantity ?? 0),
+        })),
+      );
+
+      setFlavorStock(
+        (flavorStockResult.data ?? []).map((item) => ({
+          product_id: String(item.product_id),
+          flavor_id: String(item.flavor_id),
+          location_id: String(item.location_id),
+          available_quantity: Number(item.available_quantity ?? 0),
+        })),
+      );
     }
 
     void loadOptions();
@@ -181,11 +276,22 @@ export function PartnerRewardPanel({
         throw new Error("Selecione o sabor do produto entregue.");
       }
 
+      const requestedQuantity = Math.max(
+        1,
+        Number(productQuantity || 1),
+      );
+
+      if (productId && selectedAvailableQuantity < requestedQuantity) {
+        throw new Error(
+          `Estoque insuficiente para esta recompensa. Disponível: ${selectedAvailableQuantity}.`,
+        );
+      }
+
       const selectedFlavor = flavors.find((item) => item.id === flavorId);
 
       const actualReward =
         productId && selectedProduct
-          ? `${Math.max(1, Number(productQuantity || 1))}× ${selectedProduct.name}${
+          ? `${requestedQuantity}× ${selectedProduct.name}${
               selectedFlavor ? ` · ${selectedFlavor.name}` : ""
             }`
           : description.trim();
@@ -201,9 +307,7 @@ export function PartnerRewardPanel({
           p_product_id: productId || null,
           p_flavor_id: flavorId || null,
           p_location_id: productId ? locationId || null : null,
-          p_product_quantity: productId
-            ? Math.max(1, Number(productQuantity || 1))
-            : 1,
+          p_product_quantity: productId ? requestedQuantity : 1,
         },
       );
 
@@ -325,18 +429,64 @@ export function PartnerRewardPanel({
                   className="select"
                   value={productId}
                   onChange={(event) => {
-                    setProductId(event.target.value);
+                    const nextProductId = event.target.value;
+                    const nextProduct = products.find(
+                      (item) => item.id === nextProductId,
+                    );
+                    const locationHasStock = (candidateId: string) =>
+                      nextProduct?.flavor_tracking_enabled
+                        ? flavorStock.some(
+                            (row) =>
+                              row.product_id === nextProductId &&
+                              row.location_id === candidateId &&
+                              row.available_quantity > 0,
+                          )
+                        : stock.some(
+                            (row) =>
+                              row.product_id === nextProductId &&
+                              row.location_id === candidateId &&
+                              row.available_quantity > 0,
+                          );
+                    const fallbackLocationId = nextProductId
+                      ? locations.find((item) =>
+                          locationHasStock(item.id),
+                        )?.id ?? ""
+                      : partner.linked_location_id ?? "";
+
+                    setProductId(nextProductId);
+                    setLocationId(
+                      partner.linked_location_id &&
+                        locationHasStock(partner.linked_location_id)
+                        ? partner.linked_location_id
+                        : fallbackLocationId,
+                    );
                     setFlavorId("");
                   }}
                 >
                   <option value="">
                     Somente registrar a recompensa, sem baixa de estoque
                   </option>
-                  {products.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
+                  {availableProducts.map((item) => {
+                    const totalAvailable = item.flavor_tracking_enabled
+                      ? flavorStock
+                          .filter((row) => row.product_id === item.id)
+                          .reduce(
+                            (total, row) => total + row.available_quantity,
+                            0,
+                          )
+                      : stock
+                          .filter((row) => row.product_id === item.id)
+                          .reduce(
+                            (total, row) => total + row.available_quantity,
+                            0,
+                          );
+
+                    return (
+                      <option key={item.id} value={item.id}>
+                        {item.name} · {totalAvailable} disponível(is)
+                      </option>
+                    );
+                  })}
                 </select>
               </label>
 
@@ -351,11 +501,20 @@ export function PartnerRewardPanel({
                       onChange={(event) => setFlavorId(event.target.value)}
                     >
                       <option value="">Selecione</option>
-                      {productFlavors.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.name}
-                        </option>
-                      ))}
+                      {availableFlavors.map((item) => {
+                        const available =
+                          flavorStock.find(
+                            (row) =>
+                              row.flavor_id === item.id &&
+                              row.location_id === locationId,
+                          )?.available_quantity ?? 0;
+
+                        return (
+                          <option key={item.id} value={item.id}>
+                            {item.name} · {available} disponível(is)
+                          </option>
+                        );
+                      })}
                     </select>
                   </label>
                 )}
@@ -368,6 +527,7 @@ export function PartnerRewardPanel({
                       className="input"
                       type="number"
                       min="1"
+                      max={selectedAvailableQuantity || undefined}
                       step="1"
                       required
                       value={productQuantity}
@@ -383,14 +543,38 @@ export function PartnerRewardPanel({
                       className="select"
                       required
                       value={locationId}
-                      onChange={(event) => setLocationId(event.target.value)}
+                      onChange={(event) => {
+                        setLocationId(event.target.value);
+                        setFlavorId("");
+                      }}
                     >
                       <option value="">Selecione o estoque</option>
-                      {locations.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          {item.code} · {item.name}
-                        </option>
-                      ))}
+                      {availableLocations.map((item) => {
+                        const available = selectedProduct?.flavor_tracking_enabled
+                          ? flavorStock
+                              .filter(
+                                (row) =>
+                                  row.product_id === productId &&
+                                  row.location_id === item.id,
+                              )
+                              .reduce(
+                                (total, row) =>
+                                  total + row.available_quantity,
+                                0,
+                              )
+                          : stock.find(
+                              (row) =>
+                                row.product_id === productId &&
+                                row.location_id === item.id,
+                            )?.available_quantity ?? 0;
+
+                        return (
+                          <option key={item.id} value={item.id}>
+                            {item.code} · {item.name} · {available}{" "}
+                            disponível(is)
+                          </option>
+                        );
+                      })}
                     </select>
                   </label>
                 </>
@@ -427,7 +611,8 @@ export function PartnerRewardPanel({
                   style={{ verticalAlign: "middle" }}
                 />{" "}
                 O estoque só é baixado quando você confirmar esta entrega.
-                Se não houver saldo suficiente, nada será registrado.
+                Disponível para esta escolha: {selectedAvailableQuantity}. Se
+                o saldo mudar antes da confirmação, nada será registrado.
               </p>
             )}
 
@@ -438,7 +623,17 @@ export function PartnerRewardPanel({
               naquele momento.
             </p>
 
-            <button className="button gold" disabled={loading}>
+            <button
+              className="button gold"
+              disabled={
+                loading ||
+                Boolean(
+                  productId &&
+                    selectedAvailableQuantity <
+                      Math.max(1, Number(productQuantity || 1)),
+                )
+              }
+            >
               {loading ? (
                 <LoaderCircle className="spin" size={16} />
               ) : (
