@@ -16,6 +16,10 @@ export type PublicStorefrontProduct = {
   image_url: string | null;
   price_from: number;
   price_to: number;
+  cash_price: number;
+  installment_price: number | null;
+  installments_max: number | null;
+  installment_value: number | null;
   available: boolean;
   notes: string | null;
   images: PublicStorefrontImage[];
@@ -116,6 +120,19 @@ function product(
     image_url: imageUrl,
     price_from: num(row.price_from),
     price_to: num(row.price_to),
+    cash_price: num(row.cash_price ?? row.price_from),
+    installment_price:
+      row.installment_price === null || row.installment_price === undefined
+        ? null
+        : num(row.installment_price),
+    installments_max:
+      row.installments_max === null || row.installments_max === undefined
+        ? null
+        : num(row.installments_max),
+    installment_value:
+      row.installment_value === null || row.installment_value === undefined
+        ? null
+        : num(row.installment_value),
     available: row.available !== false,
     notes: typeof row.notes === "string" ? row.notes : null,
     images:
@@ -173,14 +190,28 @@ function promotion(
 }
 
 export async function getPublicStorefrontSnapshot(): Promise<PublicStorefrontSnapshot> {
-  const { data, error } =
-    await publicSupabaseRpc<Record<string, unknown>>(
-      "public_storefront_snapshot",
+  let response = await publicSupabaseRpc<Record<string, unknown>>(
+      "public_storefront_snapshot_v2",
       {
         p_limit: 500,
       },
       10,
     );
+
+  // Keep deploys compatible while the versioned database migration is being
+  // promoted. Only a missing v2 RPC falls back to the legacy payload.
+  if (
+    response.error &&
+    /public_storefront_snapshot_v2|PGRST202/i.test(response.error.message)
+  ) {
+    response = await publicSupabaseRpc<Record<string, unknown>>(
+      "public_storefront_snapshot",
+      { p_limit: 500 },
+      10,
+    );
+  }
+
+  const { data, error } = response;
 
   if (error) {
     throw new Error(
