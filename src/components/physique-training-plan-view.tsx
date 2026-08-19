@@ -27,6 +27,41 @@ type Exercise = {
 
 const movementVisuals = [
   {
+    src: "/images/physique/exercises/flat-barbell-bench-press.png",
+    label: "Peito, ombros e tríceps",
+    terms: ["supino reto", "supino plano"],
+  },
+  {
+    src: "/images/physique/exercises/low-to-high-cable-crossover.png",
+    label: "Peito superior",
+    terms: ["crossover baixo para cima", "crossover baixo-pra-cima"],
+  },
+  {
+    src: "/images/physique/exercises/preacher-curl.png",
+    label: "Bíceps e braquial",
+    terms: ["rosca scott", "preacher curl"],
+  },
+  {
+    src: "/images/physique/exercises/barbell-biceps-curl.png",
+    label: "Bíceps e braquial",
+    terms: ["rosca direta", "curl com barra"],
+  },
+  {
+    src: "/images/physique/exercises/overhead-cable-triceps-extension.png",
+    label: "Tríceps",
+    terms: ["tríceps francês", "triceps frances", "francês no cabo", "frances no cabo"],
+  },
+  {
+    src: "/images/physique/exercises/decline-push-up.png",
+    label: "Peito, ombros e tríceps",
+    terms: ["flexão com pés elevados", "flexao com pes elevados", "flexão declinada", "flexao declinada"],
+  },
+  {
+    src: "/images/physique/exercises/seated-leg-press-calf-raise.png",
+    label: "Panturrilhas",
+    terms: ["panturrilha no leg", "panturrilha na máquina", "panturrilha na maquina"],
+  },
+  {
     src: "/images/physique/exercises/push-up.png",
     label: "Peito, ombros e tríceps",
     terms: ["flexão", "flexao", "flexão de braços", "flexao de bracos"],
