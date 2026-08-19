@@ -71,6 +71,7 @@ Deno.serve(async (req: Request) => {
 
   const { data: integration } = await adminClient.from("central_integrations").select("id,status").eq("provider", provider).eq("account_external_id", channel.account_external_id).maybeSingle();
   if (!integration) return json({ error: "Cadastre esta conta em Integrações antes de responder" }, 409);
+  if (integration.status !== "connected") return json({ error: "Esta integração está desconectada. Reconecte-a antes de enviar mensagens pelo Inbox." }, 409);
 
   const commonToken = normalizeText(Deno.env.get("META_ACCESS_TOKEN"));
   const token = provider === "whatsapp"
