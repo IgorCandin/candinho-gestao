@@ -340,9 +340,9 @@ export default async function PurchasePlanningPage() {
       .eq("active", true),
     supabase
       .from("product_lead_history_overview")
-      .select("product_id,requested_at")
-      .gte("requested_at", ninetyDaysAgo.toISOString())
-      .order("requested_at", { ascending: false }),
+      .select("product_id,lead_at")
+      .gte("lead_at", ninetyDaysAgo.toISOString())
+      .order("lead_at", { ascending: false }),
     supabase
       .from("product_supplier_order_history_overview")
       .select(
@@ -396,8 +396,8 @@ export default async function PurchasePlanningPage() {
 
   for (const row of leadsResult.data ?? []) {
     const productId = String(row.product_id);
-    const requestedAt = String(row.requested_at ?? "");
-    const timestamp = Date.parse(requestedAt);
+    const leadAt = String(row.lead_at ?? "");
+    const timestamp = Date.parse(leadAt);
 
     if (!productId || !Number.isFinite(timestamp)) continue;
 
@@ -414,9 +414,9 @@ export default async function PurchasePlanningPage() {
 
     if (
       !current.last_lead_at ||
-      requestedAt > current.last_lead_at
+      leadAt > current.last_lead_at
     ) {
-      current.last_lead_at = requestedAt;
+      current.last_lead_at = leadAt;
     }
 
     leadSignals[productId] = current;
