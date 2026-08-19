@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { FitnessConversionForm } from "@/components/fitness-conversion-form";
+import { FitnessOperationalOutflowForm } from "@/components/fitness-operational-outflow-form";
 import { StatCard } from "@/components/stat-card";
 import { getCurrentUserAccess, getFitnessStock } from "@/lib/data";
 import { formatCurrency } from "@/lib/format";
@@ -277,6 +278,10 @@ export default async function Page() {
               <small>Histórico de entrada, saída, ajuste e conversão.</small>
             </span>
           </Link>
+          <Link className="fitness-sector-action" href="/fitness/estoque/conferencia">
+            <Boxes size={20} />
+            <span><strong>Conferir estoque</strong><small>Conte o físico e ajuste apenas as diferenças.</small></span>
+          </Link>
 
           <Link
             className="fitness-sector-action"
@@ -426,7 +431,7 @@ export default async function Page() {
       </article>
 
       {!salesMode && access.canWriteFitness && (
-        <FitnessConversionForm stock={orderedStock} />
+        <><FitnessOperationalOutflowForm stock={orderedStock} /><FitnessConversionForm stock={orderedStock} /></>
       )}
     </>
   );
