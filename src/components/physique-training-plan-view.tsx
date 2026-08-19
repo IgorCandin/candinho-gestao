@@ -27,6 +27,11 @@ type Exercise = {
 
 const movementVisuals = [
   {
+    src: "/images/physique/exercises/push-up.png",
+    label: "Peito, ombros e tríceps",
+    terms: ["flexão", "flexao", "flexão de braços", "flexao de bracos"],
+  },
+  {
     src: "/images/physique/exercises/bike.webp",
     label: "Core e condicionamento",
     terms: ["bike", "bicicleta", "spinning"],
@@ -45,6 +50,11 @@ const movementVisuals = [
     src: "/images/physique/exercises/knee-extension.webp",
     label: "Quadríceps",
     terms: ["cadeira extensora", "extensora"],
+  },
+  {
+    src: "/images/physique/exercises/leg-curl-bilateral.png",
+    label: "Cadeira e mesa flexora",
+    terms: ["cadeira ou mesa flexora", "mesa ou cadeira flexora"],
   },
   {
     src: "/images/physique/exercises/leg-curl.webp",
@@ -99,7 +109,7 @@ const movementVisuals = [
   {
     src: "/images/physique/exercises/chest-press.webp",
     label: "Peito e tríceps",
-    terms: ["supino", "flexão", "flexao", "crucifixo", "crossover", "peitoral", "paralela", "mergulho"],
+    terms: ["supino", "crucifixo", "crossover", "peitoral", "paralela", "mergulho"],
   },
 ] as const;
 

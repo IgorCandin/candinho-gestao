@@ -27,6 +27,7 @@ import {
   type PaymentInstallmentDraft,
 } from "@/components/payment-installment-editor";
 import { formatCurrency } from "@/lib/format";
+import { DELIVERY_FINALIZATION_INTENT_KEY } from "@/lib/delivery-finalization-intent";
 import type {
   CustomerOption,
   LocationOption,
@@ -912,8 +913,18 @@ export function NewSaleForm({
       );
     }
 
+    const shouldFinalizeDelivery =
+      typeof window !== "undefined" &&
+      window.sessionStorage.getItem(
+        DELIVERY_FINALIZATION_INTENT_KEY,
+      ) !== null;
+
     setSavedBudgetPrompt(null);
-    router.push(target);
+    router.push(
+      shouldFinalizeDelivery
+        ? `${target}?finalizar-entrega=1`
+        : target,
+    );
     router.refresh();
   }
 
