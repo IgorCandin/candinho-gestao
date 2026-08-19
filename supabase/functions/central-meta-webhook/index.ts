@@ -89,7 +89,9 @@ async function touchIntegration(supabase: SupabaseClient, provider: string, acco
 
 async function ingestMessage(supabase: SupabaseClient, item: ParsedMessage): Promise<boolean> {
   const integration = await resolveIntegration(supabase, item.provider, item.accountId);
-  if (integration?.status === "paused") return false;
+  // A conta precisa estar explicitamente conectada. Sem isso, um webhook antigo
+  // da Meta não pode recriar o canal depois que a integração foi removida.
+  if (!integration || integration.status !== "connected") return false;
   const scope = integration?.operation_scope ?? "company";
   const { data: channel, error: channelError } = await supabase.from("central_channels").upsert({ provider: item.provider, operation_scope: scope, account_external_id: item.accountId, active: true, metadata: {} }, { onConflict: "provider,account_external_id" }).select("id").single();
   if (channelError) throw channelError;
