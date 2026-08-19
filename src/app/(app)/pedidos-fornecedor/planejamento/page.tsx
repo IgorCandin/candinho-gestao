@@ -414,9 +414,9 @@ export default async function PurchasePlanningPage() {
 
     if (
       !current.last_lead_at ||
-      requestedAt > current.last_lead_at
+      leadAt > current.last_lead_at
     ) {
-      current.last_lead_at = requestedAt;
+      current.last_lead_at = leadAt;
     }
 
     leadSignals[productId] = current;
