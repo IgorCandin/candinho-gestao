@@ -1,8 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8" } }); }
+const cors = { "access-control-allow-origin": "https://candinho.duckdns.org", "access-control-allow-headers": "authorization, x-client-info, apikey, content-type", "access-control-allow-methods": "POST, OPTIONS" };
+function json(body: unknown, status = 200) { return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json; charset=utf-8", ...cors } }); }
 function text(value: unknown) { return typeof value === "string" ? value.trim() : ""; }
 Deno.serve(async (request) => {
+  if (request.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (request.method !== "POST") return json({ error: "Método não permitido" }, 405);
   const url=Deno.env.get("SUPABASE_URL"), anon=Deno.env.get("SUPABASE_ANON_KEY"), service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"), token=text(Deno.env.get("META_WHATSAPP_ACCESS_TOKEN"))||text(Deno.env.get("META_ACCESS_TOKEN")), version=text(Deno.env.get("META_GRAPH_API_VERSION"));
   if (!url||!anon||!service||!token||!version) return json({ error: "Configuração da integração Meta indisponível" }, 503);
