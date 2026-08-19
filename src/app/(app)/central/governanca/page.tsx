@@ -126,6 +126,11 @@ export default async function CentralGovernancePage({
       0,
     );
 
+  const visibleFeatureFlags =
+    data.feature_flags.filter(
+      (flag) => flag.key !== "test_lab_visible",
+    );
+
   return (
     <>
       <PageHeader
@@ -189,9 +194,9 @@ export default async function CentralGovernancePage({
         <StatCard
           label="Recursos controlados"
           value={String(
-            data.feature_flags.length,
+            visibleFeatureFlags.length,
           )}
-          note={`${data.feature_flags.filter((flag)=>flag.enabled).length} ativos agora`}
+          note={`${visibleFeatureFlags.filter((flag)=>flag.enabled).length} ativos agora`}
           icon={ToggleLeft}
         />
 
@@ -223,7 +228,7 @@ export default async function CentralGovernancePage({
         <div className="panel-body">
           <FeatureFlagManager
             flags={
-              data.feature_flags
+              visibleFeatureFlags
             }
           />
         </div>
