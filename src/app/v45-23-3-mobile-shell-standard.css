@@ -35,9 +35,14 @@
     bottom: 0 !important;
 
     width: min(350px, 88vw) !important;
-    height: 100dvh !important;
-    min-height: 100dvh !important;
-    max-height: 100dvh !important;
+    /*
+     * 100dvh ainda pode refletir o layout viewport durante a animação
+     * da barra do navegador. O guard usa o visualViewport real e evita
+     * o painel ultrapassar a tela (o alerta apontou 92 px em 414x848).
+     */
+    height: var(--v4519-mobile-menu-max-height, 100dvh) !important;
+    min-height: 0 !important;
+    max-height: var(--v4519-mobile-menu-max-height, 100dvh) !important;
 
     box-sizing: border-box !important;
     padding:
