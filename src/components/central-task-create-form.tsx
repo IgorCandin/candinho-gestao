@@ -11,11 +11,21 @@ const categoryOptions = [
   ["post_sale", "Pós-venda"], ["supplier", "Fornecedor"], ["other", "Outro"],
 ];
 
+function hasUsableContactName(name: string) {
+  const value = name.trim();
+  return (
+    value.length >= 2 &&
+    /^[A-Za-zÀ-ÿ]/.test(value) &&
+    /[A-Za-zÀ-ÿ]{2}/.test(value)
+  );
+}
+
 export function CentralTaskCreateForm({ scopes, contacts, users }: { scopes: string[]; contacts: CentralContact[]; users: CentralAgendaUser[] }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const selectableContacts = contacts.filter((contact) => hasUsableContactName(contact.display_name));
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,8 +48,7 @@ export function CentralTaskCreateForm({ scopes, contacts, users }: { scopes: str
       });
       if (error) throw error;
       event.currentTarget.reset();
-      setMessage("Tarefa criada na Agenda Central.");
-      setOpen(false);
+      setMessage("Tarefa criada e já apareceu na Agenda Central.");
       router.refresh();
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível criar a tarefa."); }
     finally { setLoading(false); }
@@ -56,12 +65,11 @@ export function CentralTaskCreateForm({ scopes, contacts, users }: { scopes: str
         <label className="field"><span>Data</span><input className="input" type="date" name="due_date" required/></label>
         <label className="field"><span>Horário</span><input className="input" type="time" name="due_time" defaultValue="12:00"/></label>
         <label className="field"><span>Prioridade</span><select className="select" name="priority" defaultValue="normal"><option value="normal">Normal</option><option value="attention">Atenção</option><option value="urgent">Urgente</option></select></label>
-        <label className="field"><span>Contato</span><select className="select" name="central_contact_id" defaultValue=""><option value="">Sem contato</option>{contacts.map((c) => <option key={c.id} value={c.id}>{c.display_name}</option>)}</select></label>
+        <label className="field"><span>Contato</span><select className="select" name="central_contact_id" defaultValue=""><option value="">Sem contato</option>{selectableContacts.map((c) => <option key={c.id} value={c.id}>{c.display_name}</option>)}</select></label>
         <label className="field"><span>Responsável</span><select className="select" name="assigned_to" defaultValue=""><option value="">Não definido</option>{users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}</select></label>
         <label className="field field-span-two"><span>Observações</span><textarea className="textarea" name="notes" rows={3} placeholder="Contexto importante da tarefa..."/></label>
-        <div className="central-task-create-actions field-span-two"><button className="button gold" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16}/> : <Plus size={16}/>}Criar tarefa</button></div>
+        <div className="central-task-create-actions field-span-two"><button className="button gold" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16}/> : <Plus size={16}/>}Criar tarefa</button>{message && <p className="central-action-message" role={message.startsWith("Tarefa criada") ? "status" : "alert"}>{message}</p>}</div>
       </div>
     </form>}
-    {message && <p className="central-action-message">{message}</p>}
   </div>;
 }
