@@ -13,6 +13,7 @@ import {
   getCentralAgendaSnapshot,
   getCentralAgendaUsers,
   getCentralContacts,
+  getCentralAgendaTaskCustomers,
 } from "@/lib/central-data";
 import { getCurrentUserAccess } from "@/lib/data";
 
@@ -22,6 +23,7 @@ export default async function CentralPendingPage({
   searchParams: Promise<{
     scope?: string;
     priority?: string;
+    group?: string;
   }>;
 }) {
   const access =
@@ -75,6 +77,9 @@ export default async function CentralPendingPage({
       ? params.priority
       : null;
 
+  const groupByCustomer =
+    params.group !== "none";
+
   const [
     agenda,
     contacts,
@@ -95,6 +100,26 @@ export default async function CentralPendingPage({
           priority,
       )
     : agenda.items;
+
+  const taskCustomers = await getCentralAgendaTaskCustomers(
+    tasks.map((task) => task.id),
+  );
+  const customerByTaskId = new Map(
+    taskCustomers.map((customer) => [customer.task_id, customer]),
+  );
+  const taskGroups = [...tasks.reduce((groups, task) => {
+    const customer = customerByTaskId.get(task.id);
+    const name = customer?.customer_name ?? task.contact_name ?? "Sem cliente associado";
+    const key = customer?.customer_id ?? task.central_contact_id ?? name;
+    const group = groups.get(key) ?? { key, name, tasks: [] };
+    group.tasks.push(task);
+    groups.set(key, group);
+    return groups;
+  }, new Map<string, { key: string; name: string; tasks: typeof tasks }>()).values()].sort((a, b) => {
+    const aDueAt = a.tasks[0]?.due_at ?? "";
+    const bDueAt = b.tasks[0]?.due_at ?? "";
+    return aDueAt.localeCompare(bDueAt) || a.name.localeCompare(b.name, "pt-BR");
+  });
 
   return (
     <>
@@ -202,6 +227,25 @@ export default async function CentralPendingPage({
 
           <label>
             <span>
+              Visualização
+            </span>
+
+            <select
+              className="select"
+              name="group"
+              defaultValue={groupByCustomer ? "customer" : "none"}
+            >
+              <option value="customer">
+                Por cliente
+              </option>
+              <option value="none">
+                Lista única
+              </option>
+            </select>
+          </label>
+
+          <label>
+            <span>
               Prioridade
             </span>
 
@@ -244,20 +288,26 @@ export default async function CentralPendingPage({
               Fila de pendências
             </h2>
 
-            <p>
-              {tasks.length} tarefa(s)
-              aguardando ação.
-            </p>
+            <p>{tasks.length} tarefa(s) aguardando ação{groupByCustomer ? ` em ${taskGroups.length} cliente(s)/grupo(s)` : ""}.</p>
           </div>
         </div>
 
         <div className="central-task-list">
           {tasks.length ? (
-            tasks.map((task) => (
-              <CentralTaskCard
-                task={task}
-                key={task.id}
-              />
+            groupByCustomer ? (
+              taskGroups.map((group) => (
+                <section className="central-task-customer-group" key={group.key}>
+                  <div className="central-task-customer-group-head">
+                    <strong>{group.name}</strong>
+                    <span>{group.tasks.length} pendência(s)</span>
+                  </div>
+                  {group.tasks.map((task) => (
+                    <CentralTaskCard task={task} key={task.id} />
+                  ))}
+                </section>
+              ))
+            ) : tasks.map((task) => (
+              <CentralTaskCard task={task} key={task.id} />
             ))
           ) : (
             <div className="empty">

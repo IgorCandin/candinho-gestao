@@ -302,6 +302,12 @@ export type CentralAgendaTask = {
   cancelled_at: string | null;
 };
 
+export type CentralAgendaTaskCustomer = {
+  task_id: string;
+  customer_id: string | null;
+  customer_name: string | null;
+};
+
 export type CentralAgendaSummary = {
   today_count: number;
   overdue_count: number;
@@ -735,6 +741,34 @@ export async function getCentralAgendaSnapshot(status: string | null = null, sco
   const { data, error } = await supabase.rpc("central_agenda_snapshot", { p_from: null, p_to: null, p_status: status, p_scope: scope, p_limit: 500 });
   if (error) throw error;
   return asObject<CentralAgendaSnapshot>(data, fallback);
+}
+
+export async function getCentralAgendaTaskCustomers(taskIds: string[]): Promise<CentralAgendaTaskCustomer[]> {
+  const ids = [...new Set(taskIds.filter(Boolean))];
+  if (!isSupabaseConfigured || !ids.length) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("operational_tasks")
+    .select("id,customer_id,customers!operational_tasks_customer_id_fkey(name)")
+    .in("id", ids);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const customer = Array.isArray(row.customers)
+      ? row.customers[0]
+      : row.customers;
+
+    return {
+      task_id: String(row.id),
+      customer_id: typeof row.customer_id === "string" ? row.customer_id : null,
+      customer_name:
+        customer && typeof customer === "object" && "name" in customer && typeof customer.name === "string"
+          ? customer.name.trim() || null
+          : null,
+    };
+  });
 }
 
 export async function getCentralAgendaUsers(): Promise<CentralAgendaUser[]> {
