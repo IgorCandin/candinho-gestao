@@ -8,6 +8,7 @@ import {
   type SaleCorrectionProduct,
 } from "@/components/sale-correction-form";
 import { PageHeader } from "@/components/page-header";
+import { PendingSaleDiscountForm } from "@/components/pending-sale-discount-form";
 import { getSaleDetails, getSaleStockOptions } from "@/lib/data";
 import {
   getActivePromotionRows,
@@ -166,7 +167,7 @@ export default async function CorrectSalePage({
           </div>
         </article>
       ) : (
-        <SaleCorrectionForm
+        <><PendingSaleDiscountForm saleId={sale.id} grossAmount={sale.gross_amount} discountAmount={sale.discount_amount} totalAmount={sale.total_amount} /><SaleCorrectionForm
           saleId={sale.id}
           customerName={sale.customer_name}
           currentTotal={sale.total_amount}
@@ -175,7 +176,7 @@ export default async function CorrectSalePage({
           quoteId={sale.quote_id}
           products={locationStock}
           flavors={flavors}
-        />
+        /></>
       )}
     </>
   );
