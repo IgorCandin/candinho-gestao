@@ -10,6 +10,7 @@ const TYPES = [
   ["purchase", "Compras"],
   ["sale", "Vendas"],
   ["conversion", "Conversões"],
+  ["outflow", "Baixas operacionais"],
 ] as const;
 
 function hrefFor(type: string, search: string) {

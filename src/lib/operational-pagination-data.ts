@@ -132,6 +132,8 @@ export async function getFitnessMovementsPage({
 
   if (movementType === "conversion") {
     query = query.in("movement_type", ["conversion_in", "conversion_out"]);
+  } else if (movementType === "outflow") {
+    query = query.in("movement_type", ["internal_use", "loss_damage"]);
   } else if (movementType) {
     query = query.eq("movement_type", movementType);
   }

@@ -14,6 +14,7 @@ import {
 import {
   CommercialPagination,
 } from "@/components/commercial-pagination";
+import { CentralMetaDeregisterButton } from "@/components/central-meta-deregister-button";
 import {
   FeatureFlagManager,
 } from "@/components/feature-flag-manager";
@@ -304,6 +305,7 @@ export default async function CentralGovernancePage({
                         ?? 0,
                       )}
                     </small>
+                    {item.provider === "whatsapp" && item.account_external_id === "371062489420794" && <CentralMetaDeregisterButton phoneNumberId={String(item.account_external_id)} />}
                   </div>
                 ),
               )}
