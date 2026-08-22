@@ -37,7 +37,34 @@ type Exercise = {
   notes: string | null;
 };
 
-type MuscleRole = "principal" | "secundario" | "estabilizador";
+type AnalysisKey =
+  | "chestPress"
+  | "crossover"
+  | "pushUp"
+  | "curl"
+  | "triceps"
+  | "calf"
+  | "bike"
+  | "hipThrust"
+  | "kneeExtension"
+  | "legCurl"
+  | "legPress"
+  | "hinge"
+  | "squat"
+  | "reverseFly"
+  | "pulldown"
+  | "row"
+  | "lateralRaise"
+  | "core";
+
+type ExerciseVisual = {
+  src: string;
+  label: string;
+  terms?: string[];
+  exactNames?: string[];
+  analysisKey: AnalysisKey;
+  note?: string;
+};
 
 type MuscleAnalysis = {
   objective: string;
@@ -79,7 +106,7 @@ const MUSCLE_FUNCTIONS: Record<string, string> = {
   Core: "Conjunto de músculos que estabiliza tronco, pelve e coluna para transferir força com controle.",
 };
 
-const MUSCLE_ANALYSES = {
+const MUSCLE_ANALYSES: Record<AnalysisKey, MuscleAnalysis> = {
   chestPress: {
     objective: "Desenvolver a força de empurrar e a adução horizontal do ombro, com maior participação do peitoral.",
     primary: ["Peitoral maior"],
@@ -115,7 +142,7 @@ const MUSCLE_ANALYSES = {
     primary: ["Bíceps braquial", "Braquial"],
     secondary: ["Braquiorradial"],
     stabilizers: ["Deltoide anterior", "Core"],
-    joints: ["Cotovelo: flexão", "Antebraço: supinação conforme a pegada", "Ombro: estabilidade"],
+    joints: ["Cotovelo: flexão", "Antebraço: supinação ou pegada neutra, conforme a variação", "Ombro: estabilidade"],
     cues: ["Cotovelos próximos ao corpo", "Suba sem levar o ombro à frente", "Controle a descida", "Mantenha o punho neutro"],
     errors: ["Usar balanço do tronco", "Projetar os cotovelos à frente", "Soltar a descida", "Quebrar o punho"],
     tip: "Se o tronco começa a balançar, a carga provavelmente está maior do que o movimento consegue controlar.",
@@ -187,334 +214,412 @@ const MUSCLE_ANALYSES = {
     stabilizers: ["Glúteo médio", "Core"],
     joints: ["Quadril: extensão", "Joelho: extensão", "Tornozelo: estabilidade"],
     cues: ["Pés firmes na plataforma", "Joelhos acompanham a linha dos pés", "Desça até manter a pelve apoiada", "Empurre sem travar agressivamente os joelhos"],
-    errors: ["Pelve descolar no fundo", "Joelhos colapsarem para dentro", "Amplitude além do controle", "Empurrar com a ponta dos pés"],
-    tip: "A melhor amplitude é aquela em que você mantém quadril, joelhos e lombar organizados do início ao fim.",
+    errors: ["Pelve descolar no fundo", "Joelhos colapsarem para dentro", "Amplitude além do controle", "Empurrar só com a ponta do pé"],
+    tip: "A posição dos pés muda a ênfase, mas o principal é manter quadril e joelhos alinhados ao longo da repetição.",
   },
   hinge: {
-    objective: "Desenvolver força de cadeia posterior usando extensão do quadril com coluna estável.",
+    objective: "Desenvolver a cadeia posterior por meio de flexão e extensão do quadril com coluna estável.",
     primary: ["Isquiotibiais", "Glúteo máximo"],
     secondary: ["Eretores da espinha", "Adutores"],
-    stabilizers: ["Core", "Latíssimo do dorso"],
-    joints: ["Quadril: extensão", "Joelho: leve flexão", "Coluna: estabilidade isométrica"],
-    cues: ["Leve o quadril para trás", "Mantenha a carga próxima ao corpo", "Tronco rígido", "Suba estendendo o quadril"],
-    errors: ["Arredondar as costas", "Transformar em agachamento", "Afastar a carga do corpo", "Hiperestender a lombar no topo"],
-    tip: "Pense em dobrar no quadril mantendo a coluna como uma peça firme; o alongamento deve aparecer principalmente nos posteriores.",
+    stabilizers: ["Core"],
+    joints: ["Quadril: flexão/extensão", "Joelho: leve flexão mantida", "Coluna: neutralidade"],
+    cues: ["Empurre o quadril para trás", "Mantenha a coluna neutra", "Barra ou carga próxima do corpo", "Suba estendendo quadril com controle"],
+    errors: ["Arredondar a lombar", "Transformar o movimento em agachamento", "Afastar a carga do corpo", "Perder tensão na volta"],
+    tip: "No stiff/romeno, o quadril manda no movimento; os joelhos participam, mas não devem dominar a descida.",
   },
   squat: {
-    objective: "Desenvolver força global de membros inferiores com extensão coordenada de quadril e joelhos.",
+    objective: "Desenvolver força global de membros inferiores, integrando joelhos e quadris com controle do tronco.",
     primary: ["Quadríceps", "Glúteo máximo"],
     secondary: ["Adutores", "Isquiotibiais"],
-    stabilizers: ["Glúteo médio", "Eretores da espinha", "Core"],
-    joints: ["Quadril: flexão/extensão", "Joelho: flexão/extensão", "Tornozelo: dorsiflexão/estabilidade"],
-    cues: ["Pés firmes", "Joelhos acompanham os pés", "Tronco organizado", "Desça dentro da amplitude que consegue controlar"],
-    errors: ["Joelhos colapsarem para dentro", "Calcanhares perderem contato", "Perder a posição do tronco", "Subir com quadril e peito em tempos muito diferentes"],
-    tip: "A base e a amplitude podem mudar entre pessoas; o objetivo é manter controle e distribuir a força sem compensações grandes.",
+    stabilizers: ["Glúteo médio", "Core", "Eretores da espinha"],
+    joints: ["Quadril: flexão/extensão", "Joelho: flexão/extensão", "Tornozelo: estabilidade"],
+    cues: ["Pés firmes", "Joelhos acompanham a linha dos pés", "Tronco organizado", "Suba distribuindo a força no meio do pé"],
+    errors: ["Joelhos colapsarem", "Perder a coluna neutra", "Amplitude sem controle", "Deslocar demais o peso para a ponta do pé"],
+    tip: "A base e a intenção mudam entre convencional, sumô e isométrico, mas o alinhamento continua sendo o que mais protege e rende força.",
   },
-  rearDelt: {
-    objective: "Trabalhar deltoide posterior e musculatura escapular em movimentos de abertura e retração.",
-    primary: ["Deltoide posterior"],
-    secondary: ["Romboides", "Trapézio médio/inferior"],
+  reverseFly: {
+    objective: "Trabalhar a abertura horizontal do ombro e o controle escapular, com ênfase em deltoide posterior e parte alta das costas.",
+    primary: ["Deltoide posterior", "Romboides"],
+    secondary: ["Trapézio médio/inferior"],
     stabilizers: ["Manguito rotador", "Core"],
-    joints: ["Ombro: abdução horizontal", "Escápulas: retração controlada"],
-    cues: ["Mantenha o pescoço relaxado", "Abra os braços sem elevar os ombros", "Controle a volta", "Evite transformar em remada"],
-    errors: ["Encolher os ombros", "Usar balanço", "Flexionar demais os cotovelos", "Carga que reduz a amplitude"],
-    tip: "Pense em afastar os braços e organizar as escápulas, sem esmagá-las com força excessiva.",
+    joints: ["Ombro: abdução horizontal", "Escápulas: retração", "Coluna: estabilidade"],
+    cues: ["Abra os braços conduzindo com os cotovelos", "Mantenha pescoço relaxado", "Controle a volta", "Evite compensar com a lombar"],
+    errors: ["Encolher os ombros", "Usar impulso do tronco", "Fazer amplitude curta demais", "Perder controle na volta"],
+    tip: "Face pull e crucifixo inverso têm mecânicas diferentes, mas ambos dependem de boa organização escapular.",
   },
   pulldown: {
-    objective: "Desenvolver a puxada vertical com foco no latíssimo do dorso e controle das escápulas.",
+    objective: "Desenvolver a puxada vertical com foco nas costas.",
     primary: ["Latíssimo do dorso"],
-    secondary: ["Redondo maior", "Bíceps braquial", "Braquial"],
-    stabilizers: ["Trapézio médio/inferior", "Romboides", "Core"],
-    joints: ["Ombro: adução/extensão", "Cotovelo: flexão", "Escápulas: depressão e retração controladas"],
-    cues: ["Peito aberto", "Tronco estável", "Puxe os cotovelos para baixo", "Retorne com controle"],
-    errors: ["Puxar atrás da nuca", "Usar balanço do tronco", "Encurtar a subida", "Elevar demais os ombros"],
-    tip: "Pense em conduzir o movimento com os cotovelos; isso reduz a sensação de puxar apenas com as mãos.",
+    secondary: ["Redondo maior", "Bíceps braquial", "Trapézio médio/inferior", "Deltoide posterior"],
+    stabilizers: ["Core"],
+    joints: ["Ombro: adução/extensão", "Cotovelo: flexão", "Escápulas: depressão e retração"],
+    cues: ["Peito aberto", "Puxe os cotovelos para baixo", "Controle o retorno", "Evite jogar o tronco para trás"],
+    errors: ["Puxar atrás da nuca", "Usar balanço", "Elevar demais os ombros", "Encurtar a descida"],
+    tip: "Pense em conduzir o movimento com os cotovelos e não apenas com as mãos.",
   },
   row: {
-    objective: "Desenvolver a puxada horizontal e a retração escapular com foco nas costas.",
-    primary: ["Latíssimo do dorso", "Romboides", "Trapézio médio/inferior"],
-    secondary: ["Deltoide posterior", "Bíceps braquial", "Braquial"],
+    objective: "Desenvolver a puxada horizontal com foco em costas, controle do tronco e estabilidade escapular.",
+    primary: ["Latíssimo do dorso", "Romboides"],
+    secondary: ["Trapézio médio/inferior", "Bíceps braquial", "Deltoide posterior"],
     stabilizers: ["Eretores da espinha", "Core"],
-    joints: ["Ombro: extensão/adução", "Cotovelo: flexão", "Escápulas: retração"],
-    cues: ["Mantenha tronco estável", "Puxe na direção do abdômen ou linha proposta", "Cotovelos acompanham a trajetória", "Controle a volta"],
-    errors: ["Arredondar a lombar", "Levantar o tronco a cada repetição", "Puxar longe do corpo", "Usar excesso de impulso"],
-    tip: "A posição dos cotovelos muda a ênfase entre dorsais, romboides e trapézio; preserve a trajetória escolhida durante a série.",
+    joints: ["Ombro: extensão/adução horizontal", "Cotovelo: flexão", "Escápulas: retração"],
+    cues: ["Puxe levando o cotovelo para trás", "Mantenha o peito organizado", "Controle a volta", "Evite arrancar com a lombar"],
+    errors: ["Arredondar a coluna", "Usar impulso excessivo", "Perder o alinhamento do pescoço", "Encurtar a amplitude"],
+    tip: "Na remada, a qualidade da retração escapular costuma dizer mais sobre a execução do que a carga em si.",
   },
   lateralRaise: {
-    objective: "Desenvolver a abdução do ombro com foco no deltoide lateral.",
+    objective: "Enfatizar o deltoide lateral por meio da abdução do ombro.",
     primary: ["Deltoide lateral"],
     secondary: ["Trapézio superior"],
-    stabilizers: ["Manguito rotador", "Serrátil anterior", "Core"],
-    joints: ["Ombro: abdução", "Escápula: rotação superior controlada"],
-    cues: ["Eleve os braços com controle", "Mantenha cotovelos levemente flexionados", "Evite encolher os ombros", "Pare antes de perder o alinhamento"],
-    errors: ["Usar balanço", "Subir a carga com trapézio dominante", "Punhos muito quebrados", "Carga que obriga a roubar"],
-    tip: "Menos carga com trajetória limpa geralmente aumenta a qualidade do trabalho no deltoide lateral.",
+    stabilizers: ["Manguito rotador", "Core"],
+    joints: ["Ombro: abdução", "Escápulas: controle"],
+    cues: ["Suba os braços para os lados com leve flexão no cotovelo", "Punhos neutros", "Evite encolher os ombros", "Desça com controle"],
+    errors: ["Usar balanço", "Elevar demais os ombros", "Roubar com o tronco", "Dobrar demais os cotovelos"],
+    tip: "A elevação lateral rende mais quando o ombro sobe limpo, sem precisar de embalo do corpo.",
   },
-  shoulders: {
-    objective: "Desenvolver os ombros preservando o controle escapular e a estabilidade glenoumeral.",
-    primary: ["Deltoide anterior", "Deltoide lateral"],
-    secondary: ["Tríceps braquial", "Trapézio superior"],
-    stabilizers: ["Manguito rotador", "Serrátil anterior", "Core"],
-    joints: ["Ombro: flexão/abdução conforme o exercício", "Escápulas: rotação e estabilidade", "Cotovelo: extensão nos desenvolvimentos"],
-    cues: ["Controle a escápula", "Mantenha punhos alinhados", "Use amplitude confortável", "Evite compensar com a lombar"],
-    errors: ["Elevar demais os ombros", "Usar balanço", "Exceder a carga", "Perder alinhamento do tronco"],
-    tip: "O ombro funciona melhor quando braço e escápula se movem juntos, sem forçar amplitude além do controle.",
+  core: {
+    objective: "Melhorar estabilidade do tronco e controle do centro do corpo.",
+    primary: ["Reto abdominal", "Oblíquos"],
+    secondary: ["Core"],
+    stabilizers: ["Eretores da espinha", "Glúteo máximo"],
+    joints: ["Coluna: controle", "Pelve: estabilidade", "Quadril: apoio conforme a variação"],
+    cues: ["Mantenha o abdômen ativo", "Respire sem perder pressão", "Evite compensar com lombar", "Controle o ritmo"],
+    errors: ["Puxar com o pescoço", "Arqueamento excessivo da lombar", "Movimento sem controle", "Segurar a respiração o tempo todo"],
+    tip: "No abdominal, sentir o tronco trabalhando vale mais do que correr para terminar a série.",
   },
-  coreCardio: {
-    objective: "Treinar estabilidade do tronco e/ou condicionamento, dependendo do exercício selecionado.",
-    primary: ["Core", "Reto abdominal", "Oblíquos"],
-    secondary: [],
-    stabilizers: ["Eretores da espinha", "Glúteo médio"],
-    joints: ["Coluna: estabilidade", "Pelve: controle", "Respiração: coordenação com o esforço"],
-    cues: ["Mantenha o tronco organizado", "Respire sem perder a posição", "Controle a amplitude", "Interrompa a série antes de a técnica desmontar"],
-    errors: ["Prender a respiração sem necessidade", "Compensar com lombar", "Executar rápido demais", "Perder a posição da pelve"],
-    tip: "No core, qualidade de posição e controle costumam ser mais importantes do que aumentar repetições rapidamente.",
-  },
-} satisfies Record<string, MuscleAnalysis>;
-
-type AnalysisKey = keyof typeof MUSCLE_ANALYSES;
-
-type ExerciseVisual = {
-  src: string;
-  label: string;
-  terms: readonly string[];
-  analysisKey: AnalysisKey;
 };
 
-const movementVisuals = [
+const EXERCISE_VISUALS: ExerciseVisual[] = [
   {
+    exactNames: ["supino reto"],
     src: "/images/physique/exercises/flat-barbell-bench-press.png",
     label: "Peito, ombros e tríceps",
-    terms: ["supino reto", "supino plano"],
     analysisKey: "chestPress",
   },
   {
+    exactNames: ["supino reto máquina", "supino reto maquina"],
+    src: "/images/physique/exercises/chest-press.webp",
+    label: "Peito e tríceps",
+    analysisKey: "chestPress",
+  },
+  {
+    exactNames: [
+      "supino inclinado com halter",
+      "supino inclinado máquina",
+      "supino inclinado maquina",
+      "supino inclinado máquina ou halter",
+      "supino inclinado maquina ou halter",
+    ],
+    src: "/images/physique/exercises/chest-press.webp",
+    label: "Peito superior, ombros e tríceps",
+    analysisKey: "chestPress",
+    note: "Imagem representativa da família do movimento (supino/chest press inclinado).",
+  },
+  {
+    exactNames: ["crossover baixo para cima"],
     src: "/images/physique/exercises/low-to-high-cable-crossover.png",
     label: "Peito superior",
-    terms: ["crossover baixo para cima", "crossover baixo-pra-cima"],
     analysisKey: "crossover",
   },
   {
+    exactNames: ["rosca scott unilateral ou alternada"],
     src: "/images/physique/exercises/preacher-curl.png",
     label: "Bíceps e braquial",
-    terms: ["rosca scott", "preacher curl"],
     analysisKey: "curl",
+    note: "Imagem representativa da variação Scott; a execução pode alternar ou ser unilateral.",
   },
   {
+    exactNames: ["rosca direta"],
     src: "/images/physique/exercises/barbell-biceps-curl.png",
     label: "Bíceps e braquial",
-    terms: ["rosca direta", "curl com barra"],
     analysisKey: "curl",
   },
   {
+    exactNames: ["rosca martelo"],
+    src: "/images/physique/exercises/biceps-curl.webp",
+    label: "Bíceps, braquial e braquiorradial",
+    analysisKey: "curl",
+    note: "Imagem representativa da rosca; o foco na martelo é a pegada neutra.",
+  },
+  {
+    exactNames: ["tríceps francês unilateral no cabo", "triceps frances unilateral no cabo"],
     src: "/images/physique/exercises/overhead-cable-triceps-extension.png",
     label: "Tríceps",
-    terms: ["tríceps francês", "triceps frances", "francês no cabo", "frances no cabo"],
     analysisKey: "triceps",
   },
   {
+    exactNames: ["tríceps unilateral no cabo", "triceps unilateral no cabo"],
+    src: "/images/physique/exercises/triceps-cable.webp",
+    label: "Tríceps",
+    analysisKey: "triceps",
+  },
+  {
+    exactNames: ["flexão com pés elevados", "flexao com pes elevados"],
     src: "/images/physique/exercises/decline-push-up.png",
     label: "Peito, ombros e tríceps",
-    terms: ["flexão com pés elevados", "flexao com pes elevados", "flexão declinada", "flexao declinada"],
     analysisKey: "pushUp",
   },
   {
-    src: "/images/physique/exercises/seated-leg-press-calf-raise.png",
-    label: "Panturrilhas",
-    terms: ["panturrilha no leg", "panturrilha na máquina", "panturrilha na maquina"],
-    analysisKey: "calf",
-  },
-  {
+    exactNames: ["flexão normal", "flexao normal", "flexão", "flexao", "flexão de braços", "flexao de bracos"],
     src: "/images/physique/exercises/push-up.png",
     label: "Peito, ombros e tríceps",
-    terms: ["flexão", "flexao", "flexão de braços", "flexao de bracos"],
     analysisKey: "pushUp",
   },
   {
+    exactNames: ["bike"],
     src: "/images/physique/exercises/bike.webp",
     label: "Core e condicionamento",
-    terms: ["bike", "bicicleta", "spinning"],
     analysisKey: "bike",
   },
   {
+    exactNames: ["elevação pélvica no sofá", "elevacao pelvica no sofa", "elevação pélvica unilateral", "elevacao pelvica unilateral"],
     src: "/images/physique/exercises/hip-thrust.webp",
     label: "Glúteos e posteriores",
-    terms: ["elevação pélvica", "elevacao pelvica", "hip thrust", "ponte de glúteo", "ponte de gluteo"],
     analysisKey: "hipThrust",
+    note: "Imagem representativa da elevação pélvica; a variação unilateral pode ter execução diferente da foto.",
   },
   {
-    src: "/images/physique/exercises/calf-raise.webp",
-    label: "Panturrilhas",
-    terms: ["panturrilha", "gêmeos", "gemeos"],
-    analysisKey: "calf",
-  },
-  {
+    exactNames: ["cadeira extensora"],
     src: "/images/physique/exercises/knee-extension.webp",
     label: "Quadríceps",
-    terms: ["cadeira extensora", "extensora"],
     analysisKey: "kneeExtension",
   },
   {
+    exactNames: ["cadeira ou mesa flexora bilateral", "mesa ou cadeira flexora bilateral"],
     src: "/images/physique/exercises/leg-curl-bilateral.png",
-    label: "Cadeira e mesa flexora",
-    terms: ["cadeira ou mesa flexora", "mesa ou cadeira flexora"],
+    label: "Posteriores de coxa",
     analysisKey: "legCurl",
   },
   {
+    exactNames: ["flexora", "flexora unilateral"],
     src: "/images/physique/exercises/leg-curl.webp",
     label: "Posteriores de coxa",
-    terms: ["mesa flexora", "cadeira flexora", "flexora", "leg curl"],
     analysisKey: "legCurl",
+    note: "Imagem representativa da flexora; a variação unilateral pode mudar a máquina ou a posição.",
   },
   {
+    exactNames: ["leg press"],
     src: "/images/physique/exercises/leg-press.webp",
     label: "Pernas e glúteos",
-    terms: ["leg press"],
     analysisKey: "legPress",
   },
   {
+    exactNames: ["stiff / terra romeno", "stiff moderado"],
     src: "/images/physique/exercises/romanian-deadlift.webp",
     label: "Posteriores e glúteos",
-    terms: ["stiff", "terra romeno", "levantamento romeno", "rdl", "levantamento terra"],
     analysisKey: "hinge",
   },
   {
+    exactNames: ["agachamento livre ou smith", "agachamento isométrico", "agachamento sumô", "agachamento sumo"],
     src: "/images/physique/exercises/squat.webp",
     label: "Pernas e glúteos",
-    terms: ["agachamento", "agach", "sumô", "sumo", "afundo", "passada", "avanço", "avanco"],
     analysisKey: "squat",
+    note: "Imagem representativa da família do agachamento; sumô e isométrico têm base e intenção diferentes da foto padrão.",
   },
   {
+    exactNames: ["crucifixo inverso ou face pull"],
     src: "/images/physique/exercises/reverse-fly.webp",
     label: "Posterior de ombro e costas",
-    terms: ["crucifixo inverso", "face pull", "voador inverso", "reverse fly"],
-    analysisKey: "rearDelt",
+    analysisKey: "reverseFly",
+    note: "Imagem representativa da família do movimento; face pull não tem exatamente a mesma foto do crucifixo inverso.",
   },
   {
+    exactNames: ["puxada aberta"],
     src: "/images/physique/exercises/pulldown.webp",
     label: "Costas e bíceps",
-    terms: ["puxada", "pulldown", "pulley frente", "barra fixa"],
     analysisKey: "pulldown",
   },
   {
+    exactNames: ["remada máquina ou baixa", "remada maquina ou baixa"],
     src: "/images/physique/exercises/row.webp",
     label: "Costas e bíceps",
-    terms: ["remada"],
     analysisKey: "row",
   },
   {
-    src: "/images/physique/exercises/biceps-curl.webp",
-    label: "Bíceps e braquial",
-    terms: ["rosca", "curl"],
-    analysisKey: "curl",
-  },
-  {
+    exactNames: ["elevação lateral", "elevacao lateral"],
     src: "/images/physique/exercises/lateral-raise.webp",
     label: "Ombros",
-    terms: ["elevação lateral", "elevacao lateral"],
     analysisKey: "lateralRaise",
   },
   {
+    exactNames: ["panturrilha no leg ou máquina", "panturrilha no leg ou maquina"],
+    src: "/images/physique/exercises/seated-leg-press-calf-raise.png",
+    label: "Panturrilhas",
+    analysisKey: "calf",
+  },
+  {
+    exactNames: ["panturrilha unilateral", "panturrilha isométrica", "panturrilha isometrica"],
+    src: "/images/physique/exercises/calf-raise.webp",
+    label: "Panturrilhas",
+    analysisKey: "calf",
+    note: "Imagem representativa da panturrilha; unilateral e isométrica podem variar em apoio e postura.",
+  },
+  {
+    exactNames: ["abdominal reverso"],
+    src: "/images/physique/exercises/core-cardio.webp",
+    label: "Core",
+    analysisKey: "core",
+    note: "Ainda não há arte específica para abdominal reverso; esta imagem representa a categoria de core.",
+  },
+
+  // Fallbacks genéricos
+  {
+    terms: ["supino", "peitoral", "paralela", "mergulho"],
+    src: "/images/physique/exercises/chest-press.webp",
+    label: "Peito e tríceps",
+    analysisKey: "chestPress",
+  },
+  {
+    terms: ["crossover", "crucifixo"],
+    src: "/images/physique/exercises/chest-press.webp",
+    label: "Peito e ombros",
+    analysisKey: "crossover",
+    note: "Imagem representativa da família do movimento.",
+  },
+  {
+    terms: ["rosca", "curl"],
+    src: "/images/physique/exercises/biceps-curl.webp",
+    label: "Bíceps e braquial",
+    analysisKey: "curl",
+  },
+  {
+    terms: ["tríceps", "triceps"],
     src: "/images/physique/exercises/triceps-cable.webp",
     label: "Tríceps",
-    terms: ["tríceps", "triceps"],
     analysisKey: "triceps",
   },
   {
-    src: "/images/physique/exercises/chest-press.webp",
-    label: "Peito e tríceps",
-    terms: ["supino", "crucifixo", "crossover", "peitoral", "paralela", "mergulho"],
-    analysisKey: "chestPress",
-  },
-] satisfies readonly ExerciseVisual[];
-
-const exerciseVisuals = [
-  {
-    src: "/images/physique/exercises/back-biceps.webp",
-    label: "Costas e bíceps",
-    terms: ["puxad", "remad", "barra fixa", "pulley", "dorsal", "costas", "rosca", "biceps", "bíceps"],
-    analysisKey: "pulldown",
+    terms: ["panturrilha", "gêmeos", "gemeos"],
+    src: "/images/physique/exercises/calf-raise.webp",
+    label: "Panturrilhas",
+    analysisKey: "calf",
   },
   {
-    src: "/images/physique/exercises/chest-triceps.webp",
-    label: "Peito e tríceps",
-    terms: ["supino", "peitoral", "crucifixo", "flexao", "flexão", "triceps", "tríceps", "mergulho", "paralela"],
-    analysisKey: "chestPress",
+    terms: ["bike", "bicicleta", "spinning"],
+    src: "/images/physique/exercises/bike.webp",
+    label: "Core e condicionamento",
+    analysisKey: "bike",
   },
   {
-    src: "/images/physique/exercises/legs-glutes.webp",
+    terms: ["elevação pélvica", "elevacao pelvica", "hip thrust", "ponte de glúteo", "ponte de gluteo"],
+    src: "/images/physique/exercises/hip-thrust.webp",
+    label: "Glúteos e posteriores",
+    analysisKey: "hipThrust",
+  },
+  {
+    terms: ["extensora"],
+    src: "/images/physique/exercises/knee-extension.webp",
+    label: "Quadríceps",
+    analysisKey: "kneeExtension",
+  },
+  {
+    terms: ["flexora", "leg curl"],
+    src: "/images/physique/exercises/leg-curl.webp",
+    label: "Posteriores de coxa",
+    analysisKey: "legCurl",
+  },
+  {
+    terms: ["leg press"],
+    src: "/images/physique/exercises/leg-press.webp",
     label: "Pernas e glúteos",
-    terms: ["agach", "leg press", "extensora", "flexora", "stiff", "terra", "panturrilha", "glute", "glúte", "avanco", "avanço", "passada", "afundo", "adutor", "abdutor"],
+    analysisKey: "legPress",
+  },
+  {
+    terms: ["stiff", "romeno", "rdl", "terra"],
+    src: "/images/physique/exercises/romanian-deadlift.webp",
+    label: "Posteriores e glúteos",
+    analysisKey: "hinge",
+  },
+  {
+    terms: ["agach", "sumô", "sumo", "avanço", "avanco", "passada", "afundo"],
+    src: "/images/physique/exercises/squat.webp",
+    label: "Pernas e glúteos",
     analysisKey: "squat",
   },
   {
-    src: "/images/physique/exercises/shoulders.webp",
-    label: "Ombros",
-    terms: ["ombro", "deltoid", "elevação lateral", "elevacao lateral", "desenvolvimento", "face pull", "encolhimento"],
-    analysisKey: "shoulders",
+    terms: ["face pull", "crucifixo inverso", "voador inverso", "reverse fly"],
+    src: "/images/physique/exercises/reverse-fly.webp",
+    label: "Posterior de ombro e costas",
+    analysisKey: "reverseFly",
   },
   {
-    src: "/images/physique/exercises/core-cardio.webp",
-    label: "Core e condicionamento",
-    terms: ["abdominal", "prancha", "core", "bike", "bicicleta", "esteira", "corrida", "eliptico", "elíptico", "cardio", "aquecimento"],
-    analysisKey: "coreCardio",
+    terms: ["puxada", "pulldown", "pulley", "barra fixa"],
+    src: "/images/physique/exercises/pulldown.webp",
+    label: "Costas e bíceps",
+    analysisKey: "pulldown",
   },
-] satisfies readonly ExerciseVisual[];
+  {
+    terms: ["remada"],
+    src: "/images/physique/exercises/row.webp",
+    label: "Costas e bíceps",
+    analysisKey: "row",
+  },
+  {
+    terms: ["ombro", "elevação lateral", "elevacao lateral", "desenvolvimento"],
+    src: "/images/physique/exercises/lateral-raise.webp",
+    label: "Ombros",
+    analysisKey: "lateralRaise",
+  },
+  {
+    terms: ["abdominal", "core", "prancha"],
+    src: "/images/physique/exercises/core-cardio.webp",
+    label: "Core",
+    analysisKey: "core",
+  },
+];
 
-function getExerciseVisual(exerciseName: string): ExerciseVisual | null {
-  const normalized = exerciseName.toLocaleLowerCase("pt-BR");
+function normalize(value: string) {
+  return value
+    .toLocaleLowerCase("pt-BR")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function getExerciseVisual(exerciseName: string) {
+  const normalized = normalize(exerciseName);
+
+  const exact = EXERCISE_VISUALS.find((visual) =>
+    visual.exactNames?.some((name) => normalize(name) === normalized),
+  );
+  if (exact) return exact;
 
   return (
-    movementVisuals.find((visual) =>
-      visual.terms.some((term) => normalized.includes(term)),
-    ) ??
-    exerciseVisuals.find((visual) =>
-      visual.terms.some((term) => normalized.includes(term)),
-    ) ??
-    null
+    EXERCISE_VISUALS.find((visual) =>
+      visual.terms?.some((term) => normalized.includes(normalize(term))),
+    ) ?? null
   );
 }
 
-function roleLabel(role: MuscleRole) {
-  if (role === "principal") return "Principal";
-  if (role === "secundario") return "Secundário";
-  return "Estabilizador";
-}
-
-function MuscleGroup({
-  title,
-  role,
-  muscles,
-}: {
-  title: string;
-  role: MuscleRole;
-  muscles: string[];
-}) {
-  if (muscles.length === 0) return null;
-
+function MuscleList({ title, items }: { title: string; items: string[] }) {
+  if (items.length === 0) return null;
   return (
-    <div className={`physique-muscle-role physique-muscle-role-${role}`}>
-      <header>
-        <strong>{title}</strong>
-        <span>{roleLabel(role)}</span>
-      </header>
-
-      <div className="physique-muscle-role-list">
-        {muscles.map((muscle) => (
-          <article key={muscle}>
-            <span className="physique-muscle-role-dot" />
-            <div>
-              <strong>{muscle}</strong>
-              <p>{MUSCLE_FUNCTIONS[muscle] ?? "Participa da execução e do controle deste movimento."}</p>
+    <div style={{ display: "grid", gap: 8 }}>
+      <strong style={{ fontSize: 12 }}>{title}</strong>
+      <div style={{ display: "grid", gap: 8 }}>
+        {items.map((item) => (
+          <div
+            key={item}
+            style={{
+              border: "1px solid rgba(255,255,255,.08)",
+              borderRadius: 12,
+              padding: "10px 12px",
+              background: "rgba(255,255,255,.03)",
+            }}
+          >
+            <div style={{ fontWeight: 800, fontSize: 12 }}>{item}</div>
+            <div style={{ opacity: 0.78, fontSize: 11, marginTop: 4, lineHeight: 1.45 }}>
+              {MUSCLE_FUNCTIONS[item] ?? "Participa da mecânica do exercício e ajuda a estabilizar ou produzir movimento."}
             </div>
-          </article>
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
-function ExerciseMuscleModal({
+function ExerciseInsightModal({
   exercise,
   visual,
   onClose,
@@ -524,155 +629,146 @@ function ExerciseMuscleModal({
   onClose: () => void;
 }) {
   const analysis = MUSCLE_ANALYSES[visual.analysisKey];
-  const prescription = [exercise.sets_text, exercise.reps_text]
-    .filter(Boolean)
-    .join(" × ");
+  const prescription = [exercise.sets_text, exercise.reps_text].filter(Boolean).join(" × ");
 
   useEffect(() => {
-    const previousOverflow = document.body.style.overflow;
-
-    function closeOnEscape(event: KeyboardEvent) {
+    const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
-    }
-
+    };
+    window.addEventListener("keydown", onKeyDown);
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    window.addEventListener("keydown", closeOnEscape);
-
     return () => {
+      window.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", closeOnEscape);
     };
   }, [onClose]);
 
   return createPortal(
     <div
-      className="physique-muscle-modal-backdrop"
-      onMouseDown={(event) => {
-        if (event.currentTarget === event.target) onClose();
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 120,
+        background: "rgba(2, 8, 16, 0.78)",
+        backdropFilter: "blur(8px)",
+        display: "grid",
+        placeItems: "center",
+        padding: 16,
       }}
     >
-      <section
-        aria-labelledby="physique-muscle-modal-title"
-        aria-modal="true"
-        className="physique-muscle-modal"
-        role="dialog"
+      <div
+        onClick={(event) => event.stopPropagation()}
+        style={{
+          width: "min(1100px, 100%)",
+          maxHeight: "min(92vh, 980px)",
+          overflow: "auto",
+          borderRadius: 22,
+          border: "1px solid rgba(255,255,255,.08)",
+          background:
+            "radial-gradient(circle at top right, rgba(87,216,184,.08), transparent 30%), radial-gradient(circle at bottom left, rgba(214,193,93,.06), transparent 34%), rgba(8,14,23,.98)",
+          boxShadow: "0 30px 80px rgba(0,0,0,.45)",
+          color: "#eef4fb",
+        }}
       >
-        <header className="physique-muscle-modal-header">
-          <div>
-            <span>ANÁLISE DO MOVIMENTO</span>
-            <h2 id="physique-muscle-modal-title">{exercise.exercise_name}</h2>
-            <p>{visual.label}</p>
+        <div style={{ padding: 18, borderBottom: "1px solid rgba(255,255,255,.07)", display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16 }}>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: "#dcc46c", fontSize: 10, fontWeight: 900, letterSpacing: ".14em" }}>ANÁLISE DO EXERCÍCIO</div>
+            <h3 style={{ margin: "6px 0 4px", fontSize: 28, lineHeight: 1.05 }}>{exercise.exercise_name}</h3>
+            <p style={{ margin: 0, opacity: 0.75, fontSize: 12 }}>{visual.label}</p>
           </div>
-
-          <button aria-label="Fechar análise" onClick={onClose} type="button">
-            <X size={19} />
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              border: "1px solid rgba(255,255,255,.08)",
+              background: "rgba(255,255,255,.04)",
+              color: "#eef4fb",
+              cursor: "pointer",
+              display: "grid",
+              placeItems: "center",
+            }}
+            aria-label="Fechar análise"
+          >
+            <X size={18} />
           </button>
-        </header>
+        </div>
 
-        <div className="physique-muscle-modal-body">
-          <aside className="physique-muscle-modal-preview">
-            <div className="physique-muscle-modal-image">
-              <Image
-                alt={`Execução de ${exercise.exercise_name}`}
-                fill
-                sizes="(max-width: 760px) 90vw, 340px"
-                src={visual.src}
-              />
-            </div>
-
-            <div className="physique-muscle-modal-prescription">
-              <span>Na sua ficha</span>
-              <strong>{prescription || "Séries/repetições não informadas"}</strong>
-              {exercise.rest_seconds != null && (
-                <small>
-                  <Clock3 size={13} /> Descanso de {exercise.rest_seconds}s
-                </small>
+        <div style={{ padding: 18, display: "grid", gap: 18 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(280px, 380px) minmax(0, 1fr)", gap: 18 }}>
+            <div style={{ display: "grid", gap: 12 }}>
+              <div style={{ position: "relative", aspectRatio: "1 / 1", borderRadius: 18, overflow: "hidden", background: "#fff" }}>
+                <Image src={visual.src} alt={`Visual do exercício ${exercise.exercise_name}`} fill sizes="(max-width: 900px) 100vw, 360px" style={{ objectFit: "cover" }} />
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 13 }}><Target size={15} /> Objetivo</div>
+                <div style={{ border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: 12, background: "rgba(255,255,255,.03)", fontSize: 12, lineHeight: 1.55 }}>
+                  {analysis.objective}
+                </div>
+              </div>
+              {(visual.note || exercise.technique || exercise.load_guidance || exercise.notes) && (
+                <div style={{ display: "grid", gap: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800, fontSize: 13 }}><Info size={15} /> Observações</div>
+                  <div style={{ border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: 12, background: "rgba(255,255,255,.03)", fontSize: 12, lineHeight: 1.55, display: "grid", gap: 6 }}>
+                    {visual.note && <div><strong>Visual:</strong> {visual.note}</div>}
+                    {prescription && <div><strong>Séries/Reps:</strong> {prescription}</div>}
+                    {exercise.rest_seconds != null && <div><strong>Descanso:</strong> {exercise.rest_seconds}s</div>}
+                    {exercise.technique && <div><strong>Técnica:</strong> {exercise.technique}</div>}
+                    {exercise.load_guidance && <div><strong>Carga:</strong> {exercise.load_guidance}</div>}
+                    {exercise.notes && <div><strong>Nota da ficha:</strong> {exercise.notes}</div>}
+                  </div>
+                </div>
               )}
             </div>
 
-            <article className="physique-muscle-insight-card physique-muscle-objective">
-              <Target size={18} />
-              <div>
-                <span>OBJETIVO</span>
-                <p>{analysis.objective}</p>
-              </div>
-            </article>
-          </aside>
-
-          <div className="physique-muscle-modal-content">
-            <section className="physique-muscle-section">
-              <div className="physique-muscle-section-title">
-                <Activity size={18} />
-                <div>
-                  <span>MAPA MUSCULAR</span>
-                  <h3>Quem trabalha e qual é a função</h3>
-                </div>
+            <div style={{ display: "grid", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                <MuscleList title="Músculos principais" items={analysis.primary} />
+                <MuscleList title="Músculos secundários" items={analysis.secondary} />
+                <MuscleList title="Estabilizadores" items={analysis.stabilizers} />
               </div>
 
-              <div className="physique-muscle-role-grid">
-                <MuscleGroup title="Motores principais" role="principal" muscles={analysis.primary} />
-                <MuscleGroup title="Músculos auxiliares" role="secundario" muscles={analysis.secondary} />
-                <MuscleGroup title="Controle e estabilidade" role="estabilizador" muscles={analysis.stabilizers} />
-              </div>
-            </section>
-
-            <section className="physique-muscle-info-grid">
-              <article className="physique-muscle-insight-card">
-                <Info size={18} />
-                <div>
-                  <span>MOVIMENTOS ARTICULARES</span>
-                  <ul>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12 }}>
+                <div style={{ display: "grid", gap: 8 }}>
+                  <strong style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}><Activity size={15} /> Movimentos articulares</strong>
+                  <div style={{ border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: 12, background: "rgba(255,255,255,.03)", display: "grid", gap: 7 }}>
                     {analysis.joints.map((item) => (
-                      <li key={item}>{item}</li>
+                      <div key={item} style={{ display: "flex", gap: 8, fontSize: 12, lineHeight: 1.45 }}><CheckCircle2 size={15} style={{ flex: "0 0 auto", color: "#9ff1d8" }} /> {item}</div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
-              </article>
 
-              <article className="physique-muscle-insight-card success">
-                <CheckCircle2 size={18} />
-                <div>
-                  <span>EXECUÇÃO</span>
-                  <ul>
+                <div style={{ display: "grid", gap: 8 }}>
+                  <strong style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}><CheckCircle2 size={15} /> Execução</strong>
+                  <div style={{ border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: 12, background: "rgba(255,255,255,.03)", display: "grid", gap: 7 }}>
                     {analysis.cues.map((item) => (
-                      <li key={item}>{item}</li>
+                      <div key={item} style={{ display: "flex", gap: 8, fontSize: 12, lineHeight: 1.45 }}><CheckCircle2 size={15} style={{ flex: "0 0 auto", color: "#9ff1d8" }} /> {item}</div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
-              </article>
 
-              <article className="physique-muscle-insight-card danger">
-                <AlertTriangle size={18} />
-                <div>
-                  <span>ERROS COMUNS</span>
-                  <ul>
+                <div style={{ display: "grid", gap: 8 }}>
+                  <strong style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12 }}><AlertTriangle size={15} /> Erros comuns</strong>
+                  <div style={{ border: "1px solid rgba(255,255,255,.08)", borderRadius: 14, padding: 12, background: "rgba(255,255,255,.03)", display: "grid", gap: 7 }}>
                     {analysis.errors.map((item) => (
-                      <li key={item}>{item}</li>
+                      <div key={item} style={{ display: "flex", gap: 8, fontSize: 12, lineHeight: 1.45 }}><AlertTriangle size={15} style={{ flex: "0 0 auto", color: "#ff8a8a" }} /> {item}</div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
-              </article>
+              </div>
 
-              <article className="physique-muscle-insight-card tip">
-                <Sparkles size={18} />
-                <div>
-                  <span>DICA PHYSIQUE</span>
-                  <p>{analysis.tip}</p>
-                </div>
-              </article>
-            </section>
-
-            {(exercise.technique || exercise.load_guidance || exercise.notes) && (
-              <section className="physique-muscle-ficha-notes">
-                <span>ORIENTAÇÃO ESPECÍFICA DESTA FICHA</span>
-                {exercise.technique && <p><b>Técnica:</b> {exercise.technique}</p>}
-                {exercise.load_guidance && <p><b>Carga:</b> {exercise.load_guidance}</p>}
-                {exercise.notes && <p>{exercise.notes}</p>}
-              </section>
-            )}
+              <div style={{ border: "1px solid rgba(87,216,184,.16)", borderRadius: 16, padding: 14, background: "rgba(87,216,184,.05)", display: "grid", gap: 8 }}>
+                <strong style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}><Sparkles size={15} /> Dica Physique</strong>
+                <div style={{ fontSize: 12, lineHeight: 1.55 }}>{analysis.tip}</div>
+              </div>
+            </div>
           </div>
         </div>
-      </section>
+      </div>
     </div>,
     document.body,
   );
@@ -686,10 +782,7 @@ export function PhysiqueTrainingPlanView({
   exercises: Exercise[];
 }) {
   const [selectedDayId, setSelectedDayId] = useState(days[0]?.id ?? "");
-  const [selectedInsight, setSelectedInsight] = useState<{
-    exercise: Exercise;
-    visual: ExerciseVisual;
-  } | null>(null);
+  const [insightExerciseId, setInsightExerciseId] = useState<string | null>(null);
 
   const selectedDay = days.find((day) => day.id === selectedDayId) ?? days[0] ?? null;
 
@@ -702,6 +795,15 @@ export function PhysiqueTrainingPlanView({
         : [],
     [exercises, selectedDay],
   );
+
+  const insightExercise = selectedExercises.find((exercise) => exercise.id === insightExerciseId) ?? null;
+  const insightVisual = insightExercise ? getExerciseVisual(insightExercise.exercise_name) : null;
+
+  useEffect(() => {
+    if (!selectedExercises.some((exercise) => exercise.id === insightExerciseId)) {
+      setInsightExerciseId(null);
+    }
+  }, [insightExerciseId, selectedExercises]);
 
   if (!selectedDay) {
     return (
@@ -725,11 +827,7 @@ export function PhysiqueTrainingPlanView({
           >
             <small>Treino {day.day_order}</small>
             <strong>{day.day_label}</strong>
-            {day.focus && (
-              <em className="physique-ux-day-focus-v4526">
-                {day.focus}
-              </em>
-            )}
+            {day.focus && <em className="physique-ux-day-focus-v4526">{day.focus}</em>}
           </button>
         ))}
       </div>
@@ -746,64 +844,88 @@ export function PhysiqueTrainingPlanView({
 
         <div className="physique-ux-exercise-grid">
           {selectedExercises.map((exercise) => {
-            const prescription = [exercise.sets_text, exercise.reps_text]
-              .filter(Boolean)
-              .join(" × ");
+            const prescription = [exercise.sets_text, exercise.reps_text].filter(Boolean).join(" × ");
             const visual = getExerciseVisual(exercise.exercise_name);
+            const canAnalyze = Boolean(visual);
 
             return (
               <article className="physique-ux-exercise-card" key={exercise.id}>
-                {visual ? (
-                  <button
-                    aria-label={`Abrir análise muscular de ${exercise.exercise_name}`}
-                    className="physique-ux-exercise-visual physique-ux-exercise-visual-button"
-                    onClick={() => setSelectedInsight({ exercise, visual })}
-                    type="button"
-                  >
-                    <Image
-                      alt={`Grupo muscular: ${visual.label}`}
-                      fill
-                      sizes="(max-width: 720px) 104px, 132px"
-                      src={visual.src}
-                    />
-                    <span>{exercise.exercise_order}</span>
-                    <small className="physique-ux-exercise-open-analysis">
-                      <MousePointerClick size={12} />
-                      Analisar
-                    </small>
-                  </button>
-                ) : (
-                  <div className="physique-ux-exercise-visual">
+                <button
+                  className="physique-ux-exercise-visual"
+                  onClick={() => visual && setInsightExerciseId(exercise.id)}
+                  type="button"
+                  style={{
+                    border: 0,
+                    cursor: visual ? "pointer" : "default",
+                    padding: 0,
+                    textAlign: "left",
+                  }}
+                  aria-label={visual ? `Abrir análise de ${exercise.exercise_name}` : `Visual de ${exercise.exercise_name}`}
+                  disabled={!visual}
+                >
+                  {visual ? (
+                    <Image alt={`Grupo muscular: ${visual.label}`} fill sizes="(max-width: 720px) 104px, 132px" src={visual.src} />
+                  ) : (
                     <div className="physique-ux-exercise-visual-fallback">
                       <Dumbbell size={28} />
                     </div>
-                    <span>{exercise.exercise_order}</span>
-                  </div>
-                )}
+                  )}
+                  <span>{exercise.exercise_order}</span>
+                  {canAnalyze && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: 7,
+                        bottom: 7,
+                        zIndex: 1,
+                        padding: "5px 8px",
+                        borderRadius: 999,
+                        fontSize: 8,
+                        fontWeight: 900,
+                        color: "#07110e",
+                        background: "rgba(255,255,255,.94)",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <MousePointerClick size={11} /> Analisar
+                    </div>
+                  )}
+                </button>
 
                 <div className="physique-ux-exercise-copy">
                   <strong>{exercise.exercise_name}</strong>
 
                   {visual && (
                     <button
-                      className="physique-ux-exercise-muscles physique-ux-exercise-muscles-button"
-                      onClick={() => setSelectedInsight({ exercise, visual })}
                       type="button"
+                      onClick={() => setInsightExerciseId(exercise.id)}
+                      className="physique-ux-exercise-muscles"
+                      style={{
+                        border: 0,
+                        padding: 0,
+                        background: "transparent",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
                     >
                       {visual.label}
-                      <Info size={11} />
                     </button>
                   )}
 
                   <div className="physique-ux-exercise-meta">
                     <span>{prescription || "Séries/repetições não informadas"}</span>
                     {exercise.rest_seconds != null && (
-                      <span><Clock3 size={12} /> {exercise.rest_seconds}s</span>
+                      <span>
+                        <Clock3 size={12} /> {exercise.rest_seconds}s
+                      </span>
                     )}
                   </div>
 
-                  {(exercise.technique || exercise.load_guidance || exercise.notes) && (
+                  {(exercise.technique || exercise.load_guidance || exercise.notes || visual?.note) && (
                     <div className="physique-ux-exercise-notes">
+                      {visual?.note && <p><b>Visual:</b> {visual.note}</p>}
                       {exercise.technique && <p><b>Técnica:</b> {exercise.technique}</p>}
                       {exercise.load_guidance && <p><b>Carga:</b> {exercise.load_guidance}</p>}
                       {exercise.notes && <p>{exercise.notes}</p>}
@@ -816,11 +938,11 @@ export function PhysiqueTrainingPlanView({
         </div>
       </section>
 
-      {selectedInsight && (
-        <ExerciseMuscleModal
-          exercise={selectedInsight.exercise}
-          onClose={() => setSelectedInsight(null)}
-          visual={selectedInsight.visual}
+      {insightExercise && insightVisual && (
+        <ExerciseInsightModal
+          exercise={insightExercise}
+          visual={insightVisual}
+          onClose={() => setInsightExerciseId(null)}
         />
       )}
     </div>

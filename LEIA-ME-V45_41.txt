@@ -1,0 +1,27 @@
+PACOTÃO PHYSIQUE V45.41 — Correção das fotos dos exercícios
+
+Base esperada: projeto já com o popup/análise do V45.40.
+
+O que este pacote corrige:
+- Prioriza correspondência EXATA do nome do exercício antes de cair em fotos genéricas.
+- Corrige os casos mais gritantes, como:
+  * Supino reto máquina não usar mais supino com barra.
+  * Supinos inclinados caírem em visual de chest press representativo.
+  * Remada máquina ou baixa usar visual de remada.
+  * Puxada aberta usar visual de puxada.
+  * Rosca Scott unilateral/alternada usar visual de Scott.
+  * Panturrilha no leg usar visual específico.
+- Mantém o popup/análise ao clicar na foto.
+- Quando ainda não existir arte perfeita para a variação, mostra nota "imagem representativa".
+
+Como aplicar:
+1) Extraia o ZIP na raiz do candinho-gestao.
+2) Permita mesclar/substituir.
+3) Rode o projeto.
+4) Confira as fichas em Physique > Fichas.
+
+Arquivo alterado:
+- src/components/physique-training-plan-view.tsx
+
+Commit sugerido:
+V45.41 corrige mapeamento das fotos dos exercícios no Physique
