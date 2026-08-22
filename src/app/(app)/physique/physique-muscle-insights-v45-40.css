@@ -1,0 +1,381 @@
+/* Physique V45.40 · análise muscular interativa das fichas */
+
+.physique-ux-exercise-visual-button {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+
+.physique-ux-exercise-visual-button:hover,
+.physique-ux-exercise-visual-button:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 2px rgba(143,233,205,.22), 0 14px 34px rgba(0,0,0,.28);
+  outline: none;
+}
+
+.physique-ux-exercise-open-analysis {
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  z-index: 2;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(255,255,255,.22);
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(5,11,17,.76);
+  backdrop-filter: blur(10px);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 7px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.physique-ux-exercise-muscles-button {
+  appearance: none;
+  width: fit-content;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 5px;
+  text-align: left;
+}
+
+.physique-ux-exercise-muscles-button:hover,
+.physique-ux-exercise-muscles-button:focus-visible {
+  color: #ffd0ac;
+  outline: none;
+}
+
+.physique-muscle-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  padding: 24px;
+  background: rgba(1,5,9,.82);
+  backdrop-filter: blur(14px);
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.physique-muscle-modal {
+  width: min(1180px, 100%);
+  max-height: min(920px, calc(100dvh - 48px));
+  overflow: hidden;
+  border: 1px solid rgba(143,233,205,.18);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 8% 2%, rgba(87,216,184,.10), transparent 30%),
+    radial-gradient(circle at 96% 14%, rgba(220,196,108,.08), transparent 28%),
+    #081019;
+  box-shadow: 0 38px 110px rgba(0,0,0,.58);
+  display: flex;
+  flex-direction: column;
+}
+
+.physique-muscle-modal-header {
+  flex: 0 0 auto;
+  padding: 20px 22px;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.physique-muscle-modal-header > div { min-width: 0; }
+.physique-muscle-modal-header span {
+  color: #dcc46c;
+  font-size: 8px;
+  font-weight: 950;
+  letter-spacing: .15em;
+}
+.physique-muscle-modal-header h2 {
+  margin: 5px 0 4px;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.05;
+}
+.physique-muscle-modal-header p {
+  margin: 0;
+  color: #9ff1d8;
+  font-size: 10px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.physique-muscle-modal-header > button {
+  appearance: none;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 12px;
+  color: rgba(238,244,251,.72);
+  background: rgba(255,255,255,.035);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.physique-muscle-modal-header > button:hover { color: #fff; background: rgba(255,255,255,.07); }
+
+.physique-muscle-modal-body {
+  min-height: 0;
+  padding: 18px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: 320px minmax(0,1fr);
+  gap: 18px;
+}
+
+.physique-muscle-modal-preview {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.physique-muscle-modal-image {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 18px;
+  background: #fff;
+}
+.physique-muscle-modal-image img { object-fit: cover; }
+
+.physique-muscle-modal-prescription {
+  padding: 12px 13px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px;
+  background: rgba(255,255,255,.025);
+}
+.physique-muscle-modal-prescription span,
+.physique-muscle-modal-prescription strong,
+.physique-muscle-modal-prescription small { display: block; }
+.physique-muscle-modal-prescription span {
+  color: rgba(232,239,247,.48);
+  font-size: 8px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+.physique-muscle-modal-prescription strong { margin-top: 4px; font-size: 14px; }
+.physique-muscle-modal-prescription small {
+  margin-top: 5px;
+  color: rgba(232,239,247,.58);
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.physique-muscle-modal-content {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 13px;
+}
+
+.physique-muscle-section,
+.physique-muscle-ficha-notes {
+  padding: 15px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 16px;
+  background: rgba(255,255,255,.018);
+}
+
+.physique-muscle-section-title {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.physique-muscle-section-title > svg { color: #8fe9cd; }
+.physique-muscle-section-title span,
+.physique-muscle-section-title h3 { display: block; }
+.physique-muscle-section-title span {
+  color: #dcc46c;
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .13em;
+}
+.physique-muscle-section-title h3 { margin: 3px 0 0; font-size: 15px; }
+
+.physique-muscle-role-grid { display: grid; gap: 8px; }
+.physique-muscle-role {
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.06);
+  border-radius: 13px;
+  background: rgba(0,0,0,.12);
+}
+.physique-muscle-role > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.physique-muscle-role > header strong { font-size: 10px; }
+.physique-muscle-role > header span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 7px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+.physique-muscle-role-principal > header span { color: #f4d883; background: rgba(220,196,108,.10); }
+.physique-muscle-role-secundario > header span { color: #9ff1d8; background: rgba(87,216,184,.09); }
+.physique-muscle-role-estabilizador > header span { color: #9fc7ff; background: rgba(83,144,223,.11); }
+
+.physique-muscle-role-list {
+  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 6px;
+}
+.physique-muscle-role-list article {
+  min-width: 0;
+  padding: 9px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.018);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.physique-muscle-role-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  margin-top: 4px;
+  border-radius: 999px;
+  background: #dcc46c;
+}
+.physique-muscle-role-secundario .physique-muscle-role-dot { background: #57d8b8; }
+.physique-muscle-role-estabilizador .physique-muscle-role-dot { background: #5e9de9; }
+.physique-muscle-role-list strong { display: block; font-size: 9px; }
+.physique-muscle-role-list p {
+  margin: 3px 0 0;
+  color: rgba(232,239,247,.55);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
+.physique-muscle-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 8px;
+}
+
+.physique-muscle-insight-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,.07);
+  border-radius: 14px;
+  background: rgba(255,255,255,.018);
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+}
+.physique-muscle-insight-card > svg { flex: 0 0 auto; color: #88b7f2; margin-top: 1px; }
+.physique-muscle-insight-card.success > svg { color: #8fe9cd; }
+.physique-muscle-insight-card.danger > svg { color: #ef8a81; }
+.physique-muscle-insight-card.tip > svg,
+.physique-muscle-objective > svg { color: #dcc46c; }
+.physique-muscle-insight-card span {
+  display: block;
+  color: rgba(232,239,247,.47);
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .10em;
+}
+.physique-muscle-insight-card p {
+  margin: 4px 0 0;
+  color: rgba(238,244,251,.77);
+  font-size: 9px;
+  line-height: 1.5;
+}
+.physique-muscle-insight-card ul {
+  margin: 5px 0 0;
+  padding-left: 14px;
+  color: rgba(238,244,251,.72);
+  font-size: 8px;
+  line-height: 1.55;
+}
+.physique-muscle-insight-card li + li { margin-top: 3px; }
+
+.physique-muscle-ficha-notes > span {
+  color: #dcc46c;
+  font-size: 7px;
+  font-weight: 950;
+  letter-spacing: .12em;
+}
+.physique-muscle-ficha-notes p {
+  margin: 6px 0 0;
+  color: rgba(238,244,251,.68);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+@media (max-width: 860px) {
+  .physique-muscle-modal-backdrop { padding: 12px; align-items: end; }
+  .physique-muscle-modal {
+    max-height: calc(100dvh - 12px);
+    border-radius: 22px 22px 0 0;
+  }
+  .physique-muscle-modal-body { grid-template-columns: 1fr; }
+  .physique-muscle-modal-preview {
+    display: grid;
+    grid-template-columns: 150px minmax(0,1fr);
+    align-items: start;
+  }
+  .physique-muscle-modal-image { grid-row: span 2; }
+  .physique-muscle-objective { min-height: 100%; }
+}
+
+@media (max-width: 620px) {
+  .physique-ux-exercise-open-analysis {
+    right: 5px;
+    bottom: 5px;
+    min-height: 21px;
+    padding: 0 6px;
+    font-size: 6px;
+  }
+  .physique-muscle-modal-backdrop { padding: 0; }
+  .physique-muscle-modal {
+    width: 100%;
+    max-height: 96dvh;
+    border-left: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+  .physique-muscle-modal-header { padding: 16px; }
+  .physique-muscle-modal-header h2 { font-size: 24px; }
+  .physique-muscle-modal-body { padding: 12px; gap: 12px; }
+  .physique-muscle-modal-preview {
+    grid-template-columns: 112px minmax(0,1fr);
+    gap: 8px;
+  }
+  .physique-muscle-modal-prescription,
+  .physique-muscle-insight-card,
+  .physique-muscle-section,
+  .physique-muscle-ficha-notes { padding: 10px; }
+  .physique-muscle-info-grid { grid-template-columns: 1fr; }
+  .physique-muscle-role-list { grid-template-columns: 1fr; }
+  .physique-muscle-section-title h3 { font-size: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .physique-ux-exercise-visual-button { transition: none; }
+}

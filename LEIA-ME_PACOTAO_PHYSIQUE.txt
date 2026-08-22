@@ -1,0 +1,18 @@
+PACOTÃO PHYSIQUE V45.40 — ANÁLISE MUSCULAR INTERATIVA
+Base: main @ ca3be5b0
+
+EXTRAIA NA RAIZ DO candinho-gestao e permita mesclar/substituir.
+
+O QUE MUDA:
+- Fotos dos exercícios permanecem as mesmas.
+- Clique/toque na foto abre um popup completo de análise muscular.
+- Mostra músculos principais, secundários e estabilizadores.
+- Explica a função de cada grupo.
+- Mostra execução, erros comuns, movimentos articulares e dica Physique.
+- Mantém séries/reps/descanso e orientações específicas da ficha dentro do popup.
+- Responsivo: modal no PC e bottom-sheet no celular.
+
+SEM MIGRATION / SEM ALTERAÇÃO DE BANCO.
+
+Commit sugerido:
+V45.40 Physique muscle insights
