@@ -1,0 +1,17 @@
+PACOTÃO ERP V45.39 — 22/08/2026
+Base: main @ 3b0a8c8
+
+EXTRAIA ESTE ZIP NA RAIZ DO candinho-gestao e permita mesclar/substituir.
+
+ENTRA:
+- Top Training vira destino de transferência ao manter estoque.
+- Nova venda ganha "Entregue por" opcional.
+- Corrigir venda ganha troca de estoque + entregue por.
+- Bank ganha "Atualizar saldo do dia".
+- Mensalidade semanal mostra Adiar / Adiada.
+- Corrige falso positivo mobile-menu-panel no UX Doctor.
+- Reforça favicon por operação.
+
+Depois: commit + push + Ctrl+F5.
+
+Detalhes: docs/arquivo-historico/README_V45_39_PENDENCIAS_ERP.md

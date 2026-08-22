@@ -1,0 +1,243 @@
+/* V45.39 · pacote de pendências 22/08/2026 */
+
+/* O <details> fechado não deve participar do probe de elementos fixed. */
+details.mobile-menu:not([open]) > .mobile-menu-backdrop,
+details.mobile-menu:not([open]) > .mobile-menu-panel {
+  display: none !important;
+}
+
+.erp-fix-floating-card,
+.erp-fix-context-button,
+.erp-fix-toast,
+.erp-fix-modal-backdrop {
+  font-family: inherit;
+}
+
+.erp-fix-floating-card {
+  position: fixed;
+  z-index: 9400;
+  right: 18px;
+  bottom: 18px;
+  width: min(370px, calc(100vw - 36px));
+  padding: 15px;
+  border: 1px solid rgba(228, 164, 58, 0.32);
+  border-radius: 18px;
+  background: rgba(9, 11, 15, 0.97);
+  color: #f5f7fb;
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(18px);
+}
+
+.erp-fix-floating-card.is-collapsed {
+  width: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.erp-fix-card-head,
+.erp-fix-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.erp-fix-card-head > div,
+.erp-fix-modal-head > div {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.erp-fix-card-head strong,
+.erp-fix-modal-head strong {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.96rem;
+}
+
+.erp-fix-card-head span,
+.erp-fix-modal-head span,
+.erp-fix-help,
+.erp-fix-field small {
+  color: #9ba5b5;
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.erp-fix-field {
+  display: grid;
+  gap: 6px;
+  margin-top: 11px;
+}
+
+.erp-fix-field > span {
+  color: #d9dee8;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.erp-fix-field input,
+.erp-fix-field select {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 11px;
+  background: #11151d;
+  color: #f8fafc;
+  padding: 9px 11px;
+  font: inherit;
+  outline: none;
+}
+
+.erp-fix-field input:focus,
+.erp-fix-field select:focus {
+  border-color: rgba(228, 164, 58, 0.72);
+  box-shadow: 0 0 0 3px rgba(228, 164, 58, 0.1);
+}
+
+.erp-fix-field input:disabled,
+.erp-fix-field select:disabled {
+  opacity: 0.55;
+}
+
+.erp-fix-help {
+  display: block;
+  margin-top: 9px;
+}
+
+.erp-fix-icon-button {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #d9dee8;
+  cursor: pointer;
+}
+
+.erp-fix-collapsed-button,
+.erp-fix-context-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid rgba(228, 164, 58, 0.38);
+  border-radius: 999px;
+  background: #11151d;
+  color: #f8fafc;
+  padding: 10px 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.32);
+}
+
+.erp-fix-context-button {
+  position: fixed;
+  z-index: 9350;
+  right: 18px;
+  bottom: 18px;
+}
+
+.erp-fix-bank-button {
+  border-color: rgba(50, 190, 120, 0.42);
+}
+
+.erp-fix-toast {
+  position: fixed;
+  z-index: 10100;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(620px, calc(100vw - 32px));
+  padding: 11px 14px;
+  border-radius: 12px;
+  color: white;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.35);
+}
+
+.erp-fix-toast.is-ok {
+  background: rgba(20, 120, 72, 0.96);
+}
+
+.erp-fix-toast.is-error {
+  background: rgba(150, 45, 45, 0.97);
+}
+
+.erp-fix-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(0, 0, 0, 0.66);
+  backdrop-filter: blur(7px);
+}
+
+.erp-fix-modal {
+  width: min(560px, 100%);
+  max-height: min(760px, calc(100dvh - 36px));
+  overflow: auto;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  background: #0b0e13;
+  color: #f6f8fc;
+  padding: 18px;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.55);
+}
+
+.erp-fix-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 18px;
+}
+
+@media (max-width: 720px) {
+  .erp-fix-floating-card {
+    right: 10px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    width: calc(100vw - 20px);
+    border-radius: 16px;
+  }
+
+  .erp-fix-context-button {
+    right: 10px;
+    bottom: calc(82px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 20px);
+  }
+
+  .erp-fix-modal-backdrop {
+    align-items: end;
+    padding: 0;
+  }
+
+  .erp-fix-modal {
+    width: 100%;
+    max-height: 86dvh;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+
+  .erp-fix-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .erp-fix-modal-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+}

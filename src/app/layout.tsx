@@ -7,6 +7,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AgendaDeliveryFinalizationBridge } from "@/components/agenda-delivery-finalization-bridge";
 import { BankPullToRefresh } from "@/components/bank-pull-to-refresh";
+import { ErpPendingFixesBridge } from "@/components/erp-pending-fixes-bridge";
 import { FitnessSectorNavigationV4537R13 } from "@/components/fitness-sector-navigation-v45-37-r13";
 import { NavigationStabilityV4537R1 } from "@/components/navigation-stability-v45-37-r1";
 import { RouteTabIdentity } from "@/components/route-tab-identity";
@@ -32,6 +33,7 @@ import "./v45-37-r13-fitness-1-0.css";
 import "./v45-37-r13-1-confirm-sale-desktop.css";
 import "./v45-38-mobile-harmony.css";
 import "./operation-navigation-hierarchy.css";
+import "./v45-39-erp-pending-fixes.css";
 
 export const metadata: Metadata = {
   title: "Candinho Company",
@@ -70,7 +72,7 @@ export default function RootLayout({
           id="candinho-route-favicon"
           rel="icon"
           type="image/png"
-          href="/favicons/cc.png?v=45.37.1"
+          href="/favicons/cc.png?v=45.39.0"
         />
         <link
           rel="apple-touch-icon"
@@ -99,6 +101,7 @@ export default function RootLayout({
 
         <Suspense fallback={null}>
           <RouteTabIdentity />
+          <ErpPendingFixesBridge />
         </Suspense>
 
         <BankPullToRefresh enabled />
