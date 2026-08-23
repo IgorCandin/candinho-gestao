@@ -1,15 +1,8 @@
 "use client";
 
-import {
-  Handshake,
-  LoaderCircle,
-} from "lucide-react";
+import { Handshake, LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type Partner = {
@@ -29,43 +22,63 @@ export function SalePartnerLinker({
   onLinked?: () => void;
 }) {
   const router = useRouter();
-  const [partners, setPartners] =
-    useState<Partner[]>([]);
-  const [partnerId, setPartnerId] =
-    useState("");
-  const [loadingOptions, setLoadingOptions] =
-    useState(true);
-  const [saving, setSaving] =
-    useState(false);
-  const [message, setMessage] =
-    useState<string | null>(null);
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [partnerId, setPartnerId] = useState("");
+  const [loadingOptions, setLoadingOptions] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [alreadyLinked, setAlreadyLinked] = useState(false);
 
   const validSaleIds = useMemo(
     () => saleIds.filter(Boolean),
     [saleIds],
   );
+  const saleIdsKey = validSaleIds.join(",");
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      if (validSaleIds.length === 0) {
+        setLoadingOptions(false);
+        return;
+      }
+
       const supabase = createClient();
-      const { data, error } = await supabase
-        .from("partners")
-        .select(
-          "id,name,city,partner_type",
-        )
-        .eq("active", true)
-        .neq("partner_type", "supplier")
-        .order("name");
+      const [saleResult, partnerResult] = await Promise.all([
+        supabase
+          .from("sales")
+          .select("id,partner_id")
+          .in("id", validSaleIds),
+        supabase
+          .from("partners")
+          .select("id,name,city,partner_type")
+          .eq("active", true)
+          .neq("partner_type", "supplier")
+          .order("name"),
+      ]);
 
       if (cancelled) return;
 
-      if (error) {
-        setMessage(error.message);
+      if (saleResult.error) {
+        setMessage(saleResult.error.message);
+      } else {
+        const rows = saleResult.data ?? [];
+        const allAlreadyLinked =
+          rows.length === validSaleIds.length &&
+          rows.every(
+            (row) =>
+              typeof row.partner_id === "string" &&
+              row.partner_id.trim().length > 0,
+          );
+        setAlreadyLinked(allAlreadyLinked);
+      }
+
+      if (partnerResult.error) {
+        setMessage(partnerResult.error.message);
       } else {
         setPartners(
-          (data ?? []).map((row) => ({
+          (partnerResult.data ?? []).map((row) => ({
             id: String(row.id),
             name: String(row.name ?? "Parceiro"),
             city:
@@ -88,7 +101,9 @@ export function SalePartnerLinker({
     return () => {
       cancelled = true;
     };
-  }, []);
+    // saleIdsKey é a identidade estável da seleção.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [saleIdsKey]);
 
   async function linkPartner() {
     if (
@@ -121,18 +136,18 @@ export function SalePartnerLinker({
           : {};
 
       const count = Number(
-        result.sales_updated ??
-          validSaleIds.length,
+        result.sales_updated ?? validSaleIds.length,
       );
 
       setMessage(
-        `${count} venda${
-          count === 1 ? "" : "s"
-        } vinculada${
+        `${count} venda${count === 1 ? "" : "s"} vinculada${
           count === 1 ? "" : "s"
         } à parceria.`,
       );
 
+      // Depois do vínculo, o bloco some. O objetivo dele é corrigir apenas
+      // vendas/orçamentos que ainda não têm parceria definida.
+      setAlreadyLinked(true);
       onLinked?.();
       router.refresh();
     } catch (error) {
@@ -146,13 +161,10 @@ export function SalePartnerLinker({
     }
   }
 
+  if (alreadyLinked) return null;
+
   const content = (
-    <div
-      style={{
-        display: "grid",
-        gap: 9,
-      }}
-    >
+    <div style={{ display: "grid", gap: 9 }}>
       <div
         style={{
           display: "flex",
@@ -190,8 +202,7 @@ export function SalePartnerLinker({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns:
-            "minmax(0,1fr) auto",
+          gridTemplateColumns: "minmax(0,1fr) auto",
           gap: 8,
         }}
       >
@@ -203,9 +214,7 @@ export function SalePartnerLinker({
             validSaleIds.length === 0
           }
           value={partnerId}
-          onChange={(event) =>
-            setPartnerId(event.target.value)
-          }
+          onChange={(event) => setPartnerId(event.target.value)}
         >
           <option value="">
             {loadingOptions
@@ -213,14 +222,9 @@ export function SalePartnerLinker({
               : "Selecione o parceiro"}
           </option>
           {partners.map((partner) => (
-            <option
-              key={partner.id}
-              value={partner.id}
-            >
+            <option key={partner.id} value={partner.id}>
               {partner.name}
-              {partner.city
-                ? ` · ${partner.city}`
-                : ""}
+              {partner.city ? ` · ${partner.city}` : ""}
             </option>
           ))}
         </select>
@@ -236,10 +240,7 @@ export function SalePartnerLinker({
           onClick={() => void linkPartner()}
         >
           {saving ? (
-            <LoaderCircle
-              className="spin"
-              size={15}
-            />
+            <LoaderCircle className="spin" size={15} />
           ) : (
             <Handshake size={15} />
           )}
@@ -247,11 +248,7 @@ export function SalePartnerLinker({
         </button>
       </div>
 
-      {message && (
-        <p className="form-message">
-          {message}
-        </p>
-      )}
+      {message && <p className="form-message">{message}</p>}
     </div>
   );
 
@@ -259,24 +256,15 @@ export function SalePartnerLinker({
 
   return (
     <article className="panel">
-      <div className="panel-body">
-        {content}
-      </div>
+      <div className="panel-body">{content}</div>
     </article>
   );
 }
 
-export function QuotePartnerLinker({
-  quoteId,
-}: {
-  quoteId: string;
-}) {
-  const [saleId, setSaleId] =
-    useState<string | null>(null);
-  const [loading, setLoading] =
-    useState(true);
-  const [message, setMessage] =
-    useState<string | null>(null);
+export function QuotePartnerLinker({ quoteId }: { quoteId: string }) {
+  const [saleId, setSaleId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -328,10 +316,5 @@ export function QuotePartnerLinker({
     );
   }
 
-  return (
-    <SalePartnerLinker
-      saleIds={[saleId]}
-      embedded
-    />
-  );
+  return <SalePartnerLinker saleIds={[saleId]} embedded />;
 }

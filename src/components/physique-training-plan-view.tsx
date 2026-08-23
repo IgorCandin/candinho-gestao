@@ -298,7 +298,7 @@ const EXERCISE_VISUALS: ExerciseVisual[] = [
   },
   {
     exactNames: ["supino reto máquina", "supino reto maquina"],
-    src: "/images/physique/exercises/chest-press.webp",
+    src: "/images/physique/exercises/chest-press-machine-flat.webp",
     label: "Peito e tríceps",
     analysisKey: "chestPress",
   },
@@ -465,13 +465,13 @@ const EXERCISE_VISUALS: ExerciseVisual[] = [
   // Fallbacks genéricos
   {
     terms: ["supino", "peitoral", "paralela", "mergulho"],
-    src: "/images/physique/exercises/chest-press.webp",
+    src: "/images/physique/exercises/chest-press-machine-flat.webp",
     label: "Peito e tríceps",
     analysisKey: "chestPress",
   },
   {
     terms: ["crossover", "crucifixo"],
-    src: "/images/physique/exercises/chest-press.webp",
+    src: "/images/physique/exercises/chest-press-machine-flat.webp",
     label: "Peito e ombros",
     analysisKey: "crossover",
     note: "Imagem representativa da família do movimento.",

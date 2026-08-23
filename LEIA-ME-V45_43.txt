@@ -1,0 +1,22 @@
+PACOTÃO ERP V45.43 — SUPINO RETO MÁQUINA
+
+Correção pequena e isolada do Physique.
+
+O que entra:
+- Nova imagem: public/images/physique/exercises/chest-press-machine-flat.webp
+- Supino reto máquina passa a usar essa imagem específica.
+- Supino inclinado continua usando a imagem anterior, sem alteração.
+- Popup/análise muscular permanece exatamente como no V45.41.
+- Sem migration e sem mudança no Supabase.
+
+Como aplicar:
+1. Extraia este ZIP na raiz da pasta candinho-gestao.
+2. Permita mesclar/substituir os arquivos.
+3. Faça commit e push.
+4. Após o deploy, atualize a ficha do Physique.
+
+Commit sugerido:
+V45.43 corrige foto do supino reto máquina no Physique
+
+Observação:
+A imagem foi preparada especificamente para representar o exercício de chest press/supino reto em máquina e destacar o peitoral.

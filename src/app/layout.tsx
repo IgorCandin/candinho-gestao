@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { AgendaDeliveryFinalizationBridge } from "@/components/agenda-delivery-finalization-bridge";
+import { BankOverduePostponeBridge } from "@/components/bank-overdue-postpone-bridge";
 import { BankPullToRefresh } from "@/components/bank-pull-to-refresh";
 import { ErpPendingFixesBridge } from "@/components/erp-pending-fixes-bridge";
 import { FitnessSectorNavigationV4537R13 } from "@/components/fitness-sector-navigation-v45-37-r13";
@@ -102,6 +103,7 @@ export default function RootLayout({
         <Suspense fallback={null}>
           <RouteTabIdentity />
           <ErpPendingFixesBridge />
+          <BankOverduePostponeBridge />
         </Suspense>
 
         <BankPullToRefresh enabled />

@@ -1,0 +1,30 @@
+PACOTÃO ERP V45.42 — refinamentos de venda + Bank
+
+Base esperada: main após V45.41 (commit 5371e06).
+
+Correções deste pacote:
+1) Vincular parceria
+   - Se a venda/orçamento já possui partner_id, o bloco "Vincular parceria" não aparece mais.
+   - Depois de vincular com sucesso, o bloco desaparece automaticamente.
+
+2) Salvar desconto em Corrigir venda
+   - Continua na rota de Corrigir venda.
+   - Mantém a posição no bloco de desconto após atualizar os dados.
+   - Não cria uma nova entrada no histórico para manter a posição.
+
+3) Bank > Atrasados > consultas semanais
+   - Itens semanais atrasados passam a mostrar o botão "Adiar" ao lado de "Paguei".
+   - "Adiar" marca somente aquela semana como não realizada/skipped.
+   - A próxima semana da recorrência continua aberta normalmente.
+   - Não muda o valor padrão das semanas futuras.
+
+Arquivos:
+- src/components/sale-partner-linker.tsx
+- src/components/pending-sale-discount-form.tsx
+- src/components/bank-overdue-postpone-bridge.tsx
+- src/app/layout.tsx
+
+Não há migration neste pacote. O RPC semanal já existe no Supabase.
+
+Commit sugerido:
+V45.42 refina parceria desconto e adiar consulta no Bank
