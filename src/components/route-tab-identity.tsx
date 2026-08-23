@@ -11,7 +11,7 @@ type Operation =
   | "central"
   | "physique";
 
-const FAVICON_VERSION = "45.37.1";
+const FAVICON_VERSION = "45.44.0";
 
 const OPERATION = {
   company: {
@@ -163,6 +163,14 @@ function operationFor(pathname: string): Operation {
   if (startsWithRoute(pathname, "/bank")) return "bank";
   if (startsWithRoute(pathname, "/fitness")) return "fitness";
 
+  if (startsWithRoute(pathname, "/catalogo/fitness")) {
+    return "fitness";
+  }
+
+  if (startsWithRoute(pathname, "/catalogo/suplementos")) {
+    return "supplements";
+  }
+
   if (
     startsWithRoute(pathname, "/central") ||
     startsWithRoute(pathname, "/nexus") ||
@@ -245,7 +253,8 @@ function labelFor(pathname: string) {
 function identityFor(pathname: string) {
   if (
     pathname === "/" ||
-    pathname === "/dashboard"
+    pathname === "/dashboard" ||
+    pathname === "/catalogo"
   ) {
     return OPERATION.company;
   }
@@ -276,14 +285,6 @@ export function RouteTabIdentity() {
     document.title =
       identity.brandTitle;
 
-    /*
-     * Importante:
-     * não removemos mais nenhum elemento do <head>.
-     * O Next gerencia o próprio head durante navegação e a versão anterior
-     * removia links de favicon criados por ele.
-     *
-     * Agora alteramos SOMENTE o link estável que já nasce no RootLayout.
-     */
     const icon =
       document.getElementById(
         "candinho-route-favicon",

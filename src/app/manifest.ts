@@ -6,8 +6,23 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "Candinho",
     description: "Gestão operacional da Candinho Company",
     start_url: "/dashboard",
+    scope: "/",
     display: "standalone",
     background_color: "#07090d",
     theme_color: "#07090d",
+    icons: [
+      {
+        src: "/favicons/cc-v44-192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "any",
+      },
+      {
+        src: "/favicons/cc-v44-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any",
+      },
+    ],
   };
 }

@@ -37,6 +37,7 @@ import "./operation-navigation-hierarchy.css";
 import "./v45-39-erp-pending-fixes.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://candinho.duckdns.org"),
   title: "Candinho Company",
   description:
     "Gestão integrada da Candinho Company: Central, Suplementos, Fitness, Bank e Portal do Parceiro.",
@@ -44,6 +45,28 @@ export const metadata: Metadata = {
     "Candinho Company",
   manifest:
     "/manifest.webmanifest",
+  openGraph: {
+    type: "website",
+    siteName: "Candinho Company",
+    title: "Candinho Company",
+    description:
+      "Gestão integrada da Candinho Company.",
+    images: [
+      {
+        url: "/favicons/cc.png",
+        width: 256,
+        height: 256,
+        alt: "Candinho Company",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary",
+    title: "Candinho Company",
+    description:
+      "Gestão integrada da Candinho Company.",
+    images: ["/favicons/cc.png"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -73,7 +96,7 @@ export default function RootLayout({
           id="candinho-route-favicon"
           rel="icon"
           type="image/png"
-          href="/favicons/cc.png?v=45.39.0"
+          href="/favicons/cc.png?v=45.44.0"
         />
         <link
           rel="apple-touch-icon"
