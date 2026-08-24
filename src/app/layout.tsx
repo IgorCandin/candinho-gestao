@@ -34,6 +34,8 @@ import "./v45-37-r13-fitness-1-0.css";
 import "./v45-37-r13-1-confirm-sale-desktop.css";
 import "./v45-38-mobile-harmony.css";
 import "./operation-navigation-hierarchy.css";
+import "./v38-nutrition.css";
+import "./v38-nutrition-ai.css";
 import "./v45-39-erp-pending-fixes.css";
 
 const FAVICON_VERSION = "45.50.0";

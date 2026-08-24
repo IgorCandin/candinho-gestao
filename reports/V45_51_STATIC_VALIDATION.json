@@ -1,0 +1,11 @@
+{
+  "base_package": "PACOTAO_ERP_V45_50_HOTFIX_LEVE.zip",
+  "search_route_restored": true,
+  "model_default_terra": true,
+  "accessories_filtered": true,
+  "default_missing": true,
+  "existing_tab": true,
+  "page_size_8": true,
+  "no_mutation_observer": true,
+  "legacy_css_imported": true
+}
