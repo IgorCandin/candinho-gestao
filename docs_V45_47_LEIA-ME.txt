@@ -1,0 +1,23 @@
+PACOTÃO ERP V45.47 — FAVICON OFICIAL + ENTREGA SEM EMBALAGEM CADASTRADA
+
+1) Favicon
+O resolvedor de abas estava usando os PNGs reduzidos/gerados (cs.png, cc.png etc.).
+Este pacote volta a apontar para os arquivos V44 originais já presentes no projeto (cs-v44.png, cc-v44.png, cb-v44.png, cf-v44.png e cce-v44.png) e sobe a versão de cache para 45.47.0.
+
+2) Entrega
+O erro "column total_cost can only be updated to DEFAULT" vinha da V45.45: a função de custo real tentava atualizar sale_items.total_cost e total_profit diretamente, mas essas duas colunas são geradas automaticamente pelo Postgres.
+A migration corrige a função para atualizar apenas unit_cost; total_cost e total_profit se recalculam sozinhos.
+
+IMPORTANTE
+A correção do banco já foi aplicada em produção. A migration vai no pacote só para manter o repositório alinhado com o Supabase.
+
+Sobre embalagem:
+Deixar todas as sacolas/cartões em zero é válido. Isso significa que nenhuma embalagem CADASTRADA foi consumida. Se você usou uma embalagem externa/avulsa que não está no ERP, a entrega deve continuar normalmente sem descontar material do estoque.
+
+Como aplicar:
+- extrair na raiz
+- substituir
+- commit/push
+
+Commit sugerido:
+V45.47 corrige favicon oficial e entrega com custo real

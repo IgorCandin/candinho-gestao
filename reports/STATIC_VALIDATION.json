@@ -1,0 +1,9 @@
+{
+  "begin_commit": true,
+  "dollar_pairs": true,
+  "preflight_pair": true,
+  "verification_pair": true,
+  "no_delete_from": true,
+  "daily_limit_10": true,
+  "cleanup_tag": true
+}
