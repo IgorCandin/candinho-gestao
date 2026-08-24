@@ -36,8 +36,68 @@ import "./v45-38-mobile-harmony.css";
 import "./operation-navigation-hierarchy.css";
 import "./v45-39-erp-pending-fixes.css";
 
+const FAVICON_VERSION = "45.50.0";
+
+const faviconBootstrap = `
+(function () {
+  try {
+    var p = window.location.pathname || "/";
+    var icon = "/favicons/cc.png";
+
+    if (p.indexOf("/bank") === 0) {
+      icon = "/favicons/cb.png";
+    } else if (
+      p.indexOf("/fitness") === 0 ||
+      p.indexOf("/catalogo/fitness") === 0
+    ) {
+      icon = "/favicons/cf.png";
+    } else if (
+      p.indexOf("/central") === 0 ||
+      p.indexOf("/marketing") === 0 ||
+      p.indexOf("/nexus") === 0
+    ) {
+      icon = "/favicons/cce.png";
+    } else if (
+      p.indexOf("/suplementos") === 0 ||
+      p.indexOf("/parceiro") === 0 ||
+      p.indexOf("/catalogo/suplementos") === 0 ||
+      p.indexOf("/vendas") === 0 ||
+      p.indexOf("/clientes") === 0 ||
+      p.indexOf("/estoque") === 0 ||
+      p.indexOf("/produtos") === 0 ||
+      p.indexOf("/agenda") === 0 ||
+      p.indexOf("/leads") === 0
+    ) {
+      icon = "/favicons/cs.png";
+    }
+
+    var href =
+      icon + "?v=${FAVICON_VERSION}";
+
+    var main =
+      document.getElementById(
+        "candinho-route-favicon"
+      );
+
+    var shortcut =
+      document.getElementById(
+        "candinho-route-shortcut-favicon"
+      );
+
+    if (main) {
+      main.setAttribute("href", href);
+    }
+
+    if (shortcut) {
+      shortcut.setAttribute("href", href);
+    }
+  } catch (_) {}
+})();
+`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://candinho.duckdns.org"),
+  metadataBase:
+    new URL("https://candinho.duckdns.org"),
   title: "Candinho Company",
   description:
     "Gestão integrada da Candinho Company: Central, Suplementos, Fitness, Bank e Portal do Parceiro.",
@@ -96,11 +156,22 @@ export default function RootLayout({
           id="candinho-route-favicon"
           rel="icon"
           type="image/png"
-          href="/favicons/cc.png?v=45.44.0"
+          href={`/favicons/cc.png?v=${FAVICON_VERSION}`}
+        />
+        <link
+          id="candinho-route-shortcut-favicon"
+          rel="shortcut icon"
+          type="image/png"
+          href={`/favicons/cc.png?v=${FAVICON_VERSION}`}
         />
         <link
           rel="apple-touch-icon"
           href="/favicons/cc-v44-180.png"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: faviconBootstrap,
+          }}
         />
 
         {supabaseOrigin && (

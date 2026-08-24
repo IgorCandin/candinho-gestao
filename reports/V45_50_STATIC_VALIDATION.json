@@ -1,0 +1,12 @@
+{
+  "base_package": "PACOTAO_ERP_V45_49_NUTRICAO_FAVICON.zip",
+  "global_mutation_observer_removed": true,
+  "nutrition_mutation_observer_removed": true,
+  "nutrition_default_missing": true,
+  "nutrition_page_size_12": true,
+  "nutrition_existing_view": true,
+  "nutrition_load_more": true,
+  "favicon_cache_version": true,
+  "favicon_shortcut_link": true,
+  "favicon_bootstrap_one_shot": true
+}

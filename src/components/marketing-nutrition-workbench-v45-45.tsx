@@ -5,6 +5,7 @@ import {
   ImageOff,
   Layers3,
   RotateCcw,
+  Search,
   Sparkles,
 } from "lucide-react";
 import {
@@ -20,15 +21,24 @@ type Rows = ComponentProps<
   typeof ProductNutritionWorkbench
 >["initialRows"];
 
-type NutritionView = "missing" | "existing" | "all";
+type NutritionView =
+  | "missing"
+  | "existing"
+  | "all";
 
-function relabelNutritionWorkspace(root: HTMLElement) {
+const PAGE_SIZE = 12;
+
+function relabelNutritionWorkspace(
+  root: HTMLElement,
+) {
   const walker = document.createTreeWalker(
     root,
     NodeFilter.SHOW_TEXT,
   );
 
-  const replacements: Array<[RegExp, string]> = [
+  const replacements: Array<
+    [RegExp, string]
+  > = [
     [/Imagem 2/g, "Foto 03"],
     [/imagem 2/g, "Foto 03"],
     [/Imagem atual/g, "Foto atual"],
@@ -52,13 +62,27 @@ function relabelNutritionWorkspace(root: HTMLElement) {
   }
 }
 
-function hasPhoto03(
-  row: Rows[number],
-) {
+function hasPhoto03(row: Rows[number]) {
   return Boolean(
-    typeof row.secondary_image_url === "string" &&
+    typeof row.secondary_image_url ===
+      "string" &&
       row.secondary_image_url.trim(),
   );
+}
+
+function matchesQuery(
+  row: Rows[number],
+  query: string,
+) {
+  const normalized = query
+    .trim()
+    .toLocaleLowerCase("pt-BR");
+
+  if (!normalized) return true;
+
+  return String(row.name ?? "")
+    .toLocaleLowerCase("pt-BR")
+    .includes(normalized);
 }
 
 export function MarketingNutritionWorkbenchV4545({
@@ -66,14 +90,21 @@ export function MarketingNutritionWorkbenchV4545({
 }: {
   rows: Rows;
 }) {
-  const rootRef = useRef<HTMLDivElement>(null);
+  const rootRef =
+    useRef<HTMLDivElement>(null);
+
   const [view, setView] =
     useState<NutritionView>("missing");
+
+  const [query, setQuery] = useState("");
+  const [limit, setLimit] =
+    useState(PAGE_SIZE);
 
   const groups = useMemo(() => {
     const missing = rows.filter(
       (row) => !hasPhoto03(row),
     );
+
     const existing = rows.filter(
       (row) => hasPhoto03(row),
     );
@@ -85,35 +116,48 @@ export function MarketingNutritionWorkbenchV4545({
     };
   }, [rows]);
 
-  const visibleRows = groups[view];
+  const filteredRows = useMemo(
+    () =>
+      groups[view].filter((row) =>
+        matchesQuery(row, query),
+      ),
+    [groups, query, view],
+  );
+
+  const visibleRows = useMemo(
+    () => filteredRows.slice(0, limit),
+    [filteredRows, limit],
+  );
+
+  const hasMore =
+    visibleRows.length <
+    filteredRows.length;
+
+  useEffect(() => {
+    setLimit(PAGE_SIZE);
+  }, [query, view]);
 
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
 
-    const refresh = () =>
-      relabelNutritionWorkspace(root);
+    const frame =
+      window.requestAnimationFrame(() => {
+        relabelNutritionWorkspace(root);
+      });
 
-    refresh();
-
-    const observer = new MutationObserver(refresh);
-    observer.observe(root, {
-      childList: true,
-      subtree: true,
-      characterData: true,
-    });
-
-    return () => observer.disconnect();
-  }, [view]);
+    return () =>
+      window.cancelAnimationFrame(frame);
+  }, [limit, query, view]);
 
   return (
     <div
       ref={rootRef}
-      className="nutrition-v4549"
+      className="nutrition-v4550"
     >
-      <section className="nutrition-v4549-switcher">
-        <div className="nutrition-v4549-copy">
-          <span className="nutrition-v4549-eyebrow">
+      <section className="nutrition-v4550-switcher">
+        <div className="nutrition-v4550-copy">
+          <span className="nutrition-v4550-eyebrow">
             <Sparkles size={14} />
             Fila da Foto 03
           </span>
@@ -128,48 +172,60 @@ export function MarketingNutritionWorkbenchV4545({
 
           <p>
             {view === "missing"
-              ? "Esta é a fila padrão. Aqui aparecem somente produtos que ainda não possuem Foto 03."
+              ? "A tela abre somente com produtos que ainda não possuem Foto 03."
               : view === "existing"
-                ? "Use esta área quando quiser revisar, refazer ou remover uma Foto 03 já existente."
-                : "Visão completa para conferência. Nenhum produto é alterado apenas por aparecer aqui."}
+                ? "Aqui ficam os produtos que já possuem Foto 03 para revisar, refazer ou remover."
+                : "Visão completa para conferência."}
           </p>
         </div>
 
         <div
-          className="nutrition-v4549-tabs"
+          className="nutrition-v4550-tabs"
           role="tablist"
           aria-label="Visualização da Foto 03"
         >
           <button
             type="button"
             role="tab"
-            aria-selected={view === "missing"}
+            aria-selected={
+              view === "missing"
+            }
             className={
               view === "missing"
                 ? "is-active"
                 : undefined
             }
-            onClick={() => setView("missing")}
+            onClick={() =>
+              setView("missing")
+            }
           >
             <ImageOff size={16} />
             <span>Faltam</span>
-            <strong>{groups.missing.length}</strong>
+            <strong>
+              {groups.missing.length}
+            </strong>
           </button>
 
           <button
             type="button"
             role="tab"
-            aria-selected={view === "existing"}
+            aria-selected={
+              view === "existing"
+            }
             className={
               view === "existing"
                 ? "is-active"
                 : undefined
             }
-            onClick={() => setView("existing")}
+            onClick={() =>
+              setView("existing")
+            }
           >
             <CheckCircle2 size={16} />
             <span>Já possuem</span>
-            <strong>{groups.existing.length}</strong>
+            <strong>
+              {groups.existing.length}
+            </strong>
           </button>
 
           <button
@@ -181,17 +237,36 @@ export function MarketingNutritionWorkbenchV4545({
                 ? "is-active"
                 : undefined
             }
-            onClick={() => setView("all")}
+            onClick={() =>
+              setView("all")
+            }
           >
             <Layers3 size={16} />
             <span>Todos</span>
-            <strong>{groups.all.length}</strong>
+            <strong>
+              {groups.all.length}
+            </strong>
           </button>
         </div>
       </section>
 
-      <div className="nutrition-v4549-status">
-        <div>
+      <section className="nutrition-v4550-tools">
+        <label className="nutrition-v4550-search">
+          <Search
+            size={16}
+            aria-hidden="true"
+          />
+          <input
+            value={query}
+            onChange={(event) =>
+              setQuery(event.target.value)
+            }
+            placeholder="Buscar produto..."
+            aria-label="Buscar produto"
+          />
+        </label>
+
+        <div className="nutrition-v4550-status">
           {view === "missing" ? (
             <ImageOff size={15} />
           ) : view === "existing" ? (
@@ -199,355 +274,356 @@ export function MarketingNutritionWorkbenchV4545({
           ) : (
             <Layers3 size={15} />
           )}
+
           <span>
-            <strong>{visibleRows.length}</strong>{" "}
-            produto(s) nesta visualização
+            Mostrando{" "}
+            <strong>
+              {visibleRows.length}
+            </strong>{" "}
+            de{" "}
+            <strong>
+              {filteredRows.length}
+            </strong>
           </span>
         </div>
+      </section>
 
-        {view === "existing" && (
+      {visibleRows.length > 0 ? (
+        <ProductNutritionWorkbench
+          key={`${view}:${query}:${limit}`}
+          initialRows={visibleRows}
+        />
+      ) : (
+        <section className="nutrition-v4550-empty">
+          <CheckCircle2 size={22} />
+          <div>
+            <strong>
+              Nenhum produto nesta lista
+            </strong>
+            <p>
+              Troque a visualização ou ajuste
+              a busca.
+            </p>
+          </div>
+        </section>
+      )}
+
+      {hasMore && (
+        <div className="nutrition-v4550-more">
+          <button
+            type="button"
+            className="button ghost"
+            onClick={() =>
+              setLimit(
+                (current) =>
+                  current + PAGE_SIZE,
+              )
+            }
+          >
+            Carregar mais {Math.min(
+              PAGE_SIZE,
+              filteredRows.length -
+                visibleRows.length,
+            )}
+          </button>
+
           <small>
-            Abra o card para refazer ou remover a
-            Foto 03.
+            Carregamento em lotes para não
+            pesar o navegador.
           </small>
-        )}
-      </div>
-
-      <ProductNutritionWorkbench
-        key={view}
-        initialRows={visibleRows}
-      />
+        </div>
+      )}
 
       <style jsx global>{`
-        .nutrition-v4549 {
+        .nutrition-v4550 {
           display: grid;
-          gap: 16px;
+          gap: 14px;
           min-width: 0;
         }
 
-        .nutrition-v4549-switcher {
+        .nutrition-v4550-switcher {
           display: grid;
           grid-template-columns:
             minmax(0, 1fr) auto;
           gap: 20px;
           align-items: center;
-          padding: 20px;
+          padding: 18px;
           border: 1px solid
             rgba(148, 163, 184, 0.16);
-          border-radius: 20px;
+          border-radius: 18px;
           background:
             radial-gradient(
               circle at 0 0,
-              rgba(234, 179, 8, 0.08),
+              rgba(234, 179, 8, 0.075),
               transparent 38%
             ),
             rgba(12, 16, 24, 0.94);
-          box-shadow:
-            0 18px 50px rgba(0, 0, 0, 0.18);
         }
 
-        .nutrition-v4549-copy {
+        .nutrition-v4550-copy {
           min-width: 0;
         }
 
-        .nutrition-v4549-eyebrow {
+        .nutrition-v4550-eyebrow {
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          margin-bottom: 8px;
+          margin-bottom: 7px;
           color: #e9b949;
-          font-size: 12px;
+          font-size: 11px;
           font-weight: 800;
           letter-spacing: 0.06em;
           text-transform: uppercase;
         }
 
-        .nutrition-v4549-copy h2 {
+        .nutrition-v4550-copy h2 {
           margin: 0;
-          font-size: clamp(20px, 2vw, 27px);
+          font-size:
+            clamp(20px, 2vw, 26px);
           letter-spacing: -0.03em;
         }
 
-        .nutrition-v4549-copy p {
-          max-width: 720px;
-          margin: 7px 0 0;
+        .nutrition-v4550-copy p {
+          max-width: 700px;
+          margin: 6px 0 0;
           color: var(--muted);
-          font-size: 13px;
-          line-height: 1.55;
+          font-size: 12px;
+          line-height: 1.5;
         }
 
-        .nutrition-v4549-tabs {
+        .nutrition-v4550-tabs {
           display: flex;
           flex-wrap: wrap;
           justify-content: flex-end;
           gap: 8px;
         }
 
-        .nutrition-v4549-tabs button {
+        .nutrition-v4550-tabs button {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          min-height: 42px;
-          padding: 0 12px;
+          min-height: 40px;
+          padding: 0 11px;
           border: 1px solid
             rgba(148, 163, 184, 0.18);
-          border-radius: 13px;
-          background: rgba(255, 255, 255, 0.025);
+          border-radius: 12px;
+          background:
+            rgba(255, 255, 255, 0.025);
           color: var(--muted);
           font: inherit;
           font-size: 12px;
           font-weight: 750;
           cursor: pointer;
-          transition:
-            background 160ms ease,
-            border-color 160ms ease,
-            transform 160ms ease,
-            color 160ms ease;
         }
 
-        .nutrition-v4549-tabs button:hover {
-          transform: translateY(-1px);
+        .nutrition-v4550-tabs
+          button.is-active {
           border-color:
-            rgba(233, 185, 73, 0.42);
-          color: inherit;
-        }
-
-        .nutrition-v4549-tabs button.is-active {
-          border-color:
-            rgba(233, 185, 73, 0.6);
+            rgba(233, 185, 73, 0.58);
           background:
             rgba(233, 185, 73, 0.12);
           color: #f7d97e;
         }
 
-        .nutrition-v4549-tabs strong {
+        .nutrition-v4550-tabs strong {
           display: grid;
-          min-width: 24px;
-          height: 24px;
+          min-width: 23px;
+          height: 23px;
           place-items: center;
           padding: 0 6px;
           border-radius: 999px;
-          background: rgba(255, 255, 255, 0.07);
+          background:
+            rgba(255, 255, 255, 0.07);
           color: currentColor;
-          font-size: 11px;
+          font-size: 10px;
         }
 
-        .nutrition-v4549-status {
+        .nutrition-v4550-tools {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 12px;
-          min-height: 44px;
-          padding: 10px 14px;
+          padding: 11px 12px;
           border: 1px solid
             rgba(148, 163, 184, 0.12);
           border-radius: 14px;
-          background: rgba(255, 255, 255, 0.018);
+          background:
+            rgba(12, 16, 24, 0.74);
         }
 
-        .nutrition-v4549-status > div {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          min-width: 0;
-          font-size: 12px;
-        }
-
-        .nutrition-v4549-status small {
-          color: var(--muted);
-          font-size: 11px;
-        }
-
-        .nutrition-v4549
-          .nutrition-workbench-kpis {
-          display: none !important;
-        }
-
-        .nutrition-v4549
-          .nutrition-workbench-toolbar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          padding: 12px 14px !important;
-          border: 1px solid
-            rgba(148, 163, 184, 0.12);
-          border-radius: 15px;
-          background: rgba(12, 16, 24, 0.72);
-        }
-
-        .nutrition-v4549
-          .nutrition-workbench-toolbar
-          > div {
-          display: flex;
-          flex: 1 1 auto;
-          gap: 10px;
-          min-width: 0;
-        }
-
-        .nutrition-v4549
-          .nutrition-workbench-toolbar
-          label {
+        .nutrition-v4550-search {
           display: flex;
           flex: 1 1 440px;
           align-items: center;
           gap: 8px;
-          min-width: 220px;
           max-width: 620px;
-          min-height: 42px;
-          padding: 0 12px;
+          min-height: 40px;
+          padding: 0 11px;
           border: 1px solid
             rgba(148, 163, 184, 0.16);
-          border-radius: 12px;
-          background: rgba(3, 7, 18, 0.58);
+          border-radius: 11px;
+          background:
+            rgba(3, 7, 18, 0.58);
         }
 
-        .nutrition-v4549
-          .nutrition-workbench-toolbar
-          input {
+        .nutrition-v4550-search input {
           width: 100%;
           min-width: 0;
           border: 0;
           outline: 0;
           background: transparent;
           color: inherit;
+          font: inherit;
+          font-size: 12px;
         }
 
-        .nutrition-v4549
-          .nutrition-workbench-toolbar
-          select {
+        .nutrition-v4550-status {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          color: var(--muted);
+          font-size: 11px;
+          white-space: nowrap;
+        }
+
+        .nutrition-v4550
+          .nutrition-workbench-kpis,
+        .nutrition-v4550
+          .nutrition-workbench-toolbar {
           display: none !important;
         }
 
-        .nutrition-v4549
-          .nutrition-workbench-toolbar
-          > strong {
-          white-space: nowrap;
-          color: var(--muted);
-          font-size: 11px;
-        }
-
-        .nutrition-v4549
+        .nutrition-v4550
           .nutrition-flow-note {
           display: flex;
           align-items: center;
-          gap: 10px;
-          padding: 12px 14px !important;
+          gap: 9px;
+          padding: 11px 12px !important;
           border: 1px solid
             rgba(148, 163, 184, 0.1);
-          border-radius: 14px;
-          background: rgba(255, 255, 255, 0.018);
+          border-radius: 13px;
+          background:
+            rgba(255, 255, 255, 0.018);
         }
 
-        .nutrition-v4549
+        .nutrition-v4550
           .nutrition-card-grid {
           display: grid !important;
           grid-template-columns:
             repeat(
               auto-fill,
-              minmax(min(100%, 360px), 1fr)
+              minmax(
+                min(100%, 350px),
+                1fr
+              )
             ) !important;
-          gap: 16px !important;
+          gap: 14px !important;
           align-items: start;
         }
 
-        .nutrition-v4549
+        .nutrition-v4550
           .nutrition-workbench-card {
           min-width: 0;
           overflow: hidden;
           border: 1px solid
             rgba(148, 163, 184, 0.13) !important;
-          border-radius: 18px !important;
-          background: rgba(12, 16, 24, 0.78);
-          box-shadow:
-            0 12px 34px rgba(0, 0, 0, 0.13);
+          border-radius: 17px !important;
+          background:
+            rgba(12, 16, 24, 0.78);
         }
 
-        .nutrition-v4549
+        .nutrition-v4550
           .nutrition-workbench-card
           img {
           max-width: 100%;
           height: auto;
         }
 
-        .nutrition-v4549
-          .nutrition-workbench-card
-          input,
-        .nutrition-v4549
-          .nutrition-workbench-card
-          select,
-        .nutrition-v4549
-          .nutrition-workbench-card
-          textarea {
-          max-width: 100%;
+        .nutrition-v4550-more {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          gap: 7px;
+          padding: 4px 0 10px;
+        }
+
+        .nutrition-v4550-more small {
+          color: var(--muted);
+          font-size: 10px;
+        }
+
+        .nutrition-v4550-empty {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 22px;
+          border: 1px dashed
+            rgba(148, 163, 184, 0.18);
+          border-radius: 16px;
+          color: var(--muted);
+        }
+
+        .nutrition-v4550-empty strong {
+          color: inherit;
+          font-size: 13px;
+        }
+
+        .nutrition-v4550-empty p {
+          margin: 3px 0 0;
+          font-size: 11px;
         }
 
         @media (max-width: 860px) {
-          .nutrition-v4549-switcher {
+          .nutrition-v4550-switcher {
             grid-template-columns: 1fr;
           }
 
-          .nutrition-v4549-tabs {
+          .nutrition-v4550-tabs {
             justify-content: flex-start;
           }
         }
 
         @media (max-width: 620px) {
-          .nutrition-v4549 {
-            gap: 12px;
+          .nutrition-v4550 {
+            gap: 11px;
           }
 
-          .nutrition-v4549-switcher {
-            gap: 14px;
-            padding: 15px;
-            border-radius: 16px;
+          .nutrition-v4550-switcher {
+            gap: 13px;
+            padding: 14px;
+            border-radius: 15px;
           }
 
-          .nutrition-v4549-tabs {
+          .nutrition-v4550-tabs {
             display: grid;
             grid-template-columns: 1fr;
           }
 
-          .nutrition-v4549-tabs button {
+          .nutrition-v4550-tabs button {
             width: 100%;
             justify-content: flex-start;
           }
 
-          .nutrition-v4549-tabs strong {
+          .nutrition-v4550-tabs strong {
             margin-left: auto;
           }
 
-          .nutrition-v4549-status {
-            align-items: flex-start;
-            flex-direction: column;
-          }
-
-          .nutrition-v4549
-            .nutrition-workbench-toolbar {
+          .nutrition-v4550-tools {
             align-items: stretch;
             flex-direction: column;
           }
 
-          .nutrition-v4549
-            .nutrition-workbench-toolbar
-            > div {
-            width: 100%;
-          }
-
-          .nutrition-v4549
-            .nutrition-workbench-toolbar
-            label {
-            min-width: 0;
+          .nutrition-v4550-search {
+            flex-basis: auto;
             max-width: none;
           }
 
-          .nutrition-v4549
-            .nutrition-workbench-toolbar
-            > strong {
+          .nutrition-v4550-status {
             padding-left: 2px;
           }
 
-          .nutrition-v4549
+          .nutrition-v4550
             .nutrition-card-grid {
             grid-template-columns:
               minmax(0, 1fr) !important;
