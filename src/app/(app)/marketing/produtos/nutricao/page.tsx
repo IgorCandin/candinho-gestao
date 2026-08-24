@@ -1,7 +1,12 @@
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  ShieldCheck,
+  Sparkles,
+} from "lucide-react";
 import { redirect } from "next/navigation";
 import { MarketingNutritionWorkbenchV4545 } from "@/components/marketing-nutrition-workbench-v45-45";
+import { NutritionPhoto3BatchImporter } from "@/components/nutrition-photo3-batch-importer";
 import { PageHeader } from "@/components/page-header";
 import { getCurrentUserAccess } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
@@ -9,24 +14,37 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 export default async function MarketingNutritionPage() {
-  const access = await getCurrentUserAccess();
+  const access =
+    await getCurrentUserAccess();
 
   if (
     !access.active ||
-    !(access.role === "admin" || access.canAccessMarketing)
+    !(
+      access.role === "admin" ||
+      access.canAccessMarketing
+    )
   ) {
     redirect("/dashboard");
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("product_nutrition_enrichment_queue")
-    .select("*")
-    .eq("active", true)
-    .order("priority_rank", { ascending: false })
-    .order("name");
+  const supabase =
+    await createClient();
+
+  const { data, error } =
+    await supabase
+      .from(
+        "product_nutrition_enrichment_queue",
+      )
+      .select("*")
+      .eq("active", true)
+      .order("priority_rank", {
+        ascending: false,
+      })
+      .order("name");
 
   if (error) throw error;
+
+  const rows = data ?? [];
 
   return (
     <>
@@ -38,32 +56,70 @@ export default async function MarketingNutritionPage() {
 
       <section
         className="panel"
-        style={{ marginBottom: 16 }}
+        style={{
+          marginBottom: 16,
+        }}
       >
         <div
           className="panel-body"
           style={{
             display: "grid",
             gap: 12,
-            gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))",
+            gridTemplateColumns:
+              "repeat(auto-fit,minmax(220px,1fr))",
           }}
         >
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+            }}
+          >
             <Sparkles size={18} />
             <div>
-              <strong>Pesquisa com Nexus</strong>
-              <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 11 }}>
-                Prioriza marca, fabricante ou documento oficial e registra a fonte consultada.
+              <strong>
+                Pesquisa com Nexus
+              </strong>
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  color: "var(--muted)",
+                  fontSize: 11,
+                }}
+              >
+                Quando houver créditos
+                de API, continua
+                disponível. Sem créditos,
+                use o importador em lote
+                abaixo.
               </p>
             </div>
           </div>
 
-          <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "flex-start",
+            }}
+          >
             <ShieldCheck size={18} />
             <div>
-              <strong>Revisão antes de publicar</strong>
-              <p style={{ margin: "4px 0 0", color: "var(--muted)", fontSize: 11 }}>
-                A IA pesquisa os dados; a tabela é renderizada pelo ERP para não inventar números no desenho.
+              <strong>
+                Revisão antes de publicar
+              </strong>
+              <p
+                style={{
+                  margin: "4px 0 0",
+                  color: "var(--muted)",
+                  fontSize: 11,
+                }}
+              >
+                Tanto a IA quanto os
+                pacotes externos entram
+                em revisão. Nada é
+                aprovado automaticamente.
               </p>
             </div>
           </div>
@@ -71,7 +127,10 @@ export default async function MarketingNutritionPage() {
           <Link
             href="/central/marketing/produtos"
             className="button ghost"
-            style={{ alignSelf: "center", justifySelf: "start" }}
+            style={{
+              alignSelf: "center",
+              justifySelf: "start",
+            }}
           >
             <ArrowLeft size={15} />
             Voltar ao banco de fotos
@@ -79,7 +138,13 @@ export default async function MarketingNutritionPage() {
         </div>
       </section>
 
-      <MarketingNutritionWorkbenchV4545 rows={data ?? []} />
+      <NutritionPhoto3BatchImporter
+        rows={rows}
+      />
+
+      <MarketingNutritionWorkbenchV4545
+        rows={rows}
+      />
     </>
   );
 }

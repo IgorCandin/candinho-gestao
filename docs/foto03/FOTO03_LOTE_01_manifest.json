@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "slot": "photo3",
+  "batch": "FOTO03_LOTE_01",
+  "instructions": "Preencher source_name/source_url/notes ao gerar cada imagem. O importador deixa todos em review.",
+  "items": [
+    {
+      "product_id": "82c77a2b-1081-49b1-9613-af6542bd77c8",
+      "sku": "10351",
+      "file": "10351__anabolic-mass-profit-labs.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "0445d8f9-b648-4b11-945b-c454a2c7ff14",
+      "sku": "10361",
+      "file": "10361__army-super-mass-soldiers.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "372fdc58-bc0b-4eaa-beea-922bbf2badc4",
+      "sku": "10041",
+      "file": "10041__ashwagandha-moringa-maca-negra.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "f81db616-f463-4a9a-8dea-3e135a290433",
+      "sku": "10031",
+      "file": "10031__ashwagandha-w-nutry.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "a10d964f-0441-473d-8698-1e60d86a6c39",
+      "sku": "10051",
+      "file": "10051__basic-whey-growth.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "114bffc1-1574-4a77-8e16-4d1202437b10",
+      "sku": "10061",
+      "file": "10061__bcaa-10-1-1-ftw.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "13981427-bd98-4cf6-bf1b-3cd0283ebc6b",
+      "sku": "10751",
+      "file": "10751__beast-kaos-3vs.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "4f080c6e-8322-4c85-974c-b7d02ec3fcba",
+      "sku": "10081",
+      "file": "10081__beterraba.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "0ef76afa-c4a9-4ada-abd9-bc3d2401aa7d",
+      "sku": "10091",
+      "file": "10091__biotina-cabelo-pele-unhas.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    },
+    {
+      "product_id": "ab6621c1-1a32-44c8-870e-3c05e1d7bf6f",
+      "sku": "10101",
+      "file": "10101__biotina-b7-ouro-pharma.png",
+      "source_name": "",
+      "source_url": "",
+      "notes": ""
+    }
+  ]
+}

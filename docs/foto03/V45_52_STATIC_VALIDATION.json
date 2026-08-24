@@ -1,0 +1,10 @@
+{
+  "new_component": true,
+  "sequential_upload": true,
+  "uses_existing_upload_endpoint": true,
+  "marks_review": true,
+  "protects_existing_by_default": true,
+  "manifest_support": true,
+  "batch_01_count": 10,
+  "no_migration": true
+}
