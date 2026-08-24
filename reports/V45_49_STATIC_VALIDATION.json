@@ -1,0 +1,8 @@
+{
+  "base_package": "PACOTAO_ERP_V45_48_BACKEND_COMERCIAL.zip",
+  "nutrition_default_missing": true,
+  "nutrition_existing_tab": true,
+  "nutrition_all_tab": true,
+  "favicon_uses_official_non_v44": true,
+  "favicon_observer": true
+}
