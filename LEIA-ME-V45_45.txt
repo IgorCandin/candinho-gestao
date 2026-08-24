@@ -1,0 +1,75 @@
+CANDINHO COMPANY · PACOTÃO V45.45 · INTELIGÊNCIA DE PRODUTO
+
+BASE
+- main em 5c9cbc93 (V45.44)
+
+PARTE 1 · CUSTO DE REFERÊNCIA + CUSTO REAL POR ENTRADA
+- products.cost_price passa a ser tratado como CUSTO DE REFERÊNCIA do cadastro.
+- Um recebimento promocional NÃO troca mais essa referência.
+- purchase_receipts continua guardando o custo real de cada entrada.
+- Cada entrada cria uma camada técnica de custo dentro da rastreabilidade já existente.
+- Estoque atual recebe uma camada inicial pelo custo de referência.
+- Transferências preservam a camada/custo porque reutilizam o mecanismo existente de inventory_lots.
+- Na venda, o ERP recalcula sale_items e sales pelo custo das unidades efetivamente baixadas.
+- O cálculo segue a ordem FIFO/FEFO já usada pela rastreabilidade.
+- Snapshots operacionais já existentes também têm o custo da mercadoria sincronizado.
+
+EXEMPLO
+Produto: Core Pré-Workout
+Custo de referência: R$ 39,90
+Entrada promocional: 1 un. a R$ 5,00
+Resultado:
+- cadastro continua R$ 39,90;
+- a unidade recebida fica registrada a R$ 5,00;
+- quando essa unidade for consumida em uma venda, o lucro da venda usa R$ 5,00.
+
+PARTE 2 · NUTRIÇÃO IA VOLTA PARA O MARKETING
+Novo caminho:
+Central > Marketing > Nutrição IA · Foto 03
+
+O fluxo antigo foi reaproveitado:
+1. Nexus pesquisa os dados na internet.
+2. Prioriza fonte oficial.
+3. Confere variante/gramatura e mostra confiança.
+4. Você revisa.
+5. O ERP renderiza a tabela de forma determinística.
+6. A imagem salva no mesmo slot que o Banco de Fotos já chama de Foto 03 · Nutrição.
+
+IMPORTANTE
+- A geração não usa IA para desenhar números/textos da tabela.
+- A IA pesquisa e estrutura; o navegador/ERP renderiza a arte.
+- A aprovação continua humana.
+- Recomendação: homologar primeiro 1 a 3 produtos conhecidos.
+
+ARQUIVOS
+- supabase/migrations/20260824015907_v45_45_product_intelligence.sql
+- src/components/product-internal-cost-panel-v45-21.tsx
+- src/components/marketing-nutrition-workbench-v45-45.tsx
+- src/app/(app)/marketing/produtos/nutricao/page.tsx
+- src/app/(app)/marketing/page.tsx
+
+MIGRATION
+A migration 20260824015907_v45_45_product_intelligence JÁ FOI APLICADA no Supabase de produção nesta conversa.
+O arquivo permanece no pacote para manter o histórico do repositório sincronizado.
+NÃO precisa executar manualmente no banco.
+
+TESTE DE CUSTO
+1. Escolha um produto com custo de referência conhecido.
+2. Registre/receba uma nova unidade com custo promocional diferente.
+3. Confira no produto:
+   - Custo de referência não mudou.
+   - Último custo de compra mostra a promoção.
+   - Custo real do estoque reflete as camadas.
+4. Venda/entregue essa unidade e confira lucro/custo da venda.
+
+TESTE DE NUTRIÇÃO
+1. Central > Marketing > Nutrição IA · Foto 03.
+2. Escolha um produto conhecido.
+3. Pesquisar com IA.
+4. Conferir fonte, variante, confiança e valores.
+5. Gerar prévia.
+6. Salvar como Foto 03.
+7. Voltar ao banco de fotos e conferir o terceiro quadrado.
+
+COMMIT SUGERIDO
+V45.45 inteligência de produto: custo real por entrada e Nutrição IA no Marketing

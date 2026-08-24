@@ -6,6 +6,7 @@ import {
   Images,
   Lightbulb,
   PackageSearch,
+  Search,
   Sparkles,
   Workflow,
 } from "lucide-react";
@@ -83,6 +84,19 @@ export default async function MarketingPage() {
             <strong>Produtos e banco de fotos</strong>
             <small>
               Suplementos e Fitness, seleção em lote e download das imagens.
+            </small>
+          </span>
+        </Link>
+
+        <Link
+          href="/central/marketing/produtos/nutricao"
+          className="central-launch-card"
+        >
+          <Search size={24} />
+          <span>
+            <strong>Nutrição IA · Foto 03</strong>
+            <small>
+              Nexus pesquisa a fonte oficial e prepara a tabela nutricional para revisão.
             </small>
           </span>
         </Link>
