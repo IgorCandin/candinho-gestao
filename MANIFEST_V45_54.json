@@ -1,0 +1,60 @@
+{
+  "version": "V45.54",
+  "kind": "incremental-overlay",
+  "repository": "IgorCandin/candinho-gestao",
+  "base_branch": "main",
+  "base_commit": "0b5b7f31ec4dec0a3ea77c579e783ecddc34349e",
+  "database_migration_applied": false,
+  "files": [
+    {
+      "path": "LEIA-ME-V45_54.md",
+      "bytes": 2698,
+      "sha256": "6d94b5a250881f52329d37e0550b42b1398d9847ae213fb463f68f8aeb46915b"
+    },
+    {
+      "path": "VALIDACAO_V45_54.txt",
+      "bytes": 1675,
+      "sha256": "36a205beeccb2d28fd3fc2ef10328b3757d081bc25f2d4ece396138c3aa40a12"
+    },
+    {
+      "path": "src/app/(app)/vendas/rotas/page.tsx",
+      "bytes": 4282,
+      "sha256": "bbc338bbf3a69d701623e88f13a6749075f6b4340231979c4161ab74ea719e00"
+    },
+    {
+      "path": "src/components/commercial-nav.tsx",
+      "bytes": 927,
+      "sha256": "56c9fb161a4e6257322b29ddd85ca04c75ee9822acc87b62c41bdc33775e35c9"
+    },
+    {
+      "path": "src/components/commercial-route-manager.module.css",
+      "bytes": 4245,
+      "sha256": "725fecd7eee0c20cf83c584d6cdbbccd144f35b58e77a0d7d84c64a293de248d"
+    },
+    {
+      "path": "src/components/commercial-route-manager.tsx",
+      "bytes": 12341,
+      "sha256": "0db4cf74bef3eb72c63ac15f2aebc63b5d463dc512b11329d64c8fafd230968f"
+    },
+    {
+      "path": "src/components/route-tab-identity.tsx",
+      "bytes": 7280,
+      "sha256": "826f81edbbe92c9c132c73ccb0acbc7b411da05caef2735c219625e104833bcd"
+    },
+    {
+      "path": "supabase/migrations/20260830133000_v45_54_commercial_route_scheduling.sql",
+      "bytes": 16444,
+      "sha256": "c648a94d9f547eb5af0ea22a04be904de86ffb36fffe6bee7fa3594110042b61"
+    },
+    {
+      "path": "supabase/tests/v45_54_postcheck.sql",
+      "bytes": 1389,
+      "sha256": "a67c916b62b096cf32becd7fa5a6bc79a48a7837be8628e5b10e65cd4ba38b62"
+    },
+    {
+      "path": "supabase/tests/v45_54_precheck.sql",
+      "bytes": 882,
+      "sha256": "84fdb425c36c8ead71eac24a187cd687077a4f3ebc517eef775a5339f8d11b94"
+    }
+  ]
+}

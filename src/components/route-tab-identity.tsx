@@ -11,7 +11,7 @@ type Operation =
   | "central"
   | "physique";
 
-const FAVICON_VERSION = "45.50.0";
+const FAVICON_VERSION = "45.54.0";
 
 const OPERATION = {
   company: {
@@ -90,6 +90,7 @@ const LABELS: Array<[string, string]> = [
   ["/suplementos/pedidos-pendentes", "Pedidos pendentes"],
   ["/suplementos/movimentacoes", "Movimentações"],
   ["/suplementos/fornecedores", "Fornecedores"],
+  ["/suplementos/vendas/rotas", "Rotas"],
   ["/suplementos/vendas/nova", "Nova venda"],
   ["/suplementos/orcamentos", "Orçamentos"],
   ["/suplementos/pos-venda", "Pós-venda"],
@@ -106,6 +107,7 @@ const LABELS: Array<[string, string]> = [
   ["/pedidos-pendentes", "Pedidos pendentes"],
   ["/movimentacoes", "Movimentações"],
   ["/fornecedores", "Fornecedores"],
+  ["/vendas/rotas", "Rotas"],
   ["/vendas/nova", "Nova venda"],
   ["/orcamentos", "Orçamentos"],
   ["/pos-venda", "Pós-venda"],

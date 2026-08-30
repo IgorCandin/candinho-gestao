@@ -1,0 +1,33 @@
+V45.54 · RELATÓRIO DE VALIDAÇÃO
+
+Base:
+- Repositório: IgorCandin/candinho-gestao
+- Branch: main
+- Commit: 0b5b7f31ec4dec0a3ea77c579e783ecddc34349e
+- Commit message: V45.52 adiciona importador em lote da Foto 03
+
+Validações executadas:
+[OK] Main atual conferido antes do empacotamento.
+[OK] Supabase real conferido em modo leitura.
+[OK] customers existe e possui cidade/ativo.
+[OK] customer_interactions existe.
+[OK] register_customer_interaction existe e aceita contact + WhatsApp.
+[OK] sales_quotes.payment_due_on existe (date).
+[OK] ux_health_signals existe.
+[OK] nexus_record_ux_health_signal_v1 reabre automaticamente fingerprints resolvidos se houver nova ocorrência.
+[OK] Os 4 sinais históricos alvo foram identificados por fingerprint.
+[OK] profiles.id/active e audit_events(entity_type, entity_id, action, details) existem com tipos compatíveis.
+[OK] Parser TypeScript 5.8.3: 4 arquivos TS/TSX sem erros de sintaxe.
+[OK] Migration: BEGIN/COMMIT e delimitadores PL/pgSQL balanceados.
+[OK] Migration contém as 4 RPCs esperadas, registro CRM e os 4 fingerprints UX.
+[OK] Rota concluída não é repovoada ao abrir histórico.
+[OK] CSS da nova fila inclui breakpoints 980px/640px/390px e controles touch-friendly.
+
+Não executado:
+- A migration V45.54 NÃO foi aplicada em produção.
+- O build completo do Next não foi executado porque o runtime atual não contém o checkout/dependências do repositório.
+  A sintaxe dos arquivos novos/alterados foi validada isoladamente.
+
+Observação:
+- O /mnt/data da execução anterior não persistiu. Este pacote foi reconstruído de forma incremental
+  sobre o main real e cruzado com a estrutura real do Supabase.

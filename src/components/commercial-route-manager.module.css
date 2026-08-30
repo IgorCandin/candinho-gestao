@@ -1,0 +1,285 @@
+.shell {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.scheduler,
+.routePicker,
+.queuePanel {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.form {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.7fr) minmax(180px, 1fr) minmax(220px, 1.4fr) auto;
+  gap: 12px;
+  align-items: end;
+  padding: 16px;
+}
+
+.notesField {
+  min-width: 0;
+}
+
+.form :global(.input),
+.form :global(.button) {
+  min-height: 44px;
+}
+
+.message {
+  margin: 0 16px 16px;
+  font-size: 13px;
+}
+
+.routeStrip {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scroll-snap-type: x proximity;
+  padding: 14px 16px 18px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.routeCard {
+  display: grid;
+  gap: 4px;
+  flex: 0 0 min(230px, 82vw);
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: inherit;
+  text-decoration: none;
+  scroll-snap-align: start;
+}
+
+.routeCard span,
+.routeCard small {
+  opacity: 0.72;
+}
+
+.routeCard strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.routeCardActive {
+  border-color: var(--gold, #caa85e);
+  box-shadow: inset 0 0 0 1px var(--gold, #caa85e);
+}
+
+.queueHead {
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.counts span {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.queueSections {
+  display: grid;
+  gap: 22px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sectionTitle span {
+  opacity: 0.68;
+  font-size: 13px;
+}
+
+.customerGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  min-width: 0;
+}
+
+.customerCard {
+  display: grid;
+  gap: 11px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.customerTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.customerTop > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.customerTop strong,
+.customerTop span {
+  overflow-wrap: anywhere;
+}
+
+.customerTop > div > span {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.status {
+  flex: 0 0 auto;
+  align-self: start;
+  padding: 5px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.statusPending {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.statusNotified {
+  background: color-mix(in srgb, #3aa76d 16%, transparent);
+}
+
+.statusSkipped {
+  background: color-mix(in srgb, #c58b38 16%, transparent);
+}
+
+.lastContact {
+  opacity: 0.68;
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.actions :global(.button) {
+  min-height: 42px;
+  min-width: 0;
+}
+
+.noPhone {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 10px;
+  opacity: 0.58;
+  font-size: 12px;
+}
+
+.doneState {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  opacity: 0.75;
+}
+
+@media (max-width: 980px) {
+  .form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .notesField {
+    grid-column: 1 / -1;
+  }
+
+  .customerGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .form {
+    grid-template-columns: 1fr;
+    padding: 13px;
+  }
+
+  .notesField {
+    grid-column: auto;
+  }
+
+  .form :global(.button) {
+    width: 100%;
+  }
+
+  .queueHead {
+    display: grid;
+  }
+
+  .counts {
+    justify-content: flex-start;
+  }
+
+  .queueSections {
+    padding: 12px;
+  }
+
+  .customerCard {
+    padding: 12px;
+  }
+
+  .customerTop {
+    align-items: flex-start;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .actions :global(.button),
+  .noPhone {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .actions {
+    grid-template-columns: 1fr;
+  }
+
+  .counts span {
+    white-space: normal;
+  }
+}
