@@ -243,6 +243,84 @@
   .company-global-search kbd { display: none; }
 }
 
+/* V2.2 · cards magnéticos e cursor Company */
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .company-v2-home,
+  .company-v2-home a,
+  .company-v2-home button { cursor: none; }
+
+  .company-action-grid { perspective: 1100px; }
+  .company-action-card {
+    --card-rx: 0deg;
+    --card-ry: 0deg;
+    --pointer-x: 50%;
+    --pointer-y: 50%;
+    transform-style: preserve-3d;
+    transform: rotateX(var(--card-rx)) rotateY(var(--card-ry)) translateZ(0);
+    transition: transform .16s ease-out, border-color .25s ease, box-shadow .25s ease;
+    will-change: transform;
+  }
+  .company-action-card.motion-ready { animation: none; opacity: 1; }
+  .company-action-card::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: -1px;
+    border-radius: inherit;
+    background: radial-gradient(260px circle at var(--pointer-x) var(--pointer-y), rgba(81,190,255,.2), transparent 62%);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .24s ease;
+  }
+  .company-action-card:hover {
+    z-index: 3;
+    transform: rotateX(var(--card-rx)) rotateY(var(--card-ry)) translateZ(28px) scale(1.035);
+    box-shadow: 0 28px 65px rgba(0,0,0,.42), 0 0 35px rgba(41,149,229,.1);
+  }
+  .company-action-card:hover::before { opacity: 1; }
+  .company-action-card > span,
+  .company-action-card > div,
+  .company-action-card > b { position: relative; z-index: 2; transform: translateZ(18px); }
+  .company-action-card > div { transition: transform .2s ease; }
+  .company-action-card:hover > div { transform: translateZ(25px); }
+
+  .company-cursor-ring,
+  .company-cursor-dot {
+    position: fixed;
+    z-index: 9999;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .company-cursor-ring {
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid rgba(72,185,255,.78);
+    box-shadow: 0 0 18px rgba(72,185,255,.18);
+    transition: width .2s ease, height .2s ease, opacity .2s ease, background .2s ease;
+  }
+  .company-cursor-ring.is-interactive {
+    width: 49px;
+    height: 49px;
+    border-color: rgba(72,185,255,.95);
+    background: rgba(72,185,255,.08);
+  }
+  .company-cursor-ring.is-hidden { opacity: 0; }
+  .company-cursor-dot {
+    width: 5px;
+    height: 5px;
+    background: #57c2ff;
+    box-shadow: 0 0 10px rgba(87,194,255,.8);
+  }
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .company-cursor-ring,
+  .company-cursor-dot { display: none; }
+  .company-action-card { transform: none !important; }
+}
+
 @media (max-width: 620px) {
   .company-header-brand { display: none; }
   .company-primary-nav-right { margin-left: 0; }
