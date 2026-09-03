@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
@@ -10,6 +11,7 @@ import type { LeadRow } from "@/lib/types";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 
 type Queue = "today" | "repurchase" | "leads" | "complementary";
+type ProductMedia = Record<string, { photo1: string | null; photo2: string | null }>;
 
 const QUEUES: Array<{ key: Queue; label: string; icon: typeof Flame }> = [
   { key: "today", label: "Falar agora", icon: Flame },
@@ -40,14 +42,26 @@ function opportunityMessage(row: SalesOpportunity) {
   return `Olá, ${row.customer_name}! Tudo bem? Estou entrando em contato${product}.`;
 }
 
-function OpportunityCard({ row, featured = false }: { row: SalesOpportunity; featured?: boolean }) {
+function ProductVisual({ name, media }: { name: string; media?: { photo1: string | null; photo2: string | null } }) {
+  const banner = media?.photo2 ?? media?.photo1 ?? null;
+  if (!banner) return null;
+  return (
+    <div className="company-product-visual" tabIndex={0} aria-label={`Ver fotos de ${name}`}>
+      <img className="company-product-banner" src={banner} alt={`Banner de ${name}`} />
+      {media?.photo1 ? <div className="company-product-popup"><img src={media.photo1} alt={`Foto principal de ${name}`} /><span>Foto 01 · Produto</span></div> : null}
+    </div>
+  );
+}
+
+function OpportunityCard({ row, featured = false, media }: { row: SalesOpportunity; featured?: boolean; media?: { photo1: string | null; photo2: string | null } }) {
   const whatsapp = whatsappHref(row.phone, opportunityMessage(row));
   return (
-    <article className={`company-sale-card ${featured ? "featured" : ""}`}>
+    <article className={`company-sale-card ${featured ? "featured" : ""} ${media?.photo1 || media?.photo2 ? "has-product-media" : ""}`}>
       <header>
         <span className={`company-priority priority-${row.priority.toLocaleLowerCase("pt-BR").replace("é", "e")}`}>{row.priority}</span>
         <span className="company-sale-score">{row.opportunity_score} pontos</span>
       </header>
+      <ProductVisual name={row.recommended_product_name || "produto indicado"} media={media} />
       <div className="company-sale-person">
         <div><strong>{row.customer_name}</strong><small>{[row.city, row.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div>
         <Link href={`/clientes/${row.customer_id}`} aria-label={`Abrir ficha de ${row.customer_name}`}><ArrowRight size={17} /></Link>
@@ -79,7 +93,7 @@ function LeadCard({ lead }: { lead: LeadRow }) {
   );
 }
 
-export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads }: { opportunities: SalesOpportunity[]; priorityCustomers: SalesOpportunity[]; leads: LeadRow[] }) {
+export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads, productMedia }: { opportunities: SalesOpportunity[]; priorityCustomers: SalesOpportunity[]; leads: LeadRow[]; productMedia: ProductMedia }) {
   const [queue, setQueue] = useState<Queue>("today");
   const [query, setQuery] = useState("");
   const hotLeads = useMemo(() => leads.filter((lead) => lead.general_status === "pending").sort((a, b) => (LEAD_RANK[a.lead_status ?? ""] ?? 99) - (LEAD_RANK[b.lead_status ?? ""] ?? 99) || b.lead_date.localeCompare(a.lead_date)), [leads]);
@@ -111,7 +125,7 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads 
         <button type="button" onClick={() => setQueue("complementary")}><Sparkles size={18} /><span>Complementares</span><strong>{complementary}</strong></button>
       </section>
 
-      {featured ? <section className="company-sales-feature"><div><span><Flame size={14} /> Comece por aqui</span><h2>{featured.customer_name} é a oportunidade mais forte agora</h2><p>{featured.recommended_action}</p></div><OpportunityCard row={featured} featured /></section> : null}
+      {featured ? <section className="company-sales-feature"><div><span><Flame size={14} /> Comece por aqui</span><h2>{featured.customer_name} é a oportunidade mais forte agora</h2><p>{featured.recommended_action}</p></div><OpportunityCard row={featured} featured media={featured.recommended_product_id ? productMedia[featured.recommended_product_id] : undefined} /></section> : null}
 
       <section className="company-sales-queue">
         <div className="company-sales-toolbar">
@@ -120,7 +134,7 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads 
         </div>
         <div className="company-sales-count"><CalendarClock size={15} /><span>{queue === "leads" ? visibleLeads.length : rows.length} pessoa(s) nesta fila</span><small>Conclua uma ação por vez</small></div>
         <div className="company-sales-grid">
-          {queue === "leads" ? visibleLeads.map((lead) => <LeadCard lead={lead} key={`${lead.id}-${lead.item_id ?? "lead"}`} />) : rows.map((row, index) => <OpportunityCard row={row} key={`${row.customer_id}-${row.opportunity_group}-${row.recommended_product_id ?? index}`} />)}
+          {queue === "leads" ? visibleLeads.map((lead) => <LeadCard lead={lead} key={`${lead.id}-${lead.item_id ?? "lead"}`} />) : rows.map((row, index) => <OpportunityCard row={row} media={row.recommended_product_id ? productMedia[row.recommended_product_id] : undefined} key={`${row.customer_id}-${row.opportunity_group}-${row.recommended_product_id ?? index}`} />)}
         </div>
         {(queue === "leads" ? visibleLeads.length : rows.length) === 0 ? <div className="company-empty-state"><PackageSearch size={25} /><strong>Nenhuma oportunidade encontrada</strong><span>Troque a fila ou ajuste a busca.</span></div> : null}
       </section>

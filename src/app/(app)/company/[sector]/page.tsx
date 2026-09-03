@@ -26,15 +26,18 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
 
   if (sector === "vender") {
     const supabase = await createClient();
-    const [opportunitiesResult, priorityResult, leadsResult] = await Promise.all([
+    const [opportunitiesResult, priorityResult, leadsResult, mediaResult] = await Promise.all([
       supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(300),
       supabase.from("customer_sales_opportunities_priority_v2").select("*").order("opportunity_score", { ascending: false }).limit(100),
       supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(150),
+      supabase.from("products").select("id,image_url,banner_image_url").eq("active", true),
     ]);
     if (opportunitiesResult.error) throw new Error(opportunitiesResult.error.message);
     if (priorityResult.error) throw new Error(priorityResult.error.message);
     if (leadsResult.error) throw new Error(leadsResult.error.message);
-    return <CompanySalesWorkspace opportunities={(opportunitiesResult.data ?? []) as SalesOpportunity[]} priorityCustomers={(priorityResult.data ?? []) as SalesOpportunity[]} leads={(leadsResult.data ?? []) as LeadRow[]} />;
+    if (mediaResult.error) throw new Error(mediaResult.error.message);
+    const productMedia = Object.fromEntries((mediaResult.data ?? []).map((row) => [row.id, { photo1: row.image_url, photo2: row.banner_image_url }]));
+    return <CompanySalesWorkspace opportunities={(opportunitiesResult.data ?? []) as SalesOpportunity[]} priorityCustomers={(priorityResult.data ?? []) as SalesOpportunity[]} leads={(leadsResult.data ?? []) as LeadRow[]} productMedia={productMedia} />;
   }
 
   return <div className="company-v2-page"><div className="company-coming-soon"><Construction size={34} /><span>ERP 2.0 · Próximo módulo</span><h1>{config.title}</h1><p>{config.description}</p><Link className="button ghost" href="/company/inicio"><ArrowLeft size={16} />Voltar à Company</Link></div></div>;
