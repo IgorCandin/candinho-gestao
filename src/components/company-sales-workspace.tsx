@@ -43,13 +43,12 @@ function opportunityMessage(row: SalesOpportunity) {
 }
 
 function ProductVisual({ name, media }: { name: string; media?: { photo1: string | null; photo2: string | null } }) {
-  const banner = media?.photo2 ?? media?.photo1 ?? null;
-  if (!banner) return null;
-  const hasPrimarySwap = Boolean(media?.photo1 && media.photo1 !== banner);
+  const photo = media?.photo1 ?? null;
+  if (!photo) return null;
   return (
-    <div className={`company-product-visual ${hasPrimarySwap ? "has-primary" : ""}`} tabIndex={0} aria-label={`Ver fotos de ${name}`}>
-      <img className="company-product-banner" src={banner} alt={`Banner de ${name}`} />
-      {hasPrimarySwap ? <img className="company-product-primary" src={media?.photo1 || ""} alt={`Foto principal de ${name}`} /> : null}
+    <div className="company-product-visual" tabIndex={0} aria-label={`Ampliar foto de ${name}`}>
+      <img className="company-product-thumbnail" src={photo} alt={`Foto de ${name}`} />
+      <div className="company-product-popup" aria-hidden="true"><img src={photo} alt="" /></div>
     </div>
   );
 }
@@ -57,8 +56,7 @@ function ProductVisual({ name, media }: { name: string; media?: { photo1: string
 function OpportunityCard({ row, featured = false, media }: { row: SalesOpportunity; featured?: boolean; media?: { photo1: string | null; photo2: string | null } }) {
   const whatsapp = whatsappHref(row.phone, opportunityMessage(row));
   return (
-    <article className={`company-sale-card ${featured ? "featured" : ""} ${media?.photo1 || media?.photo2 ? "has-product-media" : ""}`}>
-      <ProductVisual name={row.recommended_product_name || "produto indicado"} media={media} />
+    <article className={`company-sale-card ${featured ? "featured" : ""}`}>
       <header>
         <span className={`company-priority priority-${row.priority.toLocaleLowerCase("pt-BR").replace("é", "e")}`}>{row.priority}</span>
         <span className="company-sale-score">{row.opportunity_score} pontos</span>
@@ -67,10 +65,11 @@ function OpportunityCard({ row, featured = false, media }: { row: SalesOpportuni
         <div><strong>{row.customer_name}</strong><small>{[row.city, row.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div>
         <Link href={`/clientes/${row.customer_id}`} aria-label={`Abrir ficha de ${row.customer_name}`}><ArrowRight size={17} /></Link>
       </div>
-      {!media?.photo1 && !media?.photo2 ? <div className="company-sale-offer">
+      <div className="company-sale-offer">
         <PackageSearch size={18} />
         <div><span>O que oferecer</span><strong>{row.recommended_product_name || "Definir pela ficha"}</strong>{row.recommended_product_price != null ? <small>{formatCurrency(Number(row.recommended_product_price))}</small> : null}</div>
-      </div> : null}
+        <ProductVisual name={row.recommended_product_name || "produto indicado"} media={media} />
+      </div>
       <p>{row.reason}</p>
       <div className="company-sale-actions">
         {whatsapp ? <a className="company-whatsapp" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={15} /> WhatsApp</a> : <Link href={`/clientes/${row.customer_id}`}><ContactRound size={15} /> Ver contato</Link>}
