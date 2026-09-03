@@ -153,6 +153,7 @@ const hubNav: NavItem[] = [
 
 type Operation =
   | "hub"
+  | "company"
   | "central"
   | "supplements"
   | "fitness"
@@ -179,7 +180,8 @@ export function AppShell({
   const isSettings = pathname.startsWith("/configuracoes");
 
   let operation: Operation = "hub";
-  if (pathname.startsWith("/central")) operation = "central";
+  if (pathname.startsWith("/company")) operation = "company";
+  else if (pathname.startsWith("/central")) operation = "central";
   else if (pathname === "/parceiro" || pathname.startsWith("/parceiro/"))
     operation = "partner";
   else if (pathname.startsWith("/bank")) operation = "bank";
@@ -536,6 +538,7 @@ export function AppShell({
 
   if (
     pathname === "/suplementos" ||
+    pathname === "/company/inicio" ||
     pathname === "/fitness/inicio" ||
     pathname === "/vitrine/inicio" ||
     pathname === "/physique/inicio" ||
