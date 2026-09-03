@@ -17,3 +17,274 @@
 @media(max-width:900px){.company-v2-home{padding-left:22px;padding-right:22px}.company-v2-topbar{min-height:70px}.company-v2-hero{margin:44px 0 30px}.company-action-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:600px){.company-v2-home{padding:0 15px 96px}.company-v2-topbar>div>span{display:none}.company-v2-topbar>div{gap:8px}.company-v2-hero{margin:36px 0 25px}.company-v2-hero h1{font-size:42px}.company-action-grid{grid-template-columns:1fr}.company-action-card{min-height:132px}.company-v2-footer{align-items:flex-start;flex-direction:column}.company-v2-footer>span{display:none}}
 @media(prefers-reduced-motion:reduce){.company-v2-home *{animation:none!important;scroll-behavior:auto!important}.company-action-card{opacity:1}}
+/* Company ERP 2.0 · navegação por execução */
+.company-shell-v2 {
+  --company-accent: #48b9ff;
+  --company-accent-strong: #168be8;
+  --company-ink: #060a10;
+  min-height: 100dvh;
+  color: #f5f8fc;
+  background:
+    radial-gradient(circle at 50% -15%, rgba(38, 135, 210, .19), transparent 35rem),
+    #070a0f;
+}
+
+.company-command-header {
+  position: fixed;
+  z-index: 80;
+  top: 10px;
+  left: 50%;
+  width: min(1180px, calc(100vw - 32px));
+  height: 62px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(121, 174, 218, .2);
+  border-radius: 19px;
+  background: rgba(7, 12, 19, .9);
+  box-shadow: 0 15px 50px rgba(0, 0, 0, .34);
+  backdrop-filter: blur(22px);
+  transition: height .28s ease, border-color .28s ease, box-shadow .28s ease;
+}
+
+.company-command-header:hover,
+.company-command-header:focus-within {
+  height: 105px;
+  border-color: rgba(72, 185, 255, .42);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .48), 0 0 45px rgba(43, 151, 226, .08);
+}
+
+.company-header-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 190px 1fr;
+  align-items: start;
+  height: 100%;
+  padding: 8px 58px 7px 14px;
+}
+
+.company-header-brand {
+  display: grid;
+  place-items: center;
+  height: 47px;
+}
+
+.company-header-brand img {
+  width: 146px;
+  height: auto;
+  max-height: 43px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 15px rgba(72, 185, 255, .15));
+}
+
+.company-primary-nav {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 4px;
+}
+
+.company-primary-nav-right { justify-content: flex-end; }
+
+.company-primary-nav a {
+  display: grid;
+  grid-template-rows: 34px 0fr;
+  justify-items: center;
+  min-width: 67px;
+  min-height: 45px;
+  padding: 5px 9px;
+  color: #8f9bac;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  text-decoration: none;
+  transition: color .2s ease, background .2s ease, border-color .2s ease, grid-template-rows .28s ease;
+}
+
+.company-primary-nav a span {
+  overflow: hidden;
+  max-width: 105px;
+  font-size: 10px;
+  font-weight: 750;
+  line-height: 1.15;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity .2s ease, transform .25s ease;
+}
+
+.company-command-header:hover .company-primary-nav a,
+.company-command-header:focus-within .company-primary-nav a { grid-template-rows: 34px 1fr; }
+.company-command-header:hover .company-primary-nav a span,
+.company-command-header:focus-within .company-primary-nav a span { opacity: 1; transform: translateY(0); }
+.company-primary-nav a:hover,
+.company-primary-nav a:focus-visible,
+.company-primary-nav a.active {
+  color: #eaf7ff;
+  border-color: rgba(72, 185, 255, .2);
+  background: rgba(72, 185, 255, .1);
+}
+.company-primary-nav a.active svg { color: var(--company-accent); }
+
+.company-account-menu { position: absolute; top: 10px; right: 13px; }
+.company-account-menu summary {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 8px;
+  color: #9aa8b9;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 11px;
+}
+.company-account-menu summary::-webkit-details-marker { display: none; }
+.company-account-menu summary:hover { color: white; background: rgba(255,255,255,.06); }
+.company-account-menu > div {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  display: grid;
+  width: 230px;
+  padding: 12px;
+  border: 1px solid rgba(121,174,218,.22);
+  border-radius: 15px;
+  background: #0c121b;
+  box-shadow: 0 22px 60px rgba(0,0,0,.5);
+}
+.company-account-menu strong { font-size: 13px; }
+.company-account-menu small { margin: 3px 0 11px; color: #748195; overflow: hidden; text-overflow: ellipsis; }
+.company-account-menu a,
+.company-account-menu button {
+  display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px;
+  color: #c7d0dc; font: inherit; font-size: 12px; text-decoration: none;
+  border: 0; border-radius: 9px; background: transparent; cursor: pointer;
+}
+.company-account-menu a:hover,
+.company-account-menu button:hover { color: white; background: rgba(72,185,255,.09); }
+
+.company-shell-content { min-height: 100dvh; padding: 92px 24px 112px; }
+.company-shell-content > .content { width: min(1320px, 100%); margin-inline: auto; }
+
+.company-global-search {
+  position: fixed;
+  z-index: 90;
+  left: 50%;
+  bottom: 18px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 11px;
+  width: min(720px, calc(100vw - 32px));
+  min-height: 54px;
+  padding: 0 16px;
+  color: #8ea0b5;
+  border: 1px solid rgba(121,174,218,.28);
+  border-radius: 18px;
+  background: rgba(9,15,23,.94);
+  box-shadow: 0 18px 55px rgba(0,0,0,.48), 0 0 45px rgba(41,149,229,.08);
+  backdrop-filter: blur(24px);
+  transform: translateX(-50%);
+}
+.company-global-search:focus-within { border-color: rgba(72,185,255,.7); box-shadow: 0 20px 65px rgba(0,0,0,.55), 0 0 55px rgba(41,149,229,.14); }
+.company-global-search input { width: 100%; min-width: 0; color: #eff7ff; border: 0; outline: 0; background: transparent; font-size: 14px; }
+.company-global-search input::placeholder { color: #718096; }
+.company-global-search kbd { padding: 4px 7px; color: #7c8a9d; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; font: 9px/1 system-ui; }
+.company-search-results {
+  position: absolute;
+  right: 0;
+  bottom: 63px;
+  left: 0;
+  max-height: min(520px, calc(100dvh - 170px));
+  padding: 9px;
+  overflow-y: auto;
+  border: 1px solid rgba(121,174,218,.25);
+  border-radius: 18px;
+  background: rgba(8,14,22,.98);
+  box-shadow: 0 25px 70px rgba(0,0,0,.55);
+}
+.company-search-results p { margin: 8px 10px 5px; color: #65809b; font-size: 9px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.company-search-results > a,
+.company-search-results > button {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  color: #eaf1f8;
+  text-align: left;
+  text-decoration: none;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  cursor: pointer;
+}
+.company-search-results > a:hover,
+.company-search-results > button:hover,
+.company-search-results > a:focus-visible,
+.company-search-results > button:focus-visible { outline: 0; background: rgba(72,185,255,.1); }
+.company-result-icon { display: grid; place-items: center; width: 34px; height: 34px; color: var(--company-accent); border-radius: 10px; background: rgba(72,185,255,.09); }
+.company-search-results strong,
+.company-search-results small { display: block; }
+.company-search-results strong { font-size: 12px; }
+.company-search-results small { margin-top: 3px; color: #8190a3; font-size: 10px; }
+.company-search-status { display: block; padding: 12px; color: #8090a4; font-size: 11px; }
+
+@media (max-width: 900px) {
+  .company-command-header { top: 7px; width: calc(100vw - 14px); height: 58px; overflow-x: auto; overflow-y: hidden; }
+  .company-command-header:hover, .company-command-header:focus-within { height: 58px; }
+  .company-header-inner { display: flex; align-items: flex-start; min-width: 580px; padding: 6px 48px 5px 8px; }
+  .company-header-brand { position: fixed; top: 14px; left: 50%; height: 38px; transform: translateX(-50%); pointer-events: none; }
+  .company-header-brand img { width: 112px; }
+  .company-primary-nav { justify-content: flex-start; gap: 1px; }
+  .company-primary-nav-right { margin-left: 185px; }
+  .company-primary-nav a { min-width: 48px; padding-inline: 6px; }
+  .company-primary-nav a span { display: none; }
+  .company-account-menu { position: fixed; right: 13px; }
+  .company-shell-content { padding: 82px 12px 105px; }
+  .company-global-search { bottom: 10px; width: calc(100vw - 20px); }
+  .company-global-search kbd { display: none; }
+}
+
+@media (max-width: 620px) {
+  .company-header-brand { display: none; }
+  .company-primary-nav-right { margin-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .company-command-header, .company-primary-nav a, .company-primary-nav a span { transition: none; }
+}
+
+/* Identidade Company: azul tecnológico, sem herdar o dourado da Suplementos. */
+.company-v2-home {
+  background:
+    radial-gradient(circle at 82% 10%, rgba(43, 151, 226, .15), transparent 32%),
+    linear-gradient(145deg, #06080c 0%, #07101a 56%, #080b10 100%);
+}
+.company-v2-hero > span,
+.company-v2-page-head span,
+.company-section-heading > div > span,
+.company-v2-wordmark span,
+.company-v2-topbar > div > span,
+.company-coming-soon > svg,
+.company-coming-soon > span,
+.company-product-picker button > span,
+.company-order-icon { color: var(--company-accent, #48b9ff); }
+.company-v2-hero > span i { background: #48b9ff; box-shadow: 0 0 0 5px rgba(72,185,255,.1); }
+.company-v2-glow.glow-one { background: radial-gradient(circle,rgba(43,151,226,.2),rgba(43,151,226,.04) 48%,transparent 70%); }
+.company-v2-glow.glow-two { background: radial-gradient(circle,rgba(25,100,163,.12),transparent 68%); }
+.company-action-card:hover,
+.company-product-picker button.is-selected { border-color: rgba(72,185,255,.62); }
+.company-action-card > span,
+.company-order-icon { background: rgba(72,185,255,.1); color: #48b9ff; }
+.company-action-card.primary {
+  color: #f7fbff;
+  border-color: #50bdff;
+  background: linear-gradient(145deg,#168be8,#075fa9);
+}
+.company-action-card.primary > span { color: #f7fbff; background: rgba(0,0,0,.14); }
+.company-action-card.primary small,
+.company-action-card.primary p { color: rgba(255,255,255,.7); }
+.company-action-card:after { border-color: rgba(72,185,255,.13); }
+.company-action-card:hover:after { border-color: rgba(72,185,255,.35); }
+.company-action-card:hover > b { color: #48b9ff; }
+.company-action-card.primary > b { color: rgba(255,255,255,.55); }
+.company-product-picker button.is-selected { background: rgba(72,185,255,.09); }
+.company-coming-soon { background: radial-gradient(circle at 20% 10%,rgba(43,151,226,.13),transparent 35%),var(--panel); }

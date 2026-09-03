@@ -40,6 +40,7 @@ import {
 import type { LucideIcon } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
+import { CompanyShellV2 } from "@/components/company-shell-v2";
 
 type NavItem = {
   href: string;
@@ -601,6 +602,9 @@ export function AppShell({
         </main>
       </div>
     );
+  }
+  if (isCompany) {
+    return <CompanyShellV2 access={access}>{children}</CompanyShellV2>;
   }
   if (isPromotionShowcase) {
     return (
