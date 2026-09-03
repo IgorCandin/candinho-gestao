@@ -30,6 +30,7 @@ import { useState, type CSSProperties } from "react";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 
 type GatewayOperation =
+  | "company"
   | "supplements"
   | "fitness"
   | "vitrine"
@@ -38,6 +39,20 @@ type GatewayOperation =
   | "central";
 
 const CONFIG = {
+  company: {
+    label: "Candinho Company",
+    slogan: "Venda, cobre, acompanhe e organize toda a operação em um só lugar.",
+    brand: BRAND_ASSETS.company.complete,
+    rgb: "217, 164, 65",
+    items: [
+      { href: "/clientes/radar", label: "Vender agora", note: "Recompras, leads e oportunidades", icon: ShoppingBag },
+      { href: "/bank/entradas", label: "Receber dinheiro", note: "Cobranças, vencidos e valores a receber", icon: CircleDollarSign },
+      { href: "/pos-venda", label: "Atender e acompanhar", note: "Pós-vendas, respostas e retornos", icon: ContactRound },
+      { href: "/pedidos-pendentes", label: "Entregar", note: "Pedidos, retiradas e pendências", icon: PackageOpen },
+      { href: "/estoque", label: "Comprar e repor", note: "Rupturas, compras e reposição", icon: Boxes },
+      { href: "/central/agenda", label: "Organizar o dia", note: "Agenda, tarefas e prioridades", icon: CalendarDays },
+    ],
+  },
   supplements: {
     label: "Candinho Suplementos",
     slogan: "Qualidade que entrega resultado.",

@@ -38,6 +38,19 @@ export default async function DashboardPage() {
     CompanyOperationSlideV4514 & { visible: boolean }
   > = [
     {
+      key: "company",
+      label: "Company",
+      href: "/company/inicio",
+      desktopImage:
+        "/operation-banners/company-execution-desktop.png",
+      mobileImage:
+        "/operation-banners/company-execution-mobile.png",
+      tone: "company",
+      rgb: "217, 164, 65",
+      badge: "Em teste",
+      visible: access.active,
+    },
+    {
       key: "vitrine",
       label: "Vitrine",
       href: "/catalogo",
