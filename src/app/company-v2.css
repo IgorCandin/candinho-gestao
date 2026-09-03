@@ -246,8 +246,23 @@
 /* V2.2 · cards magnéticos e cursor Company */
 @media (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .company-v2-home,
+  .company-shell-v2,
   .company-v2-home a,
-  .company-v2-home button { cursor: none; }
+  .company-v2-home button,
+  .company-shell-v2 a,
+  .company-shell-v2 button,
+  .company-shell-v2 input,
+  .company-shell-v2 select,
+  .company-shell-v2 textarea,
+  .company-shell-v2 summary { cursor: none; }
+  .company-custom-cursor-active,
+  .company-custom-cursor-active a,
+  .company-custom-cursor-active button,
+  .company-custom-cursor-active input,
+  .company-custom-cursor-active select,
+  .company-custom-cursor-active textarea,
+  .company-custom-cursor-active summary,
+  .company-custom-cursor-active [role="button"] { cursor: none !important; }
 
   .company-action-grid { perspective: 1100px; }
   .company-action-card {
@@ -313,12 +328,34 @@
     background: #57c2ff;
     box-shadow: 0 0 10px rgba(87,194,255,.8);
   }
+  .company-cursor-dot.is-hidden { opacity: 0; }
 }
 
 @media (pointer: coarse), (prefers-reduced-motion: reduce) {
   .company-cursor-ring,
   .company-cursor-dot { display: none; }
   .company-action-card { transform: none !important; }
+}
+
+/* Cabeçalho fechado e aberto usam a mesma malha, sem itens pendurados. */
+@media (min-width: 901px) {
+  .company-primary-nav a {
+    box-sizing: border-box;
+    height: 45px;
+    min-height: 45px;
+    grid-template-rows: 30px 0fr;
+    overflow: hidden;
+  }
+  .company-command-header:hover .company-primary-nav a,
+  .company-command-header:focus-within .company-primary-nav a {
+    height: 82px;
+    grid-template-rows: 34px 1fr;
+  }
+  .company-account-menu { top: 9px; }
+}
+
+@media (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .company-cursor-dot { transition: opacity .12s ease; }
 }
 
 @media (max-width: 620px) {
