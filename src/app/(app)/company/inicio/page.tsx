@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { Boxes, CalendarDays, CircleDollarSign, ContactRound, ShoppingBag, Truck } from "lucide-react";
 import { getCurrentUserAccess } from "@/lib/data";
 
@@ -21,19 +22,28 @@ export default async function CompanyEntryPage() {
 
   return (
     <main className="company-v2-home">
+      <div className="company-v2-grid" aria-hidden="true" />
+      <div className="company-v2-glow glow-one" aria-hidden="true" />
+      <div className="company-v2-glow glow-two" aria-hidden="true" />
+      <nav className="company-v2-topbar">
+        <Link href="/dashboard" className="company-v2-wordmark">
+          <strong>CANDINHO</strong><span>COMPANY</span>
+        </Link>
+        <div><span>ERP 2.0</span><Link href="/dashboard">Operações 1.0</Link></div>
+      </nav>
       <header className="company-v2-hero">
-        <span>ERP 2.0 · Em construção</span>
+        <span><i /> ERP 2.0 · Evolução em andamento</span>
         <h1>O que você precisa executar agora?</h1>
-        <p>Escolha um objetivo. A Company reúne o trabalho das operações sem substituir o sistema antigo.</p>
+        <p>Uma fila clara para vender, receber, atender e operar. Escolha o resultado — a Company organiza o caminho.</p>
       </header>
       <section className="company-action-grid">
         {actions.map(({ href, title, note, icon: Icon }, index) => (
-          <Link href={href} className={index === 0 ? "company-action-card primary" : "company-action-card"} key={href}>
-            <span><Icon size={24} /></span><div><small>0{index + 1}</small><h2>{title}</h2><p>{note}</p></div>
+          <Link href={href} className={index === 0 ? "company-action-card primary" : "company-action-card"} key={href} style={{ "--company-index": index } as CSSProperties}>
+            <span><Icon size={24} /></span><div><small>0{index + 1}</small><h2>{title}</h2><p>{note}</p></div><b>↗</b>
           </Link>
         ))}
       </section>
-      <Link className="company-legacy-link" href="/dashboard">Voltar às operações do ERP 1.0</Link>
+      <footer className="company-v2-footer"><span>Escolha uma direção. Execute sem se perder.</span><Link className="company-legacy-link" href="/dashboard">Voltar às operações do ERP 1.0</Link></footer>
     </main>
   );
 }
