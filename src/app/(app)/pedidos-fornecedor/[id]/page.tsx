@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { DemoBanner } from "@/components/demo-banner";
 import { PageHeader } from "@/components/page-header";
 import { ReceivePurchaseItemForm } from "@/components/receive-purchase-item-form";
+import { PurchaseOrderCancelAction } from "@/components/purchase-order-cancel-action";
 import { getSupplierOrderDetails } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
@@ -135,6 +136,8 @@ export default async function SupplierOrderDetailsPage({ params }: { params: Pro
             <CircleDollarSign size={20} />
             <div><span>Total do pedido</span><strong>{formatCurrency(order.order_total)}</strong></div>
           </article>
+
+          <PurchaseOrderCancelAction orderId={order.id} status={order.status} />
 
           {order.notes && (
             <article className="panel">

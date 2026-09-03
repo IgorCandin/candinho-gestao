@@ -151,6 +151,17 @@ const hubNav: NavItem[] = [
   { href: "/dashboard", label: "Início", icon: Home },
 ];
 
+const companyNav: NavItem[] = [
+  { href: "/company/inicio", label: "Hoje", icon: Home },
+  { href: "/company/vender", label: "Vender agora", icon: ShoppingBag },
+  { href: "/company/receber", label: "Receber dinheiro", icon: CircleDollarSign },
+  { href: "/company/acompanhar", label: "Acompanhar", icon: ContactRound },
+  { href: "/company/entregar", label: "Entregar", icon: Truck },
+  { href: "/company/compras", label: "Comprar e repor", icon: Boxes },
+  { href: "/company/dia", label: "Organizar o dia", icon: CalendarDays },
+  { href: "/dashboard", label: "Operações antigas", icon: ArrowLeft, variant: "operation-return" },
+];
+
 type Operation =
   | "hub"
   | "company"
@@ -193,6 +204,7 @@ export function AppShell({
     operation = "supplements";
 
   const isCentral = operation === "central";
+  const isCompany = operation === "company";
   const isPartner = operation === "partner";
   const isFitness = operation === "fitness";
   const isVitrine = operation === "vitrine";
@@ -235,6 +247,8 @@ export function AppShell({
   const nav =
     operation === "hub"
       ? hubNav
+      : isCompany
+        ? companyNav
       : isCentral
         ? centralVisibleNav
         : isPartner
@@ -257,6 +271,12 @@ export function AppShell({
 
   const mobileShortcuts = isSettings
     ? []
+    : isCompany
+      ? [
+          { href: "/company/vender", label: "Vender", icon: ShoppingBag, primary: true },
+          { href: "/company/compras", label: "Comprar", icon: Boxes, primary: false },
+          { href: "/company/dia", label: "Meu dia", icon: CalendarDays, primary: false },
+        ]
     : isCentral
       ? [
           {
@@ -430,9 +450,9 @@ export function AppShell({
             ? BRAND_ASSETS.central.complete
             : isFitness
               ? BRAND_ASSETS.fitness.complete
-              : isSupplements
-                ? BRAND_ASSETS.supplements.complete
-                : BRAND_ASSETS.company.complete;
+                : isSupplements
+                  ? BRAND_ASSETS.supplements.complete
+                  : BRAND_ASSETS.company.complete;
 
   useEffect(() => {
     mobileMenuRef.current?.removeAttribute("open");
@@ -666,7 +686,9 @@ export function AppShell({
           <p className="sidebar-slogan">
             {isBank
               ? "Um mês de cada vez."
-              : isCentral
+              : isCompany
+                ? "Uma empresa. Uma fila de execução."
+                : isCentral
                 ? "Informação, prioridade e decisão em um só lugar."
                 : isPartner
                   ? "Sua parceria com transparência."
