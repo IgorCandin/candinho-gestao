@@ -358,6 +358,66 @@
   .company-cursor-dot { transition: opacity .12s ease; }
 }
 
+/* Vender agora · cockpit comercial Company */
+.company-sales-v2 { width: min(1320px, 100%); margin-inline: auto; padding-top: 22px; }
+.company-sales-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 25px; }
+.company-sales-head > div:first-child { max-width: 750px; }
+.company-sales-head > div:first-child > span { color: #48b9ff; font-size: 11px; font-weight: 850; letter-spacing: .14em; text-transform: uppercase; }
+.company-sales-head h1 { margin: 8px 0 9px; font-size: clamp(38px, 5vw, 64px); line-height: .98; letter-spacing: -.05em; }
+.company-sales-head p { margin: 0; color: #91a0b2; font-size: 15px; line-height: 1.55; }
+.company-sales-head > div:last-child { display: flex; gap: 9px; flex: 0 0 auto; }
+.button.company-blue { color: #fff; border-color: #269de9; background: linear-gradient(135deg,#168be8,#0870c2); }
+
+.company-sales-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 18px; }
+.company-sales-metrics button { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 15px 16px; color: #8e9bad; text-align: left; border: 1px solid rgba(121,174,218,.16); border-radius: 15px; background: rgba(12,18,27,.72); transition: .2s ease; }
+.company-sales-metrics button:hover { color: #dff4ff; border-color: rgba(72,185,255,.48); background: rgba(31,126,191,.1); transform: translateY(-2px); }
+.company-sales-metrics svg { color: #48b9ff; }
+.company-sales-metrics span { font-size: 11px; font-weight: 750; }
+.company-sales-metrics strong { color: #f5faff; font-size: 23px; }
+
+.company-sales-feature { display: grid; grid-template-columns: minmax(0,.8fr) minmax(400px,1.2fr); align-items: center; gap: 24px; margin-bottom: 20px; padding: 25px; overflow: visible; border: 1px solid rgba(72,185,255,.25); border-radius: 22px; background: radial-gradient(circle at 12% 30%,rgba(30,137,211,.16),transparent 38%),rgba(10,17,26,.78); }
+.company-sales-feature > div:first-child > span { display: inline-flex; align-items: center; gap: 7px; color: #55beff; font-size: 10px; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+.company-sales-feature h2 { margin: 11px 0 9px; max-width: 520px; font-size: clamp(24px,3vw,38px); letter-spacing: -.035em; }
+.company-sales-feature > div:first-child > p { margin: 0; color: #91a1b3; line-height: 1.55; }
+
+.company-sales-queue { padding: 16px; border: 1px solid rgba(121,174,218,.15); border-radius: 22px; background: rgba(7,11,17,.68); }
+.company-sales-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; }
+.company-sales-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.company-sales-tabs button { display: inline-flex; align-items: center; gap: 7px; padding: 9px 11px; color: #7f8da0; font-weight: 750; font-size: 11px; border: 1px solid transparent; border-radius: 10px; background: transparent; }
+.company-sales-tabs button:hover,.company-sales-tabs button.active { color: #e9f7ff; border-color: rgba(72,185,255,.24); background: rgba(72,185,255,.1); }
+.company-sales-tabs button.active svg { color: #48b9ff; }
+.company-sales-toolbar > label { display: flex; align-items: center; gap: 8px; width: min(300px,100%); padding: 9px 12px; color: #6f8094; border: 1px solid rgba(121,174,218,.17); border-radius: 11px; background: #0a1018; }
+.company-sales-toolbar input { width: 100%; color: #eff8ff; border: 0; outline: 0; background: transparent; }
+.company-sales-count { display: flex; align-items: center; gap: 7px; margin: 15px 3px 10px; color: #8c9caf; font-size: 11px; }
+.company-sales-count svg { color: #48b9ff; }
+.company-sales-count small { margin-left: auto; color: #596779; }
+.company-sales-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+
+.company-sale-card { position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 17px; border: 1px solid rgba(121,174,218,.16); border-radius: 16px; background: linear-gradient(145deg,rgba(16,23,33,.96),rgba(9,14,21,.96)); transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease; }
+.company-sale-card:hover { border-color: rgba(72,185,255,.4); transform: translateY(-2px); box-shadow: 0 18px 42px rgba(0,0,0,.25); }
+.company-sale-card.featured { border-color: rgba(72,185,255,.35); background: linear-gradient(145deg,rgba(19,42,60,.96),rgba(9,18,28,.98)); }
+.company-sale-card > header,.company-sale-person,.company-sale-actions { display: flex; align-items: center; justify-content: space-between; gap: 9px; }
+.company-priority { display: inline-flex; width: max-content; padding: 5px 8px; border-radius: 999px; font-size: 9px; font-weight: 850; text-transform: uppercase; }
+.priority-alta { color: #ff8e8e; background: rgba(255,82,82,.11); }.priority-media { color: #ffc865; background: rgba(255,174,45,.11); }.priority-baixa { color: #91a0b3; background: rgba(145,160,179,.1); }
+.company-sale-score { color: #647489; font-size: 10px; font-weight: 750; }
+.company-sale-person strong,.company-sale-person small { display: block; }
+.company-sale-person strong { font-size: 18px; }.company-sale-person small { margin-top: 3px; color: #78889c; font-size: 10px; }
+.company-sale-person > a { display: grid; place-items: center; width: 32px; height: 32px; color: #48b9ff; border-radius: 9px; background: rgba(72,185,255,.08); }
+.company-sale-offer { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 10px; padding: 11px; border-radius: 12px; background: rgba(72,185,255,.065); }
+.company-sale-offer > svg { color: #48b9ff; }.company-sale-offer span,.company-sale-offer strong,.company-sale-offer small { display: block; }.company-sale-offer span { color: #6f8196; font-size: 9px; text-transform: uppercase; }.company-sale-offer strong { margin-top: 3px; font-size: 12px; }.company-sale-offer small { margin-top: 2px; color: #8fa0b4; font-size: 10px; }
+.company-sale-card > p { margin: 0; color: #8d9cad; font-size: 11px; line-height: 1.5; }
+.company-sale-actions { justify-content: flex-start; flex-wrap: wrap; }
+.company-sale-actions > a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; color: #bcd0df; font-size: 10px; font-weight: 800; text-decoration: none; border: 1px solid rgba(121,174,218,.18); border-radius: 9px; }
+.company-sale-actions > a.company-whatsapp { color: #85e0ae; border-color: rgba(55,195,116,.24); background: rgba(55,195,116,.07); }
+.company-sale-actions .radar-followup { position: relative; }.company-sale-actions .compact-button { min-height: 32px; padding: 7px 9px; font-size: 10px; }
+.company-sale-card .sales-feedback-wrap { padding-top: 10px; border-top: 1px solid rgba(255,255,255,.055); }
+.company-sale-card .sales-feedback-actions { display: flex; flex-wrap: wrap; gap: 5px; }
+.company-sale-card .sales-feedback-button { padding: 6px 7px; font-size: 9px; }
+
+@media(max-width:1000px){.company-sales-feature{grid-template-columns:1fr}.company-sales-metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:720px){.company-sales-head,.company-sales-toolbar{align-items:stretch;flex-direction:column}.company-sales-head>div:last-child{flex-wrap:wrap}.company-sales-grid{grid-template-columns:1fr}.company-sales-metrics{grid-template-columns:1fr 1fr}.company-sales-feature{padding:18px}.company-sales-toolbar>label{width:100%}}
+@media(max-width:460px){.company-sales-metrics{grid-template-columns:1fr}.company-sales-tabs{display:grid;grid-template-columns:1fr 1fr}.company-sales-tabs button{justify-content:center}.company-sales-head h1{font-size:42px}}
+
 @media (max-width: 620px) {
   .company-header-brand { display: none; }
   .company-primary-nav-right { margin-left: 0; }
