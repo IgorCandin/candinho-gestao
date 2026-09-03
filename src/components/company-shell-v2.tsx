@@ -199,7 +199,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
           </div>
         )}
         <Search size={20} />
-        <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busque Agenda, Pâmella, Parcerias, produto ou ferramenta…" aria-label="Busca geral da Candinho Company" />
+        <input ref={searchRef} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Busque o que necessita" aria-label="Busca geral da Candinho Company" />
         <kbd>Ctrl K</kbd>
       </div>
     </div>

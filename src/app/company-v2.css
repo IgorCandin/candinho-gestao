@@ -288,3 +288,140 @@
 .company-action-card.primary > b { color: rgba(255,255,255,.55); }
 .company-product-picker button.is-selected { background: rgba(72,185,255,.09); }
 .company-coming-soon { background: radial-gradient(circle at 20% 10%,rgba(43,151,226,.13),transparent 35%),var(--panel); }
+
+/* V2.1 · proporção, alinhamento e microinterações */
+@media (min-width: 901px) {
+  .company-command-header {
+    overflow: visible;
+    isolation: isolate;
+  }
+  .company-command-header::after {
+    content: "";
+    position: absolute;
+    z-index: -2;
+    top: 22px;
+    right: 2.5%;
+    bottom: -34px;
+    left: 2.5%;
+    border-radius: 28px;
+    background: rgba(30, 118, 183, .16);
+    filter: blur(27px);
+    opacity: .46;
+    pointer-events: none;
+    transition: bottom .3s ease, opacity .3s ease, transform .3s ease;
+  }
+  .company-command-header:hover::after,
+  .company-command-header:focus-within::after {
+    bottom: -53px;
+    opacity: .78;
+    transform: scaleX(1.025);
+  }
+  .company-header-inner {
+    grid-template-columns: minmax(0, 1fr) 216px minmax(0, 1fr);
+    align-items: start;
+    padding-inline: 16px 60px;
+  }
+  .company-primary-nav {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(88px, 1fr));
+    width: 100%;
+    gap: 6px;
+  }
+  .company-primary-nav a {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 6px;
+  }
+  .company-primary-nav a span {
+    width: 100%;
+    max-width: none;
+    min-height: 24px;
+  }
+  .company-header-brand,
+  .company-header-brand img {
+    transition: width .3s cubic-bezier(.2,.8,.2,1), height .3s ease, filter .3s ease, transform .3s ease;
+  }
+  .company-command-header:hover .company-header-brand,
+  .company-command-header:focus-within .company-header-brand { height: 78px; }
+  .company-command-header:hover .company-header-brand img,
+  .company-command-header:focus-within .company-header-brand img {
+    width: 194px;
+    max-height: 69px;
+    transform: translateY(2px);
+    filter: drop-shadow(0 0 22px rgba(72,185,255,.25));
+  }
+}
+
+.company-global-search {
+  grid-template-columns: 22px 0fr 0fr;
+  gap: 0;
+  width: 58px;
+  min-height: 58px;
+  padding-inline: 17px;
+  border-radius: 999px;
+  overflow: visible;
+  transition:
+    width .38s cubic-bezier(.2,.8,.2,1),
+    gap .3s ease,
+    padding .3s ease,
+    border-color .25s ease,
+    box-shadow .3s ease;
+}
+.company-global-search > svg { color: #91a5ba; transition: color .2s ease, transform .3s ease; }
+.company-global-search input {
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: width .38s cubic-bezier(.2,.8,.2,1), opacity .2s ease;
+}
+.company-global-search kbd {
+  width: 0;
+  padding: 0;
+  overflow: hidden;
+  border-width: 0;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.company-global-search:hover,
+.company-global-search:focus-within,
+.company-global-search:has(input:not(:placeholder-shown)) {
+  grid-template-columns: 22px minmax(190px, 1fr) auto;
+  gap: 11px;
+  width: min(560px, calc(100vw - 32px));
+  padding-inline: 18px;
+}
+.company-global-search:hover > svg,
+.company-global-search:focus-within > svg { color: #48b9ff; transform: scale(1.08); }
+.company-global-search:hover input,
+.company-global-search:focus-within input,
+.company-global-search:has(input:not(:placeholder-shown)) input {
+  width: 100%;
+  opacity: 1;
+  pointer-events: auto;
+}
+.company-global-search:hover kbd,
+.company-global-search:focus-within kbd {
+  width: auto;
+  padding: 4px 7px;
+  border-width: 1px;
+  opacity: 1;
+}
+.company-search-results {
+  width: min(720px, calc(100vw - 24px));
+  right: 50%;
+  left: auto;
+  transform: translateX(50%);
+  animation: companySearchReveal .22s ease both;
+}
+@keyframes companySearchReveal {
+  from { opacity: 0; transform: translate(50%, 8px) scale(.985); }
+  to { opacity: 1; transform: translate(50%, 0) scale(1); }
+}
+
+@media (max-width: 900px) {
+  .company-global-search { width: 58px; }
+  .company-global-search:hover,
+  .company-global-search:focus-within,
+  .company-global-search:has(input:not(:placeholder-shown)) { width: calc(100vw - 20px); }
+}
