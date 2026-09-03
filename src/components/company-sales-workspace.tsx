@@ -63,7 +63,7 @@ function OpportunityCard({ row, featured = false, media }: { row: SalesOpportuni
       </header>
       <div className="company-sale-person">
         <div><strong>{row.customer_name}</strong><small>{[row.city, row.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div>
-        <Link href={`/clientes/${row.customer_id}`} aria-label={`Abrir ficha de ${row.customer_name}`}><ArrowRight size={17} /></Link>
+        <Link href={`/company/clientes/${row.customer_id}`} aria-label={`Abrir ficha Company de ${row.customer_name}`}><ArrowRight size={17} /></Link>
       </div>
       <div className="company-sale-offer">
         <PackageSearch size={18} />
@@ -72,7 +72,7 @@ function OpportunityCard({ row, featured = false, media }: { row: SalesOpportuni
       </div>
       <p>{row.reason}</p>
       <div className="company-sale-actions">
-        {whatsapp ? <a className="company-whatsapp" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={15} /> WhatsApp</a> : <Link href={`/clientes/${row.customer_id}`}><ContactRound size={15} /> Ver contato</Link>}
+        {whatsapp ? <a className="company-whatsapp" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={15} /> WhatsApp</a> : <Link href={`/company/clientes/${row.customer_id}`}><ContactRound size={15} /> Ver contato</Link>}
         <RadarFollowupButton customerId={row.customer_id} customerName={row.customer_name} suggestedAction={row.recommended_action} compact />
       </div>
       <SalesOpportunityFeedbackActions opportunity={row} compact />

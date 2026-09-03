@@ -439,6 +439,60 @@
   .company-command-header, .company-primary-nav a, .company-primary-nav a span { transition: none; }
 }
 
+/* Ficha de cliente nativa da Company. */
+.company-customer-page { display: grid; gap: 14px; width: min(1240px,100%); margin-inline: auto; }
+.company-customer-hero { padding: clamp(20px,3vw,34px); border: 1px solid rgba(121,174,218,.18); border-radius: 24px; background: radial-gradient(circle at 88% 10%,rgba(39,145,222,.14),transparent 34%),linear-gradient(145deg,rgba(14,24,36,.98),rgba(7,12,19,.98)); box-shadow: 0 22px 65px rgba(0,0,0,.22); }
+.company-customer-breadcrumb,.company-customer-breadcrumb a { display: flex; align-items: center; gap: 7px; color: #718399; font-size: 10px; font-weight: 750; text-decoration: none; }
+.company-customer-breadcrumb a:hover { color: #c9edff; }
+.company-customer-title-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-top: 23px; }
+.company-customer-kicker,.company-customer-panel header span { color: #48b9ff; font-size: 9px; font-weight: 900; letter-spacing: .14em; }
+.company-customer-title-row h1 { margin: 7px 0 5px; font-size: clamp(32px,4vw,52px); line-height: 1; letter-spacing: -.045em; }
+.company-customer-title-row p { margin: 0; color: #8899ad; font-size: 12px; }
+.company-customer-actions { display: flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.company-customer-primary { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 8px 12px; color: #a0ecc2; font-size: 10px; font-weight: 850; text-decoration: none; border: 1px solid rgba(55,195,116,.3); border-radius: 9px; background: rgba(55,195,116,.08); }
+.company-customer-radar { display: grid; grid-template-columns: auto minmax(190px,1.4fr) repeat(2,minmax(150px,1fr)); align-items: center; gap: 14px; margin-top: 26px; padding: 14px 16px; border: 1px solid rgba(72,185,255,.16); border-radius: 15px; background: rgba(4,10,17,.52); }
+.company-customer-radar-dot { width: 9px; height: 9px; border-radius: 50%; background: #48b9ff; box-shadow: 0 0 0 5px rgba(72,185,255,.09),0 0 20px rgba(72,185,255,.5); }
+.company-customer-radar-dot.danger { background: #ff7474; box-shadow: 0 0 0 5px rgba(255,116,116,.09); }
+.company-customer-radar div { display: grid; gap: 4px; min-width: 0; }
+.company-customer-radar small { color: #62748a; font-size: 9px; }
+.company-customer-radar strong { overflow: hidden; color: #dce9f5; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.company-customer-metrics { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; }
+.company-customer-metrics article { display: grid; gap: 7px; padding: 16px; border: 1px solid rgba(121,174,218,.14); border-radius: 15px; background: rgba(10,16,25,.92); }
+.company-customer-metrics article > span { display: flex; align-items: center; gap: 7px; color: #8091a5; font-size: 10px; font-weight: 750; }
+.company-customer-metrics svg { color: #48b9ff; }
+.company-customer-metrics strong { font-size: 24px; letter-spacing: -.035em; }
+.company-customer-metrics small { color: #617185; font-size: 9px; }
+.company-customer-layout { display: grid; grid-template-columns: minmax(0,1.7fr) minmax(270px,.72fr); align-items: start; gap: 12px; }
+.company-customer-main,.company-customer-side { display: grid; gap: 12px; }
+.company-customer-panel { overflow: hidden; border: 1px solid rgba(121,174,218,.15); border-radius: 18px; background: linear-gradient(145deg,rgba(14,21,31,.97),rgba(8,13,20,.97)); }
+.company-customer-panel > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid rgba(255,255,255,.055); }
+.company-customer-panel header h2 { margin: 4px 0 0; font-size: 17px; }
+.company-customer-panel > header > strong,.company-customer-panel > header > svg { color: #687c91; font-size: 11px; }
+.company-customer-timeline { padding: 5px 18px 12px; }
+.company-customer-event { position: relative; display: grid; grid-template-columns: 12px minmax(0,1fr) auto; gap: 11px; padding: 13px 0; border-bottom: 1px solid rgba(255,255,255,.045); }
+.company-customer-event:last-child { border-bottom: 0; }
+.company-customer-event i { width: 8px; height: 8px; margin-top: 5px; border-radius: 50%; background: #48b9ff; box-shadow: 0 0 0 4px rgba(72,185,255,.08); }
+.company-customer-event i.kind-lead { background: #b682ff; }.company-customer-event i.kind-contato { background: #53d798; }
+.company-customer-event div { display: grid; gap: 3px; min-width: 0; }
+.company-customer-event div span { color: #687b91; font-size: 8px; font-weight: 800; text-transform: uppercase; }
+.company-customer-event div strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.company-customer-event div small { overflow: hidden; color: #8392a4; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.company-customer-event em { align-self: center; max-width: 125px; padding: 4px 6px; overflow: hidden; color: #8294a8; font-size: 8px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; border-radius: 6px; background: rgba(255,255,255,.04); }
+.company-customer-purchases { display: grid; padding: 6px 18px 13px; }
+.company-customer-purchases > div:not(.company-customer-empty) { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(255,255,255,.045); }
+.company-customer-purchases > div:last-child { border-bottom: 0; }
+.company-customer-purchases div div { display: grid; gap: 3px; min-width: 0; }
+.company-customer-purchases strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }.company-customer-purchases small { color: #718297; font-size: 9px; }.company-customer-purchases > div > span { color: #bfeaff; font-size: 11px; font-weight: 850; white-space: nowrap; }
+.company-customer-profile dl { display: grid; gap: 0; margin: 0; padding: 8px 17px 14px; }
+.company-customer-profile dl div { display: grid; gap: 5px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.045); }.company-customer-profile dl div:last-child { border: 0; }
+.company-customer-profile dt { display: flex; align-items: center; gap: 6px; color: #65778d; font-size: 9px; }.company-customer-profile dd { margin: 0; overflow-wrap: anywhere; color: #d3dfeb; font-size: 11px; }
+.company-customer-care { padding-bottom: 15px; }.company-customer-care.has-alert { border-color: rgba(255,176,64,.22); }.company-customer-care.has-alert header span,.company-customer-care.has-alert header svg { color: #f3b558; }
+.company-customer-care ul { display: grid; gap: 7px; margin: 13px 17px 7px; padding-left: 18px; color: #dfc49e; font-size: 10px; }.company-customer-care p,.company-customer-care > small { display: block; margin: 13px 17px 0; color: #7f90a4; font-size: 10px; line-height: 1.45; }
+.company-customer-empty { padding: 22px 4px; color: #6d7e92; font-size: 10px; text-align: center; }
+.company-customer-legacy { display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px; color: #687a8e; font-size: 9px; text-decoration: none; border: 1px dashed rgba(121,174,218,.16); border-radius: 11px; }.company-customer-legacy:hover { color: #c8eaff; border-color: rgba(72,185,255,.35); }
+@media(max-width:900px){.company-customer-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.company-customer-layout{grid-template-columns:1fr}.company-customer-side{grid-template-columns:repeat(2,minmax(0,1fr))}.company-customer-legacy{grid-column:1/-1}.company-customer-radar{grid-template-columns:auto 1fr 1fr}.company-customer-radar>div:last-child{display:none}}
+@media(max-width:620px){.company-customer-title-row{align-items:flex-start;flex-direction:column}.company-customer-actions{justify-content:flex-start}.company-customer-radar{grid-template-columns:auto 1fr}.company-customer-radar>div:nth-last-child(-n+2){display:none}.company-customer-metrics,.company-customer-side{grid-template-columns:1fr}.company-customer-event{grid-template-columns:10px minmax(0,1fr)}.company-customer-event em{display:none}}
+
 /* Identidade Company: azul tecnológico, sem herdar o dourado da Suplementos. */
 .company-v2-home {
   background:

@@ -38,7 +38,7 @@ export async function GET(request: Request) {
         id: row.id,
         name: row.name,
         detail: [row.city, row.phone].filter(Boolean).join(" · ") || "Ficha do cliente",
-        href: operation === "Fitness" ? `/fitness/clientes/${row.id}` : `/clientes/${row.id}`,
+        href: operation === "Fitness" ? `/fitness/clientes/${row.id}` : `/company/clientes/${row.id}`,
         operation,
       });
     }
