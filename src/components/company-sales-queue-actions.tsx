@@ -15,7 +15,7 @@ function isResponseCheck(opportunity: SalesOpportunity) {
   return opportunity.feedback_next_action_on <= today;
 }
 
-export function CompanySalesQueueActions({ opportunity, whatsappHref }: { opportunity: SalesOpportunity; whatsappHref: string | null }) {
+export function CompanySalesQueueActions({ opportunity, relatedOpportunities = [opportunity] }: { opportunity: SalesOpportunity; relatedOpportunities?: SalesOpportunity[] }) {
   const router = useRouter();
   const [loading, setLoading] = useState<WorkflowAction | null>(null);
   const [answered, setAnswered] = useState(false);
@@ -24,22 +24,16 @@ export function CompanySalesQueueActions({ opportunity, whatsappHref }: { opport
 
   async function save(action: WorkflowAction) {
     if (loading) return;
-    if (action === "called" && whatsappHref) window.open(whatsappHref, "_blank", "noopener,noreferrer");
     setLoading(action);
     setMessage(null);
     try {
-      const response = await fetch(`/api/customers/${opportunity.customer_id}/sales-opportunities`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          workflow_action: action,
-          recommended_product_id: opportunity.recommended_product_id,
-          opportunity_group: opportunity.opportunity_group,
-          opportunity_subtype: opportunity.opportunity_subtype,
-        }),
-      });
-      const payload = (await response.json()) as { error?: string; next_action_on?: string | null };
-      if (!response.ok) throw new Error(payload.error || "Não foi possível atualizar a fila.");
+      const responses = await Promise.all(relatedOpportunities.map(async (item) => {
+        const response = await fetch(`/api/customers/${item.customer_id}/sales-opportunities`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workflow_action: action, recommended_product_id: item.recommended_product_id, opportunity_group: item.opportunity_group, opportunity_subtype: item.opportunity_subtype }) });
+        const payload = (await response.json()) as { error?: string };
+        if (!response.ok) throw new Error(payload.error || "Não foi possível atualizar a fila.");
+        return payload;
+      }));
+      void responses;
       setMessage(action === "called" ? "Contato registrado. Retorno criado para amanhã." : action === "lost_contact" ? "Retirado da fila ativa." : action === "converted_sale" ? "Conversão registrada." : "Cliente movido para a fila de 30 dias.");
       router.refresh();
     } catch (error) {

@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { ArrowRight, Boxes, Plus, Truck } from "lucide-react";
 import { CompanyReplenishmentGroups, type CompanyReplenishmentGroup, type CompanyReplenishmentProduct } from "@/components/company-replenishment-groups";
 import { PurchaseOrderCancelAction } from "@/components/purchase-order-cancel-action";
-import { getCurrentUserAccess } from "@/lib/data";
+import { getCurrentUserAccess, getFitnessPurchaseOrders } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import { getSupplierOrdersScaleSnapshot } from "@/lib/supplier-orders-scale-data";
 import { createClient } from "@/lib/supabase/server";
@@ -13,10 +13,11 @@ export default async function CompanyPurchasesPage() {
   if (!access.active || access.role === "partner") redirect("/dashboard");
 
   const supabase = await createClient();
-  const [groupsResult, productsResult, orders] = await Promise.all([
+  const [groupsResult, productsResult, orders, fitnessOrders] = await Promise.all([
     supabase.from("replenishment_groups").select("id,name,minimum_stock,ideal_stock,preferred_product_id,members:replenishment_group_products(product_id)").eq("active", true).order("name"),
     supabase.from("products").select("id,name,brand,category,balances:stock_balances(quantity,location:locations(counts_for_replenishment))").eq("active", true).order("name"),
     getSupplierOrdersScaleSnapshot({ tab: "pending", sort: "date", page: 1, pageSize: 20 }),
+    access.role === "admin" || access.canAccessFitness ? getFitnessPurchaseOrders() : Promise.resolve([]),
   ]);
 
   if (groupsResult.error) throw groupsResult.error;
@@ -55,6 +56,10 @@ export default async function CompanyPurchasesPage() {
           ))}
           {orders.orders.length === 0 && <div className="company-empty-state"><Boxes size={24} /><strong>Nenhum pedido em aberto</strong><span>Os próximos pedidos aparecerão aqui.</span></div>}
         </div>
+      </section>
+      <section className="company-orders-section">
+        <div className="company-section-heading"><div><span>Fitness</span><h2>Pedidos e recebimentos Fitness</h2><p>{fitnessOrders.filter((order) => order.pending_units > 0).reduce((sum, order) => sum + order.pending_units, 0)} unidades ainda a receber.</p></div><Link className="button ghost" href="/fitness/pedidos/novo"><Plus size={16}/> Novo pedido Fitness</Link></div>
+        <div className="company-order-list">{fitnessOrders.filter((order) => order.pending_units > 0 && order.status !== "cancelled").map((order) => <article className="panel company-order-row" key={`fitness-${order.id}`}><span className="company-order-icon"><Truck size={20}/></span><div className="company-order-main"><strong>{order.supplier_name}</strong><span>{order.product_summary || "Produtos Fitness"}</span><small>{formatDateOnly(order.ordered_on)} · {order.received_units}/{order.ordered_units} recebidas</small></div><strong>{formatCurrency(order.grand_total)}</strong><span className="company-status danger">{order.pending_units} pendentes</span><Link className="icon-button" href={`/fitness/pedidos/${order.id}`} aria-label="Abrir pedido Fitness"><ArrowRight size={17}/></Link></article>)}{fitnessOrders.filter((order) => order.pending_units > 0 && order.status !== "cancelled").length === 0 ? <div className="company-empty-state"><Boxes/><strong>Fitness sem recebimentos pendentes</strong><span>Novos pedidos aparecerão aqui.</span></div> : null}</div>
       </section>
     </div>
   );

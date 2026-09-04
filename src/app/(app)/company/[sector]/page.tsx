@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { ArrowLeft, Construction } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUserAccess, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
+import { getAgendaEvents, getAgendaSummary, getCurrentUserAccess, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
 import { CompanyProductsWorkspace } from "@/components/company-products-workspace";
 import { CompanyCareWorkspace } from "@/components/company-care-workspace";
+import { CompanyDayWorkspace } from "@/components/company-day-workspace";
 import type { CompanyCareItem } from "@/components/company-care-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
@@ -38,13 +39,14 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
 
   if (sector === "vender") {
     const supabase = await createClient();
-    const [opportunitiesResult, priorityResult, leadsResult, mediaResult, baseResult, feedbackResult] = await Promise.all([
+    const [opportunitiesResult, priorityResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers] = await Promise.all([
       supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(300),
       supabase.from("customer_sales_opportunities_priority_v2").select("*").order("opportunity_score", { ascending: false }).limit(100),
       supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(150),
       supabase.from("products").select("id,image_url,banner_image_url").eq("active", true),
       supabase.from("customer_sales_opportunities_v1").select("*").order("opportunity_score", { ascending: false }).limit(500),
       supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(2000),
+      access.role === "admin" || access.canAccessFitness ? getFitnessCustomers() : Promise.resolve([]),
     ]);
     if (opportunitiesResult.error) throw new Error(opportunitiesResult.error.message);
     if (priorityResult.error) throw new Error(priorityResult.error.message);
@@ -75,7 +77,7 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
       if (!priorityByCustomer.has(row.customer_id)) priorityByCustomer.set(row.customer_id, row);
     }
     const productMedia = Object.fromEntries((mediaResult.data ?? []).map((row) => [row.id, { photo1: row.image_url, photo2: row.banner_image_url }]));
-    return <CompanySalesWorkspace opportunities={opportunities} priorityCustomers={[...priorityByCustomer.values()]} leads={(leadsResult.data ?? []) as LeadRow[]} productMedia={productMedia} />;
+    return <CompanySalesWorkspace opportunities={opportunities} priorityCustomers={[...priorityByCustomer.values()]} leads={(leadsResult.data ?? []) as LeadRow[]} fitnessCustomers={fitnessCustomers} productMedia={productMedia} />;
   }
 
   if (sector === "concluir") {
@@ -153,6 +155,11 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
       ...fitness.filter((product) => product.active).map((product) => ({ ...product, brand: null, sale_price: product.min_sale_price, operation: "Fitness" as const })),
     ];
     return <CompanyProductsWorkspace products={products} />;
+  }
+
+  if (sector === "dia") {
+    const [events, summary] = await Promise.all([getAgendaEvents(), getAgendaSummary()]);
+    return <CompanyDayWorkspace events={events} summary={summary} />;
   }
 
   return <div className="company-v2-page"><div className="company-coming-soon"><Construction size={34} /><span>ERP 2.0 · Próximo módulo</span><h1>{config.title}</h1><p>{config.description}</p><Link className="button ghost" href="/company/inicio"><ArrowLeft size={16} />Voltar à Company</Link></div></div>;

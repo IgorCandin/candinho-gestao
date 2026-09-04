@@ -80,6 +80,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
   const [query, setQuery] = useState("");
   const [customers, setCustomers] = useState<CustomerItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const needle = normalize(query.trim());
   const canSearchCustomers = query.trim().length >= 2;
@@ -134,6 +135,13 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  useEffect(() => {
+    const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    syncFullscreen();
+    document.addEventListener("fullscreenchange", syncFullscreen);
+    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
+  }, []);
+
   function finishSearch() {
     setQuery("");
     searchRef.current?.blur();
@@ -147,7 +155,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
   return (
     <div className="company-shell-v2">
       <header className="company-command-header">
-        <button className="company-fullscreen-button" type="button" onClick={() => void toggleFullscreen()} aria-label="Alternar tela cheia" title="Tela cheia">
+        <button className="company-fullscreen-button company-header-edge-control" type="button" onClick={() => void toggleFullscreen()} aria-label="Alternar tela cheia" title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={isFullscreen}>
           <Maximize2 size={17}/>
         </button>
         <div className="company-header-inner">
