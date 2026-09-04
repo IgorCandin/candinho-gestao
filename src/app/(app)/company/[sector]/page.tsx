@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { ArrowLeft, Construction } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getAgendaEvents, getAgendaSummary, getCurrentUserAccess, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
+import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaSummary, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
 import { CompanyProductsWorkspace } from "@/components/company-products-workspace";
 import { CompanyCareWorkspace } from "@/components/company-care-workspace";
-import { CompanyDayWorkspace } from "@/components/company-day-workspace";
+import { AgendaDragDropV4532 } from "@/components/agenda-drag-drop-v45-32";
+import { OperationalCalendar } from "@/components/operational-calendar";
 import type { CompanyCareItem } from "@/components/company-care-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
@@ -132,12 +133,12 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
     ]);
     for (const result of [suppPost, fitnessPost, crm, feedback]) if (result.error) throw new Error(result.error.message);
     const items: CompanyCareItem[] = [];
-    for (const row of suppPost.data ?? []) if (row.status === "planned") items.push({ id: `sup-post-${row.id}`, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Suplementos", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/suplementos/${row.id}` });
-    for (const row of fitnessPost.data ?? []) if (row.status === "planned") items.push({ id: `fit-post-${row.id}`, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Fitness", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda Fitness", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/fitness/${row.id}` });
+    for (const row of suppPost.data ?? []) if (row.status === "planned") items.push({ id: `sup-post-${row.id}`, sourceId: row.id, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Suplementos", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/suplementos/${row.id}` });
+    for (const row of fitnessPost.data ?? []) if (row.status === "planned") items.push({ id: `fit-post-${row.id}`, sourceId: row.id, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Fitness", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda Fitness", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/fitness/${row.id}` });
     const crmById = new Map((crm.data ?? []).map((row) => [row.id, row]));
-    for (const row of crm.data ?? []) if (Number(row.pending_followup_count ?? 0) > 0 && row.next_followup_at) items.push({ id: `follow-${row.next_followup_id ?? row.id}`, customerId: row.id, customerName: row.name, phone: row.phone, city: row.city, operation: "Suplementos", kind: "follow_up", dueOn: row.next_followup_at, title: row.next_action_label ?? "Retorno combinado", note: row.next_followup_notes ?? row.last_contact_outcome ?? "Retorno registrado no CRM", href: `/company/clientes/${row.id}` });
+    for (const row of crm.data ?? []) if (Number(row.pending_followup_count ?? 0) > 0 && row.next_followup_at && row.next_followup_id) items.push({ id: `follow-${row.next_followup_id}`, sourceId: row.next_followup_id, customerId: row.id, customerName: row.name, phone: row.phone, city: row.city, operation: "Suplementos", kind: "follow_up", dueOn: row.next_followup_at, title: row.next_action_label ?? "Retorno combinado", note: row.next_followup_notes ?? row.last_contact_outcome ?? "Retorno registrado no CRM", href: `/company/clientes/${row.id}` });
     const seenWaiting = new Set<string>();
-    for (const row of feedback.data ?? []) { if (seenWaiting.has(row.customer_id)) continue; seenWaiting.add(row.customer_id); const customer = crmById.get(row.customer_id); if (customer) items.push({ id: `waiting-${row.customer_id}`, customerId: row.customer_id, customerName: customer.name, phone: customer.phone, city: customer.city, operation: "Suplementos", kind: "waiting", dueOn: row.next_action_on, title: "Aguardando resposta", note: "Contato iniciado pela fila Vender agora", href: `/company/clientes/${row.customer_id}` }); }
+    for (const row of feedback.data ?? []) { if (seenWaiting.has(row.customer_id)) continue; seenWaiting.add(row.customer_id); const customer = crmById.get(row.customer_id); if (customer) items.push({ id: `waiting-${row.customer_id}`, sourceId: row.customer_id, customerId: row.customer_id, customerName: customer.name, phone: customer.phone, city: customer.city, operation: "Suplementos", kind: "waiting", dueOn: row.next_action_on, title: "Aguardando resposta", note: "Contato iniciado pela fila Vender agora", href: `/company/clientes/${row.customer_id}` }); }
     return <CompanyCareWorkspace items={items} />;
   }
 
@@ -158,8 +159,15 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
   }
 
   if (sector === "dia") {
-    const [events, summary] = await Promise.all([getAgendaEvents(), getAgendaSummary()]);
-    return <CompanyDayWorkspace events={events} summary={summary} />;
+    const [events, summary, customers, sales, purchaseOrders, users] = await Promise.all([
+      getAgendaEvents(), getAgendaSummary(), getCustomerOptions(), getAgendaSaleOptions(), getAgendaPurchaseOrderOptions(), getAgendaUsers(),
+    ]);
+    const canWrite = access.role === "admin" || access.canWriteSupplements || access.canWriteFitness;
+    return <div className="company-workspace-v2 company-global-agenda">
+      <header className="company-workspace-heading"><span>COMPANY · AGENDA GLOBAL</span><h1>Organizar o dia</h1><p>Agenda, tarefas, cobranças, pós-vendas, compras e entregas de Suplementos e Fitness no mesmo calendário.</p></header>
+      <AgendaDragDropV4532 events={events} enabled={canWrite} />
+      <OperationalCalendar events={events} summary={summary} customers={customers} sales={sales} purchaseOrders={purchaseOrders} users={users} canWrite={canWrite} />
+    </div>;
   }
 
   return <div className="company-v2-page"><div className="company-coming-soon"><Construction size={34} /><span>ERP 2.0 · Próximo módulo</span><h1>{config.title}</h1><p>{config.description}</p><Link className="button ghost" href="/company/inicio"><ArrowLeft size={16} />Voltar à Company</Link></div></div>;

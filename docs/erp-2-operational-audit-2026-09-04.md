@@ -10,12 +10,12 @@ O ERP 1.0 organiza o sistema por operação e cadastro. O ERP 2.0 deve organizar
 
 | Módulo | Estado | Próxima consolidação |
 |---|---|---|
-| Vender agora | Funcional para Suplementos | incluir oportunidades, leads e recompra Fitness; conversão nativa sem retornar ao ERP 1.0 |
+| Vender agora | Suplementos + recompra Fitness | concluir o ciclo comercial Fitness de forma nativa; cadastros sem compra não são mais classificados como recompra |
 | Concluir vendas | Suplementos + Fitness | substituir as últimas telas reaproveitadas por uma ficha Company única |
-| Atender e acompanhar | CRM operacional e cadastro global iniciados | registrar resposta e reagendamento diretamente no card; consolidar identidade da mesma pessoa nas duas operações |
+| Atender e acompanhar | CRM global, resolução e reagendamento iniciados | completar pós-venda Fitness e consolidar identidade da mesma pessoa nas duas operações |
 | Produtos | Suplementos + Fitness | unificar edição e ações de estoque dentro da Company |
 | Comprar e repor | grupos equivalentes e pedidos de Suplementos | incluir estoque, fornecedores, pedidos e recebimentos Fitness; criar detalhe e novo pedido nativos |
-| Organizar o dia | ainda provisório | construir a Agenda Global de execução |
+| Organizar o dia | Agenda Global real, com calendário e arrastar/soltar | incluir filtros “sem responsável” e “sem próxima ação” e validar origens Fitness |
 
 ## Agenda Global / Organizar o dia
 
@@ -88,7 +88,19 @@ Não somar produtos Fitness em grupos equivalentes de suplementos. A unificaçã
 - Algumas fichas Company ainda reutilizam o componente antigo e seus botões internos podem retornar ao ERP 1.0.
 - Comprar e repor ainda abre novo pedido e detalhe na arquitetura antiga.
 - Cadastro novo e edição de clientes ainda usam formulários antigos, embora a listagem global seja Company.
-- Vender agora ainda não incorpora a fila comercial Fitness.
+- O ciclo de venda Fitness ainda precisa registrar contato, conversão e próxima ação com o mesmo nível de detalhe de Suplementos.
+
+## Pendências que impedem aposentar o ERP 1.0
+
+- criar, editar e concluir vendas inteiramente dentro da Company;
+- receber e cancelar pedidos de Suplementos e Fitness sem voltar à operação antiga;
+- movimentar, reservar, contar e transferir estoque nas duas operações;
+- editar cadastro e mídia de produtos de forma nativa;
+- concluir pós-venda Fitness e unificar pessoas duplicadas entre as operações;
+- administrar fornecedores, promoções e condições comerciais;
+- consultar relatórios de venda, lucro, estoque e qualidade;
+- conferir permissões, usuários e trilha de auditoria;
+- testar a paridade das filas e totais durante uma semana operacional.
 
 ## Ordem recomendada de construção
 

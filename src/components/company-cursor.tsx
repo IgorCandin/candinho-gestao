@@ -1,8 +1,17 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
+
+function cursorPalette(pathname: string) {
+  if (pathname.startsWith("/fitness") || pathname.startsWith("/catalogo/fitness")) return { accent: "#ec6fa9", glow: "rgba(236,111,169,.22)" };
+  if (pathname.startsWith("/suplementos") || pathname.startsWith("/catalogo/suplementos") || ["/clientes", "/produtos", "/estoque", "/vendas", "/agenda", "/leads"].some((route) => pathname.startsWith(route))) return { accent: "#d8a32f", glow: "rgba(216,163,47,.22)" };
+  if (pathname.startsWith("/bank")) return { accent: "#65b889", glow: "rgba(101,184,137,.2)" };
+  return { accent: "#aeb6c2", glow: "rgba(174,182,194,.18)" };
+}
 
 export function CompanyCursor() {
+  const pathname = usePathname();
   const ringRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
 
@@ -49,10 +58,12 @@ export function CompanyCursor() {
     };
   }, []);
 
+  const palette = cursorPalette(pathname);
+
   return (
     <>
-      <div className="company-cursor-ring is-hidden" ref={ringRef} aria-hidden="true" />
-      <div className="company-cursor-dot is-hidden" ref={dotRef} aria-hidden="true" />
+      <div className="company-cursor-ring is-hidden" ref={ringRef} aria-hidden="true" style={{ "--cursor-accent": palette.accent, "--cursor-glow": palette.glow } as React.CSSProperties}/>
+      <div className="company-cursor-dot is-hidden" ref={dotRef} aria-hidden="true" style={{ "--cursor-accent": palette.accent, "--cursor-glow": palette.glow } as React.CSSProperties}/>
     </>
   );
 }

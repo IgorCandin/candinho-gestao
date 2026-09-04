@@ -109,7 +109,7 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads,
     const needle = query.trim().toLocaleLowerCase("pt-BR");
     return needle ? hotLeads.filter((lead) => [lead.customer_name, lead.city, lead.phone, lead.product_summary, lead.lead_status].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle))) : hotLeads;
   }, [hotLeads, query]);
-  const visibleFitness = useMemo(() => fitnessCustomers.filter((customer) => customer.active && (customer.total_purchases === 0 || (customer.days_without_purchase ?? 0) >= 45)).filter((customer) => { const needle = query.trim().toLocaleLowerCase("pt-BR"); return !needle || [customer.name, customer.city, customer.phone].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle)); }).sort((a, b) => (b.days_without_purchase ?? 9999) - (a.days_without_purchase ?? 9999)), [fitnessCustomers, query]);
+  const visibleFitness = useMemo(() => fitnessCustomers.filter((customer) => customer.active && customer.total_purchases > 0 && (customer.days_without_purchase ?? 0) >= 45).filter((customer) => { const needle = query.trim().toLocaleLowerCase("pt-BR"); return !needle || [customer.name, customer.city, customer.phone].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle)); }).sort((a, b) => (b.days_without_purchase ?? 0) - (a.days_without_purchase ?? 0)), [fitnessCustomers, query]);
   const featured = priorityCustomers[0] ?? null;
   const repurchases = opportunities.filter((row) => row.opportunity_group === "recompra").length;
   const complementary = opportunities.filter((row) => row.opportunity_group === "produto_complementar").length;

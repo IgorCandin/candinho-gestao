@@ -1,7 +1,6 @@
 import { AppShell } from "@/components/app-shell";
 import { AutoPartnershipSaleUX } from "@/components/auto-partnership-sale-ux";
 import { CentralCostsShortcut } from "@/components/central-costs-shortcut";
-import { CompanyCursor } from "@/components/company-cursor";
 import { CentralKnowledgeNav } from "@/components/central-knowledge-nav";
 import { CustomerRelationshipsPortal } from "@/components/customer-relationships-portal";
 import { CustomerSalesAssistantPortal } from "@/components/customer-sales-assistant-portal";
@@ -66,7 +65,6 @@ export default async function ProtectedLayout({
 
   return (
     <DesktopSidebarController>
-      <CompanyCursor />
       <V459UiFoundationMarker />
       <DismissibleMenuGuard />
       <DesktopEscapeBack />

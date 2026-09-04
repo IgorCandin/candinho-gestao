@@ -2,6 +2,7 @@
 import { notFound } from "next/navigation";
 import LegacyProductPage from "../../../produtos/[id]/page";
 import { createClient } from "@/lib/supabase/server";
+import { CompanyNutritionLightbox } from "@/components/company-nutrition-lightbox";
 
 export const dynamic = "force-dynamic";
 
@@ -13,6 +14,7 @@ export default async function CompanyProductPage({ params }: { params: Promise<{
   if (!media) notFound();
 
   return <>
+    <CompanyNutritionLightbox />
     <section className="company-product-detail-media">
       {media.banner_image_url ? <div className="company-product-detail-banner"><img src={media.banner_image_url} alt={`Banner de ${media.name}`}/></div> : null}
     </section>
