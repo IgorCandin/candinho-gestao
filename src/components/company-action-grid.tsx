@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Boxes, CalendarDays, CircleDollarSign, ContactRound, ShoppingBag, Truck } from "lucide-react";
+import { Boxes, CalendarDays, CircleDollarSign, ContactRound, PackageSearch, ShoppingBag } from "lucide-react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 
 const ACTIONS = [
   { href: "/company/vender", title: "Vender agora", note: "Recompras, leads quentes e oportunidades", icon: ShoppingBag },
-  { href: "/company/receber", title: "Receber dinheiro", note: "Cobranças, vencimentos e acordos", icon: CircleDollarSign },
+  { href: "/company/concluir", title: "Concluir vendas", note: "Recebimentos, entregas e pendências", icon: CircleDollarSign },
   { href: "/company/acompanhar", title: "Atender e acompanhar", note: "Pós-venda e retornos combinados", icon: ContactRound },
-  { href: "/company/entregar", title: "Entregar", note: "Pedidos, retiradas e rotas", icon: Truck },
+  { href: "/company/produtos", title: "Produtos", note: "Disponibilidade, preços e catálogo", icon: PackageSearch },
   { href: "/company/compras", title: "Comprar e repor", note: "Grupos equivalentes e pedidos", icon: Boxes },
   { href: "/company/dia", title: "Organizar o dia", note: "Agenda e prioridades da empresa", icon: CalendarDays },
 ];

@@ -1,19 +1,21 @@
 import Link from "next/link";
 import { ArrowLeft, Construction } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUserAccess } from "@/lib/data";
+import { getCurrentUserAccess, getInventoryOverview } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
+import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
+import { CompanyProductsWorkspace } from "@/components/company-products-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
-import type { LeadRow } from "@/lib/types";
+import type { InventoryOverviewRow, LeadRow, PendingOrderRow } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 const SECTORS: Record<string, { title: string; description: string }> = {
   vender: { title: "Vender agora", description: "A próxima etapa reunirá recompra, leads quentes e oportunidades em uma fila única de venda." },
-  receber: { title: "Receber dinheiro", description: "A próxima etapa reunirá cobranças vencidas, valores de hoje e acordos pendentes." },
+  concluir: { title: "Concluir vendas", description: "Recebimentos e entregas reunidos na mesma fila." },
   acompanhar: { title: "Atender e acompanhar", description: "A próxima etapa reunirá pós-vendas, respostas aguardadas e retornos combinados." },
-  entregar: { title: "Entregar", description: "A próxima etapa reunirá pedidos prontos, retiradas, rotas e pendências logísticas." },
+  produtos: { title: "Produtos", description: "Consulte disponibilidade, preços e catálogo sem sair da Company." },
   dia: { title: "Organizar o dia", description: "A próxima etapa reunirá agenda, tarefas, alertas e itens sem próxima ação." },
 };
 
@@ -27,6 +29,7 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
   const { sector } = await params;
+  if (sector === "receber" || sector === "entregar") redirect("/company/concluir");
   const config = SECTORS[sector];
   if (!config) notFound();
 
@@ -70,6 +73,18 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
     }
     const productMedia = Object.fromEntries((mediaResult.data ?? []).map((row) => [row.id, { photo1: row.image_url, photo2: row.banner_image_url }]));
     return <CompanySalesWorkspace opportunities={opportunities} priorityCustomers={[...priorityByCustomer.values()]} leads={(leadsResult.data ?? []) as LeadRow[]} productMedia={productMedia} />;
+  }
+
+  if (sector === "concluir") {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from("pending_orders").select("*").order("business_at", { ascending: true }).limit(500);
+    if (error) throw new Error(error.message);
+    return <CompanyCompletionWorkspace orders={(data ?? []) as PendingOrderRow[]} />;
+  }
+
+  if (sector === "produtos") {
+    const products = await getInventoryOverview();
+    return <CompanyProductsWorkspace products={products as InventoryOverviewRow[]} />;
   }
 
   return <div className="company-v2-page"><div className="company-coming-soon"><Construction size={34} /><span>ERP 2.0 · Próximo módulo</span><h1>{config.title}</h1><p>{config.description}</p><Link className="button ghost" href="/company/inicio"><ArrowLeft size={16} />Voltar à Company</Link></div></div>;

@@ -18,7 +18,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Sparkles,
-  Truck,
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -45,9 +44,9 @@ type CustomerItem = {
 
 const PRIMARY_NAV: RouteItem[] = [
   { label: "Vender agora", note: "Recompras, leads e oportunidades", href: "/company/vender", keywords: "vendas comercial leads recompra", icon: ShoppingBag },
-  { label: "Receber dinheiro", note: "Cobranças, vencimentos e acordos", href: "/company/receber", keywords: "caixa receber cobrança dinheiro", icon: CircleDollarSign },
+  { label: "Concluir vendas", note: "Recebimentos, entregas e pendências", href: "/company/concluir", keywords: "caixa receber cobrança dinheiro entregar retirada logística", icon: CircleDollarSign },
   { label: "Atender e acompanhar", note: "Pós-venda e retornos", href: "/company/acompanhar", keywords: "atender acompanhar pos venda retorno", icon: ContactRound },
-  { label: "Entregar", note: "Pedidos, retiradas e rotas", href: "/company/entregar", keywords: "entrega rota retirada logística", icon: Truck },
+  { label: "Produtos", note: "Disponibilidade, preços e catálogo", href: "/company/produtos", keywords: "produto estoque preço catálogo", icon: PackageSearch },
   { label: "Comprar e repor", note: "Estoque, rupturas e pedidos", href: "/company/compras", keywords: "comprar repor estoque fornecedor", icon: Boxes },
   { label: "Organizar o dia", note: "Agenda, tarefas e prioridades", href: "/company/dia", keywords: "agenda meu dia calendário tarefa", icon: CalendarDays },
 ];

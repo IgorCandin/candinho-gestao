@@ -155,9 +155,9 @@ const hubNav: NavItem[] = [
 const companyNav: NavItem[] = [
   { href: "/company/inicio", label: "Hoje", icon: Home },
   { href: "/company/vender", label: "Vender agora", icon: ShoppingBag },
-  { href: "/company/receber", label: "Receber dinheiro", icon: CircleDollarSign },
+  { href: "/company/concluir", label: "Concluir vendas", icon: CircleDollarSign },
   { href: "/company/acompanhar", label: "Acompanhar", icon: ContactRound },
-  { href: "/company/entregar", label: "Entregar", icon: Truck },
+  { href: "/company/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/company/compras", label: "Comprar e repor", icon: Boxes },
   { href: "/company/dia", label: "Organizar o dia", icon: CalendarDays },
   { href: "/dashboard", label: "Operações antigas", icon: ArrowLeft, variant: "operation-return" },
