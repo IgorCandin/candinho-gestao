@@ -6,6 +6,8 @@ import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
 import { CompanyProductsWorkspace } from "@/components/company-products-workspace";
+import { CompanyCareWorkspace } from "@/components/company-care-workspace";
+import type { CompanyCareItem } from "@/components/company-care-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
@@ -114,6 +116,27 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
       }
     }
     return <CompanyCompletionWorkspace orders={orders} itemMedia={itemMedia} />;
+  }
+
+  if (sector === "acompanhar") {
+    const supabase = await createClient();
+    const canSupplements = access.role === "admin" || access.canAccessSupplements;
+    const canFitness = access.role === "admin" || access.canAccessFitness;
+    const [suppPost, fitnessPost, crm, feedback] = await Promise.all([
+      canSupplements ? supabase.from("post_sale_batch_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
+      canFitness ? supabase.from("fitness_post_sale_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
+      canSupplements ? supabase.from("customer_crm_overview").select("*").eq("active", true).order("radar_rank").limit(800) : Promise.resolve({ data: [], error: null }),
+      canSupplements ? supabase.from("customer_sales_opportunity_feedback").select("customer_id,feedback_status,next_action_on,created_at").eq("feedback_status", "contacted").order("created_at", { ascending: false }).limit(500) : Promise.resolve({ data: [], error: null }),
+    ]);
+    for (const result of [suppPost, fitnessPost, crm, feedback]) if (result.error) throw new Error(result.error.message);
+    const items: CompanyCareItem[] = [];
+    for (const row of suppPost.data ?? []) if (row.status === "planned") items.push({ id: `sup-post-${row.id}`, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Suplementos", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/suplementos/${row.id}` });
+    for (const row of fitnessPost.data ?? []) if (row.status === "planned") items.push({ id: `fit-post-${row.id}`, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Fitness", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda Fitness", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/fitness/${row.id}` });
+    const crmById = new Map((crm.data ?? []).map((row) => [row.id, row]));
+    for (const row of crm.data ?? []) if (Number(row.pending_followup_count ?? 0) > 0 && row.next_followup_at) items.push({ id: `follow-${row.next_followup_id ?? row.id}`, customerId: row.id, customerName: row.name, phone: row.phone, city: row.city, operation: "Suplementos", kind: "follow_up", dueOn: row.next_followup_at, title: row.next_action_label ?? "Retorno combinado", note: row.next_followup_notes ?? row.last_contact_outcome ?? "Retorno registrado no CRM", href: `/company/clientes/${row.id}` });
+    const seenWaiting = new Set<string>();
+    for (const row of feedback.data ?? []) { if (seenWaiting.has(row.customer_id)) continue; seenWaiting.add(row.customer_id); const customer = crmById.get(row.customer_id); if (customer) items.push({ id: `waiting-${row.customer_id}`, customerId: row.customer_id, customerName: customer.name, phone: customer.phone, city: customer.city, operation: "Suplementos", kind: "waiting", dueOn: row.next_action_on, title: "Aguardando resposta", note: "Contato iniciado pela fila Vender agora", href: `/company/clientes/${row.customer_id}` }); }
+    return <CompanyCareWorkspace items={items} />;
   }
 
   if (sector === "produtos") {
