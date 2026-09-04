@@ -13,6 +13,7 @@ import {
   Handshake,
   Home,
   LogOut,
+  Maximize2,
   PackageSearch,
   Search,
   ShieldCheck,
@@ -138,9 +139,17 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
     searchRef.current?.blur();
   }
 
+  async function toggleFullscreen() {
+    if (document.fullscreenElement) await document.exitFullscreen();
+    else await document.documentElement.requestFullscreen();
+  }
+
   return (
     <div className="company-shell-v2">
       <header className="company-command-header">
+        <button className="company-fullscreen-button" type="button" onClick={() => void toggleFullscreen()} aria-label="Alternar tela cheia" title="Tela cheia">
+          <Maximize2 size={17}/>
+        </button>
         <div className="company-header-inner">
           <nav className="company-primary-nav" aria-label="Setores da Company">
             {PRIMARY_NAV.slice(0, 3).map(({ href, label, icon: Icon }) => (
