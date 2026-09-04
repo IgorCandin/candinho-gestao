@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, Construction } from "lucide-react";
+import { ArrowLeft, BarChart3, Construction, Handshake, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaSummary, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
@@ -21,7 +21,7 @@ const SECTORS: Record<string, { title: string; description: string }> = {
   concluir: { title: "Concluir vendas", description: "Recebimentos e entregas reunidos na mesma fila." },
   acompanhar: { title: "Atender e acompanhar", description: "A próxima etapa reunirá pós-vendas, respostas aguardadas e retornos combinados." },
   produtos: { title: "Produtos", description: "Consulte disponibilidade, preços e catálogo sem sair da Company." },
-  dia: { title: "Organizar o dia", description: "A próxima etapa reunirá agenda, tarefas, alertas e itens sem próxima ação." },
+  dia: { title: "Gestão", description: "Agenda, valores, parceiros, fornecedores e decisões da Company." },
 };
 
 function brazilToday() {
@@ -164,7 +164,13 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
     ]);
     const canWrite = access.role === "admin" || access.canWriteSupplements || access.canWriteFitness;
     return <div className="company-workspace-v2 company-global-agenda">
-      <header className="company-workspace-heading"><span>COMPANY · AGENDA GLOBAL</span><h1>Organizar o dia</h1><p>Agenda, tarefas, cobranças, pós-vendas, compras e entregas de Suplementos e Fitness no mesmo calendário.</p></header>
+      <header className="company-workspace-heading"><span>COMPANY · GESTÃO</span><h1>Visão da empresa</h1><p>Confira os números, organize a agenda e abra cadastros administrativos sem procurar por várias operações.</p></header>
+      <section className="company-management-links">
+        <Link href="/central/executivo"><BarChart3/><div><strong>Painel de valores</strong><span>Indicadores, resultados e conferência</span></div><b>→</b></Link>
+        <Link href="/parceiros/gerencial"><Handshake/><div><strong>Parceiros</strong><span>Produtos, vendas, percentuais e acertos</span></div><b>→</b></Link>
+        <Link href="/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Cadastros, pedidos e histórico de compra</span></div><b>→</b></Link>
+      </section>
+      <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
       <AgendaDragDropV4532 events={events} enabled={canWrite} />
       <OperationalCalendar events={events} summary={summary} customers={customers} sales={sales} purchaseOrders={purchaseOrders} users={users} canWrite={canWrite} />
     </div>;

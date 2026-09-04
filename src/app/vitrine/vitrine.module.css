@@ -8,3 +8,9 @@
 .page :global(.public-storefront-card) { transition:transform .32s cubic-bezier(.2,.8,.2,1),border-color .25s ease,box-shadow .3s ease!important; }
 .page :global(.public-storefront-card:hover) { z-index:3; transform:translateY(-7px) scale(1.018); border-color:rgba(190,196,205,.5)!important; box-shadow:0 26px 70px rgba(0,0,0,.42),0 0 28px rgba(180,188,199,.08); }
 .page :global(a:focus-visible),.page :global(button:focus-visible),.page :global(input:focus-visible) { outline-color:#c2c7cf; }
+.page :global(.public-storefront-operation-block) { position:relative; padding-top:18px; border-top:1px solid rgba(184,191,201,.14); }
+.page :global(.operation-supplements>header h2) { color:#d9a431; }
+.page :global(.operation-supplements .public-storefront-card:hover) { border-color:rgba(217,164,49,.55)!important; box-shadow:0 26px 70px rgba(0,0,0,.42),0 0 28px rgba(217,164,49,.09); }
+.page :global(.operation-fitness>header h2) { color:#ec6fa9; }
+.page :global(.operation-fitness .public-storefront-card:hover) { border-color:rgba(236,111,169,.55)!important; box-shadow:0 26px 70px rgba(0,0,0,.42),0 0 28px rgba(236,111,169,.09); }
+@media(max-width:680px){.page :global(.public-storefront-page){overflow-x:hidden}.page :global(.public-storefront-card:hover){transform:none}.page :global(.public-storefront-operation-block){padding-top:12px}}

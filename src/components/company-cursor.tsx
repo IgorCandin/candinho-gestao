@@ -12,6 +12,7 @@ function cursorPalette(pathname: string) {
 
 export function CompanyCursor() {
   const pathname = usePathname();
+  const palette = cursorPalette(pathname);
   const ringRef = useRef<HTMLDivElement>(null);
   const dotRef = useRef<HTMLDivElement>(null);
 
@@ -41,6 +42,13 @@ export function CompanyCursor() {
       dotRef.current?.classList.remove("is-hidden");
       const interactive = (event.target as Element | null)?.closest("a, button, input, select, textarea, summary, [role='button']");
       ringRef.current?.classList.toggle("is-interactive", Boolean(interactive));
+      const operation = (event.target as Element | null)?.closest(".operation-supplements, .operation-fitness");
+      const accent = operation?.classList.contains("operation-supplements") ? "#d8a32f" : operation?.classList.contains("operation-fitness") ? "#ec6fa9" : palette.accent;
+      const glow = operation?.classList.contains("operation-supplements") ? "rgba(216,163,47,.22)" : operation?.classList.contains("operation-fitness") ? "rgba(236,111,169,.22)" : palette.glow;
+      ringRef.current?.style.setProperty("--cursor-accent", accent);
+      ringRef.current?.style.setProperty("--cursor-glow", glow);
+      dotRef.current?.style.setProperty("--cursor-accent", accent);
+      dotRef.current?.style.setProperty("--cursor-glow", glow);
     }
     function hide() {
       ringRef.current?.classList.add("is-hidden");
@@ -56,9 +64,7 @@ export function CompanyCursor() {
       window.cancelAnimationFrame(frame);
       document.body.classList.remove("company-custom-cursor-active");
     };
-  }, []);
-
-  const palette = cursorPalette(pathname);
+  }, [palette.accent, palette.glow]);
 
   return (
     <>

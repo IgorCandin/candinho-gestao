@@ -50,16 +50,15 @@ const PRIMARY_NAV: RouteItem[] = [
   { label: "Atender e acompanhar", note: "Pós-venda e retornos", href: "/company/acompanhar", keywords: "atender acompanhar pos venda retorno", icon: ContactRound },
   { label: "Produtos", note: "Disponibilidade, preços e catálogo", href: "/company/produtos", keywords: "produto estoque preço catálogo", icon: PackageSearch },
   { label: "Comprar e repor", note: "Estoque, rupturas e pedidos", href: "/company/compras", keywords: "comprar repor estoque fornecedor", icon: Boxes },
-  { label: "Organizar o dia", note: "Agenda, tarefas e prioridades", href: "/company/dia", keywords: "agenda meu dia calendário tarefa", icon: CalendarDays },
+  { label: "Gestão", note: "Agenda, valores, parceiros e fornecedores", href: "/company/dia", keywords: "gestao agenda valores parceiros fornecedores calendário tarefa", icon: CalendarDays },
 ];
 
 const SEARCH_ROUTES: RouteItem[] = [
   ...PRIMARY_NAV,
   { label: "Início da Company", note: "Voltar ao radar de execução", href: "/company/inicio", keywords: "inicio home company", icon: Home },
   { label: "Agenda geral", note: "Compromissos de todas as operações", href: "/central/agenda", keywords: "agenda calendário compromisso", icon: CalendarDays },
-  { label: "CRM · Suplementos", note: "Clientes e histórico de compras", href: "/clientes", keywords: "crm cliente suplementos", icon: ContactRound },
-  { label: "CRM · Fitness", note: "Clientes e histórico Fitness", href: "/fitness/clientes", keywords: "crm cliente fitness", icon: ContactRound },
-  { label: "Parcerias", note: "Relacionamentos e parceiros", href: "/clientes/relacionamentos", keywords: "parceria parceiros relacionamento", icon: Handshake },
+  { label: "Ficha de Clientes", note: "Cadastro Company e histórico completo", href: "/company/clientes", keywords: "crm cliente suplementos fitness", icon: ContactRound },
+  { label: "Parcerias", note: "Estoque, vendas e acertos", href: "/parceiros/gerencial", keywords: "parceria parceiros relacionamento acerto", icon: Handshake },
   { label: "Produtos · Suplementos", note: "Cadastro e catálogo", href: "/produtos", keywords: "produto suplemento catálogo", icon: PackageSearch },
   { label: "Produtos · Fitness", note: "Cadastro e catálogo", href: "/fitness/produtos", keywords: "produto fitness roupa catálogo", icon: PackageSearch },
   { label: "Meu Dia", note: "Rotinas e prioridades do negócio", href: "/central/meu-dia", keywords: "ferramenta meu dia rotina prioridade", icon: Sparkles },

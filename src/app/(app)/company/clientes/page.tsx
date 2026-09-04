@@ -24,12 +24,12 @@ export default async function CompanyCustomersPage() {
     const fitnessRow = fitnessByCore.get(row.id);
     const supplementActivity = row.purchase_count + row.lead_count + row.interaction_count + row.pending_followup_count;
     const operations: Array<"Suplementos" | "Fitness"> = [];
-    if (supplementActivity > 0 || !fitnessRow) operations.push("Suplementos");
-    if (fitnessRow) operations.push("Fitness");
+    if (row.purchase_count > 0) operations.push("Suplementos");
+    if ((fitnessRow?.total_purchases ?? 0) > 0) operations.push("Fitness");
     const lastDates = [row.last_purchase_at, fitnessRow?.last_purchase_on].filter((value): value is string => Boolean(value)).sort().reverse();
     return { id: row.id, fitnessId: fitnessRow?.id ?? null, name: row.name, phone: row.phone ?? fitnessRow?.phone ?? null, city: row.city ?? fitnessRow?.city ?? null, operations, purchaseCount: row.purchase_count + (fitnessRow?.total_purchases ?? 0), totalSpent: row.total_spent + (fitnessRow?.total_spent ?? 0), lastPurchaseOn: lastDates[0] ?? null, activityCount: supplementActivity + (fitnessRow?.total_purchases ?? 0), activitySummary: [row.purchase_count ? `${row.purchase_count} venda(s) em Suplementos` : null, fitnessRow?.total_purchases ? `${fitnessRow.total_purchases} venda(s) em Fitness` : null, row.pending_followup_count ? `${row.pending_followup_count} retorno(s)` : null, row.interaction_count ? `${row.interaction_count} interação(ões)` : null].filter(Boolean).join(" · "), detailHref: `/company/clientes/${row.id}`, editHref: `/company/clientes/${row.id}` };
   });
-  for (const row of fitness.filter((item) => !linkedFitnessIds.has(item.id))) customers.push({ id: row.id, fitnessId: row.id, name: row.name, phone: row.phone, city: row.city, operations: ["Fitness"], purchaseCount: row.total_purchases, totalSpent: row.total_spent, lastPurchaseOn: row.last_purchase_on, activityCount: row.total_purchases, activitySummary: row.total_purchases ? `${row.total_purchases} venda(s) em Fitness` : "Cadastro sem movimentações", detailHref: `/company/clientes/fitness/${row.id}`, editHref: `/fitness/clientes/${row.id}/editar` });
+  for (const row of fitness.filter((item) => !linkedFitnessIds.has(item.id))) customers.push({ id: row.id, fitnessId: row.id, name: row.name, phone: row.phone, city: row.city, operations: row.total_purchases > 0 ? ["Fitness"] : [], purchaseCount: row.total_purchases, totalSpent: row.total_spent, lastPurchaseOn: row.last_purchase_on, activityCount: row.total_purchases, activitySummary: row.total_purchases ? `${row.total_purchases} venda(s) em Fitness` : "Cadastro sem movimentações", detailHref: `/company/clientes/fitness/${row.id}`, editHref: `/fitness/clientes/${row.id}/editar` });
   customers.sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
   return <CompanyCustomerRegistry customers={customers} canWriteSupplements={access.canWriteSupplements} canWriteFitness={access.canWriteFitness}/>;
 }

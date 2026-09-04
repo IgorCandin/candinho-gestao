@@ -10,7 +10,7 @@ const ACTIONS = [
   { href: "/company/acompanhar", title: "Atender e acompanhar", note: "Pós-venda e retornos combinados", icon: ContactRound },
   { href: "/company/produtos", title: "Produtos", note: "Disponibilidade, preços e catálogo", icon: PackageSearch },
   { href: "/company/compras", title: "Comprar e repor", note: "Grupos equivalentes e pedidos", icon: Boxes },
-  { href: "/company/dia", title: "Organizar o dia", note: "Agenda e prioridades da empresa", icon: CalendarDays },
+  { href: "/company/dia", title: "Gestão", note: "Agenda, valores, parceiros e fornecedores", icon: CalendarDays },
 ];
 
 type MotionStyle = CSSProperties & Record<`--${string}`, string | number>;

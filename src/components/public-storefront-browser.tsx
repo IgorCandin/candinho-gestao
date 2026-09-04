@@ -759,7 +759,7 @@ export function PublicStorefrontBrowser({
       <div className="public-storefront-blocks">
         {blocks.map((block) =>
           block.items.length > 0 ? (
-            <section key={block.key}>
+            <section key={block.key} className={`public-storefront-operation-block operation-${block.key}`}>
               <header>
                 <h2>{block.title}</h2>
                 <span>{block.items.length} item(ns)</span>

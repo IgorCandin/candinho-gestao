@@ -118,7 +118,7 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads,
     <div className="company-sales-v2">
       <header className="company-sales-head">
         <div><span>Company · Comercial</span><h1>Vender agora</h1><p>Uma fila de execução: escolha uma pessoa, faça o contato e registre o resultado antes de seguir.</p></div>
-        <div><Link href="/leads/novo" className="button ghost"><UserRoundPlus size={16} /> Novo lead</Link><Link href="/vendas/nova" className="button company-blue"><Sparkles size={16} /> Nova venda</Link></div>
+        <div><Link href="/leads/novo" className="button ghost"><UserRoundPlus size={16} /> Novo lead</Link><Link href="/company/vendas/nova" className="button company-blue"><Sparkles size={16} /> Nova venda</Link></div>
       </header>
 
       <section className="company-sales-metrics">
