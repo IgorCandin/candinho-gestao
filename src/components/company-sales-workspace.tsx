@@ -4,8 +4,7 @@
 import Link from "next/link";
 import { ArrowRight, CalendarClock, ContactRound, Flame, MessageCircle, PackageSearch, Repeat2, Search, Sparkles, UserRoundPlus } from "lucide-react";
 import { useMemo, useState } from "react";
-import { RadarFollowupButton } from "@/components/radar-followup-button";
-import { SalesOpportunityFeedbackActions } from "@/components/sales-opportunity-feedback-actions";
+import { CompanySalesQueueActions } from "@/components/company-sales-queue-actions";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow } from "@/lib/types";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
@@ -71,11 +70,7 @@ function OpportunityCard({ row, featured = false, media }: { row: SalesOpportuni
         <ProductVisual name={row.recommended_product_name || "produto indicado"} media={media} />
       </div>
       <p>{row.reason}</p>
-      <div className="company-sale-actions">
-        {whatsapp ? <a className="company-whatsapp" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={15} /> WhatsApp</a> : <Link href={`/company/clientes/${row.customer_id}`}><ContactRound size={15} /> Ver contato</Link>}
-        <RadarFollowupButton customerId={row.customer_id} customerName={row.customer_name} suggestedAction={row.recommended_action} compact />
-      </div>
-      <SalesOpportunityFeedbackActions opportunity={row} compact />
+      <CompanySalesQueueActions opportunity={row} whatsappHref={whatsapp} />
     </article>
   );
 }

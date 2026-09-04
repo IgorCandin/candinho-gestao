@@ -415,6 +415,17 @@
 .company-sale-card .sales-feedback-wrap { padding-top: 10px; border-top: 1px solid rgba(255,255,255,.055); }
 .company-sale-card .sales-feedback-actions { display: flex; flex-wrap: wrap; gap: 5px; }
 .company-sale-card .sales-feedback-button { padding: 6px 7px; font-size: 9px; }
+.company-queue-workflow { display: grid; gap: 7px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.055); }
+.company-queue-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.company-queue-action { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 6px 9px; color: #9cadbf; font: inherit; font-size: 9px; font-weight: 820; border: 1px solid rgba(121,174,218,.17); border-radius: 8px; background: rgba(255,255,255,.018); cursor: pointer; transition: color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease; }
+.company-queue-action:hover:not(:disabled) { color: #eff9ff; border-color: rgba(72,185,255,.38); background: rgba(72,185,255,.08); transform: translateY(-1px); }
+.company-queue-action:disabled { opacity: .55; cursor: wait; }
+.company-queue-action.primary { color: #90d9ff; border-color: rgba(72,185,255,.32); background: rgba(72,185,255,.09); }
+.company-queue-action.success { color: #83e5ae; border-color: rgba(55,195,116,.25); background: rgba(55,195,116,.07); }
+.company-queue-action.danger { color: #d89494; border-color: rgba(224,100,100,.18); }
+.company-queue-action.quiet { color: #68798c; }
+.company-queue-stage { display: flex; align-items: center; gap: 6px; color: #8bd7ff; font-size: 9px; font-weight: 850; letter-spacing: .02em; }
+.company-queue-message { color: #7790a6; font-size: 9px; line-height: 1.4; }
 
 @media(max-width:1000px){.company-sales-feature{grid-template-columns:1fr}.company-sales-metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.company-sales-head,.company-sales-toolbar{align-items:stretch;flex-direction:column}.company-sales-head>div:last-child{flex-wrap:wrap}.company-sales-grid{grid-template-columns:1fr}.company-sales-metrics{grid-template-columns:1fr 1fr}.company-sales-feature{padding:18px}.company-sales-toolbar>label{width:100%}}
