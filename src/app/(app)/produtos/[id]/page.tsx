@@ -275,6 +275,7 @@ export default async function ProductDetailsPage({
               productId={product.id}
               initialImageUrl={product.image_url}
               initialThumbnailUrl={product.thumbnail_url}
+              secondaryImageUrl={product.secondary_image_url}
             />
           </div>
         </article>

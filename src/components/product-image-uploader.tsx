@@ -10,6 +10,7 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 type ImageState = {
@@ -104,12 +105,16 @@ export function ProductImageUploader({
   productId,
   initialImageUrl,
   initialThumbnailUrl,
+  secondaryImageUrl = null,
 }: {
   productId: string;
   initialImageUrl: string | null;
   initialThumbnailUrl: string | null;
+  secondaryImageUrl?: string | null;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const showCompanyNutrition = pathname.startsWith("/company/produtos/") && Boolean(secondaryImageUrl);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [current, setCurrent] = useState<ImageState>({
@@ -397,6 +402,16 @@ export function ProductImageUploader({
           <p className="upload-message">{message}</p>
         )}
       </div>
+      {showCompanyNutrition && (
+        <div className="product-image-slot company-nutrition-image-slot">
+          <div className="product-image-frame">
+            <img src={secondaryImageUrl ?? ""} alt="Tabela nutricional" loading="lazy" />
+          </div>
+          <div className="product-image-slot-footer">
+            <div><strong>Tabela nutricional</strong><span>Foto 03 cadastrada no produto</span></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

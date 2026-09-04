@@ -15,10 +15,6 @@ export default async function CompanyProductPage({ params }: { params: Promise<{
   return <>
     <section className="company-product-detail-media">
       {media.banner_image_url ? <div className="company-product-detail-banner"><img src={media.banner_image_url} alt={`Banner de ${media.name}`}/></div> : null}
-      <div className="company-product-detail-gallery">
-        {media.image_url ? <figure><img src={media.image_url} alt={`Foto principal de ${media.name}`}/><figcaption>Foto do produto</figcaption></figure> : null}
-        {media.secondary_image_url ? <figure><img src={media.secondary_image_url} alt={`Tabela nutricional de ${media.name}`}/><figcaption>Tabela nutricional</figcaption></figure> : null}
-      </div>
     </section>
     <LegacyProductPage params={Promise.resolve({ id })}/>
   </>;
