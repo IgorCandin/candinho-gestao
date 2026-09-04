@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, BarChart3, Construction, Handshake, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaSummary, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
+import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
@@ -9,6 +9,10 @@ import { CompanyProductsWorkspace } from "@/components/company-products-workspac
 import { CompanyCareWorkspace } from "@/components/company-care-workspace";
 import { AgendaDragDropV4532 } from "@/components/agenda-drag-drop-v45-32";
 import { OperationalCalendar } from "@/components/operational-calendar";
+import { CommercialContactAgendaCard } from "@/components/commercial-contact-agenda-card";
+import { GoogleCalendarConnectionCard } from "@/components/google-calendar-connection-card";
+import { emptyCommercialContactQueue, type CommercialContactQueueSnapshot } from "@/lib/commercial-contact-types";
+import { getGoogleCalendarStatus } from "@/lib/google-calendar-data";
 import type { CompanyCareItem } from "@/components/company-care-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
@@ -28,6 +32,14 @@ function brazilToday() {
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const value = (type: "year" | "month" | "day") => parts.find((part) => part.type === type)?.value ?? "";
   return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+function isCommercialQueueEvent(notes: string | null) {
+  return Boolean(notes && (notes.startsWith("[Recompra automática]") || notes.startsWith("[Lead:") || notes.startsWith("[Fila Comercial]")));
+}
+
+function agendaDayDiff(date: string, today: string) {
+  return Math.round((new Date(`${date}T12:00:00-03:00`).getTime() - new Date(`${today}T12:00:00-03:00`).getTime()) / 86_400_000);
 }
 
 export default async function CompanySectorPage({ params }: { params: Promise<{ sector: string }> }) {
@@ -159,9 +171,20 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
   }
 
   if (sector === "dia") {
-    const [events, summary, customers, sales, purchaseOrders, users] = await Promise.all([
-      getAgendaEvents(), getAgendaSummary(), getCustomerOptions(), getAgendaSaleOptions(), getAgendaPurchaseOrderOptions(), getAgendaUsers(),
+    const supabase = await createClient();
+    const today = brazilToday();
+    const [allEvents, customers, sales, purchaseOrders, users, commercialResult, googleCalendar] = await Promise.all([
+      getAgendaEvents(), getCustomerOptions(), getAgendaSaleOptions(), getAgendaPurchaseOrderOptions(), getAgendaUsers(), supabase.rpc("commercial_contact_queue_people_v1", { p_limit: 1 }), getGoogleCalendarStatus(),
     ]);
+    const events = allEvents.filter((event) => !isCommercialQueueEvent(event.notes));
+    const commercialQueue = commercialResult.error ? emptyCommercialContactQueue(today) : ((commercialResult.data as CommercialContactQueueSnapshot | null) ?? emptyCommercialContactQueue(today));
+    const month = today.slice(0, 7);
+    const summary = {
+      today_count: events.filter((event) => event.status === "planned" && event.due_date === today).length + (!commercialQueue.skipped && !commercialQueue.completed ? 1 : 0),
+      overdue_count: events.filter((event) => event.status === "planned" && event.due_date < today).length,
+      next_seven_days_count: events.filter((event) => event.status === "planned" && agendaDayDiff(event.due_date, today) > 0 && agendaDayDiff(event.due_date, today) <= 7).length,
+      completed_month_count: events.filter((event) => event.status === "completed" && event.due_date.startsWith(month)).length + (commercialQueue.completed ? 1 : 0),
+    };
     const canWrite = access.role === "admin" || access.canWriteSupplements || access.canWriteFitness;
     return <div className="company-workspace-v2 company-global-agenda">
       <header className="company-workspace-heading"><span>COMPANY · GESTÃO</span><h1>Visão da empresa</h1><p>Confira os números, organize a agenda e abra cadastros administrativos sem procurar por várias operações.</p></header>
@@ -171,6 +194,8 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
         <Link href="/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Cadastros, pedidos e histórico de compra</span></div><b>→</b></Link>
       </section>
       <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
+      {canWrite ? <GoogleCalendarConnectionCard status={googleCalendar} /> : null}
+      {!commercialQueue.skipped ? <CommercialContactAgendaCard snapshot={commercialQueue} /> : null}
       <AgendaDragDropV4532 events={events} enabled={canWrite} />
       <OperationalCalendar events={events} summary={summary} customers={customers} sales={sales} purchaseOrders={purchaseOrders} users={users} canWrite={canWrite} />
     </div>;

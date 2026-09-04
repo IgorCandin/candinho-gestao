@@ -738,3 +738,66 @@
 .company-shell-v2 .company-blue,.company-new-customer-save{color:#0a0c0f!important;border-color:#c2c8d0!important;background:linear-gradient(135deg,#c4cad2,#929ca8)!important}.company-global-search:hover>svg,.company-global-search:focus-within>svg{color:#bcc4ce}.company-fullscreen-button:hover{color:#c6cdd5;border-color:rgba(190,200,212,.55);box-shadow:0 0 22px rgba(180,190,202,.12)}.company-registry-link,.company-registry-create a{color:#e6e9ed;border-color:rgba(184,194,206,.3);background:rgba(174,184,197,.08)}.company-registry-badges span{color:#c0c7d0;background:rgba(174,184,197,.1)}
 @media(max-width:900px){.company-command-header{position:sticky;top:0;width:100%;height:auto!important;border-radius:0;transform:none;left:auto}.company-header-inner{display:block;min-width:0!important;padding:9px 12px 7px!important}.company-header-brand{display:grid!important;position:static!important;height:38px!important;transform:none!important}.company-header-brand img{width:120px!important}.company-primary-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;height:auto}.company-primary-nav-right{margin-top:5px}.company-primary-nav a{height:44px!important;min-width:0!important;grid-template-rows:24px auto!important;padding:4px!important}.company-primary-nav a span{display:block!important;max-width:100%;font-size:8px;opacity:1!important;transform:none!important}.company-fullscreen-button,.company-account-menu{top:27px!important}.company-shell-content{padding-top:18px!important}.company-management-links{grid-template-columns:1fr}.company-sale-gateway-grid{grid-template-columns:1fr}.company-sale-gateway-grid>a{min-height:230px}.company-sale-gateway-grid svg{margin-bottom:28px}}
 @media(max-width:600px){.company-shell-content{padding-inline:12px!important}.company-workspace-v2{gap:18px}.company-workspace-panel{padding:12px}.company-workspace-toolbar{align-items:stretch;flex-direction:column}.company-workspace-toolbar>div{display:flex;max-width:100%;overflow-x:auto}.company-workspace-toolbar label{width:100%;min-width:0}.company-sale-gateway-grid>a{padding:24px}.company-sale-gateway-grid h2{font-size:29px}.company-nutrition-lightbox{padding:18px}.company-global-search{bottom:10px}}
+
+/* V2.4 · Cabeçalho desktop alinhado ao protótipo aprovado */
+@media(min-width:901px){
+  .company-command-header{
+    width:min(1220px,calc(100vw - 32px));
+    height:70px;
+    border-radius:20px;
+    transition:height .34s cubic-bezier(.22,.8,.22,1),border-color .28s ease,box-shadow .28s ease;
+  }
+  .company-command-header:hover,
+  .company-command-header:focus-within{height:110px}
+  .company-header-inner{
+    grid-template-columns:minmax(0,1fr) 232px minmax(0,1fr);
+    gap:14px;
+    padding:8px 62px;
+  }
+  .company-primary-nav{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    align-items:center;
+    gap:8px;
+    width:100%;
+    height:100%;
+  }
+  .company-primary-nav a{
+    align-content:center;
+    width:100%;
+    min-width:0;
+    height:50px!important;
+    padding:7px 5px;
+    grid-template-rows:28px 0fr;
+  }
+  .company-command-header:hover .company-primary-nav a,
+  .company-command-header:focus-within .company-primary-nav a{
+    height:92px!important;
+    padding-block:10px;
+    grid-template-rows:31px 1fr;
+  }
+  .company-primary-nav a svg{align-self:center}
+  .company-primary-nav a span{
+    align-self:center;
+    min-height:0;
+    max-width:118px;
+    line-height:1.15;
+  }
+  .company-header-brand{
+    height:52px;
+    transition:height .34s cubic-bezier(.22,.8,.22,1);
+  }
+  .company-header-brand img{
+    width:176px;
+    max-height:52px;
+    transition:width .34s cubic-bezier(.22,.8,.22,1),max-height .34s cubic-bezier(.22,.8,.22,1);
+  }
+  .company-command-header:hover .company-header-brand,
+  .company-command-header:focus-within .company-header-brand{height:92px}
+  .company-command-header:hover .company-header-brand img,
+  .company-command-header:focus-within .company-header-brand img{width:208px;max-height:76px}
+  .company-fullscreen-button,
+  .company-account-menu{top:50%!important;transform:translateY(-50%)}
+  .company-fullscreen-button{left:13px}
+  .company-account-menu{right:13px}
+}
