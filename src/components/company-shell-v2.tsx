@@ -40,6 +40,7 @@ type CustomerItem = {
   detail: string;
   href: string;
   operation: "Suplementos" | "Fitness";
+  kind?: "customer" | "product";
 };
 
 const PRIMARY_NAV: RouteItem[] = [
@@ -82,6 +83,8 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
   const needle = normalize(query.trim());
   const canSearchCustomers = query.trim().length >= 2;
   const visibleCustomers = canSearchCustomers ? customers : [];
+  const customerResults = visibleCustomers.filter((item) => item.kind !== "product");
+  const productResults = visibleCustomers.filter((item) => item.kind === "product");
   const visibleLoading = canSearchCustomers && loading;
 
   const routes = useMemo(() => {
@@ -176,11 +179,18 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
       <div className="company-global-search" role="search">
         {(needle || visibleLoading) && (
           <div className="company-search-results" aria-live="polite">
-            {visibleCustomers.length > 0 && <p>Clientes</p>}
-            {visibleCustomers.map((customer) => (
+            {customerResults.length > 0 && <p>Clientes</p>}
+            {customerResults.map((customer) => (
               <Link href={customer.href} key={`${customer.operation}-${customer.id}`} onClick={finishSearch}>
                 <span className="company-result-icon"><UserRound size={17} /></span>
                 <span><strong>{customer.name}</strong><small>{customer.operation} · {customer.detail}</small></span>
+              </Link>
+            ))}
+            {productResults.length > 0 && <p>Produtos</p>}
+            {productResults.map((product) => (
+              <Link href={product.href} key={`${product.operation}-${product.id}`} onClick={finishSearch}>
+                <span className="company-result-icon"><PackageSearch size={17} /></span>
+                <span><strong>{product.name}</strong><small>{product.operation} · {product.detail}</small></span>
               </Link>
             ))}
             {routes.length > 0 && <p>Páginas e ferramentas</p>}
@@ -193,7 +203,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
                 <span className="company-result-icon"><Icon size={17} /></span><span><strong>{label}</strong><small>{note}</small></span>
               </Link>
             ))}
-            {visibleLoading && <span className="company-search-status">Procurando clientes…</span>}
+            {visibleLoading && <span className="company-search-status">Procurando clientes e produtos…</span>}
             {!visibleLoading && visibleCustomers.length === 0 && routes.length === 0 && <span className="company-search-status">Nada encontrado. Tente um nome, setor ou tarefa.</span>}
           </div>
         )}

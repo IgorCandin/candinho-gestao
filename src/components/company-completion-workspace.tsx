@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import type { PendingOrderRow } from "@/lib/types";
 
-type CompletionOrder = PendingOrderRow & { outstanding_amount?: number | null; payment_state?: string | null; next_payment_due_at?: string | null };
+export type CompletionOrder = PendingOrderRow & { outstanding_amount?: number | null; payment_state?: string | null; next_payment_due_at?: string | null; operation?: "Suplementos" | "Fitness"; details_href?: string; customer_key?: string };
 type Filter = "all" | "both" | "receive" | "deliver" | "late";
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
@@ -15,8 +15,8 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
   { id: "receive", label: "Só receber" }, { id: "deliver", label: "Só entregar" }, { id: "late", label: "Vencidas" },
 ];
 
-function amount(order: CompletionOrder) { return Number(order.outstanding_amount ?? (order.payment_status === "paid" ? 0 : order.total_amount)); }
-function needsDelivery(order: CompletionOrder) { return order.delivery_status === "to_deliver" || order.delivery_status === "pending"; }
+function amount(order: CompletionOrder) { return Number(order.outstanding_amount ?? (["paid", "received"].includes(order.payment_status) ? 0 : order.total_amount)); }
+function needsDelivery(order: CompletionOrder) { return !["delivered", "received"].includes(order.delivery_status); }
 
 type SaleItemMedia = { productId: string; name: string; imageUrl: string | null; quantity: number };
 
@@ -30,14 +30,19 @@ export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: Comp
     deliver: orders.filter(needsDelivery).length,
     both: orders.filter((order) => amount(order) > .005 && needsDelivery(order)).length,
   }), [orders]);
-  const visible = useMemo(() => orders.filter((order) => {
+  const visible = useMemo(() => {
+    const filtered = orders.filter((order) => {
     const receive = amount(order) > .005;
     const deliver = needsDelivery(order);
     const due = order.next_payment_due_at ?? order.payment_due_at;
     const matchesFilter = filter === "all" || (filter === "both" && receive && deliver) || (filter === "receive" && receive && !deliver) || (filter === "deliver" && deliver && !receive) || (filter === "late" && receive && !!due && due.slice(0, 10) < today);
     const needle = query.trim().toLocaleLowerCase("pt-BR");
-    return matchesFilter && (!needle || `${order.customer_name} ${order.product_summary ?? ""} ${order.location_name}`.toLocaleLowerCase("pt-BR").includes(needle));
-  }), [filter, orders, query, today]);
+      return matchesFilter && (!needle || `${order.customer_name} ${order.product_summary ?? ""} ${order.location_name}`.toLocaleLowerCase("pt-BR").includes(needle));
+    });
+    const firstPosition = new Map<string, number>();
+    filtered.forEach((order, index) => { if (!firstPosition.has(order.customer_key ?? order.customer_name)) firstPosition.set(order.customer_key ?? order.customer_name, index); });
+    return filtered.map((order, index) => ({ order, index })).sort((a, b) => (firstPosition.get(a.order.customer_key ?? a.order.customer_name) ?? a.index) - (firstPosition.get(b.order.customer_key ?? b.order.customer_name) ?? b.index) || a.index - b.index).map(({ order }) => order);
+  }, [filter, orders, query, today]);
 
   return <div className="company-workspace-v2">
     <header className="company-workspace-head"><div><span>COMPANY · OPERAÇÃO</span><h1>Concluir vendas</h1><p>Pagamento e entrega juntos, para nenhuma venda ficar pela metade.</p></div></header>
@@ -52,10 +57,10 @@ export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: Comp
       <p className="company-workspace-count">{visible.length} venda(s) nesta fila</p>
       <div className="company-completion-grid">{visible.map((order) => {
         const receive = amount(order) > .005; const deliver = needsDelivery(order); const due = order.next_payment_due_at ?? order.payment_due_at;
-        return <article className="company-completion-card" key={order.id}>
+        return <article className="company-completion-card" key={`${order.operation ?? "Suplementos"}-${order.id}`}>
           <div className="company-completion-products">{(itemMedia[order.id] ?? []).slice(0, 5).map((item) => <span key={item.productId} title={`${item.name} ×${item.quantity}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name}/> : <ImageIcon/>}{item.quantity > 1 && <b>{item.quantity}×</b>}</span>)}</div>
-          <div className="company-completion-body"><div className="company-completion-flags">{receive && <span className="receive">Receber</span>}{deliver && <span className="deliver">Entregar</span>}</div><h2>{order.customer_name}</h2><p>{order.product_summary ?? "Venda sem resumo de produtos"}</p><small>{order.location_name} · {formatDateOnly(order.business_date)}</small>{due && receive && <small>Vencimento: {formatDateOnly(due)}</small>}</div>
-          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong><Link href={`/company/concluir/${order.id}`}>Concluir venda →</Link></div>
+          <div className="company-completion-body"><div className="company-completion-flags">{receive && <span className="receive">Receber</span>}{deliver && <span className="deliver">Entregar</span>}<span>{order.operation ?? "Suplementos"}</span></div><h2>{order.customer_name}</h2><p>{order.product_summary ?? "Venda sem resumo de produtos"}</p><small>{order.location_name} · {formatDateOnly(order.business_date)}</small>{due && receive && <small>Vencimento: {formatDateOnly(due)}</small>}</div>
+          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong><Link href={order.details_href ?? `/company/concluir/${order.id}`}>Concluir venda →</Link></div>
         </article>;
       })}</div>
       {visible.length === 0 && <div className="company-empty-state"><PackageCheck/><strong>Nenhuma pendência aqui.</strong><span>Troque o filtro ou faça outra busca.</span></div>}

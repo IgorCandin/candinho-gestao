@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { ArrowLeft, Construction } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUserAccess, getProductCatalog } from "@/lib/data";
+import { getCurrentUserAccess, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
+import type { CompletionOrder } from "@/components/company-completion-workspace";
 import { CompanyProductsWorkspace } from "@/components/company-products-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
@@ -77,9 +78,21 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
 
   if (sector === "concluir") {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("pending_orders").select("*").order("business_at", { ascending: true }).limit(500);
+    const [{ data, error }, fitnessSales] = await Promise.all([
+      supabase.from("pending_orders").select("*").order("business_at", { ascending: true }).limit(500),
+      access.role === "admin" || access.canAccessFitness ? getFitnessDashboardPendingSales(500) : Promise.resolve([]),
+    ]);
     if (error) throw new Error(error.message);
-    const orders = (data ?? []) as PendingOrderRow[];
+    const supplements = ((data ?? []) as PendingOrderRow[]).map((order) => ({ ...order, operation: "Suplementos" as const, details_href: `/company/concluir/${order.id}`, customer_key: order.customer_name.split(" - ")[0].trim().toLocaleLowerCase("pt-BR") }));
+    const fitness: CompletionOrder[] = fitnessSales.map((sale) => ({
+      id: sale.id, customer_id: sale.customer_id, customer_name: sale.customer_name, location_id: "fitness", location_code: "FIT", location_name: "Candinho Fitness",
+      business_at: sale.created_at, business_date: sale.quoted_on, order_at: sale.created_at, paid_at: sale.paid_on, delivered_at: sale.delivered_on, general_status: sale.general_status,
+      payment_status: sale.payment_status, delivery_status: sale.delivery_status, payment_method: sale.payment_method, payment_condition: null, total_amount: sale.total_amount,
+      total_profit: sale.total_profit, product_summary: sale.product_summary, total_items: sale.total_items, primary_product_id: null, primary_image_url: null,
+      payment_due_at: sale.payment_due_on, price_condition: null, partner_id: null, partner_name: null, reservation_status: sale.reservation_status,
+      operation: "Fitness", details_href: `/company/concluir/fitness/${sale.id}`, customer_key: sale.customer_name.split(" - ")[0].trim().toLocaleLowerCase("pt-BR"),
+    }));
+    const orders: CompletionOrder[] = [...supplements, ...fitness];
     const saleIds = orders.map((order) => order.id);
     const itemsResult = saleIds.length
       ? await supabase.from("sale_items").select("sale_id,product_id,quantity,product:products(name,image_url)").in("sale_id", saleIds)
@@ -90,11 +103,28 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
       const product = Array.isArray(row.product) ? row.product[0] : row.product;
       (itemMedia[row.sale_id] ??= []).push({ productId: row.product_id, name: product?.name ?? "Produto", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity) });
     }
+    const fitnessIds = fitness.map((order) => order.id);
+    if (fitnessIds.length) {
+      const fitnessItems = await supabase.from("fitness_sale_items").select("sale_id,quantity,variant:fitness_variants(product_id,product:fitness_products(name,image_url))").in("sale_id", fitnessIds);
+      if (fitnessItems.error) throw new Error(fitnessItems.error.message);
+      for (const row of fitnessItems.data ?? []) {
+        const variant = Array.isArray(row.variant) ? row.variant[0] : row.variant;
+        const product = variant && (Array.isArray(variant.product) ? variant.product[0] : variant.product);
+        (itemMedia[row.sale_id] ??= []).push({ productId: variant?.product_id ?? row.sale_id, name: product?.name ?? "Produto Fitness", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity) });
+      }
+    }
     return <CompanyCompletionWorkspace orders={orders} itemMedia={itemMedia} />;
   }
 
   if (sector === "produtos") {
-    const products = (await getProductCatalog()).filter((product) => product.active);
+    const [supplements, fitness] = await Promise.all([
+      access.role === "admin" || access.canAccessSupplements ? getProductCatalog() : Promise.resolve([]),
+      access.role === "admin" || access.canAccessFitness ? getFitnessProducts() : Promise.resolve([]),
+    ]);
+    const products = [
+      ...supplements.filter((product) => product.active).map((product) => ({ ...product, operation: "Suplementos" as const })),
+      ...fitness.filter((product) => product.active).map((product) => ({ ...product, brand: null, sale_price: product.min_sale_price, operation: "Fitness" as const })),
+    ];
     return <CompanyProductsWorkspace products={products} />;
   }
 

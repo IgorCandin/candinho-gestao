@@ -19,30 +19,32 @@ export async function GET(request: Request) {
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") return NextResponse.json({ error: "Sem acesso." }, { status: 403 });
 
-  const searches: PromiseLike<unknown>[] = [];
+  const searches: Array<{ kind: "customer" | "product"; operation: "Suplementos" | "Fitness"; request: PromiseLike<unknown> }> = [];
   if (access.role === "admin" || access.canAccessSupplements) {
-    searches.push(supabase.from("customers").select("id,name,city,phone").eq("active", true).ilike("name", `%${query}%`).order("name").limit(6));
+    searches.push({ kind: "customer", operation: "Suplementos", request: supabase.from("customers").select("id,name,city,phone").eq("active", true).ilike("name", `%${query}%`).order("name").limit(6) });
+    searches.push({ kind: "product", operation: "Suplementos", request: supabase.from("products").select("id,name,category,brand").eq("active", true).ilike("name", `%${query}%`).order("name").limit(6) });
   }
   if (access.role === "admin" || access.canAccessFitness) {
-    searches.push(supabase.from("fitness_customers").select("id,name,city,phone").eq("active", true).ilike("name", `%${query}%`).order("name").limit(6));
+    searches.push({ kind: "customer", operation: "Fitness", request: supabase.from("fitness_customers").select("id,name,city,phone").eq("active", true).ilike("name", `%${query}%`).order("name").limit(6) });
+    searches.push({ kind: "product", operation: "Fitness", request: supabase.from("fitness_products").select("id,name,category").eq("active", true).ilike("name", `%${query}%`).order("name").limit(6) });
   }
 
-  const responses = await Promise.all(searches);
-  const results: Array<{ id: string; name: string; detail: string; href: string; operation: "Suplementos" | "Fitness" }> = [];
+  const responses = await Promise.all(searches.map((search) => search.request));
+  const results: Array<{ id: string; name: string; detail: string; href: string; operation: "Suplementos" | "Fitness"; kind: "customer" | "product" }> = [];
 
   responses.forEach((raw, index) => {
-    const response = raw as { data: Array<{ id: string; name: string; city: string | null; phone: string | null }> | null };
-    const operation = (searches.length === 1 && !(access.role === "admin" || access.canAccessSupplements)) || index === 1 ? "Fitness" : "Suplementos";
+    const response = raw as { data: Array<{ id: string; name: string; city?: string | null; phone?: string | null; category?: string | null; brand?: string | null }> | null };
+    const { operation, kind } = searches[index];
     for (const row of response.data ?? []) {
       results.push({
         id: row.id,
         name: row.name,
-        detail: [row.city, row.phone].filter(Boolean).join(" · ") || "Ficha do cliente",
-        href: operation === "Fitness" ? `/fitness/clientes/${row.id}` : `/company/clientes/${row.id}`,
-        operation,
+        detail: kind === "product" ? [row.category, row.brand].filter(Boolean).join(" · ") || "Produto" : [row.city, row.phone].filter(Boolean).join(" · ") || "Ficha do cliente",
+        href: kind === "product" ? (operation === "Fitness" ? `/company/produtos/fitness/${row.id}` : `/company/produtos/${row.id}`) : (operation === "Fitness" ? `/fitness/clientes/${row.id}` : `/company/clientes/${row.id}`),
+        operation, kind,
       });
     }
   });
 
-  return NextResponse.json({ results: results.slice(0, 10) }, { headers: { "Cache-Control": "private, no-store" } });
+  return NextResponse.json({ results: results.slice(0, 16) }, { headers: { "Cache-Control": "private, no-store" } });
 }
