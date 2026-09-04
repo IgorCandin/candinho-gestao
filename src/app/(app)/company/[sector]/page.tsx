@@ -79,7 +79,18 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
     const supabase = await createClient();
     const { data, error } = await supabase.from("pending_orders").select("*").order("business_at", { ascending: true }).limit(500);
     if (error) throw new Error(error.message);
-    return <CompanyCompletionWorkspace orders={(data ?? []) as PendingOrderRow[]} />;
+    const orders = (data ?? []) as PendingOrderRow[];
+    const saleIds = orders.map((order) => order.id);
+    const itemsResult = saleIds.length
+      ? await supabase.from("sale_items").select("sale_id,product_id,quantity,product:products(name,image_url)").in("sale_id", saleIds)
+      : { data: [], error: null };
+    if (itemsResult.error) throw new Error(itemsResult.error.message);
+    const itemMedia: Record<string, Array<{ productId: string; name: string; imageUrl: string | null; quantity: number }>> = {};
+    for (const row of itemsResult.data ?? []) {
+      const product = Array.isArray(row.product) ? row.product[0] : row.product;
+      (itemMedia[row.sale_id] ??= []).push({ productId: row.product_id, name: product?.name ?? "Produto", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity) });
+    }
+    return <CompanyCompletionWorkspace orders={orders} itemMedia={itemMedia} />;
   }
 
   if (sector === "produtos") {

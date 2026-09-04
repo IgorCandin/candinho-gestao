@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleDollarSign, Clock3, PackageCheck, Search, Truck } from "lucide-react";
+import { CircleDollarSign, Clock3, ImageIcon, PackageCheck, Search, Truck } from "lucide-react";
 import { useMemo, useState } from "react";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import type { PendingOrderRow } from "@/lib/types";
@@ -18,7 +18,9 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 function amount(order: CompletionOrder) { return Number(order.outstanding_amount ?? (order.payment_status === "paid" ? 0 : order.total_amount)); }
 function needsDelivery(order: CompletionOrder) { return order.delivery_status === "to_deliver" || order.delivery_status === "pending"; }
 
-export function CompanyCompletionWorkspace({ orders }: { orders: CompletionOrder[] }) {
+type SaleItemMedia = { productId: string; name: string; imageUrl: string | null; quantity: number };
+
+export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: CompletionOrder[]; itemMedia: Record<string, SaleItemMedia[]> }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
   const today = new Date().toISOString().slice(0, 10);
@@ -51,9 +53,9 @@ export function CompanyCompletionWorkspace({ orders }: { orders: CompletionOrder
       <div className="company-completion-grid">{visible.map((order) => {
         const receive = amount(order) > .005; const deliver = needsDelivery(order); const due = order.next_payment_due_at ?? order.payment_due_at;
         return <article className="company-completion-card" key={order.id}>
-          <div className="company-completion-photo">{order.primary_image_url ? <img src={order.primary_image_url} alt=""/> : <PackageCheck/>}</div>
+          <div className="company-completion-products">{(itemMedia[order.id] ?? []).slice(0, 5).map((item) => <span key={item.productId} title={`${item.name} ×${item.quantity}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name}/> : <ImageIcon/>}{item.quantity > 1 && <b>{item.quantity}×</b>}</span>)}</div>
           <div className="company-completion-body"><div className="company-completion-flags">{receive && <span className="receive">Receber</span>}{deliver && <span className="deliver">Entregar</span>}</div><h2>{order.customer_name}</h2><p>{order.product_summary ?? "Venda sem resumo de produtos"}</p><small>{order.location_name} · {formatDateOnly(order.business_date)}</small>{due && receive && <small>Vencimento: {formatDateOnly(due)}</small>}</div>
-          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong><Link href={`/pedidos-pendentes/${order.id}`}>Concluir venda →</Link></div>
+          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong><Link href={`/company/concluir/${order.id}`}>Concluir venda →</Link></div>
         </article>;
       })}</div>
       {visible.length === 0 && <div className="company-empty-state"><PackageCheck/><strong>Nenhuma pendência aqui.</strong><span>Troque o filtro ou faça outra busca.</span></div>}
