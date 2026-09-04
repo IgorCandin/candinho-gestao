@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { ArrowLeft, Construction } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getCurrentUserAccess, getInventoryOverview } from "@/lib/data";
+import { getCurrentUserAccess, getProductCatalog } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import { CompanyProductsWorkspace } from "@/components/company-products-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
-import type { InventoryOverviewRow, LeadRow, PendingOrderRow } from "@/lib/types";
+import type { LeadRow, PendingOrderRow } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -94,8 +94,8 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
   }
 
   if (sector === "produtos") {
-    const products = await getInventoryOverview();
-    return <CompanyProductsWorkspace products={products as InventoryOverviewRow[]} />;
+    const products = (await getProductCatalog()).filter((product) => product.active);
+    return <CompanyProductsWorkspace products={products} />;
   }
 
   return <div className="company-v2-page"><div className="company-coming-soon"><Construction size={34} /><span>ERP 2.0 · Próximo módulo</span><h1>{config.title}</h1><p>{config.description}</p><Link className="button ghost" href="/company/inicio"><ArrowLeft size={16} />Voltar à Company</Link></div></div>;
