@@ -117,12 +117,16 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
   }
 
   if (sector === "produtos") {
-    const [supplements, fitness] = await Promise.all([
+    const supabase = await createClient();
+    const [supplements, fitness, supplementMedia] = await Promise.all([
       access.role === "admin" || access.canAccessSupplements ? getProductCatalog() : Promise.resolve([]),
       access.role === "admin" || access.canAccessFitness ? getFitnessProducts() : Promise.resolve([]),
+      access.role === "admin" || access.canAccessSupplements ? supabase.from("products").select("id,secondary_image_url").eq("active", true) : Promise.resolve({ data: [], error: null }),
     ]);
+    if (supplementMedia.error) throw new Error(supplementMedia.error.message);
+    const secondaryByProduct = new Map((supplementMedia.data ?? []).map((row) => [row.id, row.secondary_image_url]));
     const products = [
-      ...supplements.filter((product) => product.active).map((product) => ({ ...product, operation: "Suplementos" as const })),
+      ...supplements.filter((product) => product.active).map((product) => ({ ...product, secondary_image_url: secondaryByProduct.get(product.id) ?? null, operation: "Suplementos" as const })),
       ...fitness.filter((product) => product.active).map((product) => ({ ...product, brand: null, sale_price: product.min_sale_price, operation: "Fitness" as const })),
     ];
     return <CompanyProductsWorkspace products={products} />;

@@ -10,6 +10,7 @@ export type CompanyProductRow = {
   id: string; name: string; category: string; brand: string | null; image_url: string | null;
   sale_price: number; physical_quantity: number; reserved_quantity: number; available_quantity: number;
   incoming_quantity: number; operation: "Suplementos" | "Fitness";
+  secondary_image_url?: string | null;
 };
 
 export function CompanyProductsWorkspace({ products }: { products: CompanyProductRow[] }) {
@@ -32,6 +33,6 @@ export function CompanyProductsWorkspace({ products }: { products: CompanyProduc
         <section><span>{product.operation} · {product.category}{product.brand ? ` · ${product.brand}` : ""}</span><h2>{product.name}</h2><p><strong>{product.available_quantity}</strong> disponível · {product.reserved_quantity} reservado · {product.incoming_quantity} chegando</p><b>{formatCurrency(product.sale_price)}</b><small>Abrir informações →</small></section>
       </Link>)}</div>
     </section>
-    {preview?.image_url ? <div className="company-product-hover-preview" aria-hidden="true"><img src={preview.image_url} alt=""/></div> : null}
+    {preview?.image_url ? <div className={`company-product-hover-preview ${preview.secondary_image_url ? "has-secondary" : ""}`} aria-hidden="true"><figure><img src={preview.image_url} alt=""/><figcaption>Produto</figcaption></figure>{preview.secondary_image_url ? <figure><img src={preview.secondary_image_url} alt=""/><figcaption>Tabela nutricional</figcaption></figure> : null}</div> : null}
   </div>;
 }
