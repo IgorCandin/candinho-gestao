@@ -40,7 +40,7 @@ export default async function CompanyPurchasesPage() {
 
   return (
     <div className="company-v2-page">
-      <header className="company-v2-page-head"><div><span>Company · Comprar e repor</span><h1>Comprar somente o que faz falta</h1><p>Produtos equivalentes trabalham juntos. Pedidos cancelados deixam de contar como mercadoria a caminho.</p></div><Link className="button gold" href="/pedidos-fornecedor/novo"><Plus size={16} />Novo pedido</Link></header>
+      <header className="company-v2-page-head"><div><span>Company · Comprar e repor</span><h1>Comprar somente o que faz falta</h1><p>Produtos equivalentes trabalham juntos. Pedidos cancelados deixam de contar como mercadoria a caminho.</p></div><Link className="button company-blue" href="/company/compras/novo"><Plus size={16} />Novo pedido</Link></header>
       <CompanyReplenishmentGroups groups={groups} products={products} />
       <section className="company-orders-section">
         <div className="company-section-heading"><div><span>Acompanhamento</span><h2>Pedidos em aberto</h2><p>{orders.pendingUnits} unidades a caminho em {orders.pendingCount} pedidos.</p></div></div>
@@ -58,7 +58,7 @@ export default async function CompanyPurchasesPage() {
         </div>
       </section>
       <section className="company-orders-section">
-        <div className="company-section-heading"><div><span>Fitness</span><h2>Pedidos e recebimentos Fitness</h2><p>{fitnessOrders.filter((order) => order.pending_units > 0).reduce((sum, order) => sum + order.pending_units, 0)} unidades ainda a receber.</p></div><Link className="button ghost" href="/fitness/pedidos/novo"><Plus size={16}/> Novo pedido Fitness</Link></div>
+        <div className="company-section-heading"><div><span>Fitness</span><h2>Pedidos e recebimentos Fitness</h2><p>{fitnessOrders.filter((order) => order.pending_units > 0).reduce((sum, order) => sum + order.pending_units, 0)} unidades ainda a receber.</p></div></div>
         <div className="company-order-list">{fitnessOrders.filter((order) => order.pending_units > 0 && order.status !== "cancelled").map((order) => <article className="panel company-order-row" key={`fitness-${order.id}`}><span className="company-order-icon"><Truck size={20}/></span><div className="company-order-main"><strong>{order.supplier_name}</strong><span>{order.product_summary || "Produtos Fitness"}</span><small>{formatDateOnly(order.ordered_on)} · {order.received_units}/{order.ordered_units} recebidas</small></div><strong>{formatCurrency(order.grand_total)}</strong><span className="company-status danger">{order.pending_units} pendentes</span><Link className="icon-button" href={`/fitness/pedidos/${order.id}`} aria-label="Abrir pedido Fitness"><ArrowRight size={17}/></Link></article>)}{fitnessOrders.filter((order) => order.pending_units > 0 && order.status !== "cancelled").length === 0 ? <div className="company-empty-state"><Boxes/><strong>Fitness sem recebimentos pendentes</strong><span>Novos pedidos aparecerão aqui.</span></div> : null}</div>
       </section>
     </div>

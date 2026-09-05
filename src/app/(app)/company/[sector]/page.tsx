@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BarChart3, Construction, Handshake, Truck } from "lucide-react";
+import { ArrowLeft, BarChart3, Construction, Handshake, MapPinned, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
@@ -189,7 +189,8 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
     return <div className="company-workspace-v2 company-global-agenda">
       <header className="company-workspace-heading"><span>COMPANY · GESTÃO</span><h1>Visão da empresa</h1><p>Confira os números, organize a agenda e abra cadastros administrativos sem procurar por várias operações.</p></header>
       <section className="company-management-links">
-        <Link href="/central/executivo"><BarChart3/><div><strong>Painel de valores</strong><span>Indicadores, resultados e conferência</span></div><b>→</b></Link>
+        <Link href="/company/central"><BarChart3/><div><strong>Sala do Dono</strong><span>Valores, resultados e atalhos executivos</span></div><b>→</b></Link>
+        <Link href="/company/rotas"><MapPinned/><div><strong>Rotas</strong><span>Planejamento, clientes e entregas por cidade</span></div><b>→</b></Link>
         <Link href="/parceiros/gerencial"><Handshake/><div><strong>Parceiros</strong><span>Produtos, vendas, percentuais e acertos</span></div><b>→</b></Link>
         <Link href="/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Cadastros, pedidos e histórico de compra</span></div><b>→</b></Link>
       </section>

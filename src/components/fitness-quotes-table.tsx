@@ -27,7 +27,7 @@ function statusLabel(status: string) {
   return "Cancelado";
 }
 
-export function FitnessQuotesTable({ rows }: { rows: Row[] }) {
+export function FitnessQuotesTable({ rows, companyMode = false }: { rows: Row[]; companyMode?: boolean }) {
   const router = useRouter();
 
   if (rows.length === 0) {
@@ -57,18 +57,18 @@ export function FitnessQuotesTable({ rows }: { rows: Row[] }) {
               className="clickable-data-row"
               role="link"
               tabIndex={0}
-              onClick={() => router.push(`/fitness/orcamentos/${row.id}`)}
+              onClick={() => router.push(companyMode ? `/company/orcamentos/fitness/${row.id}` : `/fitness/orcamentos/${row.id}`)}
               onKeyDown={(event) => {
                 if (event.key === "Enter" || event.key === " ") {
                   event.preventDefault();
-                  router.push(`/fitness/orcamentos/${row.id}`);
+                  router.push(companyMode ? `/company/orcamentos/fitness/${row.id}` : `/fitness/orcamentos/${row.id}`);
                 }
               }}
             >
               <td>
                 <Link
                   className="table-link cell-main"
-                  href={`/fitness/orcamentos/${row.id}`}
+                  href={companyMode ? `/company/orcamentos/fitness/${row.id}` : `/fitness/orcamentos/${row.id}`}
                   onClick={(event) => event.stopPropagation()}
                 >
                   #{row.quote_number}
@@ -77,7 +77,7 @@ export function FitnessQuotesTable({ rows }: { rows: Row[] }) {
               <td>
                 <Link
                   className="table-link"
-                  href={`/fitness/clientes/${row.customer_id}`}
+                  href={companyMode ? `/company/clientes/fitness/${row.customer_id}` : `/fitness/clientes/${row.customer_id}`}
                   onClick={(event) => event.stopPropagation()}
                 >
                   {row.customer_name}
@@ -87,7 +87,7 @@ export function FitnessQuotesTable({ rows }: { rows: Row[] }) {
                 {row.primary_product_id ? (
                   <Link
                     className="table-link"
-                    href={`/fitness/produtos/${row.primary_product_id}`}
+                    href={companyMode ? `/company/produtos/fitness/${row.primary_product_id}` : `/fitness/produtos/${row.primary_product_id}`}
                     onClick={(event) => event.stopPropagation()}
                   >
                     {row.product_summary || "Produto"}

@@ -23,7 +23,7 @@ const FILTERS = [
   { value: "cancelled", label: "Cancelados" },
 ] as const;
 
-export function QuotesTable({ quotes }: { quotes: QuoteRow[] }) {
+export function QuotesTable({ quotes, companyMode = false }: { quotes: QuoteRow[]; companyMode?: boolean }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
@@ -44,7 +44,7 @@ export function QuotesTable({ quotes }: { quotes: QuoteRow[] }) {
     });
   }, [quotes, query, status]);
 
-  const openQuote = (id: string) => router.push(`/orcamentos/${id}`);
+  const openQuote = (id: string) => router.push(companyMode ? `/company/orcamentos/${id}` : `/orcamentos/${id}`);
 
   return (
     <>
@@ -114,7 +114,7 @@ export function QuotesTable({ quotes }: { quotes: QuoteRow[] }) {
                     <Link
                       onClick={(event) => event.stopPropagation()}
                       className="cell-main table-link"
-                      href={`/orcamentos/${quote.id}`}
+                      href={companyMode ? `/company/orcamentos/${quote.id}` : `/orcamentos/${quote.id}`}
                     >
                       #{quote.quote_number}
                     </Link>
@@ -127,7 +127,7 @@ export function QuotesTable({ quotes }: { quotes: QuoteRow[] }) {
                     <Link
                       onClick={(event) => event.stopPropagation()}
                       className="table-link detail-with-icon"
-                      href={`/clientes/${quote.customer_id}`}
+                      href={companyMode ? `/company/clientes/${quote.customer_id}` : `/clientes/${quote.customer_id}`}
                     >
                       <UserRound size={14} />
                       {quote.customer_name}
@@ -175,7 +175,7 @@ export function QuotesTable({ quotes }: { quotes: QuoteRow[] }) {
                       ) : (
                         <Link
                           className="icon-link"
-                          href={`/orcamentos/${quote.id}`}
+                          href={companyMode ? `/company/orcamentos/${quote.id}` : `/orcamentos/${quote.id}`}
                           title="Abrir orçamento"
                           aria-label={`Abrir orçamento ${quote.quote_number}`}
                         >

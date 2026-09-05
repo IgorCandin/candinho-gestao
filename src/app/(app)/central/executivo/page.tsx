@@ -120,7 +120,7 @@ function ForecastCard({
   );
 }
 
-export default async function ExecutivePage() {
+export async function ExecutiveDashboard() {
   const access =
     await getCurrentUserAccess();
 
@@ -1015,4 +1015,8 @@ export default async function ExecutivePage() {
       </div>
     </section>
   );
+}
+
+export default function LegacyExecutivePage() {
+  redirect("/company/central");
 }

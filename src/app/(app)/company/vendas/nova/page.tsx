@@ -12,8 +12,8 @@ export default async function CompanyNewSaleGateway() {
   return <div className="company-workspace-v2 company-sale-gateway">
     <header className="company-workspace-head"><div><span>COMPANY · NOVA VENDA</span><h1>O que será vendido?</h1><p>O cliente continua sendo da Company. Escolha apenas qual operação movimentará produtos, estoque e financeiro nesta venda.</p></div></header>
     <section className="company-sale-gateway-grid">
-      {canSupplements ? <Link className="supplements" href="/vendas/nova"><ShoppingBasket/><span>Operação</span><h2>Suplementos</h2><p>Produtos, reservas e estoque da Candinho Suplementos.</p><b>Começar venda →</b></Link> : null}
-      {canFitness ? <Link className="fitness" href="/fitness/vendas/nova"><Dumbbell/><span>Operação</span><h2>Fitness</h2><p>Peças, tamanhos, cores e estoque da Candinho Fitness.</p><b>Começar venda →</b></Link> : null}
+      {canSupplements ? <Link className="supplements" href="/company/vendas/nova/suplementos"><ShoppingBasket/><span>Operação</span><h2>Suplementos</h2><p>Produtos, sabores, reservas e estoque da Candinho Suplementos.</p><b>Começar venda →</b></Link> : null}
+      {canFitness ? <Link className="fitness" href="/company/vendas/nova/fitness"><Dumbbell/><span>Operação</span><h2>Fitness</h2><p>Peças, tamanhos, cores e estoque da Candinho Fitness.</p><b>Começar venda →</b></Link> : null}
     </section>
   </div>;
 }

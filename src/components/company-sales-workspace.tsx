@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, ContactRound, Flame, MessageCircle, PackageSearch, Repeat2, Search, ShoppingBag, Sparkles, UserRoundPlus } from "lucide-react";
+import { ArrowRight, CalendarClock, ContactRound, FileText, Flame, MessageCircle, PackageSearch, Repeat2, Search, ShoppingBag, Sparkles, UserRoundPlus } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CompanySalesQueueActions } from "@/components/company-sales-queue-actions";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
@@ -118,7 +118,7 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads,
     <div className="company-sales-v2">
       <header className="company-sales-head">
         <div><span>Company · Comercial</span><h1>Vender agora</h1><p>Uma fila de execução: escolha uma pessoa, faça o contato e registre o resultado antes de seguir.</p></div>
-        <div><Link href="/leads/novo" className="button ghost"><UserRoundPlus size={16} /> Novo lead</Link><Link href="/company/vendas/nova" className="button company-blue"><Sparkles size={16} /> Nova venda</Link></div>
+        <div><Link href="/leads/novo" className="button ghost"><UserRoundPlus size={16} /> Novo lead</Link><Link href="/company/orcamentos" className="button ghost"><FileText size={16} /> Orçamentos</Link><Link href="/company/vendas/nova" className="button company-blue"><Sparkles size={16} /> Nova venda</Link></div>
       </header>
 
       <section className="company-sales-metrics">
