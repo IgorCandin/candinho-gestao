@@ -1,0 +1,5 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Dumbbell, PackagePlus } from "lucide-react";
+import { getCurrentUserAccess } from "@/lib/data";
+export default async function CompanyNewSupplierPage(){const access=await getCurrentUserAccess();if(!access.active||access.role==="partner")redirect("/dashboard");return <div className="company-v2-page"><header className="company-v2-page-head"><div><span>Company · Fornecedores</span><h1>Qual operação receberá o fornecedor?</h1><p>O cadastro fica na origem correta e aparece imediatamente na visão unificada.</p></div></header><div className="company-sale-gateway-grid">{access.canAccessSupplements?<Link className="supplements" href="/company/compras/novo/suplementos"><PackagePlus/><span>Suplementos</span><h2>Fornecedor no pedido</h2><p>Cadastre o fornecedor durante a criação do próximo pedido de Suplementos.</p><b>Continuar →</b></Link>:null}{access.canAccessFitness?<Link className="fitness" href="/company/fornecedores/fitness/novo"><Dumbbell/><span>Fitness</span><h2>Novo fornecedor</h2><p>Cadastre contatos, site, imagem e observações.</p><b>Continuar →</b></Link>:null}</div></div>}
