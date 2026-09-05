@@ -6,6 +6,9 @@ import {
 } from "lucide-react";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicBackorderSection } from "@/components/public-backorder-section";
+import { StorefrontCouponSignup } from "@/components/storefront-coupon-signup";
+import { StorefrontTestimonials, type StorefrontTestimonial } from "@/components/storefront-testimonials";
+import { createClient } from "@/lib/supabase/server";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
 import { PublicCatalogWarmupV4536 } from "@/components/public-catalog-warmup-v45-36";
@@ -25,6 +28,13 @@ import { getPublicSupplementBackorders } from "@/lib/public-backorder-data";
 export const revalidate = 10;
 
 export default async function PublicCatalogPage() {
+  const supabase = await createClient();
+  const [{ data: testimonials }, { data: campaignSummary }] = await Promise.all([
+    supabase.from("storefront_testimonials").select("id,customer_name,comment,profession,photo_url").eq("active", true).order("display_order").order("created_at"),
+    supabase.rpc("get_storefront_campaign_summary_v1"),
+  ]);
+  const summary = Array.isArray(campaignSummary) ? campaignSummary[0] : campaignSummary;
+  const remaining = summary ? Number(summary.remaining) : null;
   const [
     snapshot,
     productLinks,
@@ -65,9 +75,9 @@ export default async function PublicCatalogPage() {
       <header className="public-storefront-header public-storefront-header-v4532">
         <div className="public-storefront-header-top public-storefront-header-top-v4527 public-storefront-header-top-v4532">
           <Link
-            href="/dashboard"
+            href="/catalogo"
             className="public-storefront-company-link-v4527 public-storefront-company-link-v4532"
-            aria-label="Voltar para Operações Candinho Company"
+            aria-label="Início da Vitrine Candinho"
           >
             <Image
               src={company.src}
@@ -77,6 +87,7 @@ export default async function PublicCatalogPage() {
               priority
             />
           </Link>
+          <Link href="/login" className="public-storefront-login">Entrar no sistema</Link>
         </div>
 
         <div className="public-storefront-hero public-storefront-hero-v4532">
@@ -121,6 +132,9 @@ export default async function PublicCatalogPage() {
         links={productLinks}
         topSellers={topSellers}
       />
+
+      <StorefrontTestimonials items={(testimonials || []) as StorefrontTestimonial[]} />
+      <StorefrontCouponSignup initialRemaining={remaining} />
 
       <section
         className="public-storefront-content"

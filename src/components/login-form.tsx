@@ -41,7 +41,7 @@ export function LoginForm() {
         throw new Error("Usuário ou senha inválidos.");
       }
 
-      window.location.href = "/dashboard";
+      window.location.href = "/company/inicio";
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível entrar.");
     } finally {

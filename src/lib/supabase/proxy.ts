@@ -53,7 +53,7 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthPage = pathname.startsWith("/login") || pathname.startsWith("/auth");
   const protectedPrefixes = [
-    "/dashboard", "/suplementos", "/fitness", "/physique", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
+    "/dashboard", "/company", "/suplementos", "/fitness", "/physique", "/produtos", "/estoque", "/vendas", "/orcamentos", "/leads",
     "/clientes", "/movimentacoes", "/configuracoes", "/pedidos-pendentes", "/pedidos-fornecedor", "/fornecedores", "/parceiros", "/painel-cs", "/bank", "/central", "/marketing", "/parceiro",
   ];
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
@@ -94,7 +94,7 @@ export async function updateSession(request: NextRequest) {
 
     if (isAuthPage && pathname === "/login") {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = access.role === "partner" ? "/parceiro" : "/dashboard";
+      redirectUrl.pathname = access.role === "partner" ? "/parceiro" : "/company/inicio";
       redirectUrl.search = "";
       return NextResponse.redirect(redirectUrl);
     }

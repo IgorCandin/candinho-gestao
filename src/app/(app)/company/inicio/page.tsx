@@ -19,7 +19,7 @@ export default async function CompanyEntryPage() {
         <Link href="/dashboard" className="company-v2-wordmark">
           <strong>CANDINHO</strong><span>COMPANY</span>
         </Link>
-        <div><span>ERP 2.0</span><Link href="/dashboard">Operações 1.0</Link></div>
+        <div><span>ERP 2.0</span><Link href="/dashboard">Operações 1.0</Link><Link href="/catalogo">Vitrine</Link></div>
       </nav>
       <header className="company-v2-hero">
         <span><i /> ERP 2.0 · Evolução em andamento</span>
@@ -27,7 +27,7 @@ export default async function CompanyEntryPage() {
         <p>Uma fila clara para vender, receber, atender e operar. Escolha o resultado — a Company organiza o caminho.</p>
       </header>
       <CompanyActionGrid />
-      <footer className="company-v2-footer"><span>Escolha uma direção. Execute sem se perder.</span><Link className="company-legacy-link" href="/dashboard">Voltar às operações do ERP 1.0</Link></footer>
+      <footer className="company-v2-footer"><span>Escolha uma direção. Execute sem se perder.</span><div><Link className="company-legacy-link" href="/company/vitrine">Gerenciar vitrine</Link><Link className="company-legacy-link" href="/dashboard">Voltar às operações do ERP 1.0</Link></div></footer>
     </main>
   );
 }
