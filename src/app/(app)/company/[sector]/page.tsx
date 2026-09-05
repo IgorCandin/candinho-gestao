@@ -191,7 +191,7 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
       <section className="company-management-links">
         <Link href="/company/central"><BarChart3/><div><strong>Sala do Dono</strong><span>Valores, resultados e atalhos executivos</span></div><b>→</b></Link>
         <Link href="/company/rotas"><MapPinned/><div><strong>Rotas</strong><span>Planejamento, clientes e entregas por cidade</span></div><b>→</b></Link>
-        <Link href="/parceiros/gerencial"><Handshake/><div><strong>Parceiros</strong><span>Produtos, vendas, percentuais e acertos</span></div><b>→</b></Link>
+        <Link href="/company/parceiros/gerencial"><Handshake/><div><strong>Parceiros</strong><span>Produtos, vendas, percentuais e acertos</span></div><b>→</b></Link>
         <Link href="/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Cadastros, pedidos e histórico de compra</span></div><b>→</b></Link>
       </section>
       <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
