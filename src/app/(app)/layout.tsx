@@ -1,6 +1,5 @@
 import { AppShell } from "@/components/app-shell";
 import { AutoPartnershipSaleUX } from "@/components/auto-partnership-sale-ux";
-import { CentralCostsShortcut } from "@/components/central-costs-shortcut";
 import { CentralKnowledgeNav } from "@/components/central-knowledge-nav";
 import { CustomerRelationshipsPortal } from "@/components/customer-relationships-portal";
 import { CustomerSalesAssistantPortal } from "@/components/customer-sales-assistant-portal";
@@ -36,11 +35,6 @@ export default async function ProtectedLayout({
 }) {
   const access = await getCurrentUserAccess();
 
-  const canAccessSharedCosts =
-    access.role === "admin" ||
-    access.canWriteSupplements ||
-    access.canWriteFitness;
-
   const canManageCentralKnowledge =
     access.role === "admin" || access.canManageUsers;
 
@@ -69,7 +63,6 @@ export default async function ProtectedLayout({
       <DismissibleMenuGuard />
       <DesktopEscapeBack />
       <OperationToolSearch access={access} />
-      <CentralCostsShortcut enabled={canAccessSharedCosts} />
 
       <FitnessUxScope />
       <NexusActivityTracker enabled={access.active} />

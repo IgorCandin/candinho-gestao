@@ -59,6 +59,7 @@ const SEARCH_ROUTES: RouteItem[] = [
   { label: "Agenda geral", note: "Compromissos de todas as operações", href: "/central/agenda", keywords: "agenda calendário compromisso", icon: CalendarDays },
   { label: "Ficha de Clientes", note: "Cadastro Company e histórico completo", href: "/company/clientes", keywords: "crm cliente suplementos fitness", icon: ContactRound },
   { label: "Fornecedores", note: "Suplementos e Fitness reunidos", href: "/company/fornecedores", keywords: "fornecedor compras reposição", icon: Boxes },
+  { label: "Custos e insumos", note: "Materiais das duas operações", href: "/company/custos-insumos", keywords: "custos insumos sacola etiqueta material", icon: Boxes },
   { label: "Parcerias", note: "Estoque, vendas e acertos", href: "/parceiros/gerencial", keywords: "parceria parceiros relacionamento acerto", icon: Handshake },
   { label: "Produtos · Suplementos", note: "Cadastro e catálogo", href: "/produtos", keywords: "produto suplemento catálogo", icon: PackageSearch },
   { label: "Produtos · Fitness", note: "Cadastro e catálogo", href: "/fitness/produtos", keywords: "produto fitness roupa catálogo", icon: PackageSearch },

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import {
   Boxes,
-  Building2,
   CircleDollarSign,
   Dumbbell,
   Settings2,
@@ -16,15 +15,15 @@ export function OperationalCostsPage({
 }) {
   const manageHref =
     operation === "fitness"
-      ? "/central/custos-insumos/materiais?operacao=fitness"
-      : "/central/custos-insumos/materiais";
+      ? "/company/custos-insumos/materiais?operacao=fitness"
+      : "/company/custos-insumos/materiais?operacao=supplements";
 
   return (
     <>
       <PageHeader
-        eyebrow="Candinho Central · Operação compartilhada"
+        eyebrow="Company · Gestão"
         title="Custos e insumos"
-        description="Materiais operacionais ficam na Central porque podem atender Suplementos, Fitness ou as duas operações. Cada regra continua separando corretamente onde e quando o custo é consumido."
+        description="Controle os materiais e custos de Suplementos e Fitness em uma única área, sem misturar os saldos e as regras de cada operação."
         action={
           <div className="page-header-actions">
             <Link className="button gold" href={manageHref}>
@@ -37,9 +36,8 @@ export function OperationalCostsPage({
               Ver Bank
             </Link>
 
-            <Link className="button ghost" href="/central">
-              <Building2 size={16} />
-              Voltar à Central
+            <Link className="button ghost" href="/company/dia">
+              Voltar à Gestão
             </Link>
           </div>
         }
@@ -70,7 +68,7 @@ export function OperationalCostsPage({
                 className={`button ${
                   operation === "supplements" ? "gold" : "ghost"
                 }`}
-                href="/central/custos-insumos?operacao=supplements"
+                href="/company/custos-insumos?operacao=supplements"
               >
                 <Boxes size={15} />
                 Suplementos
@@ -80,7 +78,7 @@ export function OperationalCostsPage({
                 className={`button ${
                   operation === "fitness" ? "gold" : "ghost"
                 }`}
-                href="/central/custos-insumos?operacao=fitness"
+                href="/company/custos-insumos?operacao=fitness"
               >
                 <Dumbbell size={15} />
                 Fitness

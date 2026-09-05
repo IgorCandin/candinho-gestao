@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function LegacySupplementsOperationalCostsPage() {
-  redirect("/central/custos-insumos?operacao=supplements");
+  redirect("/company/custos-insumos?operacao=supplements");
 }

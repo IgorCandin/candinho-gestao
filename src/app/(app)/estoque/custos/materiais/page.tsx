@@ -10,6 +10,6 @@ export default async function LegacyOperationalSuppliesPage({
     params.operacao === "fitness" ? "fitness" : "supplements";
 
   redirect(
-    `/central/custos-insumos/materiais?operacao=${operation}`,
+    `/company/custos-insumos/materiais?operacao=${operation}`,
   );
 }
