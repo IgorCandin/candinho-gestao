@@ -18,6 +18,6 @@ export default async function CompanyProductPage({ params }: { params: Promise<{
     <section className="company-product-detail-media">
       {media.banner_image_url ? <div className="company-product-detail-banner"><img src={media.banner_image_url} alt={`Banner de ${media.name}`}/></div> : null}
     </section>
-    <LegacyProductPage params={Promise.resolve({ id })}/>
+    <LegacyProductPage params={Promise.resolve({ id })} companyMode/>
   </>;
 }

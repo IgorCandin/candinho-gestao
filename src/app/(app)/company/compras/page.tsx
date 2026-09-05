@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, Boxes, Plus, Truck } from "lucide-react";
+import { ArrowRight, Boxes, Lightbulb, Plus, Truck } from "lucide-react";
 import { CompanyReplenishmentGroups, type CompanyReplenishmentGroup, type CompanyReplenishmentProduct } from "@/components/company-replenishment-groups";
 import { PurchaseOrderCancelAction } from "@/components/purchase-order-cancel-action";
 import { getCurrentUserAccess, getFitnessPurchaseOrders } from "@/lib/data";
@@ -37,11 +37,20 @@ export default async function CompanyPurchasesPage() {
     preferred_product_id: typeof row.preferred_product_id === "string" ? row.preferred_product_id : null,
     product_ids: Array.isArray(row.members) ? row.members.map((member) => String(member.product_id)) : [],
   }));
+  const suggestions = groups.map((group) => {
+    const members = products.filter((product) => group.product_ids.includes(product.id));
+    const current = members.reduce((sum, product) => sum + product.quantity, 0);
+    return { ...group, current, quantity: Math.max(group.ideal_stock - current, 0), preferred: products.find((product) => product.id === group.preferred_product_id) };
+  }).filter((group) => group.current <= group.minimum_stock && group.quantity > 0);
 
   return (
     <div className="company-v2-page">
       <header className="company-v2-page-head"><div><span>Company · Comprar e repor</span><h1>Comprar somente o que faz falta</h1><p>Produtos equivalentes trabalham juntos. Pedidos cancelados deixam de contar como mercadoria a caminho.</p></div><Link className="button company-blue" href="/company/compras/novo"><Plus size={16} />Novo pedido</Link></header>
       <CompanyReplenishmentGroups groups={groups} products={products} />
+      <section className="company-orders-section company-purchase-suggestions">
+        <div className="company-section-heading"><div><span>Nexus · Reposição</span><h2>Sugestões de compra</h2><p>O sistema soma os produtos equivalentes e sugere apenas o necessário para alcançar o estoque ideal.</p></div></div>
+        {suggestions.length ? <div className="company-suggestion-strip">{suggestions.map((group) => <article key={group.id}><Lightbulb/><div><strong>{group.name}</strong><span>Comprar {group.quantity} un. de {group.preferred?.name ?? "produto preferido"}</span><small>Estoque atual {group.current} · ideal {group.ideal_stock}</small></div></article>)}</div> : <div className="company-empty-state"><Lightbulb/><strong>Nenhuma compra sugerida agora</strong><span>Os grupos estão acima do mínimo definido.</span></div>}
+      </section>
       <section className="company-orders-section">
         <div className="company-section-heading"><div><span>Acompanhamento</span><h2>Pedidos em aberto</h2><p>{orders.pendingUnits} unidades a caminho em {orders.pendingCount} pedidos.</p></div></div>
         <div className="company-order-list">

@@ -114,8 +114,10 @@ function supplierStatus(status: unknown, pending: unknown) {
 
 export default async function ProductDetailsPage({
   params,
+  companyMode = false,
 }: {
   params: Promise<{ id: string }>;
+  companyMode?: boolean;
 }) {
   const { id } = await params;
   const supabase = await createClient();
@@ -241,7 +243,7 @@ export default async function ProductDetailsPage({
         description="Informações comerciais, estoque, promoções, leads, compras e histórico do produto."
         action={
           <div className="page-header-action-group">
-            <Link className="button gold" href={`/produtos/${product.id}/editar`}>
+            <Link className="button gold" href={companyMode ? `/company/produtos/${product.id}/editar` : `/produtos/${product.id}/editar`}>
               <Edit3 size={16} />
               Editar produto
             </Link>
@@ -249,7 +251,7 @@ export default async function ProductDetailsPage({
               <Warehouse size={16} />
               Ver estoque
             </Link>
-            <Link className="button ghost" href="/produtos">
+            <Link className="button ghost" href={companyMode ? "/company/produtos" : "/produtos"}>
               <ArrowLeft size={16} />
               Voltar
             </Link>
