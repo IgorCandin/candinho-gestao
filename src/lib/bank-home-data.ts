@@ -72,23 +72,6 @@ function safeDay(year: number, month: number, day: number) {
   ).padStart(2, "0")}`;
 }
 
-function dateInMonth(
-  value: unknown,
-  start: string,
-  nextStart: string,
-) {
-  const date =
-    typeof value === "string"
-      ? value.slice(0, 10)
-      : "";
-
-  return Boolean(
-    date &&
-      date >= start &&
-      date < nextStart,
-  );
-}
-
 function monthOf(value: unknown) {
   return typeof value === "string" && value.length >= 7
     ? `${value.slice(0, 7)}-01`
@@ -591,41 +574,17 @@ export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
     0,
   );
 
+  // Conta a receber não deixa de existir quando o mês vira. O cartão principal
+  // reúne toda venda ainda pendente; datas continuam servindo para os recortes.
   const supplementReceivablesTotal =
-    (
-      supplementReceivablesResult.data ??
-      []
-    ).reduce((total, row) => {
-      const effectiveDate =
-        row.payment_due_at ??
-        row.quoted_at;
-
-      return dateInMonth(
-        effectiveDate,
-        start,
-        nextStart,
-      )
-        ? total +
-            number(row.total_amount)
-        : total;
-    }, 0);
+    (supplementReceivablesResult.data ?? []).reduce(
+      (total, row) => total + number(row.total_amount),
+      0,
+    );
 
   const fitnessReceivablesTotal = (
     fitnessReceivablesResult.data ?? []
-  ).reduce((total, row) => {
-    const effectiveDate =
-      row.payment_due_on ??
-      row.quoted_on;
-
-    return dateInMonth(
-      effectiveDate,
-      start,
-      nextStart,
-    )
-      ? total +
-          number(row.total_amount)
-      : total;
-  }, 0);
+  ).reduce((total, row) => total + number(row.total_amount), 0);
 
   const monthPending = unique.filter(
     (item) =>

@@ -26,19 +26,6 @@ function nextMonthStart(referenceMonth: string) {
   ).padStart(2, "0")}-01`;
 }
 
-function dateInMonth(
-  value: unknown,
-  start: string,
-  nextStart: string,
-) {
-  const date =
-    typeof value === "string" && value.length >= 10
-      ? value.slice(0, 10)
-      : "";
-
-  return Boolean(date && date >= start && date < nextStart);
-}
-
 export async function GET() {
   const access = await getCurrentUserAccess();
 
@@ -189,21 +176,8 @@ export async function GET() {
     0,
   );
 
-  const supplementRows = (supplementsResult.data ?? []).filter((row) =>
-    dateInMonth(
-      row.payment_due_at ?? row.quoted_at,
-      referenceMonth,
-      nextStart,
-    ),
-  );
-
-  const fitnessRows = (fitnessResult.data ?? []).filter((row) =>
-    dateInMonth(
-      row.payment_due_on ?? row.quoted_on,
-      referenceMonth,
-      nextStart,
-    ),
-  );
+  const supplementRows = supplementsResult.data ?? [];
+  const fitnessRows = fitnessResult.data ?? [];
 
   const operationsTotal =
     supplementRows.reduce(

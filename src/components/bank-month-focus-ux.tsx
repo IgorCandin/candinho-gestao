@@ -194,7 +194,7 @@ export function BankMonthFocusUX() {
         const projectionCard =
           findStatCard("Projeção confirmada") ??
           findStatCard("Projeção até o fim do mês");
-        const receivableCard = findStatCard("A receber neste mês");
+        const receivableCard = findStatCard("Total a receber");
 
         if (balanceCard) balanceCard.style.order = "1";
         if (payableCard) payableCard.style.order = "2";

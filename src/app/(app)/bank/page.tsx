@@ -384,7 +384,7 @@ export default async function BankDashboardPage({
 
         <article className="stat-card">
           <div className="stat-head">
-            <span>A receber neste mês</span>
+            <span>Total a receber</span>
             <span className="stat-icon">
               <TrendingUp size={17} />
             </span>
@@ -395,8 +395,7 @@ export default async function BankDashboardPage({
             )}
           </div>
           <div className="stat-note">
-            Valores reais ainda a receber
-            neste mês.
+            Pendências atuais e antigas ainda não recebidas.
           </div>
         </article>
 

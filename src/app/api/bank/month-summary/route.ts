@@ -31,19 +31,6 @@ function number(value: unknown) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-function dateInMonth(
-  value: unknown,
-  start: string,
-  nextStart: string,
-) {
-  const date =
-    typeof value === "string" && value.length >= 10
-      ? value.slice(0, 10)
-      : "";
-
-  return Boolean(date && date >= start && date < nextStart);
-}
-
 export async function GET() {
   const access = await getCurrentUserAccess();
 
@@ -170,21 +157,8 @@ export async function GET() {
     }
   }
 
-  const supplementRows = (supplementResult.data ?? []).filter((row) =>
-    dateInMonth(
-      row.payment_due_at ?? row.quoted_at,
-      start,
-      nextStart,
-    ),
-  );
-
-  const fitnessRows = (fitnessResult.data ?? []).filter((row) =>
-    dateInMonth(
-      row.payment_due_on ?? row.quoted_on,
-      start,
-      nextStart,
-    ),
-  );
+  const supplementRows = supplementResult.data ?? [];
+  const fitnessRows = fitnessResult.data ?? [];
 
   const operationsTotal =
     supplementRows.reduce(

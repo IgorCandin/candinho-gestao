@@ -324,7 +324,7 @@ export function BankV39Shell() {
         );
       }
 
-      const receivableCard = findStatCard("A receber neste mês");
+      const receivableCard = findStatCard("Total a receber");
       const note = receivableCard?.querySelector<HTMLElement>(".stat-note");
 
       if (receivableCard) {
