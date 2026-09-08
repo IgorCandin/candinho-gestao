@@ -104,9 +104,11 @@ function looksLikeStockWait(
 export function NewLeadForm({
   customers,
   products,
+  companyMode = false,
 }: {
   customers: CustomerOption[];
   products: ProductOption[];
+  companyMode?: boolean;
 }) {
   const router = useRouter();
 
@@ -506,9 +508,7 @@ export function NewLeadForm({
         );
       }
 
-      router.push(
-        `/leads/${leadId}`,
-      );
+      router.push(companyMode ? "/company/vender" : `/leads/${leadId}`);
       router.refresh();
     } catch (error) {
       setMessage(
@@ -1103,7 +1103,7 @@ export function NewLeadForm({
       <div className="form-footer">
         <Link
           className="button ghost"
-          href="/leads"
+          href={companyMode ? "/company/vender" : "/leads"}
         >
           Cancelar
         </Link>
