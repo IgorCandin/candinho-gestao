@@ -100,7 +100,7 @@ export default async function CommercialRoutesPage({
         }
       />
 
-      <CommercialNav active="routes" companyMode={companyMode} />
+      {!companyMode ? <CommercialNav active="routes" /> : null}
 
       <section className="stats-grid">
         <article className="stat-card">
