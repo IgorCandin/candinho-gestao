@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   ShoppingBag,
   Sparkles,
+  Store,
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -60,6 +61,7 @@ const SEARCH_ROUTES: RouteItem[] = [
   { label: "Ficha de Clientes", note: "Cadastro Company e histórico completo", href: "/company/clientes", keywords: "crm cliente suplementos fitness", icon: ContactRound },
   { label: "Fornecedores", note: "Suplementos e Fitness reunidos", href: "/company/fornecedores", keywords: "fornecedor compras reposição", icon: Boxes },
   { label: "Custos e insumos", note: "Materiais das duas operações", href: "/company/custos-insumos", keywords: "custos insumos sacola etiqueta material", icon: Boxes },
+  { label: "Gerenciar Vitrine", note: "Campanhas, cupons e depoimentos", href: "/company/vitrine", keywords: "vitrine campanha cupom depoimento cliente público", icon: Store },
   { label: "Parcerias", note: "Estoque, vendas e acertos", href: "/company/parceiros/gerencial", keywords: "parceria parceiros relacionamento acerto", icon: Handshake },
   { label: "Produtos · Suplementos", note: "Cadastro e catálogo", href: "/company/produtos?operacao=Suplementos", keywords: "produto suplemento catálogo", icon: PackageSearch },
   { label: "Produtos · Fitness", note: "Cadastro e catálogo", href: "/company/produtos?operacao=Fitness", keywords: "produto fitness roupa catálogo", icon: PackageSearch },
