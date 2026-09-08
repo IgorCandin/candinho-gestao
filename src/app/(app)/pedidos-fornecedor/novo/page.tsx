@@ -10,8 +10,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function NewSupplierOrderPage({
   searchParams,
+  companyMode = false,
 }: {
   searchParams: Promise<{ produtos?: string }>;
+  companyMode?: boolean;
 }) {
   const params = await searchParams;
   const initialProductIds = (params.produtos ?? "")
@@ -64,6 +66,7 @@ export default async function NewSupplierOrderPage({
         locations={locations}
         lastPurchaseCosts={lastPurchaseCosts}
         initialProductIds={initialProductIds}
+        companyMode={companyMode}
       />
     </>
   );

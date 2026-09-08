@@ -95,10 +95,12 @@ export function FitnessProductForm({
   product,
   variants,
   suppliers,
+  companyMode = false,
 }: {
   product?: FitnessProductRow;
   variants?: FitnessStockRow[];
   suppliers: FitnessSupplierRow[];
+  companyMode?: boolean;
 }) {
   const router = useRouter();
 
@@ -378,7 +380,7 @@ export function FitnessProductForm({
 
       if (error) throw error;
 
-      router.push(`/fitness/produtos/${String(data)}`);
+      router.push(companyMode ? `/company/produtos/fitness/${String(data)}` : `/fitness/produtos/${String(data)}`);
       router.refresh();
     } catch (error) {
       setMessage(

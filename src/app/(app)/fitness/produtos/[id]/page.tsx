@@ -19,8 +19,10 @@ import {
 
 export default async function Page({
   params,
+  companyMode = false,
 }: {
   params: Promise<{ id: string }>;
+  companyMode?: boolean;
 }) {
   const { id } = await params;
 
@@ -62,7 +64,7 @@ export default async function Page({
         action={
           <Link
             className="button gold"
-            href={`/fitness/produtos/${id}/editar`}
+            href={companyMode ? `/company/produtos/fitness/${id}/editar` : `/fitness/produtos/${id}/editar`}
           >
             Editar produto
           </Link>

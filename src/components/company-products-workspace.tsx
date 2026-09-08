@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { Boxes, PackageSearch, Search } from "lucide-react";
+import { Boxes, PackageSearch, Plus, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { formatCurrency } from "@/lib/format";
@@ -29,7 +29,7 @@ export function CompanyProductsWorkspace({ products }: { products: CompanyProduc
   const available = products.filter((product) => product.available_quantity > 0);
 
   return <div className="company-workspace-v2">
-    <header className="company-workspace-head"><div><span>COMPANY · CATÁLOGO INTERNO</span><h1>Produtos</h1><p>Veja rapidamente o que pode ser vendido, quanto está disponível e o preço atual.</p></div></header>
+    <header className="company-workspace-head"><div><span>COMPANY · CATÁLOGO INTERNO</span><h1>Produtos</h1><p>Veja rapidamente o que pode ser vendido, quanto está disponível e o preço atual.</p></div><Link className="button company-blue" href="/company/produtos/novo"><Plus size={16}/>Novo produto</Link></header>
     <section className="company-workspace-metrics company-product-metrics"><article><PackageSearch/><span>Produtos ativos</span><strong>{products.length}</strong></article><article><Boxes/><span>Com disponibilidade</span><strong>{available.length}</strong></article><article><Boxes/><span>Unidades disponíveis</span><strong>{available.reduce((sum, product) => sum + product.available_quantity, 0)}</strong></article></section>
     <section className="company-workspace-panel"><div className="company-workspace-toolbar"><div><button className={operation === "all" ? "active" : ""} onClick={() => { setOperation("all"); setCategory("all"); setBrand("all"); }}>Todas</button><button className={operation === "Suplementos" ? "active" : ""} onClick={() => { setOperation("Suplementos"); setCategory("all"); setBrand("all"); }}>Suplementos</button><button className={operation === "Fitness" ? "active" : ""} onClick={() => { setOperation("Fitness"); setCategory("all"); setBrand("all"); }}>Fitness</button><button className={stockOnly ? "active" : ""} onClick={() => setStockOnly((value) => !value)}>Com estoque</button></div><label><Search size={17}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ex.: pré-treino, whey, creatina..."/></label></div>
       <div className="company-product-filters"><label><span>Categoria</span><select value={category} onChange={(event) => setCategory(event.target.value)}><option value="all">Todas as categorias</option>{categories.map((item) => <option value={item} key={item}>{item}</option>)}</select></label><label><span>Marca</span><select value={brand} onChange={(event) => setBrand(event.target.value)}><option value="all">Todas as marcas</option>{brands.map((item) => <option value={item} key={item}>{item}</option>)}</select></label>{(category !== "all" || brand !== "all" || query) ? <button type="button" onClick={() => { setQuery(""); setCategory("all"); setBrand("all"); }}>Limpar filtros</button> : null}</div><p className="company-workspace-count">{visible.length} produto(s)</p>

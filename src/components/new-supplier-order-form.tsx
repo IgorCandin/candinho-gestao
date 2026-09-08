@@ -73,12 +73,14 @@ export function NewSupplierOrderForm({
   locations,
   lastPurchaseCosts,
   initialProductIds = [],
+  companyMode = false,
 }: {
   initialSuppliers: SupplierOption[];
   products: PurchaseProductOption[];
   locations: LocationOption[];
   lastPurchaseCosts: Record<string, { cost: number | null; purchasedOn: string | null }>;
   initialProductIds?: string[];
+  companyMode?: boolean;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<"unit" | "batch" | null>(initialProductIds.length > 1 ? "batch" : initialProductIds.length === 1 ? "unit" : null);
@@ -539,7 +541,7 @@ export function NewSupplierOrderForm({
         if (scheduleError) throw scheduleError;
       }
 
-      router.push(`/pedidos-fornecedor/${orderId}`);
+      router.push(companyMode ? `/company/compras/suplementos/${orderId}` : `/pedidos-fornecedor/${orderId}`);
       router.refresh();
     } catch (error) {
       setMessage(
@@ -1166,7 +1168,7 @@ export function NewSupplierOrderForm({
         <div className="sale-form-actions">
           <Link
             className="button ghost"
-            href="/pedidos-fornecedor"
+            href={companyMode ? "/company/compras" : "/pedidos-fornecedor"}
           >
             Cancelar
           </Link>

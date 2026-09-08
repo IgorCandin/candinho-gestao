@@ -121,10 +121,11 @@ function nullableText(value: string) { return value.trim() || null; }
 function numeric(value: string) { return Number(value.replace(",", ".")) || 0; }
 function flavorKey() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
 
-export function ProductForm({ product, suppliers, categories }: {
+export function ProductForm({ product, suppliers, categories, companyMode = false }: {
   product?: ProductManagementDetails | null;
   suppliers: SupplierOption[];
   categories: string[];
+  companyMode?: boolean;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<ProductDraft>(() => initialDraft(product));
@@ -452,7 +453,7 @@ export function ProductForm({ product, suppliers, categories }: {
 
       if (error) throw error;
       const productId = String(data);
-      router.push(`/produtos/${productId}`);
+      router.push(companyMode ? `/company/produtos/${productId}` : `/produtos/${productId}`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível salvar o produto.");
@@ -621,7 +622,7 @@ export function ProductForm({ product, suppliers, categories }: {
             </dl>
             {message && <p className="form-error visible">{message}</p>}
             <button className="button gold product-save-button" disabled={loading || flavorLoading} type="submit">{loading ? <LoaderCircle className="spin" size={17}/> : <Save size={17}/>} {loading ? "Salvando" : isEditing ? "Salvar alterações" : "Cadastrar produto"}</button>
-            <Link className="button ghost product-cancel-button" href={product ? `/produtos/${product.id}` : "/produtos"}>Cancelar</Link>
+            <Link className="button ghost product-cancel-button" href={companyMode ? (product ? `/company/produtos/${product.id}` : "/company/produtos") : (product ? `/produtos/${product.id}` : "/produtos")}>Cancelar</Link>
           </div>
         </article>
       </aside>

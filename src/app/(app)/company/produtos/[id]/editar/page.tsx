@@ -11,5 +11,5 @@ export default async function CompanyEditProductPage({ params }: { params: Promi
     getProductCategories(),
   ]);
   if (!product) notFound();
-  return <><PageHeader eyebrow="Company · Produtos" title={`Editar ${product.name}`} description="Cadastro completo de Suplementos, com pesquisa e preenchimento assistido pelo Nexus."/><ProductForm product={product} suppliers={suppliers} categories={categories}/></>;
+  return <><PageHeader eyebrow="Company · Produtos" title={`Editar ${product.name}`} description="Cadastro completo de Suplementos, com pesquisa e preenchimento assistido pelo Nexus."/><ProductForm product={product} suppliers={suppliers} categories={categories} companyMode/></>;
 }

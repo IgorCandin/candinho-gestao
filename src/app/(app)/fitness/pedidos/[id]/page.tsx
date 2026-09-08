@@ -8,8 +8,10 @@ import { formatCurrency, formatDateOnly } from "@/lib/format";
 
 export default async function Page({
   params,
+  companyMode = false,
 }: {
   params: Promise<{ id: string }>;
+  companyMode?: boolean;
 }) {
   const { id } = await params;
   const order = await getFitnessPurchaseOrderDetails(id);
@@ -23,7 +25,7 @@ export default async function Page({
         title={order.supplier_name}
         description={`${formatDateOnly(order.ordered_on)} · ${order.product_summary}`}
         action={
-          <Link className="button ghost" href="/fitness/pedidos">
+          <Link className="button ghost" href={companyMode ? "/company/compras" : "/fitness/pedidos"}>
             Voltar aos pedidos
           </Link>
         }
