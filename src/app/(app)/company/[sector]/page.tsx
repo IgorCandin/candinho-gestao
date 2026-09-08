@@ -42,7 +42,7 @@ function agendaDayDiff(date: string, today: string) {
   return Math.round((new Date(`${date}T12:00:00-03:00`).getTime() - new Date(`${today}T12:00:00-03:00`).getTime()) / 86_400_000);
 }
 
-export default async function CompanySectorPage({ params }: { params: Promise<{ sector: string }> }) {
+export default async function CompanySectorPage({ params, searchParams }: { params: Promise<{ sector: string }>; searchParams: Promise<{ operacao?: string }> }) {
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
   const { sector } = await params;
@@ -167,7 +167,9 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
       ...supplements.filter((product) => product.active).map((product) => ({ ...product, secondary_image_url: secondaryByProduct.get(product.id) ?? null, operation: "Suplementos" as const })),
       ...fitness.filter((product) => product.active).map((product) => ({ ...product, brand: null, sale_price: product.min_sale_price, operation: "Fitness" as const })),
     ];
-    return <CompanyProductsWorkspace products={products} />;
+    const query = await searchParams;
+    const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
+    return <CompanyProductsWorkspace products={products} initialOperation={initialOperation} />;
   }
 
   if (sector === "dia") {

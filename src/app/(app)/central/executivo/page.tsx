@@ -168,9 +168,9 @@ export async function ExecutiveDashboard() {
         action={
           <Link
             className="button ghost"
-            href="/dashboard"
+            href="/company/dia"
           >
-            Voltar às operações
+            Voltar à Gestão
           </Link>
         }
       />
@@ -245,7 +245,7 @@ export async function ExecutiveDashboard() {
           />
 
           <span>
-            Lucro bruto das vendas
+            Lucro bruto no mês
           </span>
 
           <strong>
@@ -331,7 +331,7 @@ export async function ExecutiveDashboard() {
           <div className="executive-result-table">
             <div>
               <span>
-                Receita bruta
+                Receita bruta no mês
               </span>
 
               <strong>
@@ -358,8 +358,7 @@ export async function ExecutiveDashboard() {
 
             <div className="highlight">
               <span>
-                Lucro bruto das
-                vendas
+                Lucro bruto no mês
               </span>
 
               <strong>
@@ -554,7 +553,7 @@ export async function ExecutiveDashboard() {
 
       <section className="executive-operation-grid">
         <Link
-          href="/suplementos"
+          href="/company/produtos?operacao=Suplementos"
           className="executive-operation-card supplements"
         >
           <ShoppingBag
@@ -595,7 +594,7 @@ export async function ExecutiveDashboard() {
         </Link>
 
         <Link
-          href="/fitness"
+          href="/company/produtos?operacao=Fitness"
           className="executive-operation-card fitness"
         >
           <Shirt size={21} />
@@ -629,7 +628,7 @@ export async function ExecutiveDashboard() {
         </Link>
 
         <Link
-          href="/parceiros"
+          href="/company/parceiros/gerencial"
           className="executive-operation-card partners"
         >
           <Handshake
@@ -669,7 +668,7 @@ export async function ExecutiveDashboard() {
         </Link>
 
         <Link
-          href="/marketing"
+          href="/company/marketing"
           className="executive-operation-card marketing"
         >
           <Megaphone
@@ -728,7 +727,7 @@ export async function ExecutiveDashboard() {
           </div>
 
           <div className="executive-pending-grid">
-            <Link href="/pos-venda">
+            <Link href="/company/acompanhar">
               <MessageSquareText
                 size={18}
               />
@@ -743,7 +742,7 @@ export async function ExecutiveDashboard() {
               </strong>
             </Link>
 
-            <Link href="/trocas">
+            <Link href="/company/trocas">
               <RefreshCcw
                 size={18}
               />
@@ -758,7 +757,7 @@ export async function ExecutiveDashboard() {
               </strong>
             </Link>
 
-            <Link href="/produtos">
+            <Link href="/company/produtos">
               <PackageX
                 size={18}
               />
@@ -773,7 +772,7 @@ export async function ExecutiveDashboard() {
               </strong>
             </Link>
 
-            <Link href="/produtos">
+            <Link href="/company/produtos">
               <Boxes size={18} />
               <span>
                 Estoque baixo

@@ -13,10 +13,10 @@ export type CompanyProductRow = {
   secondary_image_url?: string | null;
 };
 
-export function CompanyProductsWorkspace({ products }: { products: CompanyProductRow[] }) {
+export function CompanyProductsWorkspace({ products, initialOperation = "all" }: { products: CompanyProductRow[]; initialOperation?: "all" | "Suplementos" | "Fitness" }) {
   const [query, setQuery] = useState("");
   const [stockOnly, setStockOnly] = useState(false);
-  const [operation, setOperation] = useState<"all" | "Suplementos" | "Fitness">("all");
+  const [operation, setOperation] = useState<"all" | "Suplementos" | "Fitness">(initialOperation);
   const [category, setCategory] = useState("all");
   const [brand, setBrand] = useState("all");
   const [preview, setPreview] = useState<CompanyProductRow | null>(null);

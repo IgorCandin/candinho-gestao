@@ -22,8 +22,10 @@ function todayInSaoPaulo() {
 
 export default async function CommercialRoutesPage({
   searchParams,
+  companyMode = false,
 }: {
   searchParams: Promise<{ route?: string }>;
+  companyMode?: boolean;
 }) {
   const params = await searchParams;
   const supabase = await createClient();
@@ -98,7 +100,7 @@ export default async function CommercialRoutesPage({
         }
       />
 
-      <CommercialNav active="routes" />
+      <CommercialNav active="routes" companyMode={companyMode} />
 
       <section className="stats-grid">
         <article className="stat-card">

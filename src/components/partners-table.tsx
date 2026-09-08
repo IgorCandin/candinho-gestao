@@ -24,7 +24,7 @@ function rewardLabel(p: PartnerOverview) {
   return p.reward_description ?? "Acerto manual";
 }
 
-export function PartnersTable({ partners }: { partners: PartnerOverview[] }) {
+export function PartnersTable({ partners, companyMode = false }: { partners: PartnerOverview[]; companyMode?: boolean }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("active");
@@ -70,7 +70,7 @@ export function PartnersTable({ partners }: { partners: PartnerOverview[] }) {
       });
   }, [partners, query, sort, status]);
 
-  const openPartner = (id: string) => router.push(`/parceiros/${id}`);
+  const openPartner = (id: string) => router.push(companyMode ? `/company/parceiros/${id}` : `/parceiros/${id}`);
 
   async function archivePartner(partner: PartnerOverview) {
     const ok = window.confirm(
@@ -176,7 +176,7 @@ export function PartnersTable({ partners }: { partners: PartnerOverview[] }) {
                       <Link
                         onClick={(e) => e.stopPropagation()}
                         className="partner-name-cell"
-                        href={`/parceiros/${p.id}`}
+                        href={companyMode ? `/company/parceiros/${p.id}` : `/parceiros/${p.id}`}
                       >
                         <span className="partner-avatar"><Handshake size={18} /></span>
                         <span>

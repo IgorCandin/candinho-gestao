@@ -10,7 +10,7 @@ function todayInSaoPaulo() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
-export function PartnerForm({ partner, locations }: { partner?: PartnerOverview | null; locations: LocationOption[] }) {
+export function PartnerForm({ partner, locations, companyMode = false }: { partner?: PartnerOverview | null; locations: LocationOption[]; companyMode?: boolean }) {
   const router = useRouter();
   const [name, setName] = useState(partner?.name ?? "");
   const [partnerType, setPartnerType] = useState(partner?.partner_type ?? "Ponto de Retirada");
@@ -61,7 +61,7 @@ export function PartnerForm({ partner, locations }: { partner?: PartnerOverview 
       if (error) throw error;
       const id = String(data);
       setMessage("Parceiro salvo.");
-      router.push(`/parceiros/${id}`); router.refresh();
+      router.push(companyMode ? `/company/parceiros/${id}` : `/parceiros/${id}`); router.refresh();
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível salvar o parceiro."); }
     finally { setLoading(false); }
   }

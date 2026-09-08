@@ -19,13 +19,20 @@ const items = [
   label: string;
 }>;
 
-export function CommercialNav({ active }: { active: CommercialSection }) {
+export function CommercialNav({ active, companyMode = false }: { active: CommercialSection; companyMode?: boolean }) {
+  const companyHrefs: Record<CommercialSection, string> = {
+    sales: "/company/concluir",
+    quotes: "/company/vender?aba=orcamentos",
+    leads: "/company/vender?aba=leads",
+    routes: "/company/rotas",
+    actions: "/company/vender",
+  };
   return (
     <nav className="period-tabs" aria-label="Área comercial">
       {items.map((item) => (
         <Link
           className={`period-tab ${item.key === active ? "active" : ""}`}
-          href={item.href}
+          href={companyMode ? companyHrefs[item.key] : item.href}
           key={item.key}
         >
           {item.label}

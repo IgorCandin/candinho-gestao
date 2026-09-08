@@ -36,10 +36,12 @@ function rewardLabel(type: string) {
   return "Acerto manual";
 }
 
-export default async function PartnerDetailsPage({
+export async function PartnerDetailsPage({
   params,
+  companyMode = false,
 }: {
   params: Promise<{ id: string }>;
+  companyMode?: boolean;
 }) {
   const { id } = await params;
 
@@ -113,7 +115,7 @@ export default async function PartnerDetailsPage({
         action={
           <Link
             className="button gold"
-            href={`/parceiros/${partner.id}/editar`}
+            href={companyMode ? `/company/parceiros/${partner.id}/editar` : `/parceiros/${partner.id}/editar`}
           >
             <Edit3 size={16} />
             Editar parceiro
@@ -128,7 +130,7 @@ export default async function PartnerDetailsPage({
 
       <section className="stats-grid partner-detail-stats">
         <StatCard
-          href="/vendas"
+          href={companyMode ? "/company/concluir" : "/vendas"}
           label={
             isGiftReward
               ? "Vendas contabilizadas"
@@ -146,7 +148,7 @@ export default async function PartnerDetailsPage({
         />
 
         <StatCard
-          href="/vendas"
+          href={companyMode ? "/company/concluir" : "/vendas"}
           label={
             isGiftReward
               ? "Faturamento da parceria"
@@ -166,7 +168,7 @@ export default async function PartnerDetailsPage({
         />
 
         <StatCard
-          href="/parceiros"
+          href={companyMode ? "/company/parceiros" : "/parceiros"}
           label={
             isGiftReward ? "Próxima recompensa" : "Recompensa estimada"
           }
@@ -188,7 +190,7 @@ export default async function PartnerDetailsPage({
         />
 
         <StatCard
-          href="/estoque"
+          href={companyMode ? "/company/produtos" : "/estoque"}
           label="Estoque no ponto"
           value={String(partner.linked_location_units)}
           note={partner.linked_location_code ?? "Sem ponto relacionado"}
@@ -387,7 +389,7 @@ export default async function PartnerDetailsPage({
                         <td>
                           <Link
                             className="table-link"
-                            href={`/vendas/${sale.id}`}
+                    href={companyMode ? "/company/concluir" : `/vendas/${sale.id}`}
                           >
                             <strong>{sale.customer_name}</strong>
                           </Link>
@@ -588,3 +590,5 @@ export default async function PartnerDetailsPage({
     </>
   );
 }
+
+export default function LegacyPartnerDetailsPage({params}:{params:Promise<{id:string}>}){return <PartnerDetailsPage params={params}/>;}
