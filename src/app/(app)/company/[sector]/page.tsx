@@ -17,6 +17,7 @@ import type { CompanyCareItem } from "@/components/company-care-workspace";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
+import { CompanyWorkflowSync } from "@/components/company-workflow-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -151,7 +152,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     for (const row of crm.data ?? []) if (Number(row.pending_followup_count ?? 0) > 0 && row.next_followup_at && row.next_followup_id) items.push({ id: `follow-${row.next_followup_id}`, sourceId: row.next_followup_id, customerId: row.id, customerName: row.name, phone: row.phone, city: row.city, operation: "Suplementos", kind: "follow_up", dueOn: row.next_followup_at, title: row.next_action_label ?? "Retorno combinado", note: row.next_followup_notes ?? row.last_contact_outcome ?? "Retorno registrado no CRM", href: `/company/clientes/${row.id}` });
     const seenWaiting = new Set<string>();
     for (const row of feedback.data ?? []) { if (seenWaiting.has(row.customer_id)) continue; seenWaiting.add(row.customer_id); if (row.feedback_status !== "contacted") continue; const customer = crmById.get(row.customer_id); if (customer) items.push({ id: `waiting-${row.customer_id}`, sourceId: row.customer_id, customerId: row.customer_id, customerName: customer.name, phone: customer.phone, city: customer.city, operation: "Suplementos", kind: "waiting", dueOn: row.next_action_on, title: "Aguardando resposta", note: "Contato iniciado pela fila Vender agora", href: `/company/clientes/${row.customer_id}`, recommendedProductId: row.recommended_product_id, opportunityGroup: row.opportunity_group, opportunitySubtype: row.opportunity_subtype }); }
-    return <CompanyCareWorkspace items={items} />;
+    return <><CompanyWorkflowSync/><CompanyCareWorkspace items={items} /></>;
   }
 
   if (sector === "produtos") {
@@ -188,7 +189,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       completed_month_count: events.filter((event) => event.status === "completed" && event.due_date.startsWith(month)).length + (commercialQueue.completed ? 1 : 0),
     };
     const canWrite = access.role === "admin" || access.canWriteSupplements || access.canWriteFitness;
-    return <div className="company-workspace-v2 company-global-agenda">
+    return <div className="company-workspace-v2 company-global-agenda"><CompanyWorkflowSync/>
       <header className="company-workspace-heading"><span>COMPANY · GESTÃO</span><h1>Visão da empresa</h1><p>Confira os números, organize a agenda e abra cadastros administrativos sem procurar por várias operações.</p></header>
       <section className="company-management-links">
         <Link href="/company/central"><BarChart3/><div><strong>Sala do Dono</strong><span>Valores, resultados e atalhos executivos</span></div><b>→</b></Link>

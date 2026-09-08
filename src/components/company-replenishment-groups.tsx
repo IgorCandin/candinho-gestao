@@ -11,6 +11,9 @@ export type CompanyReplenishmentProduct = {
   brand: string | null;
   category: string;
   quantity: number;
+  incoming: number;
+  minimum: number;
+  ideal: number;
 };
 
 export type CompanyReplenishmentGroup = {
@@ -168,7 +171,7 @@ export function CompanyReplenishmentGroups({
       {groups.length === 0 ? (
         <div className="company-empty-state"><Boxes size={24} /><strong>Nenhum grupo criado ainda</strong><span>Crie Beta-alanina, HMB ou outro grupo apenas quando decidir quais produtos são equivalentes.</span></div>
       ) : (
-        <div className="company-group-grid company-group-wallet">
+        <div className="company-group-grid company-group-wallet" style={{ "--wallet-count": groups.length } as React.CSSProperties}>
           {groups.map((group, index) => {
             const members = products.filter((product) => group.product_ids.includes(product.id));
             const total = members.reduce((sum, product) => sum + product.quantity, 0);

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, ArrowLeft, CalendarClock, CircleDollarSign, ExternalLink, Mail, MapPin, MessageCircle, Phone, ShoppingBag, Sparkles, UserRound } from "lucide-react";
 import { notFound } from "next/navigation";
 import { RadarFollowupButton } from "@/components/radar-followup-button";
+import { CustomerProfileEditor } from "@/components/customer-profile-editor";
 import { getCustomerDetails, getCustomerInteractions, getCustomerLeads, getCustomerPendingOrders, getCustomerSales } from "@/lib/data";
 import { formatCurrency, formatDate, formatDateOnly } from "@/lib/format";
 
@@ -54,6 +55,7 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
             <p>{[customer.city, customer.phone, customer.email].filter(Boolean).join(" · ") || "Cliente sem dados de contato"}</p>
           </div>
           <div className="company-customer-actions">
+            <CustomerProfileEditor customer={customer} />
             <RadarFollowupButton customerId={customer.id} customerName={customer.name} suggestedAction={customer.next_action_label} compact />
             {customer.phone ? <a className="company-customer-primary" href={whatsappHref(customer.phone)} target="_blank" rel="noreferrer"><MessageCircle size={16} /> Chamar no WhatsApp</a> : null}
           </div>

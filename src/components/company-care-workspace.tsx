@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMemo, useState } from "react";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
+import { notifyCompanyWorkflowUpdated } from "@/components/company-workflow-sync";
 
 type TimelineEntry = { event_at?: string; event_type?: string; operation?: string; title?: string; subtitle?: string | null; amount?: number | null; status?: string | null };
 type CareContext = { timeline: TimelineEntry[]; nexusSuggestion: string };
@@ -58,6 +59,7 @@ export function CompanyCareWorkspace({ items }: { items: CompanyCareItem[] }) {
         const status = result === "sold" ? "sale_completed" : result === "lost" ? "dismissed" : result === "not_interested" ? "not_interested" : result === "resolved" ? "dismissed" : "later";
         const { error } = await supabase.rpc("record_sales_opportunity_feedback_v1", { p_customer_id: item.customerId, p_recommended_product_id: item.recommendedProductId ?? null, p_opportunity_group: item.opportunityGroup ?? null, p_opportunity_subtype: item.opportunitySubtype ?? null, p_feedback_status: status, p_notes: resultLabels[result], p_next_action_on: nextDate }); if (error) throw error;
       }
+      notifyCompanyWorkflowUpdated();
       setMessage(nextDate ? `${item.customerName} voltará em ${formatDateOnly(nextDate)}.` : `${item.customerName} foi retirado desta fila.`);
       setExpanded(null); setResponded(null);
       if (result === "sold") router.push("/company/vendas/nova"); else router.refresh();

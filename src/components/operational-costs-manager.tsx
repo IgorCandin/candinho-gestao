@@ -667,8 +667,10 @@ export function OperationalCostsManager({
     });
   }
 
-  const configuredProfiles = snapshot.profiles.filter((profile) => profile.items.length > 0).length;
-  const setupComplete = snapshot.supplies.length > 0 && configuredProfiles > 0;
+  const scopedSupplies = snapshot.supplies.filter((row) => row.operation_scope === "shared" || row.operation_scope === initialOperation);
+  const scopedProfiles = snapshot.profiles.filter((row) => row.operation_scope === initialOperation);
+  const configuredProfiles = scopedProfiles.filter((profile) => profile.items.length > 0).length;
+  const setupComplete = scopedSupplies.length > 0 && configuredProfiles > 0;
   const estimatedOpeningUnitCost =
     numberValue(supplyDraft.opening_quantity) > 0
       ? numberValue(supplyDraft.opening_total_cost) / numberValue(supplyDraft.opening_quantity)
@@ -862,7 +864,7 @@ export function OperationalCostsManager({
 
       {tab === "overview" && (
         <>
-          {snapshot.supplies.length > 0 && (
+          {scopedSupplies.length > 0 && (
             <div className={styles.grid}>
               <div className={styles.stat}><span>Materiais cadastrados</span><strong>{snapshot.summary.active_supplies}</strong><small>ativos no controle</small></div>
               <div className={styles.stat}><span>Valor guardado</span><strong>{formatCurrency(snapshot.summary.stock_value)}</strong><small>patrimônio em materiais</small></div>
@@ -878,14 +880,14 @@ export function OperationalCostsManager({
                 <h2>Materiais usados para entregar os pedidos</h2>
                 <p>Aqui entram sacolas, etiquetas, cartões, lacres, potes, rótulos e outros materiais que têm custo.</p>
               </div>
-              {snapshot.supplies.length > 0 && (
+              {scopedSupplies.length > 0 && (
                 <button className={`${styles.button} ${styles.buttonPrimary}`} type="button" onClick={() => setShowSupplyForm((current) => !current)}>
                   <Plus size={16}/> Novo material
                 </button>
               )}
             </div>
             <div className={styles.panelBody}>
-              {snapshot.supplies.length === 0 && !showSupplyForm && (
+              {scopedSupplies.length === 0 && !showSupplyForm && (
                 <div className={styles.firstStep}>
                   <div className={styles.firstStepCopy}>
                     <Lightbulb size={24}/>
@@ -911,11 +913,11 @@ export function OperationalCostsManager({
 
               {showSupplyForm && renderSupplyForm()}
 
-              {snapshot.supplies.length > 0 && (
+              {scopedSupplies.length > 0 && (
                 <>
                   {showSupplyForm && <div className={styles.formDivider}/>}
                   <div className={styles.cards}>
-                    {snapshot.supplies.map((supply) => <SupplyCard key={supply.id} supply={supply} saving={saving} onCount={countSupply}/>)}
+                    {scopedSupplies.map((supply) => <SupplyCard key={supply.id} supply={supply} saving={saving} onCount={countSupply}/>)}
                   </div>
                 </>
               )}
@@ -931,12 +933,12 @@ export function OperationalCostsManager({
             <ReceiptText size={22}/>
           </div>
           <div className={styles.panelBody}>
-            {snapshot.supplies.length === 0 ? (
+            {scopedSupplies.length === 0 ? (
               <div className={styles.blockedState}><Boxes size={30}/><h3>Primeiro cadastre um material</h3><p>Depois você poderá registrar as reposições e acompanhar o custo médio.</p><button className={`${styles.button} ${styles.buttonPrimary}`} type="button" onClick={() => setTab("overview")}>Cadastrar material <ArrowRight size={16}/></button></div>
             ) : (
               <form className={styles.guidedForm} onSubmit={receiveSupply}>
                 <div className={styles.formGrid}>
-                  <label className={`${styles.field} ${styles.wide}`}><span>O que você comprou?</span><select className={styles.select} name="supply_id" required><option value="">Selecione o material</option>{snapshot.supplies.filter(row=>row.active).map(row=><option key={row.id} value={row.id}>{row.name} · saldo atual {row.quantity_on_hand} {row.unit_name}</option>)}</select></label>
+                  <label className={`${styles.field} ${styles.wide}`}><span>O que você comprou?</span><select className={styles.select} name="supply_id" required><option value="">Selecione o material</option>{scopedSupplies.filter(row=>row.active).map(row=><option key={row.id} value={row.id}>{row.name} · saldo atual {row.quantity_on_hand} {row.unit_name}</option>)}</select></label>
                   <label className={styles.field}><span>Quantidade recebida</span><input className={styles.input} name="quantity" type="number" min="0.001" step="0.001" required placeholder="Ex.: 100"/></label>
                   <label className={styles.field}><span>Valor total da compra</span><input className={styles.input} name="total_cost" type="number" min="0" step="0.01" required placeholder="Ex.: 100,00"/></label>
                   <label className={styles.field}><span>Data</span><input className={styles.input} name="received_on" type="date" defaultValue={todayBrazil()} required/></label>
@@ -962,11 +964,11 @@ export function OperationalCostsManager({
         <section className={styles.panel}>
           <div className={styles.panelHead}><div><span className={styles.eyebrow}>Etapa 3</span><h2>O que cada tipo de venda utiliza?</h2><p>Monte uma receita simples. Exemplo: uma venda normal usa 1 sacola; cada produto vendido usa 1 etiqueta.</p></div><Settings2 size={22}/></div>
           <div className={styles.panelBody}>
-            {snapshot.supplies.length===0 ? (
+            {scopedSupplies.length===0 ? (
               <div className={styles.blockedState}><Settings2 size={30}/><h3>Cadastre os materiais primeiro</h3><p>Sem materiais, ainda não existe nada para vincular às vendas.</p><button className={`${styles.button} ${styles.buttonPrimary}`} type="button" onClick={()=>setTab("overview")}>Ir para materiais <ArrowRight size={16}/></button></div>
-            ) : snapshot.profiles.length===0 ? <div className={styles.empty}>Nenhum tipo de venda disponível.</div> : <>
+            ) : scopedProfiles.length===0 ? <div className={styles.empty}>Nenhum tipo de venda disponível.</div> : <>
               <div className={styles.profileChooser}>
-                {snapshot.profiles.map((profile) => (
+                {scopedProfiles.map((profile) => (
                   <button className={`${styles.profileChoice} ${profile.id===profileId?styles.profileChoiceActive:""}`} key={profile.id} type="button" onClick={()=>selectProfile(profile)}>
                     <span>{profile.operation_scope==="supplements"?"SUP":"FIT"}</span>
                     <div><strong>{profile.name}</strong><small>{profile.items.length ? `${profile.items.length} material(is) configurado(s)` : "Ainda não configurado"}</small></div>

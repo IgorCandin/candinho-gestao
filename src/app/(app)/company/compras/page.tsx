@@ -4,7 +4,7 @@ import { ArrowRight, Boxes, Plus, Truck } from "lucide-react";
 import { CompanyReplenishmentGroups, type CompanyReplenishmentGroup, type CompanyReplenishmentProduct } from "@/components/company-replenishment-groups";
 import { CompanyPurchaseSuggestions, type CompanyPurchaseSuggestion } from "@/components/company-purchase-suggestions";
 import { PurchaseOrderCancelAction } from "@/components/purchase-order-cancel-action";
-import { getCurrentUserAccess, getFitnessPurchaseOrders, getFitnessStock } from "@/lib/data";
+import { getCurrentUserAccess, getFitnessPurchaseOrders, getFitnessStock, getProductCatalog } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import { getSupplierOrdersScaleSnapshot } from "@/lib/supplier-orders-scale-data";
 import { createClient } from "@/lib/supabase/server";
@@ -14,9 +14,10 @@ export default async function CompanyPurchasesPage() {
   if (!access.active || access.role === "partner") redirect("/dashboard");
 
   const supabase = await createClient();
-  const [groupsResult, productsResult, orders, fitnessOrders, fitnessStock] = await Promise.all([
+  const [groupsResult, productsResult, productCatalog, orders, fitnessOrders, fitnessStock] = await Promise.all([
     supabase.from("replenishment_groups").select("id,name,minimum_stock,ideal_stock,preferred_product_id,members:replenishment_group_products(product_id)").eq("active", true).order("name"),
-    supabase.from("products").select("id,name,brand,category,balances:stock_balances(quantity,location:locations(counts_for_replenishment))").eq("active", true).order("name"),
+    supabase.from("products").select("id,name,brand,category,min_stock,ideal_stock").eq("active", true).order("name"),
+    getProductCatalog(),
     getSupplierOrdersScaleSnapshot({ tab: "pending", sort: "date", page: 1, pageSize: 20 }),
     access.role === "admin" || access.canAccessFitness ? getFitnessPurchaseOrders() : Promise.resolve([]),
     access.role === "admin" || access.canAccessFitness ? getFitnessStock() : Promise.resolve([]),
@@ -25,13 +26,14 @@ export default async function CompanyPurchasesPage() {
   if (groupsResult.error) throw groupsResult.error;
   if (productsResult.error) throw productsResult.error;
 
+  const catalogById = new Map(productCatalog.map((row) => [row.id, row]));
   const products: CompanyReplenishmentProduct[] = (productsResult.data ?? []).map((row) => ({
     id: String(row.id), name: String(row.name), brand: typeof row.brand === "string" ? row.brand : null,
     category: String(row.category ?? ""),
-    quantity: Array.isArray(row.balances) ? row.balances.reduce((sum, balance) => {
-      const location = Array.isArray(balance.location) ? balance.location[0] : balance.location;
-      return sum + (location?.counts_for_replenishment === false ? 0 : Number(balance.quantity ?? 0));
-    }, 0) : 0,
+    quantity: catalogById.get(String(row.id))?.available_quantity ?? 0,
+    incoming: catalogById.get(String(row.id))?.incoming_quantity ?? 0,
+    minimum: Number(row.min_stock ?? 0),
+    ideal: Math.max(Number(row.ideal_stock ?? 0), Number(row.min_stock ?? 0)),
   }));
 
   const groups: CompanyReplenishmentGroup[] = (groupsResult.data ?? []).map((row) => ({
@@ -46,7 +48,12 @@ export default async function CompanyPurchasesPage() {
     return { id: `supplements-${group.id}`, operation: "Suplementos" as const, productId: preferred?.id ?? group.preferred_product_id ?? "", name: group.name, detail: `Preferência: ${preferred?.name ?? "definir produto"}`, current, incoming: 0, target: group.ideal_stock, quantity: Math.max(group.ideal_stock - current, 0), minimum: group.minimum_stock };
   }).filter((group) => group.productId && group.current <= group.minimum && group.quantity > 0);
   const fitnessSuggestions: CompanyPurchaseSuggestion[] = fitnessStock.filter((row) => row.variant_active && row.product_active && row.available_quantity + row.incoming_quantity <= row.minimum_stock && row.suggested_reorder_quantity > 0).map((row) => ({ id: `fitness-${row.variant_id}`, operation: "Fitness", productId: row.product_id, variantId: row.variant_id, name: row.product_name, detail: `${row.color} · tamanho ${row.size}${row.default_supplier_name ? ` · ${row.default_supplier_name}` : ""}`, current: row.available_quantity, incoming: row.incoming_quantity, target: row.reorder_target, quantity: row.suggested_reorder_quantity }));
-  const suggestions = [...supplementSuggestions, ...fitnessSuggestions];
+  const groupedProductIds = new Set(groups.flatMap((group) => group.product_ids));
+  const standaloneSuggestions: CompanyPurchaseSuggestion[] = products
+    .filter((product) => !groupedProductIds.has(product.id) && product.ideal > 0 && product.quantity + product.incoming <= product.minimum)
+    .map((product) => ({ id: `supplements-product-${product.id}`, operation: "Suplementos" as const, productId: product.id, name: product.name, detail: `${product.brand ?? product.category} · produto individual`, current: product.quantity, incoming: product.incoming, target: product.ideal, quantity: Math.max(product.ideal - product.quantity - product.incoming, 0) }))
+    .filter((product) => product.quantity > 0);
+  const suggestions = [...supplementSuggestions, ...standaloneSuggestions, ...fitnessSuggestions];
 
   return (
     <div className="company-v2-page">
