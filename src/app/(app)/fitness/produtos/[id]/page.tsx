@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BadgePercent } from "lucide-react";
+import { ArrowLeft, BadgePercent, Truck } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { FitnessProductImageViewer } from "@/components/fitness-product-image-viewer";
@@ -61,14 +61,7 @@ export default async function Page({
         eyebrow="Candinho Fitness · Produto"
         title={product.name}
         description={product.description || product.category}
-        action={
-          <Link
-            className="button gold"
-            href={companyMode ? `/company/produtos/fitness/${id}/editar` : `/fitness/produtos/${id}/editar`}
-          >
-            Editar produto
-          </Link>
-        }
+        action={<div className="page-header-actions"><Link className="button gold" href={companyMode ? `/company/produtos/fitness/${id}/editar` : `/fitness/produtos/${id}/editar`}>Editar produto</Link>{companyMode && variants.find((variant) => variant.default_supplier_id) ? <Link className="button ghost" href={`/company/fornecedores/fitness/${variants.find((variant) => variant.default_supplier_id)?.default_supplier_id}`}><Truck size={16}/>Fornecedor</Link> : null}<Link className="button ghost" href={companyMode ? "/company/produtos" : "/fitness/produtos"}><ArrowLeft size={16}/>Voltar</Link></div>}
       />
 
       <EntitySwipeNavigator

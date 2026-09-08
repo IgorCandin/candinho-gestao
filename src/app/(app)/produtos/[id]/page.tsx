@@ -247,7 +247,7 @@ export default async function ProductDetailsPage({
               <Edit3 size={16} />
               Editar produto
             </Link>
-            <Link className="button ghost" href={`/estoque/${product.id}`}>
+            <Link className="button ghost" href={companyMode ? `/company/produtos/${product.id}#estoque` : `/estoque/${product.id}`}>
               <Warehouse size={16} />
               Ver estoque
             </Link>
@@ -396,7 +396,7 @@ export default async function ProductDetailsPage({
         )}
       </section>
 
-      <section className="product-stock-summary">
+      <section className="product-stock-summary" id="estoque">
         <article>
           <PackageCheck size={18} />
           <div><span>Físico</span><strong>{product.physical_quantity}</strong></div>
@@ -458,7 +458,7 @@ export default async function ProductDetailsPage({
             {historyPending > 0 && (
               <Link
                 className="button ghost compact-button"
-                href={`/produtos/sabores/historico?produto=${product.id}`}
+                href={companyMode ? `/company/produtos/sabores/historico?produto=${product.id}` : `/produtos/sabores/historico?produto=${product.id}`}
               >
                 Histórico sem sabor · {historyPending}
               </Link>
@@ -517,7 +517,7 @@ export default async function ProductDetailsPage({
                       <td>{formatDateOnly(String(lead.lead_at ?? ""))}</td>
                       <td>
                         {lead.customer_id ? (
-                          <Link href={`/clientes/${String(lead.customer_id)}`}>
+                          <Link href={companyMode ? `/company/clientes/${String(lead.customer_id)}` : `/clientes/${String(lead.customer_id)}`}>
                             <strong>{String(lead.customer_name)}</strong><br />
                             <small>{[lead.customer_reference, lead.customer_city].filter(Boolean).join(" · ")}</small>
                           </Link>
@@ -528,7 +528,7 @@ export default async function ProductDetailsPage({
                       <td><span className={`badge ${leadTone(lead.lead_status)}`}>{String(lead.lead_status ?? "Sem etapa")}</span></td>
                       <td><span className="table-note">{String(lead.notes ?? "—")}</span></td>
                       <td>
-                        <Link className="button ghost compact-button" href={`/leads/${String(lead.lead_id)}`}>
+                        <Link className="button ghost compact-button" href={companyMode ? "/company/vender" : `/leads/${String(lead.lead_id)}`}>
                           Abrir
                         </Link>
                       </td>
@@ -579,7 +579,7 @@ export default async function ProductDetailsPage({
                         <td>{formatCurrency(Number(order.total_cost ?? 0))}</td>
                         <td><span className={`badge ${status.tone}`}>{status.label}</span></td>
                         <td>
-                          <Link className="button ghost compact-button" href={`/pedidos-fornecedor/${String(order.purchase_order_id)}`}>
+                          <Link className="button ghost compact-button" href={companyMode ? `/company/compras/suplementos/${String(order.purchase_order_id)}` : `/pedidos-fornecedor/${String(order.purchase_order_id)}`}>
                             Abrir
                           </Link>
                         </td>
@@ -621,7 +621,7 @@ export default async function ProductDetailsPage({
                         <td>{formatDateOnly(String(sale.sold_at ?? ""))}</td>
                         <td>
                           {sale.customer_id ? (
-                            <Link href={`/clientes/${String(sale.customer_id)}`}>
+                            <Link href={companyMode ? `/company/clientes/${String(sale.customer_id)}` : `/clientes/${String(sale.customer_id)}`}>
                               <strong>{String(sale.customer_name)}</strong><br />
                               <small>{[sale.customer_reference, sale.customer_city].filter(Boolean).join(" · ")}</small>
                             </Link>
@@ -635,7 +635,7 @@ export default async function ProductDetailsPage({
                         <td className="positive">{formatCurrency(Number(sale.total_profit ?? 0))}</td>
                         <td><span className={`badge ${status.tone}`}>{status.label}</span></td>
                         <td>
-                          <Link className="button ghost compact-button" href={`/pedidos-pendentes/${String(sale.sale_id)}`}>
+                          <Link className="button ghost compact-button" href={companyMode ? "/company/concluir" : `/pedidos-pendentes/${String(sale.sale_id)}`}>
                             Abrir
                           </Link>
                         </td>

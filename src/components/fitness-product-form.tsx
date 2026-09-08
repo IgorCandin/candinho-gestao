@@ -8,6 +8,7 @@ import {
   Palette,
   Plus,
   Save,
+  Sparkles,
   Star,
   Trash2,
   Upload,
@@ -153,6 +154,8 @@ export function FitnessProductForm({
   );
 
   const [loading, setLoading] = useState(false);
+  const [nexusLoading, setNexusLoading] = useState(false);
+  const [nexusTip, setNexusTip] = useState<string | null>(null);
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -393,6 +396,29 @@ export function FitnessProductForm({
     }
   }
 
+  async function completeWithNexus() {
+    setMessage(null); setNexusTip(null);
+    if (name.trim().length < 3) { setMessage("Informe primeiro um nome mais completo para o produto."); return; }
+    setNexusLoading(true);
+    try {
+      const response = await fetch("/api/fitness/produtos/completar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, category, description, categories: categoryOptions }) });
+      const payload = await response.json() as { error?: string; category?: string; description?: string; sizes?: string[]; colors?: string[]; salesTip?: string };
+      if (!response.ok) throw new Error(payload.error || "O Nexus não conseguiu completar o cadastro.");
+      if (!category.trim() && payload.category) setCategory(payload.category);
+      if (!description.trim() && payload.description) setDescription(payload.description);
+      if (payload.category) setCategoryOptions((current) => uniqueSorted([...current, payload.category ?? ""]));
+      setSizeOptions((current) => uniqueSorted([...current, ...(payload.sizes ?? [])]));
+      setColorOptions((current) => uniqueSorted([...current, ...(payload.colors ?? [])]));
+      if (rows.length === 1 && rows[0].size === "M" && rows[0].color === "Preto" && (payload.sizes?.length || payload.colors?.length)) {
+        const sizes = payload.sizes?.length ? payload.sizes : ["M"];
+        const colors = payload.colors?.length ? payload.colors : ["Preto"];
+        setRows(sizes.flatMap((size) => colors.map((color) => ({ ...newVariant(rows[0]), size, color }))));
+      }
+      setNexusTip(payload.salesTip || "Cadastro organizado pelo Nexus.");
+    } catch (error) { setMessage(error instanceof Error ? error.message : "O Nexus não conseguiu completar o cadastro."); }
+    finally { setNexusLoading(false); }
+  }
+
   return (
     <form className="product-editor-layout" onSubmit={submit}>
       <div className="product-editor-main">
@@ -405,7 +431,10 @@ export function FitnessProductForm({
                 todas as variações.
               </p>
             </div>
+            <button className="button ghost" type="button" disabled={nexusLoading} onClick={() => void completeWithNexus()}>{nexusLoading ? <LoaderCircle className="spin" size={16}/> : <Sparkles size={16}/>}Completar com Nexus</button>
           </div>
+
+          {nexusTip ? <div className={styles.nexusTip}><Sparkles size={15}/><span>{nexusTip}</span></div> : null}
 
           <div className="panel-body form-grid-two">
             <label className="field field-span-two">

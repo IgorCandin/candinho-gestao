@@ -179,10 +179,7 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
   }, [draft, enrichment]);
 
   useEffect(() => {
-    if (!product) {
-      setFlavorLoading(false);
-      return;
-    }
+    if (!product) return;
 
     let cancelled = false;
 
@@ -576,7 +573,7 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
                 )}
 
                 <div className="form-help"><strong>{flavorAlreadyEnabled ? "Controle por sabor ativo." : "Ao salvar, o controle por sabor será ativado."}</strong> A partir da ativação, vendas, reservas, compras, recebimentos, transferências e ajustes exigirão o sabor.</div>
-                {product && historyPending > 0 && <Link className="button ghost" href={`/produtos/sabores/historico?produto=${product.id}`}>Classificar histórico sem sabor · {historyPending} pendência(s)</Link>}
+                {product && historyPending > 0 && <Link className="button ghost" href={companyMode ? `/company/produtos/sabores/historico?produto=${product.id}` : `/produtos/sabores/historico?produto=${product.id}`}>Classificar histórico sem sabor · {historyPending} pendência(s)</Link>}
               </div>
             )}
           </div>
