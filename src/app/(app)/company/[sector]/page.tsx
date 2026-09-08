@@ -141,7 +141,7 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
       canSupplements ? supabase.from("post_sale_batch_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
       canFitness ? supabase.from("fitness_post_sale_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
       canSupplements ? supabase.from("customer_crm_overview").select("*").eq("active", true).order("radar_rank").limit(800) : Promise.resolve({ data: [], error: null }),
-      canSupplements ? supabase.from("customer_sales_opportunity_feedback").select("customer_id,feedback_status,next_action_on,created_at").eq("feedback_status", "contacted").order("created_at", { ascending: false }).limit(500) : Promise.resolve({ data: [], error: null }),
+      canSupplements ? supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,opportunity_subtype,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(1000) : Promise.resolve({ data: [], error: null }),
     ]);
     for (const result of [suppPost, fitnessPost, crm, feedback]) if (result.error) throw new Error(result.error.message);
     const items: CompanyCareItem[] = [];
@@ -150,7 +150,7 @@ export default async function CompanySectorPage({ params }: { params: Promise<{ 
     const crmById = new Map((crm.data ?? []).map((row) => [row.id, row]));
     for (const row of crm.data ?? []) if (Number(row.pending_followup_count ?? 0) > 0 && row.next_followup_at && row.next_followup_id) items.push({ id: `follow-${row.next_followup_id}`, sourceId: row.next_followup_id, customerId: row.id, customerName: row.name, phone: row.phone, city: row.city, operation: "Suplementos", kind: "follow_up", dueOn: row.next_followup_at, title: row.next_action_label ?? "Retorno combinado", note: row.next_followup_notes ?? row.last_contact_outcome ?? "Retorno registrado no CRM", href: `/company/clientes/${row.id}` });
     const seenWaiting = new Set<string>();
-    for (const row of feedback.data ?? []) { if (seenWaiting.has(row.customer_id)) continue; seenWaiting.add(row.customer_id); const customer = crmById.get(row.customer_id); if (customer) items.push({ id: `waiting-${row.customer_id}`, sourceId: row.customer_id, customerId: row.customer_id, customerName: customer.name, phone: customer.phone, city: customer.city, operation: "Suplementos", kind: "waiting", dueOn: row.next_action_on, title: "Aguardando resposta", note: "Contato iniciado pela fila Vender agora", href: `/company/clientes/${row.customer_id}` }); }
+    for (const row of feedback.data ?? []) { if (seenWaiting.has(row.customer_id)) continue; seenWaiting.add(row.customer_id); if (row.feedback_status !== "contacted") continue; const customer = crmById.get(row.customer_id); if (customer) items.push({ id: `waiting-${row.customer_id}`, sourceId: row.customer_id, customerId: row.customer_id, customerName: customer.name, phone: customer.phone, city: customer.city, operation: "Suplementos", kind: "waiting", dueOn: row.next_action_on, title: "Aguardando resposta", note: "Contato iniciado pela fila Vender agora", href: `/company/clientes/${row.customer_id}`, recommendedProductId: row.recommended_product_id, opportunityGroup: row.opportunity_group, opportunitySubtype: row.opportunity_subtype }); }
     return <CompanyCareWorkspace items={items} />;
   }
 
