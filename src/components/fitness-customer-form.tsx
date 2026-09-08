@@ -1,7 +1,42 @@
 "use client";
+
 import { LoaderCircle, Save } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { FitnessCustomerRow } from "@/lib/types";
-export function FitnessCustomerForm({customer}:{customer?:FitnessCustomerRow}){const router=useRouter();const [name,setName]=useState(customer?.name??"");const [phone,setPhone]=useState(customer?.phone??"");const [instagram,setInstagram]=useState(customer?.instagram??"");const [city,setCity]=useState(customer?.city??"");const [source,setSource]=useState(customer?.source??"");const [notes,setNotes]=useState(customer?.notes??"");const [active,setActive]=useState(customer?.active??true);const [loading,setLoading]=useState(false);const [message,setMessage]=useState<string|null>(null);async function submit(e:React.FormEvent){e.preventDefault();setLoading(true);setMessage(null);try{const {data,error}=await createClient().rpc("save_fitness_customer",{p_customer_id:customer?.id??null,p_name:name,p_phone:phone||null,p_instagram:instagram||null,p_city:city||null,p_source:source||null,p_notes:notes||null,p_active:active});if(error)throw error;router.push(`/fitness/clientes/${String(data)}`);router.refresh()}catch(e){setMessage(e instanceof Error?e.message:"Não foi possível salvar o cliente.")}finally{setLoading(false)}}return <form className="panel" onSubmit={submit}><div className="panel-head"><div><h2>{customer?"Editar cliente":"Novo cliente"}</h2><p>Cadastro simples para histórico e recompra.</p></div></div><div className="panel-body form-grid-two"><label className="field field-span-two"><span>Nome</span><input className="input" required value={name} onChange={(e)=>setName(e.target.value)}/></label><label className="field"><span>Telefone</span><input className="input" value={phone} onChange={(e)=>setPhone(e.target.value)}/></label><label className="field"><span>Instagram</span><input className="input" value={instagram} onChange={(e)=>setInstagram(e.target.value)}/></label><label className="field"><span>Cidade</span><input className="input" value={city} onChange={(e)=>setCity(e.target.value)}/></label><label className="field"><span>Origem</span><select className="select" value={source} onChange={(e)=>setSource(e.target.value)}><option value="">Não informado</option>{["Instagram","WhatsApp","Indicação","Academia","Cliente antigo","Outro"].map((item)=><option key={item}>{item}</option>)}</select></label><label className="field field-span-two"><span>Observações</span><textarea className="textarea" rows={4} value={notes} onChange={(e)=>setNotes(e.target.value)}/></label><label className="switch-row field-span-two"><div><strong>Cliente ativo</strong></div><input type="checkbox" checked={active} onChange={(e)=>setActive(e.target.checked)}/></label>{message&&<p className="form-error visible field-span-two">{message}</p>}<button className="button gold field-span-two" disabled={loading}>{loading?<LoaderCircle className="spin" size={16}/>:<Save size={16}/>}Salvar cliente</button></div></form>}
+
+export function FitnessCustomerForm({ customer, companyMode = false }: { customer?: FitnessCustomerRow; companyMode?: boolean }) {
+  const router = useRouter();
+  const [name, setName] = useState(customer?.name ?? "");
+  const [phone, setPhone] = useState(customer?.phone ?? "");
+  const [instagram, setInstagram] = useState(customer?.instagram ?? "");
+  const [city, setCity] = useState(customer?.city ?? "");
+  const [source, setSource] = useState(customer?.source ?? "");
+  const [notes, setNotes] = useState(customer?.notes ?? "");
+  const [active, setActive] = useState(customer?.active ?? true);
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function submit(event: React.FormEvent) {
+    event.preventDefault(); setLoading(true); setMessage(null);
+    try {
+      const { data, error } = await createClient().rpc("save_fitness_customer", { p_customer_id: customer?.id ?? null, p_name: name, p_phone: phone || null, p_instagram: instagram || null, p_city: city || null, p_source: source || null, p_notes: notes || null, p_active: active });
+      if (error) throw error;
+      router.push(companyMode ? `/company/clientes/fitness/${String(data)}` : `/fitness/clientes/${String(data)}`);
+      router.refresh();
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível salvar o cliente."); }
+    finally { setLoading(false); }
+  }
+
+  return <form className="panel" onSubmit={submit}><div className="panel-head"><div><h2>{customer ? "Editar cliente" : "Novo cliente"}</h2><p>Cadastro simples para histórico e recompra.</p></div></div><div className="panel-body form-grid-two">
+    <label className="field field-span-two"><span>Nome</span><input className="input" required value={name} onChange={(event) => setName(event.target.value)}/></label>
+    <label className="field"><span>Telefone</span><input className="input" value={phone} onChange={(event) => setPhone(event.target.value)}/></label>
+    <label className="field"><span>Instagram</span><input className="input" value={instagram} onChange={(event) => setInstagram(event.target.value)}/></label>
+    <label className="field"><span>Cidade</span><input className="input" value={city} onChange={(event) => setCity(event.target.value)}/></label>
+    <label className="field"><span>Origem</span><select className="select" value={source} onChange={(event) => setSource(event.target.value)}><option value="">Não informado</option>{["Instagram", "WhatsApp", "Indicação", "Academia", "Cliente antigo", "Outro"].map((item) => <option key={item}>{item}</option>)}</select></label>
+    <label className="field field-span-two"><span>Observações</span><textarea className="textarea" rows={4} value={notes} onChange={(event) => setNotes(event.target.value)}/></label>
+    <label className="switch-row field-span-two"><div><strong>Cliente ativo</strong></div><input type="checkbox" checked={active} onChange={(event) => setActive(event.target.checked)}/></label>
+    {message && <p className="form-error visible field-span-two">{message}</p>}<button className="button gold field-span-two" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16}/> : <Save size={16}/>}Salvar cliente</button>
+  </div></form>;
+}

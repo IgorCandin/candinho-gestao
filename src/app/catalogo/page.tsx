@@ -29,9 +29,10 @@ export const revalidate = 10;
 
 export default async function PublicCatalogPage() {
   const supabase = await createClient();
-  const [{ data: testimonials }, { data: campaignSummary }] = await Promise.all([
+  const [{ data: testimonials }, { data: campaignSummary }, { data: authData }] = await Promise.all([
     supabase.from("storefront_testimonials").select("id,customer_name,comment,profession,photo_url").eq("active", true).order("display_order").order("created_at"),
     supabase.rpc("get_storefront_campaign_summary_v1"),
+    supabase.auth.getUser(),
   ]);
   const summary = Array.isArray(campaignSummary) ? campaignSummary[0] : campaignSummary;
   const remaining = summary ? Number(summary.remaining) : null;
@@ -87,7 +88,7 @@ export default async function PublicCatalogPage() {
               priority
             />
           </Link>
-          <Link href="/login" className="public-storefront-login">Entrar no sistema</Link>
+          <div className="public-storefront-account-actions"><Link href="/minha-conta" className="public-storefront-login">Minha conta</Link><Link href={authData.user ? "/company/inicio" : "/login"} className="public-storefront-login">{authData.user ? "Abrir ERP 2.0" : "Equipe Candinho"}</Link></div>
         </div>
 
         <div className="public-storefront-hero public-storefront-hero-v4532">

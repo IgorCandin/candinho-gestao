@@ -43,10 +43,10 @@ export default async function CompanyOperationalSuppliesPage({
             </Link>
             <Link
               className="button ghost"
-              href={operation === "fitness" ? "/fitness/estoque" : "/estoque"}
+              href={`/company/produtos?operacao=${operation === "fitness" ? "Fitness" : "Suplementos"}`}
             >
               {operation === "fitness" ? <Dumbbell size={16} /> : <Boxes size={16} />}
-              Ver estoque da operação
+              Ver produtos da operação
             </Link>
           </div>
         }

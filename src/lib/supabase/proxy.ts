@@ -68,6 +68,13 @@ export async function updateSession(request: NextRequest) {
 
   if (user) {
     const email = user.email?.trim().toLowerCase() ?? "";
+    const isCustomerAccount = Boolean(user.phone && !email);
+    if (isCustomerAccount && (isProtected || isAuthPage)) {
+      const redirectUrl = request.nextUrl.clone();
+      redirectUrl.pathname = "/minha-conta";
+      redirectUrl.search = "";
+      return NextResponse.redirect(redirectUrl);
+    }
     let access = {
       active: true,
       can_access_supplements: email === MANAGER_EMAIL,

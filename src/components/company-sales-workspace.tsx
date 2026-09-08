@@ -77,10 +77,10 @@ function LeadCard({ lead }: { lead: LeadRow }) {
   return (
     <article className="company-sale-card lead-card">
       <header><span className="company-priority priority-media">{lead.lead_status || "Lead"}</span><span className="company-sale-score">{formatDateOnly(lead.lead_date)}</span></header>
-      <div className="company-sale-person"><div><strong>{lead.customer_name}</strong><small>{[lead.city, lead.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div><Link href={`/leads/${lead.id}`}><ArrowRight size={17} /></Link></div>
+      <div className="company-sale-person"><div><strong>{lead.customer_name}</strong><small>{[lead.city, lead.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div><Link href={`/company/leads/${lead.id}`}><ArrowRight size={17} /></Link></div>
       <div className="company-sale-offer"><PackageSearch size={18} /><div><span>Interesse registrado</span><strong>{lead.product_summary || "Produto não informado"}</strong></div></div>
       {lead.notes ? <p>{lead.notes}</p> : <p>Abra o lead, confirme a necessidade e deixe a próxima ação marcada.</p>}
-      <div className="company-sale-actions">{whatsapp ? <a className="company-whatsapp" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={15} /> WhatsApp</a> : null}<Link href={`/leads/${lead.id}`}><ContactRound size={15} /> Abrir lead</Link></div>
+      <div className="company-sale-actions">{whatsapp ? <a className="company-whatsapp" href={whatsapp}><MessageCircle size={15} /> WhatsApp</a> : null}<Link href={`/company/leads/${lead.id}`}><ContactRound size={15} /> Abrir lead</Link></div>
     </article>
   );
 }
