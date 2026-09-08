@@ -36,5 +36,8 @@ export async function POST(request: Request) {
     });
     const parsed = JSON.parse(result.text) as JsonRecord;
     return NextResponse.json({ category: String(parsed.category ?? ""), description: String(parsed.description ?? ""), sizes: Array.isArray(parsed.sizes) ? parsed.sizes.filter((value): value is string => typeof value === "string") : [], colors: Array.isArray(parsed.colors) ? parsed.colors.filter((value): value is string => typeof value === "string") : [], salesTip: String(parsed.sales_tip ?? ""), provider: result.provider });
-  } catch (error) { return nexusErrorResponse(error); }
+  } catch (error) {
+    const friendly = nexusErrorResponse(error);
+    return NextResponse.json({ error: friendly.error, code: friendly.code }, { status: friendly.status });
+  }
 }
