@@ -36,13 +36,11 @@ function rewardLabel(type: string) {
   return "Acerto manual";
 }
 
-export async function PartnerDetailsPage({
-  params,
-  companyMode = false,
-}: {
+export default async function PartnerDetailsPage<T extends {
   params: Promise<{ id: string }>;
-  companyMode?: boolean;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
 
   const [details, swipe, legacyHistory] = await Promise.all([
@@ -590,5 +588,3 @@ export async function PartnerDetailsPage({
     </>
   );
 }
-
-export default function LegacyPartnerDetailsPage({params}:{params:Promise<{id:string}>}){return <PartnerDetailsPage params={params}/>;}

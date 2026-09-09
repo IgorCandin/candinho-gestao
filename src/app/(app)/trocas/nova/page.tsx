@@ -8,11 +8,11 @@ import { PageHeader } from "@/components/page-header";
 import { getCurrentUserAccess } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function NewReturnCasePage({
-  searchParams,
-}: {
+export default async function NewReturnCasePage<T extends {
   searchParams: Promise<{ operacao?: string }>;
-}) {
+}>(props: T) {
+  const { searchParams } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const params = await searchParams;
   const access = await getCurrentUserAccess();
 
@@ -74,14 +74,14 @@ export default async function NewReturnCasePage({
         title="Nova troca, devolução ou garantia"
         description="Abra a ocorrência a partir da venda original para preservar histórico, quantidade e valor."
         action={
-          <Link className="button ghost" href="/trocas">
+          <Link className="button ghost" href={companyMode ? "/company/trocas" : "/trocas"}>
             <ArrowLeft size={16} />
             Central
           </Link>
         }
       />
 
-      <ReturnCaseCreateForm operation={operation} rows={rows} />
+      <ReturnCaseCreateForm operation={operation} rows={rows} companyMode={companyMode} />
     </>
   );
 }

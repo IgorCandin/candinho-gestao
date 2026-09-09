@@ -115,7 +115,7 @@ export function FitnessQuotesTable({ rows, companyMode = false }: { rows: Row[];
                   {row.sale_id && (
                     <Link
                       className="icon-button"
-                      href={`/fitness/vendas/${row.sale_id}`}
+                      href={companyMode ? `/company/concluir/fitness/${row.sale_id}` : `/fitness/vendas/${row.sale_id}`}
                       title="Abrir venda convertida"
                     >
                       <ShoppingBag size={16}/>

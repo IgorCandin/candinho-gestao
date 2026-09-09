@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export function LeadConvertButton({ leadId }: { leadId: string }) {
+export function LeadConvertButton({ leadId, companyMode = false }: { leadId: string; companyMode?: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -27,7 +27,7 @@ export function LeadConvertButton({ leadId }: { leadId: string }) {
         throw new Error("O orçamento foi preparado, mas não foi possível identificar o registro.");
       }
 
-      router.push(`/vendas/nova?quote=${quoteId}`);
+      router.push(companyMode ? `/company/vendas/nova/suplementos?quote=${quoteId}` : `/vendas/nova?quote=${quoteId}`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível iniciar a conversão.");

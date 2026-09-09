@@ -12,17 +12,17 @@ import {
 } from "@/lib/active-promotion-data";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function Page({
-  searchParams,
-}: {
+export default async function Page<T extends {
   searchParams: Promise<{
     interest?: string;
   }>;
-}) {
+}>(props: T) {
+  const { searchParams } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const access = await getCurrentUserAccess();
 
   if (!access.canWriteFitness) {
-    redirect("/fitness");
+    redirect(companyMode ? "/company/orcamentos" : "/fitness");
   }
 
   const params = await searchParams;
@@ -74,6 +74,7 @@ export default async function Page({
         initialCustomerPhone={interest?.phone ?? null}
         initialSource={interest ? "Vitrine Fitness" : null}
         initialNotes={initialNotes}
+        companyMode={companyMode}
       />
     </>
   );

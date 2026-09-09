@@ -335,7 +335,7 @@ export async function getProductDataQuality(): Promise<ProductDataQualityRow[]> 
   });
 }
 
-export async function getEntitySwipeNavigation(kind: "product" | "customer" | "sale" | "quote" | "partner" | "fitness_product" | "fitness_customer" | "fitness_sale", currentId: string): Promise<SwipeNavigation> {
+export async function getEntitySwipeNavigation(kind: "product" | "customer" | "sale" | "quote" | "partner" | "fitness_product" | "fitness_customer" | "fitness_sale", currentId: string, companyMode = false): Promise<SwipeNavigation> {
   if (!isSupabaseConfigured) return { previous: null, next: null };
   const supabase = await createClient();
   let rows: Array<{ id: string }> = [];
@@ -373,7 +373,16 @@ export async function getEntitySwipeNavigation(kind: "product" | "customer" | "s
   }
   const index = rows.findIndex((item) => item.id === currentId);
   if (index < 0) return { previous: null, next: null };
-  const base = kind === "product" ? "/produtos" : kind === "customer" ? "/clientes" : kind === "sale" ? "/vendas" : kind === "quote" ? "/orcamentos" : kind === "partner" ? "/parceiros" : kind === "fitness_product" ? "/fitness/produtos" : kind === "fitness_customer" ? "/fitness/clientes" : "/fitness/vendas";
+  const base = companyMode
+    ? kind === "fitness_product" ? "/company/produtos/fitness"
+      : kind === "fitness_customer" ? "/company/clientes/fitness"
+      : kind === "fitness_sale" ? "/company/concluir/fitness"
+      : kind === "product" ? "/company/produtos"
+      : kind === "customer" ? "/company/clientes"
+      : kind === "quote" ? "/company/orcamentos"
+      : kind === "sale" ? "/company/concluir"
+      : "/company/parceiros"
+    : kind === "product" ? "/produtos" : kind === "customer" ? "/clientes" : kind === "sale" ? "/vendas" : kind === "quote" ? "/orcamentos" : kind === "partner" ? "/parceiros" : kind === "fitness_product" ? "/fitness/produtos" : kind === "fitness_customer" ? "/fitness/clientes" : "/fitness/vendas";
   return {
     previous: index > 0 ? { href: `${base}/${rows[index - 1].id}` } : null,
     next: index < rows.length - 1 ? { href: `${base}/${rows[index + 1].id}` } : null,

@@ -8,7 +8,7 @@ import { getPartnerPortalAdminSnapshot, getPartnerPortalHealthSnapshot } from "@
 import { getPartnersOverview, getUnassignedPartnershipSales } from "@/lib/data";
 import { formatCurrency, formatDateOnly, formatDateTime } from "@/lib/format";
 
-export async function PartnerManagementDashboard({companyMode=false}:{companyMode?:boolean}={}){
+export default async function PartnerManagementDashboard<T extends object>(props:T){const companyMode=Boolean((props as T & {companyMode?:boolean}).companyMode);
   const [partners,unassigned,portal,portalHealth]=await Promise.all([getPartnersOverview(),getUnassignedPartnershipSales(),getPartnerPortalAdminSnapshot(),getPartnerPortalHealthSnapshot()]);
   const active=partners.filter((p)=>p.active&&p.status!=="Pausado");const pending=partners.filter((p)=>p.settlement_pending);const sales=partners.reduce((sum,p)=>sum+p.current_cycle_sales_count,0);const revenue=partners.reduce((sum,p)=>sum+p.current_cycle_revenue,0);const incomplete=partners.filter((p)=>!p.phone||!p.city||!p.contact_name).length;
   const partnersHref=companyMode?"/company/parceiros":"/parceiros";const managementHref=companyMode?"/company/parceiros/gerencial":"/parceiros/gerencial";
@@ -19,5 +19,3 @@ export async function PartnerManagementDashboard({companyMode=false}:{companyMod
     {unassigned.length>0?<article className="panel"><div className="panel-head"><div><h2>Vendas antigas sem vínculo</h2><p>Abra a venda ou o parceiro sugerido para revisar a atribuição.</p></div><strong>{unassigned.length}</strong></div><div className="table-wrap"><table className="table"><thead><tr><th>Cliente</th><th>Data</th><th>Origem</th><th>Sugestão</th><th>Valor</th></tr></thead><tbody>{unassigned.map((sale)=><tr key={sale.id}><td><Link className="table-link" href={companyMode?"/company/concluir":`/vendas/${sale.id}`}>{sale.customer_name}</Link></td><td>{formatDateOnly(sale.sale_date)}</td><td>{sale.location_code}</td><td>{sale.suggested_partner_id?<Link className="table-link" href={companyMode?`/company/parceiros/${sale.suggested_partner_id}`:`/parceiros/${sale.suggested_partner_id}`}>{sale.suggested_partner_name}</Link>:"—"}</td><td>{formatCurrency(sale.total_amount)}</td></tr>)}</tbody></table></div></article>:<article className="panel"><div className="empty"><Link2 size={25}/><strong>Nenhuma parceria antiga sem vínculo</strong>Todos os registros marcados como parceria já possuem parceiro associado.</div></article>}
   </>;
 }
-
-export default function PartnerManagementPage(){return <PartnerManagementDashboard/>;}

@@ -14,11 +14,11 @@ import {
 } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function EditLeadPage({
-  params,
-}: {
+export default async function EditLeadPage<T extends {
   params: Promise<{ id: string }>;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
 
   const [lead, customers, products] =
@@ -43,7 +43,7 @@ export default async function EditLeadPage({
             <div className="page-header-actions">
               <Link
                 className="button gold"
-                href={`/vendas/nova?quote=${lead.quote_id}`}
+                href={companyMode ? `/company/vendas/nova/suplementos?quote=${lead.quote_id}` : `/vendas/nova?quote=${lead.quote_id}`}
               >
                 <FilePenLine
                   size={16}
@@ -53,7 +53,7 @@ export default async function EditLeadPage({
 
               <Link
                 className="button ghost"
-                href={`/leads/${lead.id}`}
+                href={companyMode ? `/company/leads/${lead.id}` : `/leads/${lead.id}`}
               >
                 <ArrowLeft
                   size={16}
@@ -151,7 +151,7 @@ export default async function EditLeadPage({
         action={
           <Link
             className="button ghost"
-            href={`/leads/${lead.id}`}
+            href={companyMode ? `/company/leads/${lead.id}` : `/leads/${lead.id}`}
           >
             <ArrowLeft size={16} />
             Voltar
@@ -197,6 +197,7 @@ export default async function EditLeadPage({
         initialNotes={
           lead.notes ?? ""
         }
+        companyMode={companyMode}
       />
     </>
   );

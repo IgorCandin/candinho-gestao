@@ -65,6 +65,7 @@ export function EditLeadForm({
   initialItems,
   initialStatus,
   initialNotes,
+  companyMode = false,
 }: {
   leadId: string;
   customers: CustomerOption[];
@@ -76,6 +77,7 @@ export function EditLeadForm({
   initialItems: InitialLeadItem[];
   initialStatus: string;
   initialNotes: string;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
 
@@ -350,7 +352,7 @@ export function EditLeadForm({
 
       if (error) throw error;
 
-      router.push(`/leads/${leadId}`);
+      router.push(companyMode ? `/company/leads/${leadId}` : `/leads/${leadId}`);
       router.refresh();
     } catch (error) {
       setMessage(

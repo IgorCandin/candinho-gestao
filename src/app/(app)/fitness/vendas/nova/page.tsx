@@ -11,11 +11,12 @@ import {
   getActivePromotionRows,
 } from "@/lib/active-promotion-data";
 
-export default async function Page() {
+export default async function Page<T extends object>(props: T) {
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const access = await getCurrentUserAccess();
 
   if (!access.canWriteFitness) {
-    redirect("/fitness");
+    redirect(companyMode ? "/company/vender" : "/fitness");
   }
 
   const [baseStock, customers, promotionRows] = await Promise.all([
@@ -41,6 +42,7 @@ export default async function Page() {
         stock={stock}
         customers={customers}
         responsible={access.name}
+        companyMode={companyMode}
       />
     </>
   );

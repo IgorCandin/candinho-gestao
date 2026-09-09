@@ -33,11 +33,11 @@ function statusLabel(value: string) {
   return value;
 }
 
-export default async function Page({
-  params,
-}: {
+export default async function Page<T extends {
   params: Promise<{ id: string }>;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const access = await getCurrentUserAccess();
   if (!access.canAccessFitness) {
     redirect("/dashboard");
@@ -85,7 +85,7 @@ export default async function Page({
           <div className="panel-actions">
             <Link
               className="button ghost"
-              href="/fitness/vendas"
+              href={companyMode ? "/company/vender" : "/fitness/vendas"}
             >
               <ShoppingBag size={16} />
               Setor de Vendas
@@ -239,7 +239,7 @@ export default async function Page({
       )}
 
       {access.canWriteFitness && q.status === "quoted" && (
-        <FitnessQuoteConvertForm id={id} />
+        <FitnessQuoteConvertForm id={id} companyMode={companyMode} />
       )}
 
       {q.sale_id && (
@@ -253,7 +253,7 @@ export default async function Page({
             </div>
             <Link
               className="button gold"
-              href={`/fitness/vendas/${q.sale_id}`}
+              href={companyMode ? `/company/concluir/fitness/${q.sale_id}` : `/fitness/vendas/${q.sale_id}`}
             >
               Abrir venda convertida
             </Link>

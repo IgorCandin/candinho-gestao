@@ -661,11 +661,13 @@ const BASE_BY_KIND: Record<
 export async function getEntitySwipeNavigation(
   kind: SwipeKind,
   currentId: string,
+  companyMode = false,
 ): Promise<SwipeNavigation> {
   if (!isSupabaseConfigured) {
     return getEntitySwipeNavigationLegacy(
       kind,
       currentId,
+      companyMode,
     );
   }
 
@@ -688,6 +690,7 @@ export async function getEntitySwipeNavigation(
     return getEntitySwipeNavigationLegacy(
       kind,
       currentId,
+      companyMode,
     );
   }
 
@@ -712,8 +715,16 @@ export async function getEntitySwipeNavigation(
       ? row.next_id
       : null;
 
-  const base =
-    BASE_BY_KIND[kind];
+  const base = companyMode
+    ? kind === "fitness_product" ? "/company/produtos/fitness"
+      : kind === "fitness_customer" ? "/company/clientes/fitness"
+      : kind === "fitness_sale" ? "/company/concluir/fitness"
+      : kind === "product" ? "/company/produtos"
+      : kind === "customer" ? "/company/clientes"
+      : kind === "quote" ? "/company/orcamentos"
+      : kind === "sale" ? "/company/concluir"
+      : "/company/parceiros"
+    : BASE_BY_KIND[kind];
 
   return {
     previous:

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export function LeadDeleteButton({ leadId, customerName }: { leadId: string; customerName: string }) {
+export function LeadDeleteButton({ leadId, customerName, companyMode = false }: { leadId: string; customerName: string; companyMode?: boolean }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export function LeadDeleteButton({ leadId, customerName }: { leadId: string; cus
       const { error } = await supabase.rpc("delete_lead_v1", { p_lead_id: leadId });
       if (error) throw error;
 
-      router.push("/leads");
+      router.push(companyMode ? "/company/vender" : "/leads");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível excluir o lead.");

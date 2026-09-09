@@ -52,8 +52,10 @@ const PAYMENT_OPTIONS: Array<{
 
 export function FitnessQuoteConvertForm({
   id,
+  companyMode = false,
 }: {
   id: string;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
   const [mode, setMode] =
@@ -101,9 +103,7 @@ export function FitnessQuoteConvertForm({
 
       if (error) throw error;
 
-      router.push(
-        `/fitness/vendas/${String(data)}`,
-      );
+      router.push(companyMode ? `/company/concluir/fitness/${String(data)}` : `/fitness/vendas/${String(data)}`);
       router.refresh();
     } catch (error) {
       setMessage(
@@ -142,7 +142,7 @@ export function FitnessQuoteConvertForm({
       return;
     }
 
-    router.push("/fitness/orcamentos");
+    router.push(companyMode ? "/company/orcamentos" : "/fitness/orcamentos");
     router.refresh();
   }
 

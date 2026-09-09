@@ -56,11 +56,11 @@ function typeLabel(type: string) {
   return "Outro";
 }
 
-export default async function ReturnsCenterPage({
-  searchParams,
-}: {
+export default async function ReturnsCenterPage<T extends {
   searchParams: Promise<{ operacao?: string }>;
-}) {
+}>(props: T) {
+  const { searchParams } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const params = await searchParams;
   const access = await getCurrentUserAccess();
 
@@ -125,14 +125,14 @@ export default async function ReturnsCenterPage({
         action={
           <div className="page-header-actions">
             {access.canAccessSupplements && (
-              <Link className="button gold" href="/trocas/nova?operacao=supplements">
+              <Link className="button gold" href={`${companyMode ? "/company" : ""}/trocas/nova?operacao=supplements`}>
                 <Plus size={16} />
                 Nova · Suplementos
               </Link>
             )}
 
             {access.canAccessFitness && (
-              <Link className="button ghost" href="/trocas/nova?operacao=fitness">
+              <Link className="button ghost" href={`${companyMode ? "/company" : ""}/trocas/nova?operacao=fitness`}>
                 <Plus size={16} />
                 Nova · Fitness
               </Link>
@@ -181,7 +181,7 @@ export default async function ReturnsCenterPage({
       <div className="inventory-toolbar">
         <Link
           className={`button ${requestedOperation === null ? "gold" : "ghost"}`}
-          href="/trocas"
+          href={companyMode ? "/company/trocas" : "/trocas"}
         >
           Todas
         </Link>
@@ -191,7 +191,7 @@ export default async function ReturnsCenterPage({
             className={`button ${
               requestedOperation === "supplements" ? "gold" : "ghost"
             }`}
-            href="/trocas?operacao=supplements"
+            href={`${companyMode ? "/company" : ""}/trocas?operacao=supplements`}
           >
             Suplementos
           </Link>
@@ -202,7 +202,7 @@ export default async function ReturnsCenterPage({
             className={`button ${
               requestedOperation === "fitness" ? "gold" : "ghost"
             }`}
-            href="/trocas?operacao=fitness"
+            href={`${companyMode ? "/company" : ""}/trocas?operacao=fitness`}
           >
             Fitness
           </Link>
@@ -306,7 +306,7 @@ export default async function ReturnsCenterPage({
                       </td>
 
                       <td>
-                        <Link className="icon-button" href={`/trocas/${row.id}`}>
+                        <Link className="icon-button" href={`${companyMode ? "/company" : ""}/trocas/${row.id}`}>
                           <ArrowRight size={16} />
                         </Link>
                       </td>

@@ -112,13 +112,11 @@ function supplierStatus(status: unknown, pending: unknown) {
   return { label: "A caminho", tone: "orange" };
 }
 
-export default async function ProductDetailsPage({
-  params,
-  companyMode = false,
-}: {
+export default async function ProductDetailsPage<T extends {
   params: Promise<{ id: string }>;
-  companyMode?: boolean;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
   const supabase = await createClient();
 
@@ -134,7 +132,7 @@ export default async function ProductDetailsPage({
     recentSalesResult,
   ] = await Promise.all([
     getProductDetails(id),
-    getEntitySwipeNavigation("product", id),
+    getEntitySwipeNavigation("product", id, companyMode),
     supabase
       .from("product_flavor_summary")
       .select("*")

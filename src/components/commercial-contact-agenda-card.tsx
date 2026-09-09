@@ -5,8 +5,10 @@ import { formatDateOnly } from "@/lib/format";
 
 export function CommercialContactAgendaCard({
   snapshot,
+  companyMode = false,
 }: {
   snapshot: CommercialContactQueueSnapshot;
+  companyMode?: boolean;
 }) {
   const next = snapshot.items[0] ?? null;
   const progress = Math.min(
@@ -17,7 +19,7 @@ export function CommercialContactAgendaCard({
   return (
     <Link
       className={`v4530-agenda-commercial ${snapshot.completed ? "completed" : ""}`}
-      href="/suplementos/fila-comercial"
+      href={companyMode ? "/company/vender" : "/suplementos/fila-comercial"}
     >
       <span className="v4530-agenda-commercial-icon">
         {snapshot.completed ? <CheckCircle2 size={20} /> : <Target size={20} />}

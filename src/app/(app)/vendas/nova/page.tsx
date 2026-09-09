@@ -14,11 +14,11 @@ import {
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function NewSalePage({
-  searchParams,
-}: {
+export default async function NewSalePage<T extends {
   searchParams: Promise<{ quote?: string }>;
-}) {
+}>(props: T) {
+  const { searchParams } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const params = await searchParams;
   const quoteId = params.quote?.trim() || null;
   const supabase = await createClient();
@@ -110,6 +110,7 @@ export default async function NewSalePage({
         combos={combos}
         lastPurchaseCosts={lastPurchaseCosts}
         initialQuote={initialQuote}
+        companyMode={companyMode}
       />
     </>
   );

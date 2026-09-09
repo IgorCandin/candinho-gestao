@@ -19,15 +19,15 @@ import {
 } from "@/lib/format";
 import type { FitnessSaleItem } from "@/lib/types";
 
-export default async function Page({
-  params,
-}: {
+export default async function Page<T extends {
   params: Promise<{ id: string }>;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
   const [sale, swipe] = await Promise.all([
     getFitnessSaleDetails(id),
-    getEntitySwipeNavigation("fitness_sale", id),
+    getEntitySwipeNavigation("fitness_sale", id, companyMode),
   ]);
 
   if (!sale) notFound();
@@ -48,14 +48,14 @@ export default async function Page({
           <div className="panel-actions">
             <Link
               className="button ghost"
-              href="/fitness/vendas"
+              href={companyMode ? "/company/concluir" : "/fitness/vendas"}
             >
               <ShoppingBag size={16} />
               Setor de Vendas
             </Link>
             <Link
               className="button gold"
-              href="/fitness/pos-venda"
+              href={companyMode ? "/company/acompanhar" : "/fitness/pos-venda"}
             >
               <MessageSquareText size={16} />
               Pós-venda
@@ -234,13 +234,13 @@ export default async function Page({
             >
               <Link
                 className="button ghost"
-                href="/fitness/clientes"
+                href={companyMode ? "/company/clientes" : "/fitness/clientes"}
               >
                 Ver clientes
               </Link>
               <Link
                 className="button gold"
-                href="/fitness/pos-venda"
+                href={companyMode ? "/company/acompanhar" : "/fitness/pos-venda"}
               >
                 Abrir pós-venda
               </Link>

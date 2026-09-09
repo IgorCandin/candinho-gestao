@@ -39,11 +39,11 @@ function Line({
   );
 }
 
-export default async function LeadDetailsPage({
-  params,
-}: {
+export default async function LeadDetailsPage<T extends {
   params: Promise<{ id: string }>;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
   const supabase = await createClient();
 
@@ -91,12 +91,12 @@ export default async function LeadDetailsPage({
         </a>
       )}
 
-      {!converted && <LeadConvertButton leadId={lead.id} />}
+      {!converted && <LeadConvertButton leadId={lead.id} companyMode={companyMode} />}
 
       {lead.quote_sale_id && (
         <Link
           className="button gold"
-          href={`/vendas/${lead.quote_sale_id}`}
+          href={companyMode ? `/company/concluir/${lead.quote_sale_id}` : `/vendas/${lead.quote_sale_id}`}
         >
           <ShoppingBag size={16} />
           Ver venda
@@ -106,7 +106,7 @@ export default async function LeadDetailsPage({
       {!converted && !lead.quote_id && (
         <Link
           className="button ghost"
-          href={`/leads/${lead.id}/editar`}
+          href={companyMode ? `/company/leads/${lead.id}/editar` : `/leads/${lead.id}/editar`}
         >
           <FilePenLine size={16} />
           Editar lead
@@ -117,10 +117,11 @@ export default async function LeadDetailsPage({
         <LeadDeleteButton
           leadId={lead.id}
           customerName={lead.customer_name}
+          companyMode={companyMode}
         />
       )}
 
-      <Link className="button ghost" href="/leads">
+      <Link className="button ghost" href={companyMode ? "/company/vender" : "/leads"}>
         <ArrowLeft size={16} />
         Voltar
       </Link>
@@ -225,7 +226,7 @@ export default async function LeadDetailsPage({
                       <div>
                         <Link
                           className="cell-main table-link"
-                          href={`/produtos/${item.product_id}`}
+                          href={companyMode ? `/company/produtos/${item.product_id}` : `/produtos/${item.product_id}`}
                         >
                           {item.product_name}
                         </Link>
@@ -307,7 +308,7 @@ export default async function LeadDetailsPage({
                   lead.customer_id ? (
                     <Link
                       className="table-link"
-                      href={`/clientes/${lead.customer_id}`}
+                      href={companyMode ? `/company/clientes/${lead.customer_id}` : `/clientes/${lead.customer_id}`}
                     >
                       {lead.customer_name}
                     </Link>

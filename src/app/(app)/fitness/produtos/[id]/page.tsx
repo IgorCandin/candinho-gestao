@@ -17,13 +17,11 @@ import {
   getFitnessProductPromotions,
 } from "@/lib/active-promotion-data";
 
-export default async function Page({
-  params,
-  companyMode = false,
-}: {
+export default async function Page<T extends {
   params: Promise<{ id: string }>;
-  companyMode?: boolean;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
 
   const [
@@ -34,7 +32,7 @@ export default async function Page({
     setConfig,
   ] = await Promise.all([
     getFitnessProduct(id),
-    getEntitySwipeNavigation("fitness_product", id),
+    getEntitySwipeNavigation("fitness_product", id, companyMode),
     getActivePromotionRows(),
     getFitnessProductGallery(id),
     getFitnessSetConfig(id),

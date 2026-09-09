@@ -58,13 +58,13 @@ function saleItemProductName(
   return "Produto";
 }
 
-export default async function PostSaleDetailPage({
-  params,
-}: {
+export default async function PostSaleDetailPage<T extends {
   params: Promise<{
     id: string;
   }>;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const access =
     await getCurrentUserAccess();
 
@@ -163,7 +163,7 @@ export default async function PostSaleDetailPage({
         action={
           <Link
             className="button ghost"
-            href="/pos-venda"
+            href={companyMode ? "/company/acompanhar" : "/pos-venda"}
           >
             <ArrowLeft size={16} />
             Voltar
@@ -382,6 +382,7 @@ export default async function PostSaleDetailPage({
           }
           status={batch.status}
           dueOn={batch.due_on}
+          companyMode={companyMode}
         />
       </div>
     </>

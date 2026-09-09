@@ -112,6 +112,7 @@ export function NewSaleForm({
   combos,
   lastPurchaseCosts,
   initialQuote = null,
+  companyMode = false,
 }: {
   customers: CustomerOption[];
   locations: LocationOption[];
@@ -120,6 +121,7 @@ export function NewSaleForm({
   combos: ProductComboSaleOption[];
   lastPurchaseCosts: Record<string, { cost: number | null; purchasedOn: string | null }>;
   initialQuote?: QuoteDraft | null;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
   const today = todayInSaoPaulo();
@@ -881,9 +883,9 @@ export function NewSaleForm({
 
       setSavedBudgetPrompt({
         quoteId,
-        target: saleId
-          ? `/suplementos/vendas/${saleId}`
-          : "/suplementos/vendas",
+        target: companyMode
+          ? (saleId ? `/company/concluir/${saleId}` : `/company/orcamentos/${quoteId}`)
+          : (saleId ? `/suplementos/vendas/${saleId}` : "/suplementos/vendas"),
         mode,
       });
     } catch (error) {
@@ -971,7 +973,7 @@ export function NewSaleForm({
                 Cliente novo?{" "}
                 <Link
                   className="inline-link"
-                  href="/clientes/novo"
+                  href={companyMode ? "/company/clientes/novo" : "/clientes/novo"}
                 >
                   Cadastrar cliente
                 </Link>
@@ -1924,7 +1926,7 @@ export function NewSaleForm({
         </article>
 
         <div className="sale-form-actions">
-          <Link className="button ghost" href="/suplementos/vendas">
+          <Link className="button ghost" href={companyMode ? "/company/vender" : "/suplementos/vendas"}>
             Cancelar
           </Link>
 

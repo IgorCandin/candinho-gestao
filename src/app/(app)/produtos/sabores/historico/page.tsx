@@ -6,11 +6,11 @@ import { PageHeader } from "@/components/page-header";
 import { getCurrentUserAccess } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function HistoricalFlavorPage({
-  searchParams,
-}: {
+export default async function HistoricalFlavorPage<T extends {
   searchParams: Promise<{ produto?: string }>;
-}) {
+}>(props: T) {
+  const { searchParams } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const access = await getCurrentUserAccess();
   if (!access.canAccessSupplements) redirect("/dashboard");
 
@@ -69,8 +69,8 @@ export default async function HistoricalFlavorPage({
         description="Reconstrua o sabor das vendas antigas sem movimentar o estoque novamente. Uma venda de várias unidades pode ser dividida entre sabores diferentes."
         action={
           produto
-            ? <Link className="button ghost" href={`/produtos/${produto}`}><ArrowLeft size={16} />Voltar ao produto</Link>
-            : <Link className="button ghost" href="/produtos"><ArrowLeft size={16} />Voltar aos produtos</Link>
+            ? <Link className="button ghost" href={companyMode ? `/company/produtos/${produto}` : `/produtos/${produto}`}><ArrowLeft size={16} />Voltar ao produto</Link>
+            : <Link className="button ghost" href={companyMode ? "/company/produtos" : "/produtos"}><ArrowLeft size={16} />Voltar aos produtos</Link>
         }
       />
 

@@ -51,6 +51,7 @@ export function PostSaleNexusCard({
   initialMeta,
   status,
   dueOn,
+  companyMode = false,
 }: {
   batchId?: string;
   customerId?: string;
@@ -60,6 +61,7 @@ export function PostSaleNexusCard({
   initialMeta: Record<string, unknown> | null;
   status: string;
   dueOn: string;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
   const initialContext =
@@ -171,7 +173,7 @@ export function PostSaleNexusCard({
           p_notes: notes.trim() || null,
         });
         if (error) throw error;
-        router.push("/fitness/pos-venda?concluido=1");
+        router.push(companyMode ? "/company/acompanhar?concluido=1" : "/fitness/pos-venda?concluido=1");
       } else {
         if (!batchId) throw new Error("Pós-venda não identificado.");
         const { error } = await supabase.rpc("complete_operational_event", {
@@ -183,7 +185,7 @@ export function PostSaleNexusCard({
           p_payment_method: null,
         });
         if (error) throw error;
-        router.push("/pos-venda?concluido=1");
+        router.push(companyMode ? "/company/acompanhar?concluido=1" : "/pos-venda?concluido=1");
       }
 
       router.refresh();

@@ -8,9 +8,11 @@ import { getCurrentUserAccess } from "@/lib/data";
 import { formatCurrency, formatDateOnly, formatDateTime } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function FitnessPostSaleDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function FitnessPostSaleDetailPage<T extends { params: Promise<{ id: string }> }>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const access = await getCurrentUserAccess();
-  if (!access.canWriteFitness) redirect("/fitness");
+  if (!access.canWriteFitness) redirect(companyMode ? "/company/acompanhar" : "/fitness");
 
   const { id } = await params;
   const supabase = await createClient();
@@ -41,7 +43,7 @@ export default async function FitnessPostSaleDetailPage({ params }: { params: Pr
         eyebrow="Candinho Fitness · Pós-venda"
         title={cycle.customer_name}
         description={`${cycle.sale_count} compra(s) reunida(s) · contato previsto para ${formatDateOnly(cycle.due_on)}`}
-        action={<Link className="button ghost" href="/fitness/pos-venda"><ArrowLeft size={16}/>Voltar</Link>}
+        action={<Link className="button ghost" href={companyMode ? "/company/acompanhar" : "/fitness/pos-venda"}><ArrowLeft size={16}/>Voltar</Link>}
       />
 
       <section className="stats-grid">
@@ -106,6 +108,7 @@ export default async function FitnessPostSaleDetailPage({ params }: { params: Pr
           initialMeta={initialMeta}
           status={cycle.status}
           dueOn={cycle.due_on}
+          companyMode={companyMode}
         />
       </div>
     </>

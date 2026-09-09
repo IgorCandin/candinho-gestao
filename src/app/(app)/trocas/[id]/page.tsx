@@ -54,11 +54,11 @@ function resolutionLabel(value: string | null) {
   return "Ainda não definida";
 }
 
-export default async function ReturnCaseDetailPage({
-  params,
-}: {
+export default async function ReturnCaseDetailPage<T extends {
   params: Promise<{ id: string }>;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
   const access = await getCurrentUserAccess();
   const supabase = await createClient();
@@ -202,8 +202,8 @@ export default async function ReturnCaseDetailPage({
 
   const originalSaleHref =
     operation === "fitness"
-      ? `/fitness/vendas/${caseRow.original_fitness_sale_id}`
-      : `/vendas/${caseRow.original_sale_id}`;
+      ? companyMode ? `/company/concluir/fitness/${caseRow.original_fitness_sale_id}` : `/fitness/vendas/${caseRow.original_fitness_sale_id}`
+      : companyMode ? `/company/concluir/${caseRow.original_sale_id}` : `/vendas/${caseRow.original_sale_id}`;
 
   const effectiveFinancialStatus =
     String(
@@ -242,7 +242,7 @@ export default async function ReturnCaseDetailPage({
 
             <Link
               className="button ghost"
-              href="/trocas"
+              href={companyMode ? "/company/trocas" : "/trocas"}
             >
               <ArrowLeft size={16} />
               Central

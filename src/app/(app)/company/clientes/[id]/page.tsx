@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, CalendarClock, CircleDollarSign, ExternalLink, Mail, MapPin, MessageCircle, Phone, ShoppingBag, Sparkles, UserRound } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CalendarClock, CircleDollarSign, Mail, MapPin, MessageCircle, Phone, ShoppingBag, Sparkles, UserRound } from "lucide-react";
 import { notFound } from "next/navigation";
 import { RadarFollowupButton } from "@/components/radar-followup-button";
 import { CustomerProfileEditor } from "@/components/customer-profile-editor";
@@ -121,7 +121,6 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
             {customer.approach_preferences ? <small>Abordagem: {customer.approach_preferences}</small> : null}
           </article>
 
-          <Link className="company-customer-legacy" href={`/clientes/${customer.id}`}><ExternalLink size={14} /> Abrir ficha antiga no ERP 1.0</Link>
         </aside>
       </section>
     </div>

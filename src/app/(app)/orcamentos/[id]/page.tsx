@@ -67,11 +67,11 @@ function oneRelation(
     : null;
 }
 
-export default async function QuoteDetailsPage({
-  params,
-}: {
+export default async function QuoteDetailsPage<T extends {
   params: Promise<{ id: string }>;
-}) {
+}>(props: T) {
+  const { params } = props;
+  const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
   const { id } = await params;
   const supabase = await createClient();
 
@@ -83,7 +83,7 @@ export default async function QuoteDetailsPage({
     markupResult,
   ] = await Promise.all([
     getQuoteDetails(id),
-    getEntitySwipeNavigation("quote", id),
+    getEntitySwipeNavigation("quote", id, companyMode),
     supabase
       .from("sales_quote_items")
       .select(
@@ -170,7 +170,7 @@ export default async function QuoteDetailsPage({
       {canEdit && (
         <Link
           className="button gold"
-          href={`/vendas/nova?quote=${quote.id}`}
+          href={companyMode ? `/company/vendas/nova/suplementos?quote=${quote.id}` : `/vendas/nova?quote=${quote.id}`}
         >
           <FilePenLine size={16} />
           {quote.effective_status === "expired"
@@ -182,14 +182,14 @@ export default async function QuoteDetailsPage({
       {quote.sale_id && (
         <Link
           className="button gold"
-          href={`/vendas/${quote.sale_id}`}
+          href={companyMode ? `/company/concluir/${quote.sale_id}` : `/vendas/${quote.sale_id}`}
         >
           <ShoppingBag size={16} />
           Ver venda
         </Link>
       )}
 
-      <Link className="button ghost" href="/orcamentos">
+      <Link className="button ghost" href={companyMode ? "/company/orcamentos" : "/orcamentos"}>
         <ArrowLeft size={16} />
         Voltar
       </Link>
@@ -260,7 +260,7 @@ export default async function QuoteDetailsPage({
                   <div className="sale-item-copy">
                     <Link
                       className="table-link"
-                      href={`/produtos/${item.product_id}`}
+                      href={companyMode ? `/company/produtos/${item.product_id}` : `/produtos/${item.product_id}`}
                     >
                       <strong>
                         {item.product_name}
@@ -488,7 +488,7 @@ export default async function QuoteDetailsPage({
                 value={
                   <Link
                     className="table-link"
-                    href={`/clientes/${quote.customer_id}`}
+                    href={companyMode ? `/company/clientes/${quote.customer_id}` : `/clientes/${quote.customer_id}`}
                   >
                     {quote.customer_name}
                   </Link>
@@ -509,7 +509,7 @@ export default async function QuoteDetailsPage({
                   value={
                     <Link
                       className="table-link"
-                      href={`/leads/${quote.lead_id}`}
+                      href={companyMode ? `/company/leads/${quote.lead_id}` : `/leads/${quote.lead_id}`}
                     >
                       Abrir oportunidade
                     </Link>

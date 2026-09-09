@@ -39,9 +39,11 @@ function todayBrazil() {
 export function ReturnCaseCreateForm({
   operation,
   rows,
+  companyMode = false,
 }: {
   operation: "supplements" | "fitness";
   rows: ReturnEligibleItem[];
+  companyMode?: boolean;
 }) {
   const router = useRouter();
 
@@ -138,7 +140,7 @@ export function ReturnCaseCreateForm({
 
       if (error) throw error;
 
-      router.push(`/trocas/${String(data)}`);
+      router.push(`${companyMode ? "/company" : ""}/trocas/${String(data)}`);
       router.refresh();
     } catch (error) {
       setMessage(

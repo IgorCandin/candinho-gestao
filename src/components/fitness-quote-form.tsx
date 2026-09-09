@@ -63,6 +63,7 @@ export function FitnessQuoteForm({
   initialCustomerPhone = null,
   initialSource = null,
   initialNotes = null,
+  companyMode = false,
 }: {
   stock: FitnessStockRow[];
   customers: FitnessCustomerRow[];
@@ -72,6 +73,7 @@ export function FitnessQuoteForm({
   initialCustomerPhone?: string | null;
   initialSource?: string | null;
   initialNotes?: string | null;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
 
@@ -245,9 +247,7 @@ export function FitnessQuoteForm({
 
       if (error) throw error;
 
-      router.push(
-        `/fitness/orcamentos/${String(data)}`,
-      );
+      router.push(companyMode ? `/company/orcamentos/fitness/${String(data)}` : `/fitness/orcamentos/${String(data)}`);
       router.refresh();
     } catch (error) {
       setMessage(

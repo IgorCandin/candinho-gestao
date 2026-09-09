@@ -40,7 +40,7 @@ type MovementRow = {
 
 function productIdFromPath(pathname: string) {
   const match = pathname.match(
-    /\/(?:suplementos\/)?produtos\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i,
+    /\/(?:suplementos\/|company\/)?produtos\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$/i,
   );
   return match?.[1] ?? null;
 }
@@ -90,6 +90,7 @@ export function ProductMovementPanelV4533({
   enabled?: boolean;
 }) {
   const pathname = usePathname();
+  const companyMode = pathname.startsWith("/company/");
   const productId = useMemo(
     () => productIdFromPath(pathname),
     [pathname],
@@ -345,14 +346,14 @@ export function ProductMovementPanelV4533({
                       {row.sale_id ? (
                         <Link
                           className="button ghost compact-button"
-                          href={`/suplementos/vendas/${row.sale_id}`}
+                          href={companyMode ? `/company/concluir/${row.sale_id}` : `/suplementos/vendas/${row.sale_id}`}
                         >
                           Venda
                         </Link>
                       ) : row.outflow_id ? (
                         <Link
                           className="button ghost compact-button"
-                          href="/suplementos/saidas"
+                          href={companyMode ? "/company/produtos" : "/suplementos/saidas"}
                         >
                           Saída
                         </Link>

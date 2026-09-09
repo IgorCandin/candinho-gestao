@@ -51,10 +51,12 @@ export function FitnessSaleForm({
   stock,
   customers,
   responsible,
+  companyMode = false,
 }: {
   stock: FitnessStockRow[];
   customers: FitnessCustomerRow[];
   responsible: string;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
 
@@ -263,9 +265,7 @@ export function FitnessSaleForm({
 
       if (error) throw error;
 
-      router.push(
-        `/fitness/vendas/${String(data)}`,
-      );
+      router.push(companyMode ? `/company/concluir/fitness/${String(data)}` : `/fitness/vendas/${String(data)}`);
       router.refresh();
     } catch (error) {
       setMessage(

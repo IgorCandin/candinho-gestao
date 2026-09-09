@@ -201,7 +201,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       </section>
       <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
       {canWrite ? <GoogleCalendarConnectionCard status={googleCalendar} /> : null}
-      {!commercialQueue.skipped ? <CommercialContactAgendaCard snapshot={commercialQueue} /> : null}
+      {!commercialQueue.skipped ? <CommercialContactAgendaCard snapshot={commercialQueue} companyMode /> : null}
       <AgendaDragDropV4532 events={events} enabled={canWrite} />
       <OperationalCalendar events={events} summary={summary} customers={customers} sales={sales} purchaseOrders={purchaseOrders} users={users} canWrite={canWrite} />
     </div>;
