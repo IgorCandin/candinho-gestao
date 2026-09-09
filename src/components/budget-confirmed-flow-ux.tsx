@@ -19,6 +19,14 @@ import {
 const FLOW_CLASS = "v4515-budget-flow";
 const CONFIRM_CLASS = "v4515-confirm-flow-open";
 
+function isSupplementSaleRoute(pathname: string) {
+  return (
+    pathname === "/vendas/nova" ||
+    pathname === "/suplementos/vendas/nova" ||
+    pathname === "/company/vendas/nova/suplementos"
+  );
+}
+
 function panelTitle(panel: HTMLElement) {
   return (
     panel.querySelector<HTMLElement>(".panel-head h2")
@@ -156,9 +164,9 @@ function restoreSavedBudgetPdfPrompt() {
 
   if (
     openTitle &&
-    openTitle.textContent !== "Abrir PDF"
+    openTitle.textContent !== "Sim, abrir PDF"
   ) {
-    openTitle.textContent = "Abrir PDF";
+    openTitle.textContent = "Sim, abrir PDF";
   }
 
   const expectedOpen =
@@ -175,10 +183,10 @@ function restoreSavedBudgetPdfPrompt() {
   if (
     continueTitle &&
     continueTitle.textContent !==
-      "Continuar sem PDF"
+      "Não, continuar"
   ) {
     continueTitle.textContent =
-      "Continuar sem PDF";
+      "Não, continuar";
   }
 
   const expectedContinue =
@@ -257,11 +265,7 @@ export function BudgetConfirmedFlowUX() {
     useState(false);
 
   useEffect(() => {
-    if (
-      pathname !== "/vendas/nova" &&
-      pathname !==
-        "/suplementos/vendas/nova"
-    ) {
+    if (!isSupplementSaleRoute(pathname)) {
       return;
     }
 
@@ -482,42 +486,12 @@ export function BudgetConfirmedFlowUX() {
 
     if (!side) return;
 
-    const scrollContainer = side;
-
-    scrollContainer.scrollTop = 0;
-    scrollContainer.focus({
-      preventScroll: true,
+    requestAnimationFrame(() => {
+      side.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
     });
-
-    function onWheel(
-      event: WheelEvent,
-    ) {
-      if (
-        scrollContainer.scrollHeight <=
-        scrollContainer.clientHeight
-      ) {
-        return;
-      }
-
-      scrollContainer.scrollTop +=
-        event.deltaY;
-      event.preventDefault();
-    }
-
-    scrollContainer.addEventListener(
-      "wheel",
-      onWheel,
-      {
-        passive: false,
-      },
-    );
-
-    return () => {
-      scrollContainer.removeEventListener(
-        "wheel",
-        onWheel,
-      );
-    };
   }, [open]);
 
   function backToChoice() {
@@ -605,9 +579,7 @@ export function BudgetConfirmedFlowUX() {
   }
 
   if (
-    (pathname !== "/vendas/nova" &&
-      pathname !==
-        "/suplementos/vendas/nova") ||
+    !isSupplementSaleRoute(pathname) ||
     !open
   ) {
     return null;
@@ -616,9 +588,8 @@ export function BudgetConfirmedFlowUX() {
   return (
     <div
       className="v4515-confirm-shell"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="v4515-confirm-title"
+      role="region"
+      aria-label="Ações da venda confirmada"
     >
       <button
         type="button"

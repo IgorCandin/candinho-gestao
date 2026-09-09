@@ -1043,14 +1043,16 @@ export function NewSaleForm({
               </label>
 
               <div className="v45234-product-actions">
-                <button
-                  className="button gold v45234-add-product"
-                  type="button"
-                  onClick={addItem}
-                >
-                  <Plus size={17} />
-                  Selecionar produto
-                </button>
+                {items.length === 0 && (
+                  <button
+                    className="button gold v45234-add-product"
+                    type="button"
+                    onClick={addItem}
+                  >
+                    <Plus size={17} />
+                    Selecionar produto
+                  </button>
+                )}
 
                 {combos.length > 0 && (
                   <div className="budget-combo-picker v45234-combo-picker">
@@ -1369,6 +1371,17 @@ export function NewSaleForm({
                 </div>
               );
             })}
+
+            {items.length > 0 && (
+              <button
+                className="button ghost v45234-add-product v45234-add-product-after-items"
+                type="button"
+                onClick={addItem}
+              >
+                <Plus size={17} />
+                Adicionar outro produto
+              </button>
+            )}
           </div>
         </article>
 
@@ -1517,6 +1530,13 @@ export function NewSaleForm({
       </div>
 
       <aside className="new-sale-side">
+        <div className="v4515-inline-confirm-heading">
+          <span>Orçamento confirmado</span>
+          <strong>Agora finalize a venda</strong>
+          <small>
+            Informe pagamento, entrega e pós-venda. Continue descendo até confirmar.
+          </small>
+        </div>
         <article className="panel">
           <div className="panel-head">
             <div>
@@ -2191,7 +2211,7 @@ export function NewSaleForm({
               >
                 <FileText size={25} />
                 <span>
-                  <strong>Abrir PDF</strong>
+                  <strong>Sim, abrir PDF</strong>
                   <small>
                     Abre a proposta em uma nova guia
                     e depois segue para o registro
@@ -2209,7 +2229,7 @@ export function NewSaleForm({
               >
                 <CheckCircle2 size={25} />
                 <span>
-                  <strong>Continuar sem PDF</strong>
+                  <strong>Não, continuar</strong>
                   <small>
                     Vai direto para a venda ou lead
                     criado.

@@ -595,7 +595,9 @@ export function CommercialSaleRefinementUX({
 
     function refineSaveModal() {
       const modal =
-        document.querySelector<HTMLElement>(".budget-choice-modal");
+        document.querySelector<HTMLElement>(
+          ".budget-choice-modal:not(.budget-pdf-prompt)",
+        );
 
       if (!modal) return;
 
