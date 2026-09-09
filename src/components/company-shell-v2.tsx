@@ -12,9 +12,8 @@ import {
   Handshake,
   Home,
   LogOut,
-  Maximize2,
-  Minimize2,
   PackageSearch,
+  RefreshCcw,
   Search,
   ShieldCheck,
   ShoppingBag,
@@ -23,7 +22,7 @@ import {
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 
@@ -84,7 +83,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
   const [query, setQuery] = useState("");
   const [customers, setCustomers] = useState<CustomerItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRefreshing, startRefresh] = useTransition();
   const searchRef = useRef<HTMLInputElement>(null);
   const needle = normalize(query.trim());
   const canSearchCustomers = query.trim().length >= 2;
@@ -139,49 +138,22 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
-  useEffect(() => {
-    const syncFullscreen = () => setIsFullscreen(Boolean(document.fullscreenElement));
-    syncFullscreen();
-    document.addEventListener("fullscreenchange", syncFullscreen);
-    return () => document.removeEventListener("fullscreenchange", syncFullscreen);
-  }, []);
-
-  useEffect(() => {
-    function preserveFullscreenNavigation(event: MouseEvent) {
-      if (!document.fullscreenElement || event.defaultPrevented || event.button !== 0) return;
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-      const target = event.target;
-      if (!(target instanceof Element)) return;
-      const anchor = target.closest<HTMLAnchorElement>("a[href]");
-      if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
-
-      const destination = new URL(anchor.href, window.location.href);
-      if (destination.origin !== window.location.origin || !destination.pathname.startsWith("/company/")) return;
-
-      event.preventDefault();
-      router.push(`${destination.pathname}${destination.search}${destination.hash}`);
-    }
-
-    document.addEventListener("click", preserveFullscreenNavigation);
-    return () => document.removeEventListener("click", preserveFullscreenNavigation);
-  }, [router]);
-
   function finishSearch() {
     setQuery("");
     searchRef.current?.blur();
   }
 
-  async function toggleFullscreen() {
-    if (document.fullscreenElement) await document.exitFullscreen();
-    else await document.documentElement.requestFullscreen();
+  function refreshData() {
+    startRefresh(() => {
+      router.refresh();
+    });
   }
 
   return (
     <div className="company-shell-v2">
       <header className="company-command-header">
-        <button className="company-fullscreen-button company-header-edge-control" type="button" onClick={() => void toggleFullscreen()} aria-label="Alternar tela cheia" title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={isFullscreen}>
-          {isFullscreen ? <Minimize2 size={17}/> : <Maximize2 size={17}/>}
+        <button className="company-fullscreen-button company-refresh-button company-header-edge-control" type="button" onClick={refreshData} aria-label="Atualizar dados desta tela" title="Atualizar dados" disabled={isRefreshing}>
+          <RefreshCcw className={isRefreshing ? "spin" : ""} size={17}/>
         </button>
         <div className="company-header-inner">
           <nav className="company-primary-nav" aria-label="Setores da Company">

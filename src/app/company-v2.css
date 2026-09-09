@@ -775,6 +775,7 @@
   .company-primary-nav a svg{width:17px;height:17px}
   .company-primary-nav-right{margin:0!important}
   .company-fullscreen-button{display:none!important}
+  .company-refresh-button{position:absolute!important;top:5px!important;left:7px!important;display:grid!important;transform:none!important}
   .company-account-menu{position:absolute!important;top:5px!important;right:7px!important;transform:none!important}
   .company-account-menu summary{width:32px!important;height:32px!important;padding:6px!important}
   .company-account-menu summary svg:last-child{display:none}
