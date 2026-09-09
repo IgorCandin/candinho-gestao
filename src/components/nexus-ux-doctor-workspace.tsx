@@ -18,6 +18,7 @@ import { UxIssueReportList } from "@/components/ux-issue-report-list";
 import type {
   NexusUxAutoSignal,
   NexusUxDoctorSnapshot,
+  CompanyNavigationEscape,
 } from "@/lib/nexus-ux-doctor-types";
 import { nexusRouteLabel } from "@/lib/nexus-route-labels";
 
@@ -65,13 +66,16 @@ function signalDescription(signal: NexusUxAutoSignal) {
 export function NexusUxDoctorWorkspace({
   initialSnapshot,
   manualRows,
+  initialEscapes,
 }: {
   initialSnapshot: NexusUxDoctorSnapshot;
   manualRows: UxIssueRow[];
+  initialEscapes: CompanyNavigationEscape[];
 }) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [refreshing, setRefreshing] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [escapes, setEscapes] = useState(initialEscapes);
 
   const topSignals = useMemo(
     () => snapshot.auto_signals.slice(0, 12),
@@ -86,6 +90,11 @@ export function NexusUxDoctorWorkspace({
       });
       if (response.ok) {
         setSnapshot((await response.json()) as NexusUxDoctorSnapshot);
+      }
+      const escapeResponse = await fetch("/api/nexus/company-escapes", { cache: "no-store" });
+      if (escapeResponse.ok) {
+        const payload = (await escapeResponse.json()) as { rows?: CompanyNavigationEscape[] };
+        setEscapes(payload.rows ?? []);
       }
     } finally {
       setRefreshing(false);
@@ -102,6 +111,7 @@ export function NexusUxDoctorWorkspace({
       `Sinais automáticos ativos: ${snapshot.auto_active}`,
       `Sinais automáticos de alta prioridade: ${snapshot.auto_high}`,
       `Sinais repetidos: ${snapshot.repeated_signals}`,
+      `Saídas da Company para o ERP antigo: ${escapes.reduce((sum, item) => sum + item.occurrence_count, 0)}`,
       "",
       "## Rotas com mais atrito",
       ...snapshot.top_routes.map(
@@ -126,6 +136,11 @@ export function NexusUxDoctorWorkspace({
           `   ${row.description}`,
           `   Prioridade: ${row.severity} · Status: ${row.status}`,
         ]),
+      "",
+      "## Saídas da Company para o ERP antigo",
+      ...escapes.slice(0, 30).map((item, index) =>
+        `${index + 1}. ${item.origin_route} → ${item.destination_route} · ${item.occurrence_count} vez(es) · ${item.viewport_class}`,
+      ),
     ].join("\n");
 
     await navigator.clipboard.writeText(text);
@@ -317,6 +332,26 @@ export function NexusUxDoctorWorkspace({
               Continue usando o ERP normalmente.
             </div>
           )}
+        </div>
+      </article>
+
+      <article className="panel nexus-ux-auto-panel-v457 company-escape-audit">
+        <div className="panel-head">
+          <div>
+            <h2><AlertTriangle size={17} /> Migração do ERP antigo</h2>
+            <p>Registra quando uma navegação iniciada na Company termina em Suplementos ou Fitness.</p>
+          </div>
+          <strong>{escapes.reduce((sum, item) => sum + item.occurrence_count, 0)} saída(s)</strong>
+        </div>
+        <div className="panel-body nexus-ux-auto-grid-v457">
+          {escapes.length ? escapes.slice(0, 20).map((item) => (
+            <article className="nexus-ux-auto-card-v457 attention" key={`${item.origin_route}-${item.destination_route}-${item.viewport_class}`}>
+              <header><span className="badge gray">{item.destination_operation}</span><small>{item.occurrence_count}×</small></header>
+              <strong>{item.origin_route}</strong>
+              <small className="route">→ {item.destination_route}</small>
+              <p>{item.viewport_class} · último acesso em {dateTime(item.last_seen_at)}</p>
+            </article>
+          )) : <div className="empty compact"><CheckCircle2 size={24}/><strong>Nenhuma saída registrada.</strong>Continue usando a Company normalmente.</div>}
         </div>
       </article>
 

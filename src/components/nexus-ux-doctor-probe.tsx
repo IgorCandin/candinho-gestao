@@ -148,6 +148,7 @@ function inspectFixedClipping(pathname: string) {
     .slice(0, 500);
 
   for (const element of elements) {
+    if (element.matches(".company-cursor-ring,.company-cursor-dot")) continue;
     const style = window.getComputedStyle(element);
     const position = style.position;
     const rect = element.getBoundingClientRect();
@@ -248,6 +249,38 @@ export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
 
   useEffect(() => {
     if (!enabled || typeof window === "undefined") return;
+
+    const companyKey = "candinho:last-company-route";
+    if (pathname.startsWith("/company/")) {
+      try {
+        window.sessionStorage.setItem(companyKey, JSON.stringify({ route: pathname, at: Date.now() }));
+      } catch {
+        // O rastreamento nunca interfere na operação.
+      }
+    } else if (
+      pathname === "/suplementos" || pathname.startsWith("/suplementos/") ||
+      pathname === "/fitness" || pathname.startsWith("/fitness/")
+    ) {
+      try {
+        const previous = JSON.parse(window.sessionStorage.getItem(companyKey) ?? "null") as { route?: string; at?: number } | null;
+        window.sessionStorage.removeItem(companyKey);
+        if (previous?.route?.startsWith("/company/") && Date.now() - Number(previous.at ?? 0) <= 30 * 60 * 1000) {
+          void fetch("/api/nexus/company-escapes", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            keepalive: true,
+            body: JSON.stringify({
+              origin_route: previous.route,
+              destination_route: pathname,
+              viewport_class: viewportClass(),
+              viewport_width: window.innerWidth,
+            }),
+          });
+        }
+      } catch {
+        // Diagnóstico silencioso.
+      }
+    }
 
     let resizeTimer = 0;
     const timers = [

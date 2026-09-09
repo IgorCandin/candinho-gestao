@@ -756,6 +756,28 @@
 @media(max-width:900px){.company-command-header{position:sticky;top:0;width:100%;height:auto!important;border-radius:0;transform:none;left:auto}.company-header-inner{display:block;min-width:0!important;padding:9px 12px 7px!important}.company-header-brand{display:grid!important;position:static!important;height:38px!important;transform:none!important}.company-header-brand img{width:120px!important}.company-primary-nav{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;height:auto}.company-primary-nav-right{margin-top:5px}.company-primary-nav a{height:44px!important;min-width:0!important;grid-template-rows:24px auto!important;padding:4px!important}.company-primary-nav a span{display:block!important;max-width:100%;font-size:8px;opacity:1!important;transform:none!important}.company-fullscreen-button,.company-account-menu{top:27px!important}.company-shell-content{padding-top:18px!important}.company-management-links{grid-template-columns:1fr}.company-sale-gateway-grid{grid-template-columns:1fr}.company-sale-gateway-grid>a{min-height:230px}.company-sale-gateway-grid svg{margin-bottom:28px}.company-quotes-heading{align-items:flex-start;flex-direction:column}.company-quotes-actions{width:100%;justify-content:stretch}.company-quotes-actions a{flex:1;justify-content:center}}
 @media(max-width:600px){.company-shell-content{padding-inline:12px!important}.company-workspace-v2{gap:18px}.company-workspace-panel{padding:12px}.company-workspace-toolbar{align-items:stretch;flex-direction:column}.company-workspace-toolbar>div{display:flex;max-width:100%;overflow-x:auto}.company-workspace-toolbar label{width:100%;min-width:0}.company-sale-gateway-grid>a{padding:24px}.company-sale-gateway-grid h2{font-size:29px}.company-nutrition-lightbox{padding:18px}.company-global-search{bottom:10px}.company-product-filters{align-items:stretch;flex-direction:column}.company-product-filters label,.company-product-filters button{width:100%;min-width:0}}
 
+/* V2.5 · cabeçalho Company compacto e legível no celular. */
+@media(max-width:700px){
+  .company-command-header{position:sticky!important;top:0!important;width:100%!important;height:98px!important;overflow:visible!important;border-width:0 0 1px!important;border-radius:0!important;transform:none!important}
+  .company-command-header:hover,.company-command-header:focus-within{height:98px!important}
+  .company-header-inner{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;grid-template-rows:38px 52px!important;gap:0 2px!important;min-width:0!important;padding:4px 8px!important}
+  .company-header-brand{position:static!important;grid-column:1/-1!important;grid-row:1!important;height:34px!important;transform:none!important;pointer-events:auto!important}
+  .company-header-brand img{width:112px!important;max-height:32px!important}
+  .company-primary-nav{display:contents!important}
+  .company-primary-nav a{grid-row:2!important;align-content:center!important;width:auto!important;min-width:0!important;height:48px!important;padding:3px 1px!important;grid-template-rows:23px minmax(0,1fr)!important;border-radius:10px!important}
+  .company-primary-nav a span{display:block!important;max-width:100%!important;font-size:7px!important;line-height:1.05!important;white-space:normal!important;opacity:1!important;transform:none!important}
+  .company-primary-nav a svg{width:17px;height:17px}
+  .company-primary-nav-right{margin:0!important}
+  .company-fullscreen-button{display:none!important}
+  .company-account-menu{position:absolute!important;top:5px!important;right:7px!important;transform:none!important}
+  .company-account-menu summary{width:32px!important;height:32px!important;padding:6px!important}
+  .company-account-menu summary svg:last-child{display:none}
+  .company-account-menu>div{top:37px;right:0;width:min(230px,calc(100vw - 20px))}
+  .company-shell-content{padding-top:18px!important}
+  .company-workspace-head h1{font-size:clamp(32px,10vw,44px)}
+  .company-workspace-head p{font-size:13px;line-height:1.5}
+}
+
 /* V2.4 · Cabeçalho desktop alinhado ao protótipo aprovado */
 @media(min-width:901px){
   .company-command-header{

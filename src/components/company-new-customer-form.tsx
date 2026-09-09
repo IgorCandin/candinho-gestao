@@ -22,17 +22,33 @@ export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness }:
       const supabase = createClient();
       let coreId: string | null = null;
       if (canWriteSupplements) {
-        const { data, error } = await supabase.rpc("create_customer", { p_name: name, p_phone: phone || null, p_city: city || null, p_reference: null, p_notes: notes || null });
-        if (error) throw error;
-        coreId = String(data);
+        const digits = phone.replace(/\D/g, "");
+        if (digits) {
+          const { data: existing, error: lookupError } = await supabase
+            .from("customers")
+            .select("id,phone")
+            .eq("active", true)
+            .limit(5000);
+          if (lookupError) throw lookupError;
+          const match = (existing ?? []).find((item) => String(item.phone ?? "").replace(/\D/g, "") === digits);
+          coreId = match?.id ? String(match.id) : null;
+        }
+        if (!coreId) {
+          const { data, error } = await supabase.rpc("create_customer", { p_name: name, p_phone: phone || null, p_city: city || null, p_reference: null, p_notes: notes || null });
+          if (error) throw error;
+          coreId = String(data);
+        }
       }
       if (canWriteFitness) {
         const { error } = await supabase.rpc("fitness_resolve_customer", { p_customer_id: coreId, p_name: name, p_phone: phone || null, p_instagram: instagram || null, p_city: city || null, p_source: "Candinho Company" });
         if (error) throw error;
       }
-      router.push("/company/clientes");
+      router.push(coreId ? `/company/clientes/${coreId}` : "/company/clientes");
       router.refresh();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível criar o cliente."); }
+    } catch (error) {
+      const detail = error && typeof error === "object" && "message" in error ? String(error.message) : null;
+      setMessage(detail || "Não foi possível criar o cliente.");
+    }
     finally { setLoading(false); }
   }
 

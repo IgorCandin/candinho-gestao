@@ -25,6 +25,15 @@ export type NexusUxDeviceBreakdown = {
   total: number;
 };
 
+export type CompanyNavigationEscape = {
+  origin_route: string;
+  destination_route: string;
+  destination_operation: "suplementos" | "fitness";
+  viewport_class: "mobile" | "tablet" | "desktop" | "unknown";
+  occurrence_count: number;
+  last_seen_at: string;
+};
+
 export type NexusUxDoctorSnapshot = {
   generated_at: string;
   health_score: number;
