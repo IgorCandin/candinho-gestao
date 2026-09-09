@@ -8,7 +8,9 @@ export function PhysiqueTrainingShareActions({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    window.localStorage.setItem("candinho:app-start-url", `${window.location.pathname}${window.location.search}`);
+    const currentUrl = `${window.location.pathname}${window.location.search}`;
+    window.localStorage.setItem("candinho:app-start-url", currentUrl);
+    document.cookie = `candinho_app_start_url=${encodeURIComponent(currentUrl)}; path=/; max-age=31536000; SameSite=Lax`;
   }, []);
 
   async function share() {

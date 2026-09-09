@@ -4,7 +4,15 @@ import { useEffect } from "react";
 
 export default function InstalledShortcutPage() {
   useEffect(() => {
-    const target = window.localStorage.getItem("candinho:app-start-url");
+    const cookieTarget = document.cookie
+      .split("; ")
+      .find((item) => item.startsWith("candinho_app_start_url="))
+      ?.split("=")
+      .slice(1)
+      .join("=");
+    const target = cookieTarget
+      ? decodeURIComponent(cookieTarget)
+      : window.localStorage.getItem("candinho:app-start-url");
     window.location.replace(target?.startsWith("/") ? target : "/dashboard");
   }, []);
 
