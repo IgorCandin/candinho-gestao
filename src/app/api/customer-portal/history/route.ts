@@ -13,8 +13,8 @@ function digits(value: string | null | undefined) {
 export async function GET() {
   const session = await createClient();
   const { data: { user } } = await session.auth.getUser();
-  const verifiedPhone = digits(user?.phone);
-  if (!user || !verifiedPhone) return NextResponse.json({ error: "Confirme seu telefone para consultar suas compras." }, { status: 401 });
+  const verifiedEmail = user?.email?.trim().toLowerCase() ?? "";
+  if (!user || !verifiedEmail) return NextResponse.json({ error: "Confirme seu e-mail para consultar suas compras." }, { status: 401 });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const secret = process.env.SUPABASE_SECRET_KEY;
@@ -22,14 +22,17 @@ export async function GET() {
   const db = createAdminClient(url, secret, { auth: { persistSession: false, autoRefreshToken: false } });
 
   const [{ data: supplementCustomers, error: supplementCustomerError }, { data: fitnessCustomers, error: fitnessCustomerError }] = await Promise.all([
-    db.from("customers").select("id,name,phone").eq("active", true),
+    db.from("customers").select("id,name,phone,email").eq("active", true),
     db.from("fitness_customers").select("id,name,phone").eq("active", true),
   ]);
   if (supplementCustomerError || fitnessCustomerError) return NextResponse.json({ error: "Não foi possível localizar seu cadastro agora." }, { status: 500 });
 
-  const supplementIds = (supplementCustomers ?? []).filter((row) => digits(row.phone) === verifiedPhone).map((row) => row.id);
-  const fitnessIds = (fitnessCustomers ?? []).filter((row) => digits(row.phone) === verifiedPhone).map((row) => row.id);
-  const customerNames = [...(supplementCustomers ?? []), ...(fitnessCustomers ?? [])].filter((row) => digits(row.phone) === verifiedPhone).map((row) => row.name);
+  const linkedSupplementCustomers = (supplementCustomers ?? []).filter((row) => row.email?.trim().toLowerCase() === verifiedEmail);
+  const verifiedPhones = new Set(linkedSupplementCustomers.map((row) => digits(row.phone)).filter(Boolean));
+  const linkedFitnessCustomers = (fitnessCustomers ?? []).filter((row) => verifiedPhones.has(digits(row.phone)));
+  const supplementIds = linkedSupplementCustomers.map((row) => row.id);
+  const fitnessIds = linkedFitnessCustomers.map((row) => row.id);
+  const customerNames = [...linkedSupplementCustomers, ...linkedFitnessCustomers].map((row) => row.name);
 
   const supplementQuery = supplementIds.length
     ? db.from("sales").select("id,quoted_at,general_status,payment_status,delivery_status,items:sale_items(quantity,product:products(name))").in("customer_id", supplementIds).eq("record_type", "sale").neq("general_status", "cancelled").order("quoted_at", { ascending: false })
@@ -53,5 +56,5 @@ export async function GET() {
     })),
   ].sort((a, b) => String(b.date).localeCompare(String(a.date)));
 
-  return NextResponse.json({ customerName: customerNames[0] ?? null, phone: verifiedPhone, purchases });
+  return NextResponse.json({ customerName: customerNames[0] ?? null, email: verifiedEmail, purchases });
 }
