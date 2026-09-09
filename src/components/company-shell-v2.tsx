@@ -2,18 +2,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Boxes,
   Bug,
   CalendarDays,
-  ChevronDown,
   CircleDollarSign,
   ContactRound,
   Handshake,
   Home,
   LogOut,
   Maximize2,
+  Minimize2,
   PackageSearch,
   Search,
   ShieldCheck,
@@ -80,6 +80,7 @@ function openIssueReporter() {
 
 export function CompanyShellV2({ children, access }: { children: React.ReactNode; access: UserAccess }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [customers, setCustomers] = useState<CustomerItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -145,6 +146,27 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
     return () => document.removeEventListener("fullscreenchange", syncFullscreen);
   }, []);
 
+  useEffect(() => {
+    function preserveFullscreenNavigation(event: MouseEvent) {
+      if (!document.fullscreenElement || event.defaultPrevented || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor || anchor.target || anchor.hasAttribute("download")) return;
+
+      const destination = new URL(anchor.href, window.location.href);
+      if (destination.origin !== window.location.origin || !destination.pathname.startsWith("/company/")) return;
+
+      event.preventDefault();
+      router.push(`${destination.pathname}${destination.search}${destination.hash}`);
+    }
+
+    document.addEventListener("click", preserveFullscreenNavigation);
+    return () => document.removeEventListener("click", preserveFullscreenNavigation);
+  }, [router]);
+
   function finishSearch() {
     setQuery("");
     searchRef.current?.blur();
@@ -159,13 +181,13 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
     <div className="company-shell-v2">
       <header className="company-command-header">
         <button className="company-fullscreen-button company-header-edge-control" type="button" onClick={() => void toggleFullscreen()} aria-label="Alternar tela cheia" title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"} aria-pressed={isFullscreen}>
-          <Maximize2 size={17}/>
+          {isFullscreen ? <Minimize2 size={17}/> : <Maximize2 size={17}/>}
         </button>
         <div className="company-header-inner">
           <nav className="company-primary-nav" aria-label="Setores da Company">
             {PRIMARY_NAV.slice(0, 3).map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} className={pathname.startsWith(href) ? "active" : ""} aria-label={label} title={label}>
-                <Icon size={19} /><span>{label}</span>
+                <span className="company-nav-icon"><Icon size={19} /></span><span className="company-nav-label">{label}</span>
               </Link>
             ))}
           </nav>
@@ -177,13 +199,13 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
           <nav className="company-primary-nav company-primary-nav-right" aria-label="Operação e organização">
             {PRIMARY_NAV.slice(3).map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} className={pathname.startsWith(href) ? "active" : ""} aria-label={label} title={label}>
-                <Icon size={19} /><span>{label}</span>
+                <span className="company-nav-icon"><Icon size={19} /></span><span className="company-nav-label">{label}</span>
               </Link>
             ))}
           </nav>
 
           <details className="company-account-menu">
-            <summary aria-label="Abrir opções da conta"><UserRound size={18} /><ChevronDown size={13} /></summary>
+            <summary aria-label="Abrir opções da conta"><UserRound size={19} /></summary>
             <div>
               <strong>{access.name}</strong>
               <small>{access.email ?? "Acesso Company"}</small>
