@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 const monthPattern = /^\d{4}-\d{2}-01$/;
@@ -200,4 +201,5 @@ export async function markBankCommitmentAsPaid(
   }
 
   revalidateBank();
+  redirect("/bank?salvo=pago");
 }

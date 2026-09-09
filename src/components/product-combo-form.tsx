@@ -12,7 +12,7 @@ import { ComboImageUploader } from "@/components/combo-image-uploader";
 type DraftItem = { key: string; productId: string; quantity: string };
 function key() { return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
 
-export function ProductComboForm({ combo, products }: { combo?: ProductComboDetails | null; products: ProductOption[] }) {
+export function ProductComboForm({ combo, products, companyMode = false }: { combo?: ProductComboDetails | null; products: ProductOption[]; companyMode?: boolean }) {
   const router = useRouter();
   const [name, setName] = useState(combo?.name ?? "");
   const [description, setDescription] = useState(combo?.description ?? "");
@@ -56,7 +56,7 @@ export function ProductComboForm({ combo, products }: { combo?: ProductComboDeta
         p_items: items.map((item) => ({ product_id: item.productId, quantity: Number(item.quantity) })),
       });
       if (error) throw error;
-      router.push("/produtos/combos");
+      router.push(companyMode ? "/company/produtos?visualizacao=combos" : "/produtos/combos");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível salvar o combo.");
@@ -102,7 +102,7 @@ export function ProductComboForm({ combo, products }: { combo?: ProductComboDeta
           <div><dt>Itens</dt><dd>{items.length}</dd></div>
           <div><dt>Preço do combo</dt><dd>{formatCurrency(comboPrice)}</dd></div>
           {estimatedRetail>0&&<div><dt>Soma estimada avulsa</dt><dd>{formatCurrency(estimatedRetail)}</dd></div>}
-        </dl>{message&&<p className="form-error visible">{message}</p>}<button className="button gold product-save-button" type="submit" disabled={loading}>{loading?<LoaderCircle className="spin" size={17}/>:<Save size={17}/>} {loading?"Salvando":combo?"Salvar combo":"Criar combo"}</button><Link className="button ghost product-cancel-button" href="/produtos/combos">Cancelar</Link></div>
+        </dl>{message&&<p className="form-error visible">{message}</p>}<button className="button gold product-save-button" type="submit" disabled={loading}>{loading?<LoaderCircle className="spin" size={17}/>:<Save size={17}/>} {loading?"Salvando":combo?"Salvar combo":"Criar combo"}</button><Link className="button ghost product-cancel-button" href={companyMode ? "/company/produtos?visualizacao=combos" : "/produtos/combos"}>Cancelar</Link></div>
       </article>
     </aside>
   </form>;

@@ -10,6 +10,10 @@
   position: sticky; top: 12px; z-index: 20;
   box-shadow: 0 18px 48px rgba(0,0,0,.22);
 }
+
+/* V45.51 · compartilhar e instalar a ficha de treino no celular */
+.physique-training-share-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.physique-training-share-actions button{font:inherit;cursor:pointer}.physique-install-help{position:fixed;z-index:900;inset:0;display:grid;place-items:center;padding:18px;background:rgba(2,5,9,.86);backdrop-filter:blur(10px)}.physique-install-help>article{position:relative;width:min(480px,100%);padding:28px;border:1px solid rgba(220,226,234,.22);border-radius:22px;background:#0b1017;box-shadow:0 28px 90px rgba(0,0,0,.65)}.physique-install-help>article>button{position:absolute;right:13px;top:13px;width:36px;height:36px;display:grid;place-items:center;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:50%;background:#111923}.physique-install-help span{color:#c6ccd5;font-size:9px;font-weight:900;letter-spacing:.1em}.physique-install-help h2{margin:8px 0 16px}.physique-install-help ol{display:grid;gap:10px;padding-left:22px;color:#d9dee5}.physique-install-help p{margin:17px 0 0;color:#8995a3;font-size:11px;line-height:1.5}.installed-shortcut-loading{min-height:100dvh;display:grid;place-content:center;gap:6px;text-align:center;background:#07090d;color:#f4f5f7}.installed-shortcut-loading span{color:#8993a0;font-size:11px}
+@media(max-width:700px){.physique-training-share-actions{grid-column:1/-1;width:100%}.physique-training-share-actions .physique-action-button{flex:1;justify-content:center}}
 .physique-ux-nav-brand { display:flex; align-items:baseline; gap:5px; letter-spacing:.13em; }
 .physique-ux-nav-brand span { color:#dcc46c; font-size:10px; font-weight:900; }
 .physique-ux-nav-brand strong { color:#8fe9cd; font-size:11px; }

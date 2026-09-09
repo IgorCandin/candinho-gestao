@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { ArrowLeft, BarChart3, Boxes, Construction, Handshake, Landmark, MapPinned, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog } from "@/lib/data";
+import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog, getProductCombos } from "@/lib/data";
+import { getActivePromotionRows } from "@/lib/active-promotion-data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
@@ -43,7 +44,7 @@ function agendaDayDiff(date: string, today: string) {
   return Math.round((new Date(`${date}T12:00:00-03:00`).getTime() - new Date(`${today}T12:00:00-03:00`).getTime()) / 86_400_000);
 }
 
-export default async function CompanySectorPage({ params, searchParams }: { params: Promise<{ sector: string }>; searchParams: Promise<{ operacao?: string }> }) {
+export default async function CompanySectorPage({ params, searchParams }: { params: Promise<{ sector: string }>; searchParams: Promise<{ operacao?: string; visualizacao?: string }> }) {
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
   const { sector } = await params;
@@ -157,10 +158,12 @@ export default async function CompanySectorPage({ params, searchParams }: { para
 
   if (sector === "produtos") {
     const supabase = await createClient();
-    const [supplements, fitness, supplementMedia] = await Promise.all([
+    const [supplements, fitness, supplementMedia, combos, promotions] = await Promise.all([
       access.role === "admin" || access.canAccessSupplements ? getProductCatalog() : Promise.resolve([]),
       access.role === "admin" || access.canAccessFitness ? getFitnessProducts() : Promise.resolve([]),
       access.role === "admin" || access.canAccessSupplements ? supabase.from("products").select("id,secondary_image_url").eq("active", true) : Promise.resolve({ data: [], error: null }),
+      access.role === "admin" || access.canAccessSupplements ? getProductCombos() : Promise.resolve([]),
+      getActivePromotionRows(),
     ]);
     if (supplementMedia.error) throw new Error(supplementMedia.error.message);
     const secondaryByProduct = new Map((supplementMedia.data ?? []).map((row) => [row.id, row.secondary_image_url]));
@@ -170,7 +173,8 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     ];
     const query = await searchParams;
     const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
-    return <CompanyProductsWorkspace products={products} initialOperation={initialOperation} />;
+    const initialView = query.visualizacao === "combos" || query.visualizacao === "promotions" ? query.visualizacao : initialOperation;
+    return <CompanyProductsWorkspace products={products} combos={combos} promotions={promotions} initialView={initialView} />;
   }
 
   if (sector === "dia") {

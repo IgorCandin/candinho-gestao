@@ -12,6 +12,7 @@ import {
 import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { PhysiqueTrainingAttachmentUpload } from "@/components/physique-training-attachment-upload";
 import { PhysiqueTrainingPlanView } from "@/components/physique-training-plan-view";
+import { PhysiqueTrainingShareActions } from "@/components/physique-training-share-actions";
 import { getPhysiqueTrainingPlanDetails } from "@/lib/physique-data";
 
 function bytes(value: number | null) {
@@ -66,6 +67,7 @@ export default async function PhysiqueTrainingPlanDetailsPage({
           <article><strong>{exercises.length}</strong><span>Exercícios</span></article>
           <article><strong>{plan.status === "active" ? "Ativa" : plan.status}</strong><span>Status</span></article>
         </div>
+        <PhysiqueTrainingShareActions title={plan.title} />
       </header>
 
       {attachmentPending && (

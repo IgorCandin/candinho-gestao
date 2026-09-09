@@ -133,6 +133,7 @@ export async function markBankInvoicePaid(
   if (error) throw error;
 
   revalidateInvoicePaths();
+  redirect("/bank/faturas?salvo=fatura-paga");
 }
 
 export async function saveBankInvoices(
