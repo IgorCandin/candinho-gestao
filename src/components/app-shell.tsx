@@ -41,6 +41,7 @@ import type { LucideIcon } from "lucide-react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { CompanyShellV2 } from "@/components/company-shell-v2";
+import { UnifiedAreaHeader } from "@/components/unified-area-header";
 
 type NavItem = {
   href: string;
@@ -573,30 +574,9 @@ export function AppShell({
     );
   }
   if (isPhysique) {
-    const physiqueBrand = BRAND_ASSETS.physique.reduced;
-
     return (
-      <div className="physique-standalone-app-v4526">
-        <header className="physique-standalone-topbar-v4526">
-          <div className="physique-standalone-topbar-spacer-v4526" />
-
-          <Link
-            href="/dashboard"
-            className="physique-standalone-brand-v4526"
-            aria-label="Voltar às operações"
-          >
-            <Image
-              src={physiqueBrand.src}
-              alt={physiqueBrand.alt}
-              width={physiqueBrand.width}
-              height={physiqueBrand.height}
-              priority
-            />
-          </Link>
-
-          <div className="physique-standalone-topbar-spacer-v4526" />
-        </header>
-
+      <div className="physique-standalone-app-v4526 unified-operation-shell">
+        <UnifiedAreaHeader area="physique" />
         <main className="physique-standalone-content-v4526">
           {children}
         </main>
@@ -620,6 +600,13 @@ export function AppShell({
         <div className="content content-hub">{children}</div>
       </main>
     );
+  }
+
+  if (isBank) {
+    return <div className="unified-operation-shell theme-bank">
+      <UnifiedAreaHeader area="bank" />
+      <main className="main unified-operation-main"><div className="content">{children}</div></main>
+    </div>;
   }
 
   return (

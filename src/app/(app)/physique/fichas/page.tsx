@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import {
   PhysiqueTrainingPlanBrowser,
   type PhysiqueTrainingPlanBrowserItem,
@@ -48,10 +48,10 @@ export default async function PhysiqueTrainingPlansPage() {
           <p>Consulte fichas ativas, histórico e estruturas importadas pelo Nexus.</p>
         </div>
 
-        <Link className="physique-action-button secondary" href="/physique/fichas/nova">
-          <Plus size={15} />
-          Importar ficha
-        </Link>
+        <div className="physique-page-header-actions">
+          <Link className="physique-action-button" href="/instalar-fichas"><Download size={15}/>Instalar atalho</Link>
+          <Link className="physique-action-button secondary" href="/physique/fichas/nova"><Plus size={15}/>Importar ficha</Link>
+        </div>
       </header>
 
       <PhysiqueTrainingPlanBrowser plans={browserPlans} />

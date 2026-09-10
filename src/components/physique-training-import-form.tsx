@@ -368,7 +368,7 @@ export function PhysiqueTrainingImportForm({
             <div>
               <span>ETAPA 3</span>
               <strong>Está tudo certo?</strong>
-              <p>Ao salvar, a ficha estruturada fica ativa no perfil do atleta e o PDF original é preservado.</p>
+              <p>Ao salvar, esta ficha vira a ativa do atleta, a ficha anterior é arquivada e o PDF original é preservado.</p>
             </div>
 
             <button

@@ -16,6 +16,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
+import { BankPaidForm } from "@/components/bank-paid-form";
 import {
   getBankDashboardData,
   getBankDebts,
@@ -28,7 +29,6 @@ import {
   formatCurrency,
   formatDateOnly,
 } from "@/lib/format";
-import { markBankCommitmentAsPaid } from "./actions";
 import { adjustBankMonthCommitment } from "./commitment-actions";
 
 function commitmentTone(
@@ -139,27 +139,7 @@ function CommitmentList({
               Detalhes
             </Link>
 
-            <form
-              action={markBankCommitmentAsPaid}
-            >
-              <input
-                type="hidden"
-                name="commitment_key"
-                value={item.id}
-              />
-              <input
-                type="hidden"
-                name="reference_month"
-                value={referenceMonth}
-              />
-              <button
-                className="button ghost compact-button"
-                type="submit"
-              >
-                <CheckCircle2 size={14} />
-                Paguei
-              </button>
-            </form>
+            <BankPaidForm commitmentKey={item.id} referenceMonth={referenceMonth} />
 
             <Link
               className="icon-link"
