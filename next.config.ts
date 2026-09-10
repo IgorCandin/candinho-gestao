@@ -130,6 +130,18 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
 
+      // A Central deixa de ser uma operação isolada e passa a morar em Gestão.
+      {
+        source: "/central",
+        destination: "/company/gestao/central",
+        permanent: false,
+      },
+      {
+        source: "/central/:path*",
+        destination: "/company/gestao/central/:path*",
+        permanent: false,
+      },
+
       ...supplementRouteRoots.flatMap(
         (route) => [
           {
@@ -154,6 +166,14 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
+        {
+          source: "/company/gestao/central",
+          destination: "/central",
+        },
+        {
+          source: "/company/gestao/central/:path*",
+          destination: "/central/:path*",
+        },
         {
           source: "/atletas",
           destination: "/physique",

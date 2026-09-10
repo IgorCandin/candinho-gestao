@@ -186,7 +186,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
               <strong>{access.name}</strong>
               <small>{access.email ?? "Acesso Company"}</small>
               <OperationSwitcher current="company" compact />
-              <button type="button" onClick={() => { setMobileSearchOpen(true); window.setTimeout(() => searchRef.current?.focus(), 50); }}><Search size={15}/> Buscar</button>
+              <button className="company-mobile-menu-only" type="button" onClick={() => { setMobileSearchOpen(true); window.setTimeout(() => searchRef.current?.focus(), 50); }}><Search size={15}/> Buscar</button>
               <InstallCompanyMenuAction />
               <Link href="/dashboard"><Home size={15} /> ERP 1.0</Link>
               <form action="/auth/signout" method="post"><button type="submit"><LogOut size={15} /> Sair</button></form>
