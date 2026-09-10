@@ -29,6 +29,12 @@ export function ProductComboForm({ combo, products, companyMode = false }: { com
     const product = productById.get(item.productId) as (ProductOption & { sale_price?: number }) | undefined;
     return sum + (Number(product?.sale_price ?? 0) * Math.max(Number(item.quantity) || 0, 0));
   }, 0);
+  const estimatedCost = items.reduce((sum, item) => {
+    const product = productById.get(item.productId);
+    return sum + Number(product?.cost_price ?? 0) * Math.max(Number(item.quantity) || 0, 0);
+  }, 0);
+  const suggestedCash = Math.floor(estimatedRetail * 0.9) + 0.9;
+  const suggestedInstallment = Math.floor(suggestedCash * 1.1) + 0.9;
   const comboPrice = Math.max(Number(salePrice) || 0, 0);
 
   function updateItem(itemKey: string, changes: Partial<DraftItem>) {
@@ -71,6 +77,7 @@ export function ProductComboForm({ combo, products, companyMode = false }: { com
           <label className="field field-span-two"><span>Nome do combo</span><input className="input" required value={name} onChange={(e)=>setName(e.target.value)} placeholder="Ex.: Combo Foco Total"/></label>
           <label className="field"><span>Preço à vista</span><input className="input" type="number" min="0" step="0.01" value={salePrice} onChange={(e)=>setSalePrice(e.target.value)}/></label>
           <label className="field"><span>Preço a prazo</span><input className="input" type="number" min="0" step="0.01" value={installmentPrice} onChange={(e)=>setInstallmentPrice(e.target.value)}/></label>
+          {estimatedRetail > 0 && <div className="combo-price-suggestion field-span-two"><div><strong>Sugestão do combo</strong><span>10% abaixo da soma avulsa; prazo 10% acima do combo.</span></div><dl><div><dt>Custo</dt><dd>{formatCurrency(estimatedCost)}</dd></div><div><dt>À vista sugerido</dt><dd>{formatCurrency(suggestedCash)}</dd></div><div><dt>A prazo sugerido</dt><dd>{formatCurrency(suggestedInstallment)}</dd></div></dl><button className="button ghost compact-button" type="button" onClick={()=>{setSalePrice(suggestedCash.toFixed(2));setInstallmentPrice(suggestedInstallment.toFixed(2));}}>Aplicar sugestão</button></div>}
           <div className="field field-span-two"><ComboImageUploader value={imageUrl} onChange={setImageUrl}/></div>
           <details className="field field-span-two combo-image-url-fallback"><summary>Usar URL de imagem</summary><input className="input" value={imageUrl} onChange={(e)=>setImageUrl(e.target.value)} placeholder="Cole a URL de uma arte do combo"/></details>
           <label className="field field-span-two"><span>Descrição</span><textarea className="textarea" rows={4} value={description} onChange={(e)=>setDescription(e.target.value)} placeholder="Explique o objetivo do combo e para quem ele é indicado."/></label>

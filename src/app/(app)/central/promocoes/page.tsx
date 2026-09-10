@@ -103,7 +103,7 @@ export default async function CentralPromotionsPage({
         <StatCard href="#sugestoes-nexus" label="Sugestões Nexus" value={String(suggestions.length)} note="Oportunidades detectadas" icon={Sparkles} />
       </section>
 
-      <details className="panel promotion-ux-create" open={promotions.length === 0}>
+      <details className="panel promotion-ux-create" id="nova-promocao" open={promotions.length === 0}>
         <summary>
           <div>
             <div className="promotion-ux-step-number">+</div>

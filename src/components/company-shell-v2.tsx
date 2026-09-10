@@ -9,6 +9,7 @@ import {
   CalendarDays,
   CircleDollarSign,
   ContactRound,
+  Dumbbell,
   Handshake,
   Home,
   LogOut,
@@ -181,6 +182,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
             <div>
               <strong>{access.name}</strong>
               <small>{access.email ?? "Acesso Company"}</small>
+              <Link href="/instalar-fichas"><Dumbbell size={15} /> Instalar Fichas</Link>
               <Link href="/dashboard"><Home size={15} /> ERP 1.0</Link>
               <form action="/auth/signout" method="post"><button type="submit"><LogOut size={15} /> Sair</button></form>
             </div>

@@ -223,6 +223,7 @@ export function NewSaleForm({
   const [savedBudgetPrompt, setSavedBudgetPrompt] =
     useState<SavedBudgetPrompt | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [priceSuggestionKey, setPriceSuggestionKey] = useState<string | null>(null);
 
   const [flavors, setFlavors] = useState<FlavorOption[]>([]);
   const [flavorStock, setFlavorStock] = useState<FlavorStock[]>([]);
@@ -622,12 +623,18 @@ export function NewSaleForm({
     grossTotal - discountValue + agreedMarkupValue,
     0,
   );
-
   const giftRow = giftProductId
     ? rowFor(giftProductId) ??
       stock.find((row) => row.product_id === giftProductId) ??
       null
     : null;
+  const totalCost = items.reduce((sum, item) => {
+    const row = rowFor(item.productId) ?? stock.find((entry) => entry.product_id === item.productId);
+    return sum + Math.max(Number(item.quantity) || 0, 0) * Number(row?.cost_price ?? 0);
+  }, 0) + (giftRow ? Number(giftRow.cost_price) * Math.max(Number(giftQuantity) || 0, 0) : 0);
+  const markupFactor = totalCost > 0 ? finalTotal / totalCost : 0;
+  const marginPct = finalTotal > 0 ? ((finalTotal - totalCost) / finalTotal) * 100 : 0;
+  const markupTone = marginPct >= 40 ? "good" : marginPct >= 25 ? "attention" : "low";
 
   function selectPaymentMode(mode: PaymentMode) {
     setPaymentMode(mode);
@@ -1252,8 +1259,8 @@ export function NewSaleForm({
                       />
                     </label>
 
-                    <label className="field">
-                      <span>Preço de venda</span>
+                    <label className="field sale-price-field">
+                      <span>Preço de venda {row ? <button type="button" onClick={() => setPriceSuggestionKey(priceSuggestionKey === item.key ? null : item.key)}>Sugestão</button> : null}</span>
                       <input
                         className="input"
                         type="number"
@@ -1268,6 +1275,13 @@ export function NewSaleForm({
                           })
                         }
                       />
+                      {row && priceSuggestionKey === item.key ? <div className="sale-price-suggestion-popover">
+                        <strong>Escolha um valor</strong><small>O campo continua livre para você ajustar.</small>
+                        <button type="button" onClick={()=>{updateItem(item.key,{unitPrice:String(row.cost_price)});setPriceSuggestionKey(null);}}><span>Custo</span><b>{formatCurrency(row.cost_price)}</b></button>
+                        <button type="button" onClick={()=>{updateItem(item.key,{unitPrice:String(row.sale_price)});setPriceSuggestionKey(null);}}><span>À vista</span><b>{formatCurrency(row.sale_price)}</b></button>
+                        <button type="button" onClick={()=>{updateItem(item.key,{unitPrice:String(row.installment_price)});setPriceSuggestionKey(null);}}><span>A prazo</span><b>{formatCurrency(row.installment_price)}</b></button>
+                        <button type="button" onClick={()=>{updateItem(item.key,{unitPrice:(row.sale_price*0.9).toFixed(2)});setPriceSuggestionKey(null);}}><span>10% de desconto</span><b>{formatCurrency(row.sale_price*0.9)}</b></button>
+                      </div> : null}
                     </label>
                   </div>
 
@@ -1937,6 +1951,7 @@ export function NewSaleForm({
             <strong className="budget-final-value">
               {formatCurrency(finalTotal)}
             </strong>
+            {totalCost > 0 ? <div className={`sale-markup-indicator ${markupTone}`}><span>Markup do orçamento</span><strong>{markupFactor.toFixed(2).replace(".", ",")}x</strong><small>Margem bruta estimada: {marginPct.toLocaleString("pt-BR", {maximumFractionDigits:1})}% · custo {formatCurrency(totalCost)}</small></div> : null}
             <small>
               {items.length}{" "}
               {items.length === 1 ? "item" : "itens"}

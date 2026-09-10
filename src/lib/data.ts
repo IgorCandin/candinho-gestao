@@ -1009,7 +1009,13 @@ export async function getCustomerOptions(): Promise<CustomerOption[]> {
   const supabase = await createClient(); const { data, error } = await supabase.from("customers").select("id,name,city,phone").eq("active", true).order("name", { ascending: true }); if (error) throw error;
   return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null }));
 }
-export async function getProductOptions(): Promise<ProductOption[]> { const products = await getProductCatalog(); return products.filter((product) => product.active).map(({ id, name, category, brand, image_url, sale_price }) => ({ id, name, category, brand, image_url, sale_price })); }
+export async function getProductOptions(): Promise<ProductOption[]> {
+  if (!isSupabaseConfigured) return demoProducts.filter((product) => product.active).map(({ id, name, category, brand, image_url, sale_price }) => ({ id, name, category, brand, image_url, sale_price }));
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").select("id,name,category,brand,image_url,sale_price,installment_price,cost_price").eq("active", true).order("name");
+  if (error) throw error;
+  return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Produto sem nome"), category: text(row.category, "Sem categoria"), brand: typeof row.brand === "string" ? row.brand : null, image_url: typeof row.image_url === "string" ? row.image_url : null, sale_price: number(row.sale_price), installment_price: number(row.installment_price), cost_price: number(row.cost_price) }));
+}
 export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
   if (!isSupabaseConfigured) return [];
   const supabase = await createClient();
@@ -1019,6 +1025,10 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     .order("product_name", { ascending: true })
     .order("location_code", { ascending: true });
   if (error) throw error;
+  const productIds = [...new Set((data ?? []).map((row) => String(row.product_id)))];
+  const { data: prices, error: priceError } = productIds.length ? await supabase.from("products").select("id,installment_price").in("id", productIds) : { data: [], error: null };
+  if (priceError) throw priceError;
+  const installmentByProduct = new Map((prices ?? []).map((row) => [String(row.id), number(row.installment_price)]));
   return (data ?? []).map((row) => ({
     product_id: String(row.product_id),
     product_name: text(row.product_name, "Produto sem nome"),
@@ -1027,6 +1037,7 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     image_url: typeof row.image_url === "string" ? row.image_url : null,
     cost_price: number(row.cost_price),
     sale_price: number(row.sale_price),
+    installment_price: installmentByProduct.get(String(row.product_id)) ?? number(row.sale_price),
     location_id: String(row.location_id),
     location_code: text(row.location_code),
     location_name: text(row.location_name),

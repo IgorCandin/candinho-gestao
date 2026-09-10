@@ -20,7 +20,10 @@ export type ProductCatalogRow = {
   category_rank: number;
 };
 
-export type ProductOption = Pick<ProductCatalogRow, "id" | "name" | "category" | "brand" | "image_url" | "sale_price">;
+export type ProductOption = Pick<ProductCatalogRow, "id" | "name" | "category" | "brand" | "image_url" | "sale_price"> & {
+  cost_price?: number;
+  installment_price?: number;
+};
 
 export type SaleStockOption = {
   product_id: string;
@@ -30,6 +33,7 @@ export type SaleStockOption = {
   image_url: string | null;
   cost_price: number;
   sale_price: number;
+  installment_price: number;
   location_id: string;
   location_code: string;
   location_name: string;

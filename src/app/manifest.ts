@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Candinho Company",
     short_name: "Candinho",
     description: "Gestão operacional da Candinho Company",
-    start_url: "/atalho",
+    start_url: "/company/inicio",
     scope: "/",
     display: "standalone",
     background_color: "#07090d",
