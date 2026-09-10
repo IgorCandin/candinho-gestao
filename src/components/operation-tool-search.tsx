@@ -106,8 +106,8 @@ const TOOLS: ToolItem[] = [
   { label: "Portal do Parceiro · Meu Painel", href: "/parceiro", operation: "partner", keywords: "parceiro portal painel" },
   { label: "Portal do Parceiro · Segurança", href: "/parceiro/seguranca", operation: "partner", keywords: "senha acesso segurança" },
 
-  { label: "Physique · Atletas", href: "/physique/atletas", operation: "physique", keywords: "atleta avaliação evolução patrocínio" },
-  { label: "Physique · Fichas de treino", href: "/physique/fichas", operation: "physique", keywords: "treino ficha pdf" },
+  { label: "Atletas · Atletas", href: "/atletas/atletas", operation: "physique", keywords: "atleta avaliação evolução patrocínio" },
+  { label: "Atletas · Fichas de treino", href: "/atletas/fichas", operation: "physique", keywords: "treino ficha pdf" },
 ];
 
 function normalize(value: string) {
@@ -120,7 +120,7 @@ function operationForPath(pathname: string): OperationKey {
   if (pathname.startsWith("/fitness")) return "fitness";
   if (pathname.startsWith("/bank")) return "bank";
   if (pathname.startsWith("/marketing")) return "marketing";
-  if (pathname.startsWith("/physique")) return "physique";
+  if (pathname.startsWith("/atletas")) return "physique";
   if (pathname === "/dashboard") return "company";
   return "supplements";
 }

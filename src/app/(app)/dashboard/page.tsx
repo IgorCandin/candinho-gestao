@@ -116,11 +116,11 @@ export default async function DashboardPage() {
     {
       key: "physique",
       label: "Physique",
-      href: "/physique/inicio",
+      href: "/atletas/inicio",
       desktopImage:
-        "/operation-banners/physique-desktop.webp",
+        "/operation-banners/atletas-desktop.webp",
       mobileImage:
-        "/operation-banners/physique-mobile.webp",
+        "/operation-banners/atletas-mobile.webp",
       tone: "physique",
       rgb: "209, 119, 70",
       visible: access.active,

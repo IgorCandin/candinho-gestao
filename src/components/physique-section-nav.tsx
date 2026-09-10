@@ -14,19 +14,19 @@ export function PhysiqueSectionNav({
 }) {
   const links = [
     {
-      href: "/physique",
+      href: "/atletas",
       label: "Visão geral",
       icon: House,
       key: "home" as const,
     },
     {
-      href: "/physique/atletas",
+      href: "/atletas/atletas",
       label: "Atletas",
       icon: UserRound,
       key: "athletes" as const,
     },
     {
-      href: "/physique/fichas",
+      href: "/atletas/fichas",
       label: "Treinos",
       icon: Dumbbell,
       key: "training" as const,

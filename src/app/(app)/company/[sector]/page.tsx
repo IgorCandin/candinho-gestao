@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BarChart3, Boxes, Construction, Handshake, Landmark, MapPinned, Truck } from "lucide-react";
+import { ArrowLeft, BarChart3, Boxes, Building2, Construction, Handshake, Landmark, MapPinned, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog, getProductCombos } from "@/lib/data";
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
@@ -202,6 +202,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         <Link href="/company/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Suplementos e Fitness em uma visão única</span></div><b>→</b></Link>
         <Link href="/company/custos-insumos"><Boxes/><div><strong>Custos e insumos</strong><span>Materiais e custos das duas operações</span></div><b>→</b></Link>
         <Link href="/bank"><Landmark/><div><strong>Candinho Bank</strong><span>Entradas, contas, faturas e fechamento financeiro</span></div><b>→</b></Link>
+        <Link href="/central/inicio"><Building2/><div><strong>Central interna</strong><span>Prioridades, integrações, alertas e visão das operações</span></div><b>→</b></Link>
       </section>
       <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
       {canWrite ? <GoogleCalendarConnectionCard status={googleCalendar} /> : null}

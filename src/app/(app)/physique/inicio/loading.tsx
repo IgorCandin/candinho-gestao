@@ -16,7 +16,7 @@ export default function PhysiqueEntryLoading() {
           priority
         />
       </div>
-      <small>Preparando Physique</small>
+      <small>Preparando Atletas</small>
     </div>
   );
 }

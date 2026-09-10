@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAccess } from "@/lib/data";
 import { CompanyActionGrid } from "@/components/company-action-grid";
+import { OperationSwitcher } from "@/components/operation-switcher";
 
 export default async function CompanyEntryPage() {
   const access = await getCurrentUserAccess();
@@ -19,7 +20,7 @@ export default async function CompanyEntryPage() {
         <Link href="/dashboard" className="company-v2-wordmark">
           <strong>CANDINHO</strong><span>COMPANY</span>
         </Link>
-        <div><span>ERP 2.0</span><Link href="/dashboard">Operações 1.0</Link><Link href="/catalogo">Vitrine</Link></div>
+        <div><span>ERP 2.0</span><OperationSwitcher current="company" /></div>
       </nav>
       <header className="company-v2-hero">
         <span><i /> ERP 2.0 · Evolução em andamento</span>

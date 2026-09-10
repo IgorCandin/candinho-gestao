@@ -4,7 +4,6 @@ import {
   PhysiqueTrainingPlanBrowser,
   type PhysiqueTrainingPlanBrowserItem,
 } from "@/components/physique-training-plan-browser";
-import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { getPhysiqueTrainingPlans } from "@/lib/physique-data";
 
 function planCounts(payload: Record<string, unknown>) {
@@ -39,8 +38,6 @@ export default async function PhysiqueTrainingPlansPage() {
 
   return (
     <section className="physique-page physique-ux-page">
-      <PhysiqueSectionNav active="training" />
-
       <header className="physique-ux-page-header">
         <div>
           <span>TREINOS</span>
@@ -50,7 +47,7 @@ export default async function PhysiqueTrainingPlansPage() {
 
         <div className="physique-page-header-actions">
           <Link className="physique-action-button" href="/instalar-fichas"><Download size={15}/>Instalar atalho</Link>
-          <Link className="physique-action-button secondary" href="/physique/fichas/nova"><Plus size={15}/>Importar ficha</Link>
+          <Link className="physique-action-button secondary" href="/atletas/fichas/nova"><Plus size={15}/>Importar ficha</Link>
         </div>
       </header>
 

@@ -1,219 +1,30 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { Dumbbell, Home, Landmark, LayoutGrid, Store, X } from "lucide-react";
+import { useState } from "react";
 
-export function OperationSwitcher({
-  canAccessSupplements,
-  canAccessFitness,
-  canAccessBank,
-  canAccessMarketing,
-}: {
-  canAccessSupplements: boolean;
-  canAccessFitness: boolean;
-  canAccessBank: boolean;
-  canAccessMarketing: boolean;
-}) {
-  const router = useRouter();
-  useEffect(() => {
-    if (canAccessSupplements) router.prefetch("/suplementos");
-    if (canAccessFitness) router.prefetch("/fitness");
-    if (canAccessBank) router.prefetch("/bank");
-    if (canAccessMarketing) router.prefetch("/marketing");
-  }, [canAccessSupplements, canAccessFitness, canAccessBank, canAccessMarketing, router]);
+type Operation = "company" | "bank" | "atletas";
 
-  useEffect(() => {
-    // A página atual monta a saudação no servidor.
-    // Enquanto o perfil não possui um campo de gênero próprio, tratamos Giulia
-    // como feminino e mantemos o padrão masculino para os demais usuários.
-    const heading = document.querySelector(".operation-hub-copy h1");
+const destinations = [
+  { id: "vitrine", href: "/catalogo", label: "Vitrine", note: "Catálogo público", icon: Store },
+  { id: "company", href: "/company/inicio", label: "Company", note: "ERP 2.0", icon: Home },
+  { id: "bank", href: "/bank/inicio", label: "Bank", note: "Financeiro", icon: Landmark },
+  { id: "atletas", href: "/atletas/inicio", label: "Atletas", note: "Treinos e fichas", icon: Dumbbell },
+  { id: "legacy", href: "/dashboard", label: "Operações 1.0", note: "ERP antigo", icon: LayoutGrid },
+] as const;
 
-    if (!heading) return;
-
-    const currentText = heading.textContent ?? "";
-
-    if (/\bGiulia\b/i.test(currentText)) {
-      heading.textContent = currentText.replace(
-        /Seja bem-vindo de volta,/i,
-        "Seja bem-vinda de volta,",
-      );
-    } else {
-      heading.textContent = currentText.replace(
-        /Seja bem-vinda de volta,/i,
-        "Seja bem-vindo de volta,",
-      );
-    }
-  }, []);
-
-  const visibleOperations = Number(canAccessSupplements) + Number(canAccessFitness) + Number(canAccessBank) + Number(canAccessMarketing);
-  const layoutClass = visibleOperations >= 3 ? "three" : visibleOperations === 2 ? "two" : "one";
-
-  return (
-    <>
-      <form action="/auth/signout" method="post" className="hub-signout-form">
-        <button className="hub-signout-button" type="submit" aria-label="Sair da conta">
-          Sair da conta
-        </button>
-      </form>
-
-      <div className={`operation-buttons ${layoutClass}`}>
-        {canAccessSupplements && (
-          <Link
-            className="operation-button supplements"
-            href="/suplementos"
-            prefetch
-            aria-label="Acessar Candinho Suplementos"
-          >
-            <Image src="/operation-suplementos.png" alt="Suplementos" width={709} height={236} />
-          </Link>
-        )}
-
-        {canAccessFitness && (
-          <Link
-            className="operation-button fitness"
-            href="/fitness"
-            prefetch
-            aria-label="Acessar Candinho Fitness"
-          >
-            <Image src="/operation-fitness.png" alt="Fitness" width={709} height={236} />
-          </Link>
-        )}
-
-        {canAccessBank && (
-          <Link
-            className="operation-button bank"
-            href="/bank"
-            prefetch
-            aria-label="Acessar Candinho Bank"
-          >
-            <Image src="/operation-bank.png" alt="Bank" width={709} height={236} />
-          </Link>
-        )}
-
-        {canAccessMarketing && (
-          <Link
-            className="operation-button marketing"
-            href="/marketing"
-            prefetch
-            aria-label="Acessar Candinho Marketing"
-          >
-            <Image src="/operation-marketing.png" alt="Marketing" width={709} height={236} />
-          </Link>
-        )}
-      </div>
-
-      <style>{`
-        .hub-signout-form {
-          position: fixed;
-          top: max(18px, env(safe-area-inset-top));
-          left: 20px;
-          z-index: 90;
-          margin: 0;
-        }
-
-        .hub-signout-button {
-          min-height: 38px;
-          padding: 0 14px;
-          border: 1px solid rgba(154, 163, 178, 0.22);
-          border-radius: 11px;
-          background: rgba(15, 19, 27, 0.86);
-          color: #c9ced7;
-          font: inherit;
-          font-size: 12px;
-          font-weight: 700;
-          cursor: pointer;
-          backdrop-filter: blur(14px);
-          transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
-        }
-
-        .hub-signout-button:hover {
-          border-color: rgba(154, 163, 178, 0.5);
-          background: rgba(27, 32, 43, 0.96);
-          color: #ffffff;
-        }
-
-        @media (min-width: 821px) and (max-height: 900px) {
-          .hub-standalone .content-hub {
-            min-height: 100dvh;
-            padding-top: 12px;
-            padding-bottom: 12px;
-          }
-
-          .operation-hub {
-            gap: clamp(12px, 2vh, 20px);
-            padding-top: 10px;
-            padding-bottom: 14px;
-          }
-
-          .operation-hub-logo {
-            width: min(455px, 62vw);
-            max-height: 145px;
-          }
-
-          .operation-hub-copy {
-            gap: 4px;
-          }
-
-          .operation-hub-copy h1 {
-            margin-top: 2px;
-            font-size: clamp(30px, 4.1vw, 48px);
-            line-height: 1.02;
-          }
-
-          .operation-hub-copy p {
-            font-size: 13px;
-          }
-
-          .operation-buttons.three,
-          .operation-buttons.two,
-          .operation-buttons.one {
-            gap: 14px;
-          }
-
-          .operation-button {
-            min-height: 118px;
-            padding: 17px 22px;
-          }
-
-          .operation-button img {
-            max-height: 72px;
-          }
-        }
-
-        @media (min-width: 821px) and (max-height: 760px) {
-          .operation-hub-logo {
-            width: min(395px, 56vw);
-            max-height: 120px;
-          }
-
-          .operation-hub-copy h1 {
-            font-size: clamp(27px, 3.7vw, 42px);
-          }
-
-          .operation-button {
-            min-height: 102px;
-          }
-
-          .operation-button img {
-            max-height: 62px;
-          }
-        }
-
-        @media (max-width: 820px) {
-          .hub-signout-form {
-            top: max(12px, env(safe-area-inset-top));
-            left: 12px;
-          }
-
-          .hub-signout-button {
-            min-height: 36px;
-            padding: 0 12px;
-            font-size: 11px;
-          }
-        }
-      `}</style>
-    </>
-  );
+export function OperationSwitcher({ current, compact = false }: { current: Operation; compact?: boolean }) {
+  const [open, setOpen] = useState(false);
+  return <>
+    <button className={compact ? "operation-switcher-trigger compact" : "operation-switcher-trigger"} type="button" onClick={() => setOpen(true)}>
+      <LayoutGrid size={15}/><span>{compact ? "Navegar" : "Áreas da Candinho"}</span>
+    </button>
+    {open ? <div className="operation-switcher-overlay" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
+      <section className="operation-switcher-dialog" role="dialog" aria-modal="true" aria-label="Áreas da Candinho">
+        <header><div><small>ERP CANDINHO</small><h2>Para onde vamos?</h2></div><button type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X/></button></header>
+        <div className="operation-switcher-grid">{destinations.filter((item) => item.id !== current).map(({ href, label, note, icon: Icon }) => <Link href={href} key={href} onClick={() => setOpen(false)}><Icon/><span><strong>{label}</strong><small>{note}</small></span></Link>)}</div>
+      </section>
+    </div> : null}
+  </>;
 }

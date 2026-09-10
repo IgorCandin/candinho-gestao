@@ -55,6 +55,16 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/physique",
+        destination: "/atletas/inicio",
+        permanent: true,
+      },
+      {
+        source: "/physique/:path*",
+        destination: "/atletas/:path*",
+        permanent: true,
+      },
+      {
         source: "/bank-lab",
         destination: "/bank",
         permanent: false,
@@ -144,6 +154,14 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
+        {
+          source: "/atletas",
+          destination: "/physique",
+        },
+        {
+          source: "/atletas/:path*",
+          destination: "/physique/:path*",
+        },
         ...supplementRouteRoots.flatMap(
           (route) => [
             {

@@ -137,11 +137,11 @@ const vitrineNav: NavItem[] = [
 ];
 
 const physiqueNav: NavItem[] = [
-  { href: "/physique/inicio", label: "Menu", icon: Home },
-  { href: "/physique", label: "Visão geral", icon: BarChart3 },
-  { href: "/physique/atletas", label: "Atletas", icon: UsersRound },
-  { href: "/physique/fichas", label: "Fichas e treinos", icon: ListChecks },
-  { href: "/physique/atletas/novo", label: "Novo atleta", icon: ContactRound },
+  { href: "/atletas/inicio", label: "Menu", icon: Home },
+  { href: "/atletas", label: "Visão geral", icon: BarChart3 },
+  { href: "/atletas/atletas", label: "Atletas", icon: UsersRound },
+  { href: "/atletas/fichas", label: "Fichas e treinos", icon: ListChecks },
+  { href: "/atletas/atletas/novo", label: "Novo atleta", icon: ContactRound },
 ];
 
 const partnerNav: NavItem[] = [
@@ -200,7 +200,7 @@ export function AppShell({
   else if (pathname.startsWith("/bank")) operation = "bank";
   else if (pathname.startsWith("/marketing")) operation = "marketing";
   else if (pathname.startsWith("/vitrine")) operation = "vitrine";
-  else if (pathname.startsWith("/physique")) operation = "physique";
+  else if (pathname.startsWith("/atletas")) operation = "physique";
   else if (pathname.startsWith("/fitness")) operation = "fitness";
   else if (!isHub && !isSettings && !isPromotionShowcase)
     operation = "supplements";
@@ -423,8 +423,8 @@ export function AppShell({
     pathname === "/fitness" ||
     pathname === "/vitrine" ||
     pathname === "/vitrine/inicio" ||
-    pathname === "/physique" ||
-    pathname === "/physique/inicio" ||
+    pathname === "/atletas" ||
+    pathname === "/atletas/inicio" ||
     pathname === "/bank" ||
     pathname === "/marketing";
 
@@ -482,7 +482,7 @@ export function AppShell({
               : isVitrine
                 ? "/vitrine/inicio"
                 : isPhysique
-                  ? "/physique/inicio"
+                  ? "/atletas/inicio"
                   : isFitness
                     ? "/fitness/inicio"
                     : isBank
@@ -563,7 +563,7 @@ export function AppShell({
     pathname === "/company/inicio" ||
     pathname === "/fitness/inicio" ||
     pathname === "/vitrine/inicio" ||
-    pathname === "/physique/inicio" ||
+    pathname === "/atletas/inicio" ||
     pathname === "/bank/inicio" ||
     pathname === "/central/inicio"
   ) {

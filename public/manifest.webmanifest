@@ -1,10 +1,13 @@
 {
   "name": "Candinho Company",
+  "id": "/company",
   "short_name": "Candinho",
   "description": "Gestão integrada da Candinho Company.",
   "start_url": "/company/inicio",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "orientation": "any",
   "background_color": "#07090d",
   "theme_color": "#07090d",
   "icons": [

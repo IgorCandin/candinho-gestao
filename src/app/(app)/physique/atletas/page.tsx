@@ -5,7 +5,6 @@ import {
   Plus,
   UserRound,
 } from "lucide-react";
-import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { getPhysiqueAthletes } from "@/lib/physique-data";
 import { getPhysiqueAthleteAvatarMap } from "@/lib/physique-visual-data";
 import styles from "@/components/physique-v45.module.css";
@@ -18,8 +17,6 @@ export default async function PhysiqueAthletesPage() {
 
   return (
     <section className="physique-page physique-ux-page">
-      <PhysiqueSectionNav active="athletes" />
-
       <header className="physique-ux-page-header">
         <div>
           <span>ACOMPANHAMENTO</span>
@@ -32,7 +29,7 @@ export default async function PhysiqueAthletesPage() {
 
         <Link
           className="physique-action-button secondary"
-          href="/physique/atletas/novo"
+          href="/atletas/atletas/novo"
         >
           <Plus size={15} />
           Novo atleta
@@ -53,7 +50,7 @@ export default async function PhysiqueAthletesPage() {
             return (
               <Link
                 className="physique-ux-athlete-card"
-                href={`/physique/atletas/${athlete.id}`}
+                href={`/atletas/atletas/${athlete.id}`}
                 key={athlete.id}
               >
                 <div className="physique-ux-athlete-card-media">

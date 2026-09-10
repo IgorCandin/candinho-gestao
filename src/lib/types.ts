@@ -242,6 +242,7 @@ export type PendingOrderRow = {
 export type SaleDetailItem = {
   id: string; product_id: string; product_name: string; product_image_url: string | null; category: string | null; brand: string | null;
   quantity: number; unit_cost: number; unit_price: number; price_condition: string | null;
+  delivered_quantity: number; last_delivered_at: string | null;
   quantity_requested: number | null; quantity_reserved: number | null; reservation_status: string | null;
 };
 export type SaleDetails = {

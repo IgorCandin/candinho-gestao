@@ -1007,7 +1007,14 @@ export async function getCustomerOpportunityRadarSummary(): Promise<CustomerOppo
 export async function getCustomerOptions(): Promise<CustomerOption[]> {
   if (!isSupabaseConfigured) return demoCustomers.map(({ id, name, city, phone }) => ({ id, name, city, phone }));
   const supabase = await createClient(); const { data, error } = await supabase.from("customers").select("id,name,city,phone").eq("active", true).order("name", { ascending: true }); if (error) throw error;
-  return (data ?? []).map((row) => ({ id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null }));
+  const unique = new Map<string, CustomerOption>();
+  for (const row of data ?? []) {
+    const customer = { id: String(row.id), name: text(row.name, "Cliente sem nome"), city: typeof row.city === "string" ? row.city : null, phone: typeof row.phone === "string" ? row.phone : null };
+    const digits = customer.phone?.replace(/\D/g, "") ?? "";
+    const key = digits.length >= 8 ? `phone:${digits}` : `id:${customer.id}`;
+    if (!unique.has(key)) unique.set(key, customer);
+  }
+  return [...unique.values()];
 }
 export async function getProductOptions(): Promise<ProductOption[]> {
   if (!isSupabaseConfigured) return demoProducts.filter((product) => product.active).map(({ id, name, category, brand, image_url, sale_price }) => ({ id, name, category, brand, image_url, sale_price }));
@@ -1240,6 +1247,8 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
         category: "Saúde",
         brand: null,
         quantity: order.total_items || 1,
+        delivered_quantity: order.delivery_status === "delivered" ? (order.total_items || 1) : 0,
+        last_delivered_at: order.delivered_at,
         unit_cost: 0,
         unit_price: order.total_amount / Math.max(order.total_items, 1),
         price_condition: order.price_condition,
@@ -1261,7 +1270,7 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
         customer:customers(id,name,city,phone),
         location:locations(id,code,name),
         partner:partners(id,name),
-        items:sale_items(id,product_id,quantity,unit_cost,unit_price,price_condition,product:products(id,name,image_url,category,brand),reservations:stock_reservations(quantity_requested,quantity_reserved,status))
+        items:sale_items(id,product_id,quantity,delivered_quantity,last_delivered_at,unit_cost,unit_price,price_condition,product:products(id,name,image_url,category,brand),reservations:stock_reservations(quantity_requested,quantity_reserved,status))
       `)
       .eq("id", saleId)
       .eq("record_type", "sale")
@@ -1290,6 +1299,8 @@ export async function getSaleDetails(saleId: string): Promise<SaleDetails | null
       category: typeof product?.category === "string" ? product.category : null,
       brand: typeof product?.brand === "string" ? product.brand : null,
       quantity: number(item.quantity),
+      delivered_quantity: number(item.delivered_quantity),
+      last_delivered_at: typeof item.last_delivered_at === "string" ? item.last_delivered_at : null,
       unit_cost: number(item.unit_cost),
       unit_price: number(item.unit_price),
       price_condition: typeof item.price_condition === "string" ? item.price_condition : null,

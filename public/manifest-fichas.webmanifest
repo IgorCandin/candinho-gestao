@@ -1,9 +1,9 @@
 {
-  "id": "/physique/fichas",
+  "id": "/atletas/fichas",
   "name": "Fichas Candinho",
   "short_name": "Fichas",
   "description": "Acesso direto às fichas de treino da Candinho.",
-  "start_url": "/physique/fichas",
+  "start_url": "/atletas/fichas",
   "scope": "/",
   "display": "standalone",
   "background_color": "#07090d",

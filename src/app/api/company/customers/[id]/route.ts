@@ -15,9 +15,10 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     const fitnessChecks = [["fitness_sales", "customer_id"], ["fitness_quotes", "customer_id"], ["fitness_consignments", "customer_id"], ["fitness_post_sale_state", "customer_id"], ["fitness_post_sale_history", "customer_id"]] as const;
     for (const [table, column] of supplementChecks) { const { count, error } = await supabase.from(table).select("id", { count: "exact", head: true }).eq(column, id); if (error) return NextResponse.json({ error: error.message }, { status: 400 }); if ((count ?? 0) > 0) return NextResponse.json({ error: "Este cadastro possui movimentações ou histórico e não pode ser excluído." }, { status: 409 }); }
     if (linkedFitness?.id) for (const [table, column] of fitnessChecks) { const { count, error } = await supabase.from(table).select("id", { count: "exact", head: true }).eq(column, linkedFitness.id); if (error) return NextResponse.json({ error: error.message }, { status: 400 }); if ((count ?? 0) > 0) return NextResponse.json({ error: "Este cadastro possui movimentações ou histórico e não pode ser excluído." }, { status: 409 }); }
-    if (linkedFitness?.id) { const { error } = await supabase.from("fitness_customers").delete().eq("id", linkedFitness.id); if (error) return NextResponse.json({ error: error.message }, { status: 400 }); }
-    const { error } = await supabase.from("customers").delete().eq("id", id);
+    if (linkedFitness?.id) { const { data, error } = await supabase.from("fitness_customers").delete().eq("id", linkedFitness.id).select("id"); if (error) return NextResponse.json({ error: error.message }, { status: 400 }); if (!data?.length) return NextResponse.json({ error: "O cadastro Fitness não foi excluído. Verifique a permissão de exclusão." }, { status: 409 }); }
+    const { data: deleted, error } = await supabase.from("customers").delete().eq("id", id).select("id");
     if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    if (!deleted?.length) return NextResponse.json({ error: "O cadastro não foi excluído. Verifique a permissão ou atualize a lista." }, { status: 409 });
     return NextResponse.json({ ok: true });
   }
   const checks = operation === "fitness"
@@ -25,7 +26,8 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
     : [["sales", "customer_id"], ["sales_quotes", "customer_id"], ["customer_interactions", "customer_id"], ["post_sale_batches", "customer_id"], ["sale_replenishment_reminders", "customer_id"], ["customer_relationships", "customer_id"], ["customer_relationships", "related_customer_id"]] as const;
   for (const [table, column] of checks) { const { count, error } = await supabase.from(table).select("id", { count: "exact", head: true }).eq(column, id); if (error) return NextResponse.json({ error: error.message }, { status: 400 }); if ((count ?? 0) > 0) return NextResponse.json({ error: "Este cadastro possui movimentações ou histórico e não pode ser excluído." }, { status: 409 }); }
   const table = operation === "fitness" ? "fitness_customers" : "customers";
-  const { error } = await supabase.from(table).delete().eq("id", id);
+  const { data: deleted, error } = await supabase.from(table).delete().eq("id", id).select("id");
   if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+  if (!deleted?.length) return NextResponse.json({ error: "O cadastro não foi excluído. Verifique a permissão ou atualize a lista." }, { status: 409 });
   return NextResponse.json({ ok: true });
 }

@@ -270,6 +270,7 @@ export function SaleDetailsView({
                 generalStatus={sale.general_status}
                 paymentStatus={sale.payment_status}
                 deliveryStatus={sale.delivery_status}
+                items={sale.items.map((item) => ({ id: item.id, name: item.product_name, quantity: item.quantity, deliveredQuantity: item.delivered_quantity }))}
               />
             </div>
           </article>

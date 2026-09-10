@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { PhysiqueTrainingImportForm } from "@/components/physique-training-import-form";
-import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { getPhysiqueAthletes } from "@/lib/physique-data";
 
 export default async function NewPhysiqueTrainingPage({
@@ -13,11 +12,9 @@ export default async function NewPhysiqueTrainingPage({
 
   return (
     <section className="physique-page physique-ux-page">
-      <PhysiqueSectionNav active="training" />
-
       <header className="physique-ux-page-header">
         <div>
-          <Link className="physique-ux-back" href="/physique/fichas">
+          <Link className="physique-ux-back" href="/atletas/fichas">
             <ArrowLeft size={15} />
             Fichas
           </Link>
@@ -30,7 +27,7 @@ export default async function NewPhysiqueTrainingPage({
       {athletes.length === 0 ? (
         <div className="physique-empty compact">
           <strong>Cadastre um atleta primeiro</strong>
-          <Link className="physique-action-button secondary" href="/physique/atletas/novo">
+          <Link className="physique-action-button secondary" href="/atletas/atletas/novo">
             Novo atleta
           </Link>
         </div>

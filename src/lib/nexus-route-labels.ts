@@ -38,7 +38,7 @@ const ROUTES: Array<[string, string]> = [
   ["/central", "Candinho Central"],
   ["/dashboard", "Candinho Company"],
   ["/catalogo", "Catálogo público"],
-  ["/physique", "Candinho Physique"],
+  ["/atletas", "Candinho Atletas"],
 ];
 
 export function nexusRouteLabel(route: string) {

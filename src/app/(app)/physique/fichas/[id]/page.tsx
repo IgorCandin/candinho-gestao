@@ -9,7 +9,6 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
-import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { PhysiqueTrainingAttachmentUpload } from "@/components/physique-training-attachment-upload";
 import { PhysiqueTrainingPlanView } from "@/components/physique-training-plan-view";
 import { PhysiqueTrainingShareActions } from "@/components/physique-training-share-actions";
@@ -39,11 +38,9 @@ export default async function PhysiqueTrainingPlanDetailsPage({
 
   return (
     <section className="physique-page physique-ux-page">
-      <PhysiqueSectionNav active="training" />
-
       <header className="physique-ux-training-hero">
         <div>
-          <Link className="physique-ux-back" href="/physique/fichas">
+          <Link className="physique-ux-back" href="/atletas/fichas">
             <ArrowLeft size={15} />
             Fichas
           </Link>
@@ -51,7 +48,7 @@ export default async function PhysiqueTrainingPlanDetailsPage({
           <h1>{plan.title}</h1>
           <p>
             {athlete ? (
-              <Link href={`/physique/atletas/${athlete.id}?tab=training`}>
+              <Link href={`/atletas/atletas/${athlete.id}?tab=training`}>
                 <UserRound size={13} /> {athlete.display_name}
               </Link>
             ) : (

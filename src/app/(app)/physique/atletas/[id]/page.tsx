@@ -15,7 +15,6 @@ import {
 import { PhysiqueAssessmentForm } from "@/components/physique-assessment-form";
 import { PhysiqueAthleteImportHub } from "@/components/physique-athlete-import-hub";
 import { PhysiqueAthletePhotoManager } from "@/components/physique-athlete-photo-manager";
-import { PhysiqueSectionNav } from "@/components/physique-section-nav";
 import { PhysiqueShapeAnalysisBox } from "@/components/physique-shape-analysis";
 import { PhysiqueSponsorshipPanel } from "@/components/physique-sponsorship-panel";
 import styles from "@/components/physique-v45.module.css";
@@ -83,11 +82,9 @@ export default async function PhysiqueAthleteDetailsPage({
 
   return (
     <section className="physique-page physique-ux-page">
-      <PhysiqueSectionNav active="athletes" />
-
       <header className="physique-ux-athlete-hero">
         <div>
-          <Link className="physique-ux-back" href="/physique/atletas">
+          <Link className="physique-ux-back" href="/atletas/atletas">
             <ArrowLeft size={15} />
             Atletas
           </Link>
@@ -116,7 +113,7 @@ export default async function PhysiqueAthleteDetailsPage({
 
         <Link
           className="physique-action-button secondary"
-          href={`/physique/fichas/nova?atleta=${athlete.id}`}
+          href={`/atletas/fichas/nova?atleta=${athlete.id}`}
         >
           <Plus size={15} />
           Nova ficha
@@ -155,7 +152,7 @@ export default async function PhysiqueAthleteDetailsPage({
         {tabs.map((item) => (
           <Link
             className={tab === item.key ? "active" : ""}
-            href={`/physique/atletas/${athlete.id}?tab=${item.key}`}
+            href={`/atletas/atletas/${athlete.id}?tab=${item.key}`}
             key={item.key}
           >
             {item.label}
@@ -236,7 +233,7 @@ export default async function PhysiqueAthleteDetailsPage({
           </div>
 
           <div className="physique-ux-overview-grid">
-            <Link href={`/physique/atletas/${athlete.id}?tab=dossier`}>
+            <Link href={`/atletas/atletas/${athlete.id}?tab=dossier`}>
               <FileText size={20} />
               <div>
                 <span>Dossiê</span>
@@ -244,7 +241,7 @@ export default async function PhysiqueAthleteDetailsPage({
                 <p>Envie arquivos e consolide um novo estado com o Nexus.</p>
               </div>
             </Link>
-            <Link href={`/physique/atletas/${athlete.id}?tab=evolution`}>
+            <Link href={`/atletas/atletas/${athlete.id}?tab=evolution`}>
               <Activity size={20} />
               <div>
                 <span>Evolução</span>
@@ -252,7 +249,7 @@ export default async function PhysiqueAthleteDetailsPage({
                 <p>Medidas, avaliações e comparações ao longo do tempo.</p>
               </div>
             </Link>
-            <Link href={`/physique/atletas/${athlete.id}?tab=training`}>
+            <Link href={`/atletas/atletas/${athlete.id}?tab=training`}>
               <Dumbbell size={20} />
               <div>
                 <span>Treino</span>
@@ -260,7 +257,7 @@ export default async function PhysiqueAthleteDetailsPage({
                 <p>Consulte a ficha ativa e o histórico estruturado.</p>
               </div>
             </Link>
-            <Link href={`/physique/atletas/${athlete.id}?tab=sponsorship`}>
+            <Link href={`/atletas/atletas/${athlete.id}?tab=sponsorship`}>
               <Trophy size={20} />
               <div>
                 <span>Patrocínios</span>
@@ -415,7 +412,7 @@ export default async function PhysiqueAthleteDetailsPage({
               <strong>Nenhuma ficha criada</strong>
               <Link
                 className="physique-action-button secondary"
-                href={`/physique/fichas/nova?atleta=${athlete.id}`}
+                href={`/atletas/fichas/nova?atleta=${athlete.id}`}
               >
                 Importar primeira ficha
               </Link>
@@ -423,7 +420,7 @@ export default async function PhysiqueAthleteDetailsPage({
           ) : (
             <div className="physique-plan-list">
               {plans.map((plan) => (
-                <Link href={`/physique/fichas/${plan.id}`} key={plan.id}>
+                <Link href={`/atletas/fichas/${plan.id}`} key={plan.id}>
                   <div>
                     <small>
                       {plan.status} · {plan.source_type}

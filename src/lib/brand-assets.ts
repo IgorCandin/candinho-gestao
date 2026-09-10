@@ -11,8 +11,8 @@ export const BRAND_ASSETS = {
     complete: { src: "/candinho-fitness-logo.png", width: 1306, height: 430, alt: "Candinho Fitness" },
   },
   physique: {
-    reduced: { src: "/operation-physique.png", width: 1416, height: 472, alt: "Candinho Physique Athletes" },
-    complete: { src: "/candinho-physique-logo.png", width: 1417, height: 1417, alt: "Candinho Physique Athletes" },
+    reduced: { src: "/candinho-atletas-logo.png", width: 2170, height: 725, alt: "Candinho Atletas" },
+    complete: { src: "/candinho-atletas-logo.png", width: 2170, height: 725, alt: "Candinho Atletas" },
   },
   bank: {
     reduced: { src: "/operation-bank.png", width: 640, height: 122, alt: "Candinho Bank" },

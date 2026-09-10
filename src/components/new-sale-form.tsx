@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -217,6 +218,7 @@ export function NewSaleForm({
   );
   const [notes, setNotes] = useState(initialQuote?.notes ?? "");
   const [comboId, setComboId] = useState("");
+  const selectedCombo = combos.find((combo) => combo.id === comboId) ?? null;
   const [choiceOpen, setChoiceOpen] = useState(false);
   const [quoteFinalizeOpen, setQuoteFinalizeOpen] = useState(false);
   const [loadingMode, setLoadingMode] = useState<SaveMode | null>(null);
@@ -1090,6 +1092,8 @@ export function NewSaleForm({
                         </option>
                       ))}
                     </select>
+
+                    {selectedCombo?.image_url ? <div className="budget-combo-preview"><Image src={selectedCombo.image_url} alt={selectedCombo.name} width={84} height={84} unoptimized/><span><strong>{selectedCombo.name}</strong><small>{selectedCombo.component_summary ?? `${selectedCombo.component_count} produtos`}</small></span></div> : null}
 
                     <button
                       className="button ghost compact-button"

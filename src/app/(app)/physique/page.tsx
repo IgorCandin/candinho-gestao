@@ -31,7 +31,7 @@ export default async function PhysiqueStandalonePage() {
 
         <div className="physique-hero-copy">
           <span>Candinho Company · Operação exclusiva</span>
-          <h1>Physique Athletes</h1>
+          <h1>Candinho Atletas</h1>
           <p>
             O atleta é o centro da operação: dossiê histórico, avaliações,
             evolução por fotos e fichas estruturadas, com Nexus para organizar e
@@ -84,7 +84,7 @@ export default async function PhysiqueStandalonePage() {
 
       <div className="physique-foundation-grid">
         <Link
-          href="/physique/atletas"
+          href="/atletas/atletas"
           className="physique-foundation-card physique-foundation-card-highlight"
         >
           <FileStack size={22}/>
@@ -99,7 +99,7 @@ export default async function PhysiqueStandalonePage() {
         </Link>
 
         <Link
-          href="/physique/fichas"
+          href="/atletas/fichas"
           className="physique-foundation-card physique-foundation-card-highlight"
         >
           <Dumbbell size={22}/>
@@ -113,7 +113,7 @@ export default async function PhysiqueStandalonePage() {
           </div>
         </Link>
 
-        <Link href="/physique/atletas/novo" className="physique-foundation-card">
+        <Link href="/atletas/atletas/novo" className="physique-foundation-card">
           <Plus size={22}/>
           <div>
             <span>Ação rápida</span>
@@ -125,7 +125,7 @@ export default async function PhysiqueStandalonePage() {
           </div>
         </Link>
 
-        <Link href="/physique/atletas" className="physique-foundation-card">
+        <Link href="/atletas/atletas" className="physique-foundation-card">
           <Activity size={22}/>
           <div>
             <span>Nova atualização</span>

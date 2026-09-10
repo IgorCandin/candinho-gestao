@@ -26,6 +26,7 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { InstallCompanyMenuAction } from "@/components/install-company-menu-action";
+import { OperationSwitcher } from "@/components/operation-switcher";
 
 type RouteItem = {
   label: string;
@@ -85,6 +86,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
   const [customers, setCustomers] = useState<CustomerItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [isRefreshing, startRefresh] = useTransition();
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
   const needle = normalize(query.trim());
   const canSearchCustomers = query.trim().length >= 2;
@@ -141,6 +143,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
 
   function finishSearch() {
     setQuery("");
+    setMobileSearchOpen(false);
     searchRef.current?.blur();
   }
 
@@ -182,6 +185,8 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
             <div>
               <strong>{access.name}</strong>
               <small>{access.email ?? "Acesso Company"}</small>
+              <OperationSwitcher current="company" compact />
+              <button type="button" onClick={() => { setMobileSearchOpen(true); window.setTimeout(() => searchRef.current?.focus(), 50); }}><Search size={15}/> Buscar</button>
               <InstallCompanyMenuAction />
               <Link href="/dashboard"><Home size={15} /> ERP 1.0</Link>
               <form action="/auth/signout" method="post"><button type="submit"><LogOut size={15} /> Sair</button></form>
@@ -192,7 +197,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
 
       <main className="company-shell-content">{children}</main>
 
-      <div className="company-global-search" role="search">
+      <div className={`company-global-search ${mobileSearchOpen ? "mobile-search-open" : ""}`} role="search">
         {(needle || visibleLoading) && (
           <div className="company-search-results" aria-live="polite">
             {customerResults.length > 0 && <p>Clientes</p>}

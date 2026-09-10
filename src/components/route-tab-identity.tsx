@@ -118,7 +118,7 @@ const LABELS: Array<[string, string]> = [
   ["/agenda", "Agenda"],
   ["/leads", "Leads"],
   ["/vendas", "Comercial"],
-  ["/physique/atletas", "Atletas"],
+  ["/atletas/atletas", "Atletas"],
   ["/parceiro", "Portal do parceiro"],
   ["/catalogo/suplementos", "Catálogo de suplementos"],
   ["/catalogo/fitness", "Catálogo Fitness"],
@@ -149,7 +149,7 @@ function operationFor(pathname: string): Operation {
     return "central";
   }
 
-  if (startsWithRoute(pathname, "/physique")) {
+  if (startsWithRoute(pathname, "/atletas")) {
     return "physique";
   }
 
@@ -252,7 +252,7 @@ function applyIdentity(pathname: string) {
     pathname === "/fitness" ||
     pathname === "/central" ||
     pathname === "/suplementos" ||
-    pathname === "/physique";
+    pathname === "/atletas";
 
   document.title = isRoot
     ? `Candinho ${config.suffix}`

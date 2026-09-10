@@ -228,8 +228,8 @@ export const NEXUS_COMMAND_ROUTES: NexusCommandRoute[] = [
     keywords: "marketing agenda planejamento post campanha",
   },
   {
-    label: "Physique · Fichas",
-    href: "/physique/fichas",
+    label: "Atletas · Fichas",
+    href: "/atletas/fichas",
     operation: "physique",
     keywords: "physique treino ficha",
   },

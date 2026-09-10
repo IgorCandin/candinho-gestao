@@ -77,11 +77,13 @@ export function SaleStatusActions({
   generalStatus,
   paymentStatus: _paymentStatus,
   deliveryStatus,
+  items,
 }: {
   saleId: string;
   generalStatus: string;
   paymentStatus: string;
   deliveryStatus: string;
+  items: Array<{ id: string; name: string; quantity: number; deliveredQuantity: number }>;
 }) {
   const router = useRouter();
   const autoOpenedRef = useRef(false);
@@ -97,6 +99,7 @@ export function SaleStatusActions({
   const [deliverySupplies, setDeliverySupplies] = useState<
     DeliverySupply[]
   >([]);
+  const [deliveryQuantities, setDeliveryQuantities] = useState<Record<string, number>>(() => Object.fromEntries(items.map((item) => [item.id, Math.max(0, item.quantity - item.deliveredQuantity)])));
 
   const isCancelled = generalStatus === "cancelled";
   const canDeliver =
@@ -252,22 +255,18 @@ export function SaleStatusActions({
     setMessage(null);
 
     try {
-      const { error } = await createClient().rpc(
-        "mark_sale_delivered_with_supplies",
-        {
-          p_sale_id: saleId,
-          p_delivered_on: deliveredDate,
-          p_supplies: deliverySupplies.map((item) => ({
-            supply_id: item.supply_id,
-            quantity: item.quantity,
-          })),
-        },
-      );
+      const selectedItems = items.map((item) => ({ item_id: item.id, quantity: deliveryQuantities[item.id] ?? 0 })).filter((item) => item.quantity > 0);
+      if (!selectedItems.length) throw new Error("Escolha ao menos um produto para entregar.");
+      const deliversEverything = items.every((item) => (deliveryQuantities[item.id] ?? 0) === item.quantity - item.deliveredQuantity);
+      const client = createClient();
+      const { error } = deliversEverything
+        ? await client.rpc("mark_sale_delivered_with_supplies", { p_sale_id: saleId, p_delivered_on: deliveredDate, p_supplies: deliverySupplies.map((item) => ({ supply_id: item.supply_id, quantity: item.quantity })) })
+        : await client.rpc("mark_sale_items_delivered_v1", { p_sale_id: saleId, p_delivered_on: deliveredDate, p_items: selectedItems });
 
       if (error) throw error;
 
       setMessage(
-        "Entrega registrada e materiais confirmados.",
+        deliversEverything ? "Entrega completa registrada." : "Entrega parcial registrada. Os outros produtos continuam pendentes.",
       );
       setMode(null);
       router.refresh();
@@ -412,6 +411,12 @@ export function SaleStatusActions({
                 }
               />
             </label>
+          </div>
+
+          <div className="sale-delivery-item-picker">
+            <strong>Quais produtos serão entregues agora?</strong>
+            <span>Informe zero para manter um item pendente.</span>
+            {items.map((item) => { const remaining = Math.max(0, item.quantity - item.deliveredQuantity); return <label key={item.id}><span><b>{item.name}</b><small>{item.deliveredQuantity} entregue(s) · {remaining} pendente(s)</small></span><input type="number" min="0" max={remaining} value={deliveryQuantities[item.id] ?? 0} onChange={(event) => setDeliveryQuantities((current) => ({ ...current, [item.id]: Math.min(remaining, Math.max(0, Number(event.target.value) || 0)) }))}/></label>; })}
           </div>
 
           <div className={deliveryStyles.materials}>

@@ -98,15 +98,15 @@ const CONFIG = {
     ],
   },
   physique: {
-    label: "Candinho Physique",
+    label: "Candinho Atletas",
     slogan: "Evolução física, histórico e acompanhamento.",
     brand: BRAND_ASSETS.physique.complete,
     rgb: "209, 119, 70",
     items: [
-      { href: "/physique", label: "Visão geral", note: "Resumo da operação Physique", icon: BarChart3 },
-      { href: "/physique/atletas", label: "Atletas", note: "Dossiês e evolução individual", icon: UsersRound },
-      { href: "/physique/fichas", label: "Fichas e treinos", note: "Planos estruturados por atleta", icon: ListChecks },
-      { href: "/physique/atletas/novo", label: "Novo atleta", note: "Cadastre e comece o acompanhamento", icon: ContactRound },
+      { href: "/atletas", label: "Visão geral", note: "Resumo da operação Atletas", icon: BarChart3 },
+      { href: "/atletas/atletas", label: "Atletas", note: "Dossiês e evolução individual", icon: UsersRound },
+      { href: "/atletas/fichas", label: "Fichas e treinos", note: "Planos estruturados por atleta", icon: ListChecks },
+      { href: "/atletas/atletas/novo", label: "Novo atleta", note: "Cadastre e comece o acompanhamento", icon: ContactRound },
     ],
   },
   bank: {

@@ -28,7 +28,7 @@ function operationScope(route: string) {
   if (route.startsWith("/bank")) return "bank";
   if (route.startsWith("/central")) return "central";
   if (route.startsWith("/marketing")) return "marketing";
-  if (route.startsWith("/physique")) return "physique";
+  if (route.startsWith("/atletas")) return "physique";
   if (route === "/dashboard" || route.startsWith("/nexus")) return "company";
   return "supplements";
 }

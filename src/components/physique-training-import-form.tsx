@@ -102,7 +102,7 @@ export function PhysiqueTrainingImportForm({
       const form = new FormData();
       form.set("file", file);
 
-      const response = await fetch("/api/physique/interpretar-treino", {
+      const response = await fetch("/api/atletas/interpretar-treino", {
         method: "POST",
         body: form,
       });
@@ -191,7 +191,7 @@ export function PhysiqueTrainingImportForm({
         });
 
       if (upload.error) {
-        router.push(`/physique/fichas/${id}?anexo=pendente`);
+        router.push(`/atletas/fichas/${id}?anexo=pendente`);
         router.refresh();
         return;
       }
@@ -206,12 +206,12 @@ export function PhysiqueTrainingImportForm({
 
       if (attachment.error) {
         await supabase.storage.from("physique-training-files").remove([path]);
-        router.push(`/physique/fichas/${id}?anexo=pendente`);
+        router.push(`/atletas/fichas/${id}?anexo=pendente`);
         router.refresh();
         return;
       }
 
-      router.push(`/physique/fichas/${id}`);
+      router.push(`/atletas/fichas/${id}`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível salvar a ficha.");

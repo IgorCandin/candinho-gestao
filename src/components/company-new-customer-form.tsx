@@ -21,7 +21,16 @@ export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness }:
     try {
       const supabase = createClient();
       let coreId: string | null = null;
-      if (canWriteSupplements) {
+      if (canWriteFitness) {
+        // The resolver creates/links both records in a single database transaction.
+        // This prevents the half-saved Company customer that used to remain after
+        // the Fitness step failed.
+        const { data: fitnessId, error } = await supabase.rpc("fitness_resolve_customer", { p_customer_id: null, p_name: name, p_phone: phone || null, p_instagram: instagram || null, p_city: city || null, p_source: "Candinho Company" });
+        if (error) throw error;
+        const { data: linked, error: linkedError } = await supabase.from("fitness_customers").select("core_customer_id").eq("id", String(fitnessId)).single();
+        if (linkedError) throw linkedError;
+        coreId = typeof linked.core_customer_id === "string" ? linked.core_customer_id : null;
+      } else if (canWriteSupplements) {
         const digits = phone.replace(/\D/g, "");
         if (digits) {
           const { data: existing, error: lookupError } = await supabase
@@ -38,10 +47,6 @@ export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness }:
           if (error) throw error;
           coreId = String(data);
         }
-      }
-      if (canWriteFitness) {
-        const { error } = await supabase.rpc("fitness_resolve_customer", { p_customer_id: coreId, p_name: name, p_phone: phone || null, p_instagram: instagram || null, p_city: city || null, p_source: "Candinho Company" });
-        if (error) throw error;
       }
       router.push(coreId ? `/company/clientes/${coreId}` : "/company/clientes");
       router.refresh();

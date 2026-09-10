@@ -82,7 +82,7 @@ export function PhysiqueTrainingPlanBrowser({
       ) : (
         <div className="physique-ux-plan-grid">
           {visible.map((plan) => (
-            <Link className="physique-ux-plan-card" href={`/physique/fichas/${plan.id}`} key={plan.id}>
+            <Link className="physique-ux-plan-card" href={`/atletas/fichas/${plan.id}`} key={plan.id}>
               <div className="physique-ux-plan-card-top">
                 <span className={`physique-ux-status ${plan.status === "active" ? "active" : ""}`}>
                   {plan.status === "active" ? "Ativa" : plan.status}

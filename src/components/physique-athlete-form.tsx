@@ -103,7 +103,7 @@ export function PhysiqueAthleteForm() {
 
       if (error) throw error;
 
-      router.push(`/physique/atletas/${data.id}`);
+      router.push(`/atletas/atletas/${data.id}`);
       router.refresh();
     } catch (error) {
       if (avatarPath) {

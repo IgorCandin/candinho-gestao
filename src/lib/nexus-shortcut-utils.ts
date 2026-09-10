@@ -9,7 +9,7 @@ export function nexusOperationForHref(
   if (value.startsWith("/bank")) return "bank";
   if (value.startsWith("/marketing")) return "marketing";
   if (value.startsWith("/central")) return "central";
-  if (value.startsWith("/physique")) return "physique";
+  if (value.startsWith("/atletas")) return "physique";
   if (value === "/dashboard" || value.startsWith("/nexus")) return "company";
 
   return "supplements";
