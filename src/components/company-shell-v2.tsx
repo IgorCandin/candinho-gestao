@@ -19,13 +19,13 @@ import {
   ShoppingBag,
   Sparkles,
   Store,
-  Smartphone,
   UserRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
+import { InstallCompanyMenuAction } from "@/components/install-company-menu-action";
 
 type RouteItem = {
   label: string;
@@ -182,7 +182,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
             <div>
               <strong>{access.name}</strong>
               <small>{access.email ?? "Acesso Company"}</small>
-              <Link href="/instalar-company"><Smartphone size={15} /> Instalar Company</Link>
+              <InstallCompanyMenuAction />
               <Link href="/dashboard"><Home size={15} /> ERP 1.0</Link>
               <form action="/auth/signout" method="post"><button type="submit"><LogOut size={15} /> Sair</button></form>
             </div>

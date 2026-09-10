@@ -13,6 +13,7 @@ import { FitnessSectorNavigationV4537R13 } from "@/components/fitness-sector-nav
 import { NavigationStabilityV4537R1 } from "@/components/navigation-stability-v45-37-r1";
 import { RouteTabIdentity } from "@/components/route-tab-identity";
 import { CompanyCursor } from "@/components/company-cursor";
+import { PwaServiceWorkerRegistration } from "@/components/pwa-service-worker-registration";
 import "./globals.css";
 import "./ux-homologation.css";
 import "./refino-navegacao-vitrine.css";
@@ -194,6 +195,7 @@ export default function RootLayout({
       </head>
 
       <body>
+        <PwaServiceWorkerRegistration />
         <CompanyCursor />
         <NavigationStabilityV4537R1 />
         <FitnessSectorNavigationV4537R13 />

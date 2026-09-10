@@ -576,7 +576,7 @@ export function AppShell({
   if (isPhysique) {
     return (
       <div className="physique-standalone-app-v4526 unified-operation-shell">
-        <UnifiedAreaHeader area="physique" />
+        <UnifiedAreaHeader area="physique" access={access} />
         <main className="physique-standalone-content-v4526">
           {children}
         </main>
@@ -604,7 +604,7 @@ export function AppShell({
 
   if (isBank) {
     return <div className="unified-operation-shell theme-bank">
-      <UnifiedAreaHeader area="bank" />
+      <UnifiedAreaHeader area="bank" access={access} />
       <main className="main unified-operation-main"><div className="content">{children}</div></main>
     </div>;
   }
