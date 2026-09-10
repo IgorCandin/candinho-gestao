@@ -928,6 +928,11 @@
 .operation-switcher-grid{gap:12px!important}
 .operation-switcher-grid a{min-height:92px;padding:20px!important;border-radius:18px!important}
 .company-mobile-menu-only{display:none!important}
+.operation-switcher-overlay,.operation-switcher-overlay *,.install-help-overlay,.install-help-overlay *{cursor:auto!important}
+.install-help-overlay{z-index:10000!important;padding:clamp(18px,4vw,48px)!important;background:rgba(1,4,8,.8)!important;-webkit-backdrop-filter:blur(18px)!important;backdrop-filter:blur(18px)!important}
+.install-help-overlay>section{width:min(680px,calc(100vw - 36px))!important;max-height:calc(100dvh - 36px);overflow:auto;padding:clamp(24px,4vw,42px)!important;border-radius:28px!important;box-shadow:0 32px 120px rgba(0,0,0,.78)!important}
+.company-embedded-central{display:grid;gap:16px;margin-top:22px;padding-top:22px;border-top:1px solid rgba(190,200,212,.16)}
+.company-embedded-central .central-home-search-first{margin-top:0}
 
 @media(max-width:700px),(hover:none) and (pointer:coarse){
   .company-mobile-menu-only{display:flex!important}
@@ -935,6 +940,8 @@
   .company-shell-v2 .company-global-search.mobile-search-open{display:grid!important}
   .operation-switcher-overlay{align-items:end!important;padding:12px!important}
   .operation-switcher-dialog{width:100%!important;max-height:min(82dvh,720px);padding:22px!important;border-radius:26px!important}
+  .install-help-overlay{align-items:end!important;padding:12px!important}
+  .install-help-overlay>section{width:100%!important;max-height:min(82dvh,720px);padding:22px!important;border-radius:26px!important}
   .operation-switcher-grid{grid-template-columns:1fr!important}
   .operation-switcher-grid a{min-height:70px;padding:15px!important}
 }
