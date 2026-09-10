@@ -48,7 +48,7 @@ export default async function ProductCustomersPage({
             : ""
         }.`}
         action={
-          <Link className="button ghost" href="/clientes/radar/produtos">
+          <Link className="button ghost" href="/company/clientes/radar/produtos">
             <ArrowLeft size={15} /> Trocar produto
           </Link>
         }

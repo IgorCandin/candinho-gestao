@@ -206,6 +206,47 @@
   line-height: 1.64;
 }
 
+/* Atletas 2.0 · identidade vermelha da operação. */
+.physique-standalone-shell {
+  --athletes-accent: #ff4057;
+  --athletes-accent-light: #ff9aa7;
+  --athletes-accent-rgb: 255, 64, 87;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(var(--athletes-accent-rgb), .09), transparent 30%),
+    radial-gradient(circle at 100% 0%, rgba(var(--athletes-accent-rgb), .05), transparent 28%),
+    linear-gradient(180deg, rgba(3, 8, 19, .96), rgba(3, 7, 16, 1));
+}
+
+.physique-standalone-shell .physique-hero {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(var(--athletes-accent-rgb), .08), transparent 35%),
+    radial-gradient(circle at 88% 20%, rgba(var(--athletes-accent-rgb), .06), transparent 35%),
+    rgba(255,255,255,.012);
+}
+
+.physique-standalone-shell .physique-hero-copy > span,
+.physique-standalone-shell .physique-subpage-header > div > span,
+.physique-standalone-shell .physique-panel-title span,
+.physique-standalone-shell .physique-foundation-card span,
+.physique-standalone-shell .physique-kpis article svg,
+.physique-standalone-shell .physique-foundation-card > svg,
+.physique-standalone-shell .physique-panel > svg {
+  color: var(--athletes-accent-light);
+}
+
+.physique-standalone-shell .physique-operation-status,
+.physique-standalone-shell .physique-operation-status.enabled {
+  border-color: rgba(var(--athletes-accent-rgb), .26);
+  color: var(--athletes-accent-light);
+  background: rgba(var(--athletes-accent-rgb), .09);
+}
+
+.physique-standalone-shell .physique-foundation-card-highlight {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--athletes-accent-rgb), .08), transparent 34%),
+    rgba(255,255,255,.018);
+}
+
 .physique-not-started-note {
   padding: 18px 20px;
   border: 1px dashed rgba(214, 193, 93, 0.28);

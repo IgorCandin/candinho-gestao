@@ -10,7 +10,6 @@ import type { NextConfig } from "next";
 const supplementRouteRoots = [
   "agenda",
   "cadastros",
-  "clientes",
   "estoque",
   "fornecedores",
   "leads",
@@ -54,6 +53,27 @@ const nextConfig: NextConfig = {
 
   async redirects() {
     return [
+      // Primeiro bloco da migração: CRM de Suplementos passa a viver na Company.
+      {
+        source: "/clientes",
+        destination: "/company/clientes",
+        permanent: false,
+      },
+      {
+        source: "/clientes/:path*",
+        destination: "/company/clientes/:path*",
+        permanent: false,
+      },
+      {
+        source: "/suplementos/clientes",
+        destination: "/company/clientes",
+        permanent: false,
+      },
+      {
+        source: "/suplementos/clientes/:path*",
+        destination: "/company/clientes/:path*",
+        permanent: false,
+      },
       {
         source: "/physique",
         destination: "/atletas/inicio",

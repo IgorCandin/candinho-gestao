@@ -54,10 +54,10 @@ export default async function CustomerRelationshipsPage() {
         description="Um único espaço para confirmar vínculos pendentes, relações com parceiros e pessoas relacionadas. O Nexus apresenta evidências, mas nunca define sozinho qual é a relação."
         action={
           <div className="page-header-actions">
-            <Link className="button gold" href="/clientes/novo">
+            <Link className="button gold" href="/company/clientes/novo">
               <Plus size={16} /> Novo cliente com vínculo
             </Link>
-            <Link className="button ghost" href="/clientes">
+            <Link className="button ghost" href="/company/clientes">
               <ArrowLeft size={16} /> CRM
             </Link>
           </div>
@@ -66,28 +66,28 @@ export default async function CustomerRelationshipsPage() {
 
       <section className="grid stats-grid">
         <StatCard
-          href="/clientes/relacionamentos"
+          href="/company/clientes/relacionamentos"
           label="Pendentes"
           value={String(pendingRows.length)}
           note="Venda atribuída sem vínculo formal confirmado"
           icon={Clock3}
         />
         <StatCard
-          href="/clientes/relacionamentos"
+          href="/company/clientes/relacionamentos"
           label="Parcerias"
           value={String(partnerCount)}
           note="Clientes conectados a parceiros"
           icon={Handshake}
         />
         <StatCard
-          href="/clientes/relacionamentos"
+          href="/company/clientes/relacionamentos"
           label="Relacionados"
           value={String(relatedCount)}
           note="Família, amizade, indicação e contexto"
           icon={UsersRound}
         />
         <StatCard
-          href="/clientes/relacionamentos"
+          href="/company/clientes/relacionamentos"
           label="Total de vínculos"
           value={String(linkRows.length)}
           note="Rede explícita cadastrada no CRM"

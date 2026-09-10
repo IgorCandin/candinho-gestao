@@ -26,7 +26,7 @@ export default async function ProductTargetsPage() {
         title="Quero vender este produto"
         description="Escolha um produto e o ERP mostra os clientes com melhor contexto comercial para ele."
         action={
-          <Link className="button ghost" href="/clientes/radar">
+          <Link className="button ghost" href="/company/clientes/radar">
             <ArrowLeft size={15} /> Voltar ao Radar
           </Link>
         }
@@ -36,7 +36,7 @@ export default async function ProductTargetsPage() {
         {products.map((product) => (
           <Link
             className="product-target-card-v45"
-            href={`/clientes/radar/produtos/${product.product_id}`}
+            href={`/company/clientes/radar/produtos/${product.product_id}`}
             key={product.product_id}
           >
             <PackageSearch size={21} />

@@ -17,6 +17,56 @@
 @media(max-width:520px){.physique-standalone-shell{padding:8px!important}.physique-ux-page-header,.physique-ux-training-hero{padding:15px!important}.physique-ux-training-hero h1,.physique-ux-page-header h1{font-size:clamp(27px,9vw,38px)!important;line-height:1.02}.physique-ux-training-hero p{display:grid!important;grid-template-columns:1fr;gap:5px!important}.physique-ux-training-hero p>span{display:none}.physique-ux-training-hero-kpis article{padding:12px 6px!important;text-align:center}.physique-ux-training-hero-kpis strong{font-size:16px!important}.physique-ux-training-hero-kpis span{font-size:7px!important}.physique-ux-athlete-card{grid-template-columns:86px minmax(0,1fr)!important}.physique-ux-import-stage>header{display:grid!important;grid-template-columns:auto minmax(0,1fr)}.physique-ux-import-stage>header>.physique-ux-import-summary-kpis{grid-column:1/-1}.physique-ux-import-days summary{grid-template-columns:minmax(0,1fr) auto!important}.physique-ux-import-days summary>svg{display:none}}
 @media(max-height:520px) and (orientation:landscape){.physique-standalone-shell{padding:8px 14px!important}.physique-ux-page-header,.physique-ux-training-hero{padding:14px 16px!important}.physique-ux-training-hero{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(250px,.75fr)!important}.physique-ux-training-hero-kpis{align-self:end}.physique-training-share-actions{grid-column:1/-1}.physique-ux-page-header h1,.physique-ux-training-hero h1{font-size:30px!important}}
 
+/* A identidade secundária das telas internas acompanha o vermelho de Atletas. */
+.physique-standalone-shell :is(
+  .physique-ux-nav-brand span,
+  .physique-ux-nav-brand strong,
+  .physique-ux-page-header > div > span,
+  .physique-ux-athlete-hero > div > span,
+  .physique-ux-training-hero > div > span,
+  .physique-ux-import-stage header > div > span,
+  .physique-ux-save-strip > div > span,
+  .physique-ux-header-icon,
+  .physique-ux-plan-card > small,
+  .physique-ux-athlete-identity > div:last-child > span,
+  .physique-ux-overview-grid > a > svg,
+  .physique-ux-overview-grid span,
+  .physique-ux-training-hero p a,
+  .physique-ux-selected-day > header span,
+  .physique-ux-stage-icon.success,
+  .physique-ux-import-summary-kpis strong,
+  .physique-ux-import-days summary small,
+  .physique-ux-import-days summary > b,
+  .physique-ux-import-days article > b,
+  .physique-import-result strong
+) { color: var(--athletes-accent-light); }
+
+.physique-standalone-shell :is(
+  .physique-ux-nav-links a:hover,
+  .physique-ux-nav-links a.active,
+  .physique-ux-status.active,
+  .physique-ux-segmented button.active,
+  .physique-ux-athlete-tabs a.active,
+  .physique-ux-day-tabs button.active,
+  .physique-ux-selected-day > header > b,
+  .physique-ux-stepper > div.active
+) {
+  color: var(--athletes-accent-light);
+  background: rgba(var(--athletes-accent-rgb), .09);
+}
+
+.physique-standalone-shell :is(.physique-ux-header-icon,.physique-ux-athlete-avatar,.physique-ux-import-stage.highlight,.physique-ux-save-strip) {
+  border-color: rgba(var(--athletes-accent-rgb), .2);
+  background: rgba(var(--athletes-accent-rgb), .05);
+}
+
+.physique-standalone-shell :is(.physique-ux-page-header,.physique-ux-athlete-hero,.physique-ux-training-hero) {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(var(--athletes-accent-rgb), .07), transparent 34%),
+    radial-gradient(circle at 0% 100%, rgba(var(--athletes-accent-rgb), .04), transparent 32%),
+    rgba(255,255,255,.014);
+}
+
 /* V45.51 · compartilhar e instalar a ficha de treino no celular */
 .physique-training-share-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}.physique-training-share-actions button{font:inherit;cursor:pointer}.physique-install-help{position:fixed;z-index:900;inset:0;display:grid;place-items:center;padding:18px;background:rgba(2,5,9,.86);backdrop-filter:blur(10px)}.physique-install-help>article{position:relative;width:min(480px,100%);padding:28px;border:1px solid rgba(220,226,234,.22);border-radius:22px;background:#0b1017;box-shadow:0 28px 90px rgba(0,0,0,.65)}.physique-install-help>article>button{position:absolute;right:13px;top:13px;width:36px;height:36px;display:grid;place-items:center;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:50%;background:#111923}.physique-install-help span{color:#c6ccd5;font-size:9px;font-weight:900;letter-spacing:.1em}.physique-install-help h2{margin:8px 0 16px}.physique-install-help ol{display:grid;gap:10px;padding-left:22px;color:#d9dee5}.physique-install-help p{margin:17px 0 0;color:#8995a3;font-size:11px;line-height:1.5}.installed-shortcut-loading{min-height:100dvh;display:grid;place-content:center;gap:6px;text-align:center;background:#07090d;color:#f4f5f7}.installed-shortcut-loading span{color:#8993a0;font-size:11px}
 @media(max-width:700px){.physique-training-share-actions{grid-column:1/-1;width:100%}.physique-training-share-actions .physique-action-button{flex:1;justify-content:center}}

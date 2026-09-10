@@ -49,7 +49,7 @@ export default async function CustomerRadarPage() {
             <Link className="button ghost" href="/parceiros/configuracao">
               Parcerias
             </Link>
-            <Link className="button gold" href="/clientes/radar/produtos">
+            <Link className="button gold" href="/company/clientes/radar/produtos">
               <PackageSearch size={15} /> Quero vender um produto
             </Link>
           </div>
@@ -58,35 +58,35 @@ export default async function CustomerRadarPage() {
 
       <section className="grid stats-grid crm-stats-grid sales-radar-stats-v45">
         <StatCard
-          href="/clientes/radar"
+          href="/company/clientes/radar"
           label="Clientes para falar"
           value={String(priorityCustomers.length)}
           note="Melhor oportunidade por cliente"
           icon={Radar}
         />
         <StatCard
-          href="/clientes/radar"
+          href="/company/clientes/radar"
           label="Alta prioridade"
           value={String(high)}
           note="Oportunidades mais quentes"
           icon={Zap}
         />
         <StatCard
-          href="/clientes/radar"
+          href="/company/clientes/radar"
           label="Recompras"
           value={String(repurchase)}
           note="Produto acabando ou já vencido"
           icon={Repeat2}
         />
         <StatCard
-          href="/clientes/radar"
+          href="/company/clientes/radar"
           label="Creatina Candinho"
           value={String(creatine)}
           note="Primeira compra, troca ou reposição"
           icon={Sparkles}
         />
         <StatCard
-          href="/clientes/radar"
+          href="/company/clientes/radar"
           label="Complementares"
           value={String(complementary)}
           note="Próximo produto coerente"
