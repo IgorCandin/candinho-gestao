@@ -7,6 +7,7 @@ import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
 import { CompanyProductsWorkspace } from "@/components/company-products-workspace";
+import type { CompanyPartnerStockRow } from "@/components/company-products-workspace";
 import { CompanyCareWorkspace } from "@/components/company-care-workspace";
 import { AgendaDragDropV4532 } from "@/components/agenda-drag-drop-v45-32";
 import { OperationalCalendar } from "@/components/operational-calendar";
@@ -35,6 +36,11 @@ function brazilToday() {
   const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
   const value = (type: "year" | "month" | "day") => parts.find((part) => part.type === type)?.value ?? "";
   return `${value("year")}-${value("month")}-${value("day")}`;
+}
+
+function relatedRecord(value: unknown): Record<string, unknown> | null {
+  if (Array.isArray(value)) return value.length && typeof value[0] === "object" && value[0] ? value[0] as Record<string, unknown> : null;
+  return typeof value === "object" && value ? value as Record<string, unknown> : null;
 }
 
 function isCommercialQueueEvent(notes: string | null) {
@@ -159,23 +165,39 @@ export default async function CompanySectorPage({ params, searchParams }: { para
 
   if (sector === "produtos") {
     const supabase = await createClient();
-    const [supplements, fitness, supplementMedia, combos, promotions] = await Promise.all([
+    const [supplements, fitness, supplementMedia, combos, promotions, partnersResult, partnerBalancesResult] = await Promise.all([
       access.role === "admin" || access.canAccessSupplements ? getProductCatalog() : Promise.resolve([]),
       access.role === "admin" || access.canAccessFitness ? getFitnessProducts() : Promise.resolve([]),
       access.role === "admin" || access.canAccessSupplements ? supabase.from("products").select("id,secondary_image_url").eq("active", true) : Promise.resolve({ data: [], error: null }),
       access.role === "admin" || access.canAccessSupplements ? getProductCombos() : Promise.resolve([]),
       getActivePromotionRows(),
+      access.role === "admin" || access.canAccessSupplements ? supabase.from("partners").select("id,name,city,linked_location_id").eq("active", true).eq("can_hold_stock", true) : Promise.resolve({ data: [], error: null }),
+      access.role === "admin" || access.canAccessSupplements ? supabase.from("stock_balances").select("product_id,location_id,quantity,updated_at,product:products(id,name,brand,category,sale_price,image_url),location:locations(id,name,city)").gt("quantity", 0) : Promise.resolve({ data: [], error: null }),
     ]);
     if (supplementMedia.error) throw new Error(supplementMedia.error.message);
+    if (partnersResult.error) throw new Error(partnersResult.error.message);
+    if (partnerBalancesResult.error) throw new Error(partnerBalancesResult.error.message);
     const secondaryByProduct = new Map((supplementMedia.data ?? []).map((row) => [row.id, row.secondary_image_url]));
     const products = [
       ...supplements.filter((product) => product.active).map((product) => ({ ...product, secondary_image_url: secondaryByProduct.get(product.id) ?? null, operation: "Suplementos" as const })),
       ...fitness.filter((product) => product.active).map((product) => ({ ...product, brand: null, sale_price: product.min_sale_price, operation: "Fitness" as const })),
     ];
+    const partnerByLocation = new Map((partnersResult.data ?? []).filter((row) => row.linked_location_id).map((row) => [String(row.linked_location_id), row]));
+    const partnerStock = (partnerBalancesResult.data ?? []).flatMap((row): CompanyPartnerStockRow[] => {
+      const partner = partnerByLocation.get(String(row.location_id));
+      const product = relatedRecord(row.product);
+      const location = relatedRecord(row.location);
+      if (!partner || !product || !location) return [];
+      return [{
+        partnerId: String(partner.id), partnerName: String(partner.name ?? location.name ?? "Parceiro"), locationId: String(row.location_id), locationName: String(location.name ?? partner.name ?? "Parceiro"), city: typeof partner.city === "string" ? partner.city : typeof location.city === "string" ? location.city : null,
+        productId: String(product.id ?? row.product_id), productName: String(product.name ?? "Produto"), brand: typeof product.brand === "string" ? product.brand : null, category: typeof product.category === "string" ? product.category : null,
+        imageUrl: typeof product.image_url === "string" ? product.image_url : null, salePrice: Number(product.sale_price ?? 0), quantity: Number(row.quantity ?? 0), updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
+      }];
+    }).sort((a, b) => a.partnerName.localeCompare(b.partnerName, "pt-BR") || a.productName.localeCompare(b.productName, "pt-BR"));
     const query = await searchParams;
     const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
-    const initialView = query.visualizacao === "combos" || query.visualizacao === "promotions" ? query.visualizacao : initialOperation;
-    return <CompanyProductsWorkspace products={products} combos={combos} promotions={promotions} initialView={initialView} />;
+    const initialView = query.visualizacao === "combos" || query.visualizacao === "promotions" || query.visualizacao === "partners" ? query.visualizacao : initialOperation;
+    return <CompanyProductsWorkspace products={products} combos={combos} promotions={promotions} partnerStock={partnerStock} initialView={initialView} />;
   }
 
   if (sector === "dia") {
@@ -202,6 +224,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         <Link href="/company/parceiros/gerencial"><Handshake/><div><strong>Parceiros</strong><span>Produtos, vendas, percentuais e acertos</span></div><b>→</b></Link>
         <Link href="/company/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Suplementos e Fitness em uma visão única</span></div><b>→</b></Link>
         <Link href="/company/custos-insumos"><Boxes/><div><strong>Custos e insumos</strong><span>Materiais e custos das duas operações</span></div><b>→</b></Link>
+        <Link href="/company/estoque"><Boxes/><div><strong>Estoque</strong><span>Saldos, locais, lotes, contagem e movimentações</span></div><b>→</b></Link>
         <Link href="/bank"><Landmark/><div><strong>Candinho Bank</strong><span>Entradas, contas, faturas e fechamento financeiro</span></div><b>→</b></Link>
       </section>
       <section className="company-embedded-central" aria-label="Informações consolidadas da Central"><CentralOverview /></section>

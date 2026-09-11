@@ -10,7 +10,6 @@ import type { NextConfig } from "next";
 const supplementRouteRoots = [
   "agenda",
   "cadastros",
-  "estoque",
   "fornecedores",
   "leads",
   "movimentacoes",
@@ -53,6 +52,27 @@ const nextConfig: NextConfig = {
 
   async redirects() {
     return [
+      // Estoque deixa de ser uma tela solta de Suplementos e passa para Gestão.
+      {
+        source: "/estoque",
+        destination: "/company/estoque",
+        permanent: false,
+      },
+      {
+        source: "/estoque/:path*",
+        destination: "/company/estoque/:path*",
+        permanent: false,
+      },
+      {
+        source: "/suplementos/estoque",
+        destination: "/company/estoque",
+        permanent: false,
+      },
+      {
+        source: "/suplementos/estoque/:path*",
+        destination: "/company/estoque/:path*",
+        permanent: false,
+      },
       // Primeiro bloco da migração: CRM de Suplementos passa a viver na Company.
       {
         source: "/clientes",
@@ -196,6 +216,14 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
+        {
+          source: "/company/estoque",
+          destination: "/estoque",
+        },
+        {
+          source: "/company/estoque/:path*",
+          destination: "/estoque/:path*",
+        },
         {
           source: "/company/gestao/central/:path*",
           destination: "/central/:path*",
