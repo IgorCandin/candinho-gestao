@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import {
   CircleDollarSign,
   PackageOpen,
+  PackageMinus,
   ShoppingBag,
   UsersRound,
   Warehouse,
@@ -34,12 +35,7 @@ export default async function FitnessDashboardPage() {
         title="Visão geral"
         description="Vendas, clientes, peças, estoque e reposições em uma operação separada da Suplementos."
         action={
-          access.canWriteFitness ? (
-            <Link className="button gold" href="/fitness/vendas/nova">
-              <ShoppingBag size={16} />
-              Nova venda
-            </Link>
-          ) : null
+          access.canWriteFitness ? <div className="page-header-actions"><Link className="button ghost" href="/fitness/estoque#baixa-operacional"><PackageMinus size={16}/>Despesa / baixa</Link><Link className="button gold" href="/fitness/vendas/nova"><ShoppingBag size={16}/>Nova venda</Link></div> : null
         }
       />
 
