@@ -22,7 +22,7 @@ export function LabelPrintCenter({ items }: { items: LabelCatalogItem[] }) {
   function toggleVisible() { setSelected((current) => allVisibleSelected ? current.filter((id) => !readyRows.some((row) => row.id === id)) : [...new Set([...current, ...readyRows.map((row) => row.id)])]); }
 
   return <article className="panel">
-    <div className="panel-head"><div><h2>Central de etiquetas</h2><p>Etiquetas térmicas em preto e branco, no formato vertical de 80 × 140 mm.</p></div></div>
+    <div className="panel-head"><div><h2>Central de etiquetas</h2><p>Etiquetas térmicas em preto e branco, no formato vertical de 80 × 101,5 mm.</p></div></div>
     <div className="panel-body">
       <div className="form-grid-two">
         <label className="field"><span>Buscar produto, código Candinho ou código de barras</span><div className="input-with-icon"><Search size={16}/><input className="input" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Ex.: creatina, 12345 ou 200..."/></div></label>
