@@ -72,7 +72,10 @@ const auditRows: MigrationAuditRow[] = [
 export default async function CompanyMigrationMapPage() {
   const supabase = await createClient();
   const { data, error } = await supabase.from("migration_audit_checks").select("check_key,state,notes").in("check_key", auditRows.map((row) => row.key));
-  if (error) throw error;
+  // O mapa é uma ferramenta de trabalho: uma indisponibilidade temporária do
+  // histórico de conferências não pode derrubar a página inteira. Neste caso,
+  // ele abre sem estados salvos e a pessoa ainda consegue consultar o roteiro.
+  if (error) console.error("Não foi possível carregar o histórico do mapa de migração:", error.message);
   const count = (state: Step["state"]) => allSteps.filter((step) => step.state === state).length;
   return <div className="company-map-page company-migration-board">
     <header><span>COMPANY · CONTROLE DA MIGRAÇÃO</span><h1>O que já foi feito, o que testar e o que falta</h1><p>Cada linha aponta a tela, o estado real e a condição para aposentar o ERP antigo.</p></header>
