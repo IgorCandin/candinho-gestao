@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { CheckCircle2, CircleAlert, ExternalLink, LoaderCircle, PlayCircle } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type AuditState = "pending" | "reviewing" | "approved" | "issue";
@@ -10,6 +10,7 @@ export type MigrationAuditRow = { key: string; operation: "supplements" | "fitne
 export type SavedAudit = { check_key: string; state: AuditState; notes: string | null };
 
 const stateCopy: Record<AuditState, string> = { pending: "A conferir", reviewing: "Em conferência", approved: "OK", issue: "Falta migrar" };
+const localStateKey = "candinho-company-migration-audit";
 
 export function MigrationAuditBoard({ rows, saved }: { rows: MigrationAuditRow[]; saved: SavedAudit[] }) {
   const [values, setValues] = useState(() => new Map(saved.map((item) => [item.check_key, item])));
@@ -19,6 +20,21 @@ export function MigrationAuditBoard({ rows, saved }: { rows: MigrationAuditRow[]
   const summary = useMemo(() => ({ approved: supplements.filter((row) => values.get(row.key)?.state === "approved").length, issue: supplements.filter((row) => values.get(row.key)?.state === "issue").length, total: supplements.length }), [supplements, values]);
   const next = supplements.find((row) => values.get(row.key)?.state !== "approved") ?? null;
 
+  useEffect(() => {
+    try {
+      const local = JSON.parse(window.localStorage.getItem(localStateKey) ?? "[]") as SavedAudit[];
+      if (Array.isArray(local) && local.length) setValues((current) => new Map([...current, ...local.map((item) => [item.check_key, item] as const)]));
+    } catch { /* Um estado local inválido não deve impedir o roteiro. */ }
+  }, []);
+
+  function saveLocal(nextValue: SavedAudit) {
+    setValues((current) => {
+      const nextValues = new Map(current).set(nextValue.check_key, nextValue);
+      window.localStorage.setItem(localStateKey, JSON.stringify([...nextValues.values()]));
+      return nextValues;
+    });
+  }
+
   async function save(row: MigrationAuditRow, state: AuditState) {
     setSaving(row.key);
     setFeedback(null);
@@ -27,9 +43,10 @@ export function MigrationAuditBoard({ rows, saved }: { rows: MigrationAuditRow[]
     setValues((current) => new Map(current).set(row.key, optimistic));
     const { error } = await createClient().from("migration_audit_checks").upsert({ check_key: row.key, operation: row.operation, area: row.area, legacy_href: row.legacyHref, company_href: row.companyHref, state, notes: existing?.notes ?? null, updated_at: new Date().toISOString() });
     if (error) {
-      setValues((current) => { const nextValues = new Map(current); if (existing) nextValues.set(row.key, existing); else nextValues.delete(row.key); return nextValues; });
-      setFeedback(`Não foi possível salvar “${row.area}”: ${error.message}`);
+      saveLocal(optimistic);
+      setFeedback(`${row.area}: ${stateCopy[state]} salvo neste aparelho. A sincronização geral ainda está aguardando a permissão do banco.`);
     } else {
+      try { window.localStorage.removeItem(localStateKey); } catch { /* Sem impacto na confirmação remota. */ }
       setFeedback(`${row.area}: ${stateCopy[state]}.`);
     }
     setSaving(null);
