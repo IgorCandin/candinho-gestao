@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, BarChart3, Boxes, Construction, Handshake, Landmark, MapPinned, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
-import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getProductCatalog, getProductCombos } from "@/lib/data";
+import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
@@ -165,22 +165,32 @@ export default async function CompanySectorPage({ params, searchParams }: { para
 
   if (sector === "produtos") {
     const supabase = await createClient();
-    const [supplements, fitness, supplementMedia, combos, promotions, partnersResult, partnerBalancesResult] = await Promise.all([
+    const [supplements, fitness, supplementInventory, fitnessInventory, supplementMedia, combos, promotions, partnersResult, partnerBalancesResult] = await Promise.all([
       access.role === "admin" || access.canAccessSupplements ? getProductCatalog() : Promise.resolve([]),
       access.role === "admin" || access.canAccessFitness ? getFitnessProducts() : Promise.resolve([]),
+      access.role === "admin" || access.canAccessSupplements ? getInventoryOverview() : Promise.resolve([]),
+      access.role === "admin" || access.canAccessFitness ? getFitnessStock() : Promise.resolve([]),
       access.role === "admin" || access.canAccessSupplements ? supabase.from("products").select("id,secondary_image_url").eq("active", true) : Promise.resolve({ data: [], error: null }),
       access.role === "admin" || access.canAccessSupplements ? getProductCombos() : Promise.resolve([]),
       getActivePromotionRows(),
       access.role === "admin" || access.canAccessSupplements ? supabase.from("partners").select("id,name,city,linked_location_id").eq("active", true).eq("can_hold_stock", true) : Promise.resolve({ data: [], error: null }),
-      access.role === "admin" || access.canAccessSupplements ? supabase.from("stock_balances").select("product_id,location_id,quantity,updated_at,product:products(id,name,brand,category,sale_price,image_url),location:locations(id,name,city)").gt("quantity", 0) : Promise.resolve({ data: [], error: null }),
+      access.role === "admin" || access.canAccessSupplements ? supabase.from("stock_balances").select("product_id,location_id,quantity,updated_at,product:products(id,name,brand,category,cost_price,sale_price,image_url),location:locations(id,name,city)").gt("quantity", 0) : Promise.resolve({ data: [], error: null }),
     ]);
     if (supplementMedia.error) throw new Error(supplementMedia.error.message);
     if (partnersResult.error) throw new Error(partnersResult.error.message);
     if (partnerBalancesResult.error) throw new Error(partnerBalancesResult.error.message);
     const secondaryByProduct = new Map((supplementMedia.data ?? []).map((row) => [row.id, row.secondary_image_url]));
+    const supplementCostByProduct = new Map(supplementInventory.map((row) => [row.product_id, row.cost_price]));
+    const fitnessCostByProduct = new Map<string, { value: number; units: number }>();
+    for (const row of fitnessInventory) {
+      const current = fitnessCostByProduct.get(row.product_id) ?? { value: 0, units: 0 };
+      current.value += row.stock_cost_value;
+      current.units += row.physical_quantity;
+      fitnessCostByProduct.set(row.product_id, current);
+    }
     const products = [
-      ...supplements.filter((product) => product.active).map((product) => ({ ...product, secondary_image_url: secondaryByProduct.get(product.id) ?? null, operation: "Suplementos" as const })),
-      ...fitness.filter((product) => product.active).map((product) => ({ ...product, brand: null, sale_price: product.min_sale_price, operation: "Fitness" as const })),
+      ...supplements.filter((product) => product.active).map((product) => ({ ...product, cost_price: supplementCostByProduct.get(product.id) ?? 0, secondary_image_url: secondaryByProduct.get(product.id) ?? null, operation: "Suplementos" as const })),
+      ...fitness.filter((product) => product.active).map((product) => { const cost = fitnessCostByProduct.get(product.id); return ({ ...product, brand: null, cost_price: cost && cost.units > 0 ? cost.value / cost.units : 0, sale_price: product.min_sale_price, operation: "Fitness" as const }); }),
     ];
     const partnerByLocation = new Map((partnersResult.data ?? []).filter((row) => row.linked_location_id).map((row) => [String(row.linked_location_id), row]));
     const partnerStock = (partnerBalancesResult.data ?? []).flatMap((row): CompanyPartnerStockRow[] => {
@@ -191,7 +201,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       return [{
         partnerId: String(partner.id), partnerName: String(partner.name ?? location.name ?? "Parceiro"), locationId: String(row.location_id), locationName: String(location.name ?? partner.name ?? "Parceiro"), city: typeof partner.city === "string" ? partner.city : typeof location.city === "string" ? location.city : null,
         productId: String(product.id ?? row.product_id), productName: String(product.name ?? "Produto"), brand: typeof product.brand === "string" ? product.brand : null, category: typeof product.category === "string" ? product.category : null,
-        imageUrl: typeof product.image_url === "string" ? product.image_url : null, salePrice: Number(product.sale_price ?? 0), quantity: Number(row.quantity ?? 0), updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
+        imageUrl: typeof product.image_url === "string" ? product.image_url : null, costPrice: Number(product.cost_price ?? 0), salePrice: Number(product.sale_price ?? 0), quantity: Number(row.quantity ?? 0), updatedAt: typeof row.updated_at === "string" ? row.updated_at : null,
       }];
     }).sort((a, b) => a.partnerName.localeCompare(b.partnerName, "pt-BR") || a.productName.localeCompare(b.productName, "pt-BR"));
     const query = await searchParams;

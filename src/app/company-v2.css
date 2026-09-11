@@ -1255,6 +1255,10 @@ body.company-custom-cursor-active .install-help-overlay button{cursor:pointer!im
 .company-partner-stock-card{min-width:0;min-height:150px;padding:12px;border:1px solid rgba(190,200,212,.16);border-radius:17px;background:#0b1017;display:grid;grid-template-columns:104px minmax(0,1fr);gap:14px;align-items:center}
 .company-partner-stock-card>img,.company-partner-stock-card>svg{width:104px;height:104px;object-fit:contain;border-radius:13px;color:#9ca8b6;background:#fff}
 .company-partner-stock-card>svg{padding:30px;background:#111923}
+.company-catalog-special-card .promotion-exhausted{color:#ff939b!important;font-weight:850}
+.company-product-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:1000px){.company-product-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.company-product-metrics{grid-template-columns:1fr}}
 .company-partner-stock-card>span{min-width:0;display:grid;gap:6px}
 .company-partner-stock-card small{display:flex;align-items:center;gap:5px;color:#8f9cab;font-size:9px}
 .company-partner-stock-card strong{overflow-wrap:anywhere;font-size:15px}
