@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, ContactRound, History, LoaderCircle, MessageCircle, PhoneOff, Radar, Search, ShoppingBag, Sparkles, UserRound, UsersRound } from "lucide-react";
+import { CalendarClock, CheckCircle2, ContactRound, History, LoaderCircle, MessageCircle, PackageMinus, PhoneOff, Radar, Search, ShoppingBag, Sparkles, UserRound, UsersRound } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useMemo, useState } from "react";
@@ -68,7 +68,7 @@ export function CompanyCareWorkspace({ items }: { items: CompanyCareItem[] }) {
   }
 
   return <div className="company-workspace-v2 company-care-v2">
-    <header className="company-workspace-head"><div><span>COMPANY · CRM OPERACIONAL</span><h1>Atender e acompanhar</h1><p>Histórico, orientação e resultado da conversa no mesmo lugar.</p></div><div className="company-registry-create"><Link href="/company/clientes"><ContactRound size={17}/>Ficha de Clientes</Link><Link href="/company/clientes/radar"><Radar size={17}/>Radar comercial</Link></div></header>
+    <header className="company-workspace-head"><div><span>COMPANY · CRM OPERACIONAL</span><h1>Atender e acompanhar</h1><p>Histórico, orientação e resultado da conversa no mesmo lugar.</p></div><div className="company-registry-create"><Link href="/company/clientes"><ContactRound size={17}/>Ficha de Clientes</Link><Link href="/company/clientes/radar"><Radar size={17}/>Radar comercial</Link><Link href="/company/acoes-comerciais"><PackageMinus size={17}/>Ações comerciais</Link></div></header>
     <section className="company-workspace-metrics"><article><CalendarClock/><span>Agir agora</span><strong>{counts.today}</strong></article><article><MessageCircle/><span>Aguardando resposta</span><strong>{counts.waiting}</strong></article><article><UsersRound/><span>Pós-vendas ativos</span><strong>{counts.post_sale}</strong></article><article><CheckCircle2/><span>Retornos combinados</span><strong>{counts.follow_up}</strong></article></section>
     <section className="company-workspace-panel"><div className="company-workspace-toolbar"><div>{filters.map((item) => <button key={item.id} className={filter === item.id ? "active" : ""} onClick={() => setFilter(item.id)}>{item.label} · {item.count}</button>)}</div><label><Search size={17}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Cliente, cidade ou motivo"/></label></div>{message ? <p className="company-care-feedback">{message}</p> : null}<p className="company-workspace-count">{visible.length} pessoa(s) nesta fila</p>
       <div className="company-care-grid">{visible.map((item) => { const wa = whatsapp(item.phone, item.customerName); const overdue = Boolean(item.dueOn && item.dueOn < today); const open = expanded === item.id; const context = contexts[item.customerId]; return <article className={`company-care-card ${open ? "is-open" : ""}`} key={item.id}>

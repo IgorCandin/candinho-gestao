@@ -62,6 +62,8 @@ const SEARCH_ROUTES: RouteItem[] = [
   { label: "Agenda geral", note: "Compromissos de todas as operações", href: "/company/gestao", keywords: "agenda calendário compromisso", icon: CalendarDays },
   { label: "Ficha de Clientes", note: "Cadastro Company e histórico completo", href: "/company/clientes", keywords: "crm cliente suplementos fitness", icon: ContactRound },
   { label: "Fornecedores", note: "Suplementos e Fitness reunidos", href: "/company/fornecedores", keywords: "fornecedor compras reposição", icon: Boxes },
+  { label: "Resultados", note: "Suplementos, Fitness e Company", href: "/company/resultados", keywords: "resultado painel cs faturamento lucro gráfico", icon: CircleDollarSign },
+  { label: "Ações comerciais", note: "Brindes, amostras e ativações", href: "/company/acoes-comerciais", keywords: "ação comercial brinde amostra ativação saída", icon: ShoppingBag },
   { label: "Custos e insumos", note: "Materiais das duas operações", href: "/company/custos-insumos", keywords: "custos insumos sacola etiqueta material", icon: Boxes },
   { label: "Gerenciar Vitrine", note: "Campanhas, cupons e depoimentos", href: "/company/vitrine", keywords: "vitrine campanha cupom depoimento cliente público", icon: Store },
   { label: "Parcerias", note: "Estoque, vendas e acertos", href: "/company/parceiros/gerencial", keywords: "parceria parceiros relacionamento acerto", icon: Handshake },

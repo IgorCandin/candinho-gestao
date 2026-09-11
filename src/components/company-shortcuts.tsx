@@ -2,6 +2,7 @@
 
 import { Keyboard, LoaderCircle, Plus, Trash2, X } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { createPortal } from "react-dom";
 import { useEffect, useState } from "react";
 import type { NexusPersonalShortcut, NexusPersonalWorkspace } from "@/lib/nexus-personal-types";
 
@@ -31,7 +32,7 @@ export function AddCurrentPageShortcut() {
   };
   return <>
     <button type="button" onClick={() => setOpen(true)}><Plus size={15}/> Adicionar atalho</button>
-    {open ? <div className="shortcut-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setOpen(false)}><section className="shortcut-modal" role="dialog" aria-modal="true" aria-label="Adicionar atalho"><button className="shortcut-modal-close" type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18}/></button><Keyboard size={22}/><span>ATALHO DA PÁGINA ATUAL</span><h2>Escolha a posição</h2><p>O mesmo atalho aparecerá aqui e no Nexus.</p><label><span>Alt +</span><select value={slot} onChange={(event) => setSlot(event.target.value)}>{[1,2,3,4].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>{message ? <small>{message}</small> : null}<button className="button company-blue" type="button" disabled={loading} onClick={() => void save()}>{loading ? <LoaderCircle className="spin"/> : null}Salvar atalho</button></section></div> : null}
+    {open && typeof document !== "undefined" ? createPortal(<div className="shortcut-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setOpen(false)}><section className="shortcut-modal" role="dialog" aria-modal="true" aria-label="Adicionar atalho"><button className="shortcut-modal-close" type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18}/></button><Keyboard size={22}/><span>ATALHO DA PÁGINA ATUAL</span><h2>Escolha a posição</h2><p>O mesmo atalho aparecerá aqui e no Nexus.</p><label><span>Alt +</span><select value={slot} onChange={(event) => setSlot(event.target.value)}>{[1,2,3,4].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>{message ? <small>{message}</small> : null}<button className="button company-blue" type="button" disabled={loading} onClick={() => void save()}>{loading ? <LoaderCircle className="spin"/> : null}Salvar atalho</button></section></div>, document.body) : null}
   </>;
 }
 

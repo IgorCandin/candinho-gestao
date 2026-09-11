@@ -43,6 +43,14 @@ export function CompanyReplenishmentGroups({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const orderedGroups = useMemo(() => [...groups].sort((left, right) => {
+    const leftTotal = products.filter((product) => left.product_ids.includes(product.id)).reduce((sum, product) => sum + product.quantity, 0);
+    const rightTotal = products.filter((product) => right.product_ids.includes(product.id)).reduce((sum, product) => sum + product.quantity, 0);
+    return Number(leftTotal > left.minimum_stock) - Number(rightTotal > right.minimum_stock) || left.name.localeCompare(right.name, "pt-BR");
+  }), [groups, products]);
+  const groupsToBuy = orderedGroups.filter((group) => products.filter((product) => group.product_ids.includes(product.id)).reduce((sum, product) => sum + product.quantity, 0) <= group.minimum_stock);
+  const groupsCovered = orderedGroups.filter((group) => !groupsToBuy.some((candidate) => candidate.id === group.id));
+
   const availableProducts = useMemo(() => {
     const assigned = new Set(groups.filter((group) => group.id !== editingId).flatMap((group) => group.product_ids));
     return products.filter((product) => !assigned.has(product.id));
@@ -171,8 +179,9 @@ export function CompanyReplenishmentGroups({
       {groups.length === 0 ? (
         <div className="company-empty-state"><Boxes size={24} /><strong>Nenhum grupo criado ainda</strong><span>Crie Beta-alanina, HMB ou outro grupo apenas quando decidir quais produtos são equivalentes.</span></div>
       ) : (
-        <div className="company-group-grid company-group-wallet" style={{ "--wallet-count": groups.length } as React.CSSProperties}>
-          {groups.map((group, index) => {
+        <div className="company-group-status-columns">
+          <div><header><span>Prioridade</span><h3>Comprar agora · {groupsToBuy.length}</h3></header><div className="company-group-grid company-group-wallet" style={{ "--wallet-count": groupsToBuy.length } as React.CSSProperties}>
+          {groupsToBuy.map((group, index) => {
             const members = products.filter((product) => group.product_ids.includes(product.id));
             const total = members.reduce((sum, product) => sum + product.quantity, 0);
             const preferredProduct = products.find((product) => product.id === group.preferred_product_id);
@@ -185,7 +194,14 @@ export function CompanyReplenishmentGroups({
                 <div className="company-group-actions"><button className="button ghost compact-button" type="button" disabled={loading} onClick={() => editGroup(group)}><Pencil size={14}/>Editar</button><button className="button ghost compact-button" type="button" disabled={loading} onClick={() => void removeGroup(group.id)}><Trash2 size={14}/>Remover</button></div>
               </article>
             );
-          })}
+          })}{groupsToBuy.length === 0 ? <p className="company-group-empty">Nenhum grupo precisa de compra agora.</p> : null}</div></div>
+          <div><header><span>Estável</span><h3>Cobertura suficiente · {groupsCovered.length}</h3></header><div className="company-group-grid company-group-wallet" style={{ "--wallet-count": groupsCovered.length } as React.CSSProperties}>
+          {groupsCovered.map((group, index) => {
+            const members = products.filter((product) => group.product_ids.includes(product.id));
+            const total = members.reduce((sum, product) => sum + product.quantity, 0);
+            const preferredProduct = products.find((product) => product.id === group.preferred_product_id);
+            return <article className="panel company-group-card" style={{ "--wallet-index": index } as React.CSSProperties} key={group.id}><div><span className="company-status ok">Cobertura suficiente</span><h3>{group.name}</h3><p>{members.map((item) => item.brand ?? item.name).join(" + ")}</p></div><div className="company-group-metrics"><span>Estoque total<strong>{total}</strong></span><span>Mínimo<strong>{group.minimum_stock}</strong></span><span>Sugestão<strong>0</strong></span></div><small>Comprar preferencialmente: <strong>{preferredProduct?.name ?? "Não definido"}</strong></small><div className="company-group-actions"><button className="button ghost compact-button" type="button" disabled={loading} onClick={() => editGroup(group)}><Pencil size={14}/>Editar</button><button className="button ghost compact-button" type="button" disabled={loading} onClick={() => void removeGroup(group.id)}><Trash2 size={14}/>Remover</button></div></article>;
+          })}{groupsCovered.length === 0 ? <p className="company-group-empty">Sem grupos com cobertura acima do mínimo.</p> : null}</div></div>
         </div>
       )}
       {message && <p className="sale-action-message">{message}</p>}
