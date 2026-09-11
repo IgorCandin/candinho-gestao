@@ -7,6 +7,7 @@ import {
   Clock3,
   PackageCheck,
   PackageOpen,
+  PackageMinus,
   ShieldAlert,
   Tags,
   TriangleAlert,
@@ -170,6 +171,7 @@ export default async function StockPage() {
               <ClipboardCheck size={16}/>
               Reconciliação
             </Link>
+            <Link className="button ghost" href="/company/acoes-comerciais"><PackageMinus size={16}/>Despesa / baixa</Link>
 
             <InventoryActions
               products={products}

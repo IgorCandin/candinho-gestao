@@ -39,7 +39,7 @@ export function FitnessOperationalOutflowForm({ stock }: { stock: FitnessStockRo
     }
   }
 
-  return <form className="panel" onSubmit={submit}>
+  return <form id="baixa-operacional" className="panel" onSubmit={submit}>
     <div className="panel-head"><div><h2>Baixa operacional</h2><p>Retire uma peça sem gerar venda. O custo fica registrado no histórico de estoque.</p></div><PackageMinus size={20} /></div>
     <div className="panel-body form-grid-two">
       <label className="field"><span>Produto / variação</span><select className="input" value={variantId} onChange={(event) => setVariantId(event.target.value)} required><option value="">Selecione</option>{available.map((item) => <option key={item.variant_id} value={item.variant_id}>{item.product_name} · {item.size} · {item.color} ({item.available_quantity} disponível)</option>)}</select></label>

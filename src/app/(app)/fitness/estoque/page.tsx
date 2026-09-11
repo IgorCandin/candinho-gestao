@@ -7,6 +7,7 @@ import {
   History,
   ImageOff,
   PackageOpen,
+  PackageMinus,
   PackageSearch,
   Sparkles,
   Truck,
@@ -277,6 +278,10 @@ export default async function Page() {
               <strong>Movimentações</strong>
               <small>Histórico de entrada, saída, ajuste e conversão.</small>
             </span>
+          </Link>
+          <Link className="fitness-sector-action" href="#baixa-operacional">
+            <PackageMinus size={20} />
+            <span><strong>Despesa / baixa</strong><small>Avaria, uso interno ou saída sem venda.</small></span>
           </Link>
           <Link className="fitness-sector-action" href="/fitness/estoque/conferencia">
             <Boxes size={20} />
