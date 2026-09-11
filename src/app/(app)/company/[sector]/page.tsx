@@ -214,10 +214,11 @@ export default async function CompanySectorPage({ params, searchParams }: { para
   if (sector === "gestao") {
     const supabase = await createClient();
     const today = brazilToday();
-    const [allEvents, customers, sales, purchaseOrders, users, commercialResult, googleCalendar, investment] = await Promise.all([
-      getAgendaEvents(), getCustomerOptions(), getAgendaSaleOptions(), getAgendaPurchaseOrderOptions(), getAgendaUsers(), supabase.rpc("commercial_contact_queue_people_v1", { p_limit: 1 }), getGoogleCalendarStatus(), getOperationInvestmentSnapshot(),
+    const [allEvents, customers, sales, purchaseOrders, users, commercialResult, googleCalendar, investment, waitingStockResult] = await Promise.all([
+      getAgendaEvents(), getCustomerOptions(), getAgendaSaleOptions(), getAgendaPurchaseOrderOptions(), getAgendaUsers(), supabase.rpc("commercial_contact_queue_people_v1", { p_limit: 1 }), getGoogleCalendarStatus(), getOperationInvestmentSnapshot(), supabase.from("stock_reservations").select("sale_id").in("status", ["awaiting_stock", "partial"]),
     ]);
-    const events = allEvents.filter((event) => !isCommercialQueueEvent(event.notes));
+    const waitingStockSaleIds = new Set((waitingStockResult.data ?? []).map((row) => String(row.sale_id)));
+    const events = allEvents.filter((event) => !isCommercialQueueEvent(event.notes) && !(event.source_type === "sale_delivery" && waitingStockSaleIds.has(event.source_id)));
     const commercialQueue = commercialResult.error ? emptyCommercialContactQueue(today) : ((commercialResult.data as CommercialContactQueueSnapshot | null) ?? emptyCommercialContactQueue(today));
     const month = today.slice(0, 7);
     const summary = {
