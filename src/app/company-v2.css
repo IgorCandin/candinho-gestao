@@ -1152,8 +1152,25 @@ body.company-custom-cursor-active .install-help-overlay button{cursor:pointer!im
   }
   .company-shell-v2>.company-command-header .company-account-menu,
   .unified-operation-shell>.unified-company-header .company-account-menu{
+    display:block!important;
+    grid-column:3!important;
+    grid-row:1!important;
+    align-self:center!important;
+    justify-self:end!important;
+    z-index:12!important;
     top:max(12px,calc(env(safe-area-inset-top) + 7px))!important;
     right:10px!important;
+  }
+  .company-shell-v2>.company-command-header .company-account-menu>summary,
+  .unified-operation-shell>.unified-company-header .company-account-menu>summary{
+    display:grid!important;
+    place-items:center!important;
+    width:38px!important;
+    height:38px!important;
+    padding:0!important;
+    border:1px solid rgba(190,200,212,.26)!important;
+    border-radius:50%!important;
+    background:#0a111a!important;
   }
   .operation-mobile-bottom-nav{
     position:fixed!important;
