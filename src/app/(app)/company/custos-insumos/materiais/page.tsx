@@ -20,7 +20,7 @@ export default async function CompanyOperationalSuppliesPage({
     !access.canWriteSupplements &&
     !access.canWriteFitness
   ) {
-    redirect("/company/dia");
+    redirect("/company/gestao");
   }
 
   const operation =

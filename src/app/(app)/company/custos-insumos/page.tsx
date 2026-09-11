@@ -17,7 +17,7 @@ export default async function CompanyOperationalCostsPage({
     !access.canWriteSupplements &&
     !access.canWriteFitness
   ) {
-    redirect("/company/dia");
+    redirect("/company/gestao");
   }
 
   const operation =

@@ -36,7 +36,7 @@ export function OperationalCostsPage({
               Ver Bank
             </Link>
 
-            <Link className="button ghost" href="/company/dia">
+            <Link className="button ghost" href="/company/gestao">
               Voltar à Gestão
             </Link>
           </div>

@@ -434,6 +434,7 @@ export default async function QuoteDetailsPage<T extends {
               <QuoteStatusActions
                 quoteId={quote.id}
                 status={quote.status}
+                saleId={quote.sale_id}
               />
             </div>
           </article>

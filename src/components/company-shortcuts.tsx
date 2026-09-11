@@ -1,76 +1,54 @@
 "use client";
 
-import { Keyboard, Plus, Trash2, X } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { Keyboard, LoaderCircle, Plus, Trash2, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { NexusPersonalShortcut, NexusPersonalWorkspace } from "@/lib/nexus-personal-types";
 
-type Shortcut = { key: string; href: string; label: string };
-const STORAGE_KEY = "candinho-company-shortcuts-v1";
-const DEFAULTS: Shortcut[] = [{ key: "4", href: "/bank", label: "Candinho Bank" }];
-
-function readShortcuts(): Shortcut[] {
-  if (typeof window === "undefined") return DEFAULTS;
-  try {
-    const parsed = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? "null");
-    return Array.isArray(parsed) ? parsed : DEFAULTS;
-  } catch { return DEFAULTS; }
-}
-
-function writeShortcuts(rows: Shortcut[]) {
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(rows));
-  window.dispatchEvent(new Event("candinho-shortcuts-change"));
-}
-
-export function CompanyShortcutListener() {
-  const router = useRouter();
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!event.altKey || event.ctrlKey || event.metaKey || target?.matches("input, textarea, select, [contenteditable='true']")) return;
-      const row = readShortcuts().find((item) => item.key.toLowerCase() === event.key.toLowerCase());
-      if (!row) return;
-      event.preventDefault();
-      router.push(row.href);
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [router]);
-  return null;
+async function request(body: Record<string, unknown>) {
+  const response = await fetch("/api/nexus/personal", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const payload = (await response.json()) as { id?: string; error?: string };
+  if (!response.ok) throw new Error(payload.error ?? "Não foi possível alterar o atalho.");
+  return payload;
 }
 
 export function AddCurrentPageShortcut() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [key, setKey] = useState("4");
-  const save = () => {
-    const clean = key.trim().slice(-1).toUpperCase();
-    if (!/^[A-Z0-9]$/.test(clean)) return;
-    const label = document.title.replace(/\s*[|–-]\s*Candinho.*$/i, "") || pathname;
-    writeShortcuts([...readShortcuts().filter((row) => row.key !== clean), { key: clean, href: pathname, label }]);
-    setOpen(false);
+  const [slot, setSlot] = useState("1");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const save = async () => {
+    setLoading(true); setMessage("");
+    try {
+      const label = document.title.replace(/\s*[|–-]\s*Candinho.*$/i, "") || pathname;
+      const pinned = await request({ action: "pin", href: pathname, label, context_route: "*", source: "manual" });
+      if (!pinned.id) throw new Error("O atalho não retornou uma identificação.");
+      await request({ action: "slot", id: pinned.id, slot: Number(slot) });
+      window.dispatchEvent(new Event("nexus:shortcuts-changed")); setOpen(false);
+    } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível salvar."); }
+    finally { setLoading(false); }
   };
   return <>
     <button type="button" onClick={() => setOpen(true)}><Plus size={15}/> Adicionar atalho</button>
-    {open ? <div className="shortcut-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setOpen(false)}>
-      <section className="shortcut-modal" role="dialog" aria-modal="true" aria-label="Adicionar atalho">
-        <button className="shortcut-modal-close" type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18}/></button>
-        <Keyboard size={22}/><span>ATALHO DA PÁGINA ATUAL</span><h2>Escolha uma tecla</h2><p>Este atalho abrirá <strong>{pathname}</strong> neste navegador.</p>
-        <label><span>Alt +</span><input value={key} maxLength={1} onChange={(event) => setKey(event.target.value.replace(/[^a-z0-9]/gi, ""))} autoFocus/></label>
-        <button className="button company-blue" type="button" onClick={save}>Salvar atalho</button>
-      </section>
-    </div> : null}
+    {open ? <div className="shortcut-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && setOpen(false)}><section className="shortcut-modal" role="dialog" aria-modal="true" aria-label="Adicionar atalho"><button className="shortcut-modal-close" type="button" onClick={() => setOpen(false)} aria-label="Fechar"><X size={18}/></button><Keyboard size={22}/><span>ATALHO DA PÁGINA ATUAL</span><h2>Escolha a posição</h2><p>O mesmo atalho aparecerá aqui e no Nexus.</p><label><span>Alt +</span><select value={slot} onChange={(event) => setSlot(event.target.value)}>{[1,2,3,4].map((value) => <option key={value} value={value}>{value}</option>)}</select></label>{message ? <small>{message}</small> : null}<button className="button company-blue" type="button" disabled={loading} onClick={() => void save()}>{loading ? <LoaderCircle className="spin"/> : null}Salvar atalho</button></section></div> : null}
   </>;
 }
 
 export function ShortcutManagement() {
-  const [rows, setRows] = useState<Shortcut[]>(DEFAULTS);
+  const [rows, setRows] = useState<NexusPersonalShortcut[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [message, setMessage] = useState("");
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => setRows(readShortcuts()));
-    return () => window.cancelAnimationFrame(frame);
+    let active = true;
+    void fetch("/api/nexus/personal?route=/company/atalhos", { cache: "no-store" }).then(async (response) => {
+      const payload = (await response.json()) as NexusPersonalWorkspace & { error?: string };
+      if (!response.ok) throw new Error(payload.error ?? "Falha ao carregar atalhos.");
+      if (active) setRows(payload.pinned);
+    }).catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : "Falha ao carregar atalhos."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, []);
-  const remove = (key: string) => { const next = rows.filter((row) => row.key !== key); setRows(next); writeShortcuts(next); };
-  return <section className="shortcut-management panel"><header><Keyboard/><div><span>GESTÃO · ATALHOS</span><h1>Atalhos do teclado</h1><p>Cadastre novas páginas pelo perfil de cada operação.</p></div></header>
-    <div>{rows.map((row) => <article key={row.key}><kbd>Alt + {row.key}</kbd><span><strong>{row.label}</strong><small>{row.href}</small></span><button type="button" onClick={() => remove(row.key)} aria-label={`Remover Alt + ${row.key}`}><Trash2 size={17}/></button></article>)}</div>
-    {rows.length === 0 ? <p>Nenhum atalho cadastrado. Abra uma página e use “Adicionar atalho” no perfil.</p> : null}
-  </section>;
+  const remove = async (id: string) => { try { await request({ action: "unpin", id }); window.dispatchEvent(new Event("nexus:shortcuts-changed")); setRows((current) => current.filter((row) => row.id !== id)); } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível remover."); } };
+  return <section className="shortcut-management panel"><header><Keyboard/><div><span>GESTÃO · ATALHOS</span><h1>Atalhos do teclado</h1><p>Esta é a mesma lista usada pelo Nexus. Os quatro primeiros correspondem a Alt+1 até Alt+4.</p></div></header>{loading ? <p><LoaderCircle className="spin"/> Carregando atalhos do Nexus…</p> : <div>{rows.map((row,index) => <article key={row.id}><kbd>{index < 4 ? `Alt + ${index + 1}` : "Sem tecla"}</kbd><span><strong>{row.label}</strong><small>{row.href}</small></span><button type="button" onClick={() => void remove(row.id)} aria-label={`Remover ${row.label}`}><Trash2 size={17}/></button></article>)}</div>}{!loading && rows.length === 0 ? <p>Nenhum atalho cadastrado no Nexus.</p> : null}{message ? <p className="form-error visible">{message}</p> : null}</section>;
 }

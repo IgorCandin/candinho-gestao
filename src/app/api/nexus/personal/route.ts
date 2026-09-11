@@ -118,6 +118,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: Boolean(data) });
   }
 
+  if (action === "slot") {
+    const slot = Number(body.slot);
+    if (typeof body.id !== "string" || !body.id || !Number.isInteger(slot) || slot < 1 || slot > 12) {
+      return NextResponse.json({ error: "Atalho ou posição inválida." }, { status: 400 });
+    }
+    const { data, error } = await supabase.rpc("nexus_move_shortcut_to_slot_v1", { p_id: body.id, p_slot: slot });
+    if (error) return NextResponse.json({ error: error.message }, { status: 400 });
+    return NextResponse.json({ ok: Boolean(data) });
+  }
+
   if (action === "use") {
     if (typeof body.id !== "string" || !body.id) {
       return NextResponse.json({ ok: false }, { status: 400 });

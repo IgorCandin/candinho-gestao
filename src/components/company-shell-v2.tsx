@@ -27,7 +27,7 @@ import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { InstallCompanyMenuAction } from "@/components/install-company-menu-action";
 import { OperationSwitcher } from "@/components/operation-switcher";
-import { AddCurrentPageShortcut, CompanyShortcutListener } from "@/components/company-shortcuts";
+import { AddCurrentPageShortcut } from "@/components/company-shortcuts";
 
 type RouteItem = {
   label: string;
@@ -53,13 +53,13 @@ const PRIMARY_NAV: RouteItem[] = [
   { label: "Atender e acompanhar", note: "Pós-venda e retornos", href: "/company/acompanhar", keywords: "atender acompanhar pos venda retorno", icon: ContactRound },
   { label: "Produtos", note: "Disponibilidade, preços e catálogo", href: "/company/produtos", keywords: "produto estoque preço catálogo", icon: PackageSearch },
   { label: "Comprar e repor", note: "Estoque, rupturas e pedidos", href: "/company/compras", keywords: "comprar repor estoque fornecedor", icon: Boxes },
-  { label: "Gestão", note: "Agenda, valores, parceiros e fornecedores", href: "/company/dia", keywords: "gestao agenda valores parceiros fornecedores calendário tarefa", icon: CalendarDays },
+  { label: "Gestão", note: "Agenda, valores, parceiros e fornecedores", href: "/company/gestao", keywords: "gestao agenda valores parceiros fornecedores calendário tarefa", icon: CalendarDays },
 ];
 
 const SEARCH_ROUTES: RouteItem[] = [
   ...PRIMARY_NAV,
   { label: "Início da Company", note: "Voltar ao radar de execução", href: "/company/inicio", keywords: "inicio home company", icon: Home },
-  { label: "Agenda geral", note: "Compromissos de todas as operações", href: "/company/dia", keywords: "agenda calendário compromisso", icon: CalendarDays },
+  { label: "Agenda geral", note: "Compromissos de todas as operações", href: "/company/gestao", keywords: "agenda calendário compromisso", icon: CalendarDays },
   { label: "Ficha de Clientes", note: "Cadastro Company e histórico completo", href: "/company/clientes", keywords: "crm cliente suplementos fitness", icon: ContactRound },
   { label: "Fornecedores", note: "Suplementos e Fitness reunidos", href: "/company/fornecedores", keywords: "fornecedor compras reposição", icon: Boxes },
   { label: "Custos e insumos", note: "Materiais das duas operações", href: "/company/custos-insumos", keywords: "custos insumos sacola etiqueta material", icon: Boxes },
@@ -67,7 +67,7 @@ const SEARCH_ROUTES: RouteItem[] = [
   { label: "Parcerias", note: "Estoque, vendas e acertos", href: "/company/parceiros/gerencial", keywords: "parceria parceiros relacionamento acerto", icon: Handshake },
   { label: "Produtos · Suplementos", note: "Cadastro e catálogo", href: "/company/produtos?operacao=Suplementos", keywords: "produto suplemento catálogo", icon: PackageSearch },
   { label: "Produtos · Fitness", note: "Cadastro e catálogo", href: "/company/produtos?operacao=Fitness", keywords: "produto fitness roupa catálogo", icon: PackageSearch },
-  { label: "Meu Dia", note: "Rotinas e prioridades do negócio", href: "/company/dia", keywords: "ferramenta meu dia rotina prioridade", icon: Sparkles },
+  { label: "Meu Dia", note: "Rotinas e prioridades do negócio", href: "/company/gestao", keywords: "ferramenta meu dia rotina prioridade", icon: Sparkles },
   { label: "Qualidade", note: "Saúde e consistência do ERP", href: "/nexus/qualidade", keywords: "ferramenta qualidade erro sistema", icon: ShieldCheck },
   { label: "Relatar problema", note: "Registrar uma quebra para revisão", href: "#relatar-problema", keywords: "ferramenta relatar problema bug erro", icon: Bug, kind: "report" },
 ];
@@ -156,7 +156,6 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
 
   return (
     <div className="company-shell-v2">
-      <CompanyShortcutListener />
       <header className="company-command-header">
         <button className="company-fullscreen-button company-refresh-button company-header-edge-control" type="button" onClick={refreshData} aria-label="Atualizar dados desta tela" title="Atualizar dados" disabled={isRefreshing}>
           <RefreshCcw className={isRefreshing ? "spin" : ""} size={17}/>

@@ -9,7 +9,7 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 import type { UserAccess } from "@/lib/access";
 import { InstallCompanyMenuAction } from "@/components/install-company-menu-action";
 import { OperationSwitcher } from "@/components/operation-switcher";
-import { AddCurrentPageShortcut, CompanyShortcutListener } from "@/components/company-shortcuts";
+import { AddCurrentPageShortcut } from "@/components/company-shortcuts";
 
 const bankLeft = [
   { href: "/bank", label: "Visão geral", icon: Landmark },
@@ -42,7 +42,6 @@ export function UnifiedAreaHeader({ area, access }: { area: "bank" | "physique";
   const renderNav = (items: typeof left) => items.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={isActive(href) ? "active" : ""} aria-label={label} title={label}><span className="company-nav-icon"><Icon size={19}/></span><span className="company-nav-label">{label}</span></Link>);
 
   return <>
-    <CompanyShortcutListener />
     <header className={`company-command-header unified-company-header ${area} ${area === "physique" ? "compact-four" : ""}`}>
       <button className="company-fullscreen-button company-refresh-button company-header-edge-control" type="button" onClick={() => startRefresh(() => router.refresh())} aria-label="Atualizar dados desta tela" title="Atualizar dados"><RefreshCcw className={refreshing ? "spin" : ""} size={17}/></button>
       <div className="company-header-inner">

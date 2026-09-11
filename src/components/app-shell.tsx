@@ -160,7 +160,7 @@ const companyNav: NavItem[] = [
   { href: "/company/acompanhar", label: "Acompanhar", icon: ContactRound },
   { href: "/company/produtos", label: "Produtos", icon: PackageSearch },
   { href: "/company/compras", label: "Comprar e repor", icon: Boxes },
-  { href: "/company/dia", label: "Organizar o dia", icon: CalendarDays },
+  { href: "/company/gestao", label: "Organizar o dia", icon: CalendarDays },
   { href: "/dashboard", label: "Operações antigas", icon: ArrowLeft, variant: "operation-return" },
 ];
 
@@ -277,7 +277,7 @@ export function AppShell({
       ? [
           { href: "/company/vender", label: "Vender", icon: ShoppingBag, primary: true },
           { href: "/company/compras", label: "Comprar", icon: Boxes, primary: false },
-          { href: "/company/dia", label: "Meu dia", icon: CalendarDays, primary: false },
+          { href: "/company/gestao", label: "Meu dia", icon: CalendarDays, primary: false },
         ]
     : isCentral
       ? [

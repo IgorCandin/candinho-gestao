@@ -29,7 +29,7 @@ const SECTORS: Record<string, { title: string; description: string }> = {
   concluir: { title: "Concluir vendas", description: "Recebimentos e entregas reunidos na mesma fila." },
   acompanhar: { title: "Atender e acompanhar", description: "A próxima etapa reunirá pós-vendas, respostas aguardadas e retornos combinados." },
   produtos: { title: "Produtos", description: "Consulte disponibilidade, preços e catálogo sem sair da Company." },
-  dia: { title: "Gestão", description: "Agenda, valores, parceiros, fornecedores e decisões da Company." },
+  gestao: { title: "Gestão", description: "Agenda, valores, parceiros, fornecedores e decisões da Company." },
 };
 
 function brazilToday() {
@@ -210,7 +210,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     return <CompanyProductsWorkspace products={products} combos={combos} promotions={promotions} partnerStock={partnerStock} initialView={initialView} />;
   }
 
-  if (sector === "dia") {
+  if (sector === "gestao") {
     const supabase = await createClient();
     const today = brazilToday();
     const [allEvents, customers, sales, purchaseOrders, users, commercialResult, googleCalendar] = await Promise.all([

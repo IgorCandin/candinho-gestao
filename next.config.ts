@@ -52,6 +52,11 @@ const nextConfig: NextConfig = {
 
   async redirects() {
     return [
+      {
+        source: "/company/dia",
+        destination: "/company/gestao",
+        permanent: true,
+      },
       // Estoque deixa de ser uma tela solta de Suplementos e passa para Gestão.
       {
         source: "/estoque",
@@ -173,12 +178,12 @@ const nextConfig: NextConfig = {
       // A Central deixa de ser uma operação isolada e passa a morar em Gestão.
       {
         source: "/central",
-        destination: "/company/dia",
+        destination: "/company/gestao",
         permanent: false,
       },
       {
         source: "/central/inicio",
-        destination: "/company/dia",
+        destination: "/company/gestao",
         permanent: false,
       },
       {
@@ -188,7 +193,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/company/gestao/central",
-        destination: "/company/dia",
+        destination: "/company/gestao",
         permanent: false,
       },
 

@@ -1,17 +1,21 @@
 import {
+  ReceiptText,
   RotateCcw,
   Trash2,
   UserX,
 } from "lucide-react";
+import Link from "next/link";
 import { QuoteDeleteButton } from "@/components/quote-delete-button";
 import { QuotePartnerLinker } from "@/components/sale-partner-linker";
 
 export function QuoteStatusActions({
   quoteId,
   status,
+  saleId,
 }: {
   quoteId: string;
   status: string;
+  saleId?: string | null;
 }) {
   const actionUrl =
     `/api/orcamentos/${quoteId}/status`;
@@ -25,14 +29,12 @@ export function QuoteStatusActions({
           gap: 10,
         }}
       >
+        {saleId ? <Link className="button ghost" href={`/company/concluir/${saleId}`}><ReceiptText size={16}/>Abrir ou cancelar venda</Link> : null}
         <QuotePartnerLinker
           quoteId={quoteId}
         />
         <span className="form-help">
-          Orçamento confirmado:
-          você ainda pode corrigir a
-          parceria da venda vinculada
-          sem alterar valores.
+          Para trocar produtos ou desfazer a operação, abra a venda vinculada. Assim o cancelamento também corrige estoque e financeiro.
         </span>
       </div>
     );

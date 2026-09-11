@@ -168,7 +168,7 @@ export async function ExecutiveDashboard() {
         action={
           <Link
             className="button ghost"
-            href="/company/dia"
+            href="/company/gestao"
           >
             Voltar à Gestão
           </Link>
