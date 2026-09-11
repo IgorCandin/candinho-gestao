@@ -48,5 +48,8 @@ export function UnifiedAreaHeader({ area, access }: { area: "bank" | "physique";
       <nav className="company-primary-nav company-primary-nav-right" aria-label="Navegação operacional">{renderNav(right)}</nav>
       <details className="company-account-menu"><summary aria-label="Abrir opções da conta"><UserRound size={19}/></summary><div><strong>{access.name}</strong><small>{access.email ?? "Acesso Company"}</small><OperationSwitcher current={area === "bank" ? "bank" : "atletas"} compact/><InstallCompanyMenuAction/><form action="/auth/signout" method="post"><button type="submit"><LogOut size={15}/>Sair</button></form></div></details>
     </div>
+    <nav className={`operation-mobile-bottom-nav ${area}`} aria-label="Navegação móvel da operação">
+      {renderNav([...left, ...right])}
+    </nav>
   </header>;
 }

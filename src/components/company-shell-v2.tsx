@@ -195,6 +195,14 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
         </div>
       </header>
 
+      <nav className="operation-mobile-bottom-nav company" aria-label="Setores da Company no celular">
+        {PRIMARY_NAV.map(({ href, label, icon: Icon }) => (
+          <Link key={href} href={href} className={pathname.startsWith(href) ? "active" : ""} aria-label={label} title={label}>
+            <span className="company-nav-icon"><Icon size={19} /></span><span className="company-nav-label">{label}</span>
+          </Link>
+        ))}
+      </nav>
+
       <main className="company-shell-content">{children}</main>
 
       <div className={`company-global-search ${mobileSearchOpen ? "mobile-search-open" : ""}`} role="search">
