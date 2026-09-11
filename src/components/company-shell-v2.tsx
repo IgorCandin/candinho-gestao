@@ -58,7 +58,7 @@ const PRIMARY_NAV: RouteItem[] = [
 
 const SEARCH_ROUTES: RouteItem[] = [
   ...PRIMARY_NAV,
-  { label: "Visão da Company", note: "Voltar à gestão e ao radar de execução", href: "/company/gestao", keywords: "inicio home company gestão", icon: Home },
+  { label: "Início da Company", note: "Voltar ao radar de execução", href: "/company/inicio", keywords: "inicio home company", icon: Home },
   { label: "Agenda geral", note: "Compromissos de todas as operações", href: "/company/gestao", keywords: "agenda calendário compromisso", icon: CalendarDays },
   { label: "Ficha de Clientes", note: "Cadastro Company e histórico completo", href: "/company/clientes", keywords: "crm cliente suplementos fitness", icon: ContactRound },
   { label: "Fornecedores", note: "Suplementos e Fitness reunidos", href: "/company/fornecedores", keywords: "fornecedor compras reposição", icon: Boxes },
@@ -169,7 +169,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
             ))}
           </nav>
 
-          <Link className="company-header-brand" href="/company/gestao" aria-label="Visão da Candinho Company">
+          <Link className="company-header-brand" href="/company/inicio" aria-label="Início da Candinho Company">
             <Image src={BRAND_ASSETS.company.complete.src} alt={BRAND_ASSETS.company.complete.alt} width={190} height={63} priority />
           </Link>
 
