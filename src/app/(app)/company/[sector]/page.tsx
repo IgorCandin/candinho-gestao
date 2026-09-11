@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Printer, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
+import { getOperationInvestmentSnapshot } from "@/lib/bank-data";
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
@@ -20,6 +21,7 @@ import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { CompanyWorkflowSync } from "@/components/company-workflow-sync";
+import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -212,8 +214,8 @@ export default async function CompanySectorPage({ params, searchParams }: { para
   if (sector === "gestao") {
     const supabase = await createClient();
     const today = brazilToday();
-    const [allEvents, customers, sales, purchaseOrders, users, commercialResult, googleCalendar] = await Promise.all([
-      getAgendaEvents(), getCustomerOptions(), getAgendaSaleOptions(), getAgendaPurchaseOrderOptions(), getAgendaUsers(), supabase.rpc("commercial_contact_queue_people_v1", { p_limit: 1 }), getGoogleCalendarStatus(),
+    const [allEvents, customers, sales, purchaseOrders, users, commercialResult, googleCalendar, investment] = await Promise.all([
+      getAgendaEvents(), getCustomerOptions(), getAgendaSaleOptions(), getAgendaPurchaseOrderOptions(), getAgendaUsers(), supabase.rpc("commercial_contact_queue_people_v1", { p_limit: 1 }), getGoogleCalendarStatus(), getOperationInvestmentSnapshot(),
     ]);
     const events = allEvents.filter((event) => !isCommercialQueueEvent(event.notes));
     const commercialQueue = commercialResult.error ? emptyCommercialContactQueue(today) : ((commercialResult.data as CommercialContactQueueSnapshot | null) ?? emptyCommercialContactQueue(today));
@@ -240,6 +242,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         <Link href="/company/mapa"><GitBranch/><div><strong>Mapa da migração</strong><span>Andamento do ERP 2.0 e DNA da Company</span></div><b>→</b></Link>
         <Link href="/bank"><Landmark/><div><strong>Candinho Bank</strong><span>Entradas, contas, faturas e fechamento financeiro</span></div><b>→</b></Link>
       </section>
+      <OperationInvestmentPanel data={investment}/>
       <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
       {canWrite ? <GoogleCalendarConnectionCard status={googleCalendar} /> : null}
       {!commercialQueue.skipped ? <CommercialContactAgendaCard snapshot={commercialQueue} companyMode /> : null}
