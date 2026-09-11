@@ -160,6 +160,11 @@ function eventLabel(event: AgendaEvent) {
   return `${categoryLabels[event.category]} · ${event.title}`;
 }
 
+function actionErrorMessage(error: unknown) {
+  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;
+  return "Não foi possível atualizar o compromisso.";
+}
+
 export function OperationalCalendar({
   events,
   summary,
@@ -225,14 +230,17 @@ export function OperationalCalendar({
     setMessage(null);
     try {
       const supabase = createClient();
-      const { error } = await supabase.rpc(name, args);
+      const delivery = name === "complete_operational_event" && args.p_source_type === "sale_delivery";
+      const { error } = delivery
+        ? await supabase.rpc("mark_sale_delivered_with_supplies", { p_sale_id: args.p_source_id, p_delivered_on: args.p_completed_on, p_supplies: [] })
+        : await supabase.rpc(name, args);
       if (error) throw error;
       setMessage("Atualizado com sucesso.");
       setActionMode(null);
       router.refresh();
       setTimeout(() => setSelected(null), 350);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Não foi possível atualizar o compromisso.");
+      setMessage(actionErrorMessage(error));
     } finally {
       setLoading(false);
     }
