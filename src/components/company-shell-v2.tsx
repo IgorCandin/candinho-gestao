@@ -27,6 +27,7 @@ import type { UserAccess } from "@/lib/access";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { InstallCompanyMenuAction } from "@/components/install-company-menu-action";
 import { OperationSwitcher } from "@/components/operation-switcher";
+import { AddCurrentPageShortcut, CompanyShortcutListener } from "@/components/company-shortcuts";
 
 type RouteItem = {
   label: string;
@@ -155,6 +156,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
 
   return (
     <div className="company-shell-v2">
+      <CompanyShortcutListener />
       <header className="company-command-header">
         <button className="company-fullscreen-button company-refresh-button company-header-edge-control" type="button" onClick={refreshData} aria-label="Atualizar dados desta tela" title="Atualizar dados" disabled={isRefreshing}>
           <RefreshCcw className={isRefreshing ? "spin" : ""} size={17}/>
@@ -186,6 +188,7 @@ export function CompanyShellV2({ children, access }: { children: React.ReactNode
               <strong>{access.name}</strong>
               <small>{access.email ?? "Acesso Company"}</small>
               <OperationSwitcher current="company" compact />
+              <AddCurrentPageShortcut />
               <button className="company-mobile-menu-only" type="button" onClick={() => { setMobileSearchOpen(true); window.setTimeout(() => searchRef.current?.focus(), 50); }}><Search size={15}/> Buscar</button>
               <InstallCompanyMenuAction />
               <Link href="/dashboard"><Home size={15} /> ERP 1.0</Link>

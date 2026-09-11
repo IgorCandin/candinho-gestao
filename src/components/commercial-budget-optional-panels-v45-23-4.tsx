@@ -6,7 +6,7 @@ import { useEffect } from "react";
 const TARGETS = new Map([
   [
     "Ajustes do valor e brinde",
-    "Desconto, lucro combinado ou brinde",
+    "Desconto, adicional a prazo ou brinde",
   ],
   [
     "Observações",

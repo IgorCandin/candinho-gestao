@@ -521,6 +521,15 @@
   min-width: 0;
 }
 
+.v45234-product-actions > .v45234-combo-picker:only-child {
+  grid-column: 1 / -1;
+}
+
+.v45234-combo-picker > div,
+.v45234-combo-picker > .select {
+  min-width: 0;
+}
+
 .v45234-empty-products {
   min-height: 82px;
   padding: 16px;

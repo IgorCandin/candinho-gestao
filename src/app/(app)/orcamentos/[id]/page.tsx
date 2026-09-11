@@ -318,7 +318,7 @@ export default async function QuoteDetailsPage<T extends {
                 )}
                 {agreedMarkupAmount > 0 && (
                   <Line
-                    label="Lucro do combinado"
+                    label="Adicional a prazo"
                     value={`+ ${formatCurrency(agreedMarkupAmount)}`}
                   />
                 )}

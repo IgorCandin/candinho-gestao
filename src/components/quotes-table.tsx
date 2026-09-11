@@ -166,7 +166,7 @@ export function QuotesTable({ quotes, companyMode = false }: { quotes: QuoteRow[
                       {quote.sale_id ? (
                         <Link
                           className="icon-link"
-                          href={`/vendas/${quote.sale_id}`}
+                          href={companyMode ? `/company/concluir/${quote.sale_id}` : `/vendas/${quote.sale_id}`}
                           title="Abrir venda convertida"
                           aria-label={`Abrir venda convertida do orçamento ${quote.quote_number}`}
                         >

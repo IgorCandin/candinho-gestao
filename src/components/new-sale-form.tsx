@@ -1408,8 +1408,8 @@ export function NewSaleForm({
             <div>
               <h2>Ajustes do valor e brinde</h2>
               <p>
-                Desconto reduz o total. Lucro do combinado adiciona
-                ao valor final sem alterar o preço individual dos produtos.
+                Desconto reduz o total. O adicional a prazo registra o
+                acréscimo negociado sem alterar o preço individual dos produtos.
               </p>
             </div>
             <Gift size={20} />
@@ -1439,7 +1439,7 @@ export function NewSaleForm({
 
             <label className="field">
               <span>
-                <CircleDollarSign size={14} /> Lucro do combinado (R$)
+                <CircleDollarSign size={14} /> Adicional a prazo (R$)
               </span>
               <input
                 className="input"
@@ -1452,9 +1452,8 @@ export function NewSaleForm({
                 }
               />
               <small>
-                Use quando o valor negociado ficou acima da soma dos
-                produtos. Esse valor entra integralmente como receita e
-                lucro adicional da venda.
+                Use quando o pagamento futuro deixou o valor final acima da
+                soma dos produtos. O cliente verá somente “Adicional a prazo”.
               </small>
             </label>
 
@@ -1945,7 +1944,7 @@ export function NewSaleForm({
             )}
             {agreedMarkupValue > 0 && (
               <small className="positive">
-                Lucro do combinado: +
+                Adicional a prazo: +
                 {formatCurrency(agreedMarkupValue)}
               </small>
             )}

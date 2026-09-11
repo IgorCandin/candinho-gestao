@@ -9,6 +9,7 @@ import { BRAND_ASSETS } from "@/lib/brand-assets";
 import type { UserAccess } from "@/lib/access";
 import { InstallCompanyMenuAction } from "@/components/install-company-menu-action";
 import { OperationSwitcher } from "@/components/operation-switcher";
+import { AddCurrentPageShortcut, CompanyShortcutListener } from "@/components/company-shortcuts";
 
 const bankLeft = [
   { href: "/bank", label: "Visão geral", icon: Landmark },
@@ -41,13 +42,14 @@ export function UnifiedAreaHeader({ area, access }: { area: "bank" | "physique";
   const renderNav = (items: typeof left) => items.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={isActive(href) ? "active" : ""} aria-label={label} title={label}><span className="company-nav-icon"><Icon size={19}/></span><span className="company-nav-label">{label}</span></Link>);
 
   return <>
+    <CompanyShortcutListener />
     <header className={`company-command-header unified-company-header ${area} ${area === "physique" ? "compact-four" : ""}`}>
       <button className="company-fullscreen-button company-refresh-button company-header-edge-control" type="button" onClick={() => startRefresh(() => router.refresh())} aria-label="Atualizar dados desta tela" title="Atualizar dados"><RefreshCcw className={refreshing ? "spin" : ""} size={17}/></button>
       <div className="company-header-inner">
         <nav className="company-primary-nav" aria-label="Navegação principal">{renderNav(left)}</nav>
         <Link className="company-header-brand" href={root} aria-label={brand.alt}><Image src={brand.src} alt={brand.alt} width={brand.width} height={brand.height} priority/></Link>
         <nav className="company-primary-nav company-primary-nav-right" aria-label="Navegação operacional">{renderNav(right)}</nav>
-        <details className="company-account-menu"><summary aria-label="Abrir opções da conta"><UserRound size={19}/></summary><div><strong>{access.name}</strong><small>{access.email ?? "Acesso Company"}</small><OperationSwitcher current={area === "bank" ? "bank" : "atletas"} compact/><InstallCompanyMenuAction/><form action="/auth/signout" method="post"><button type="submit"><LogOut size={15}/>Sair</button></form></div></details>
+        <details className="company-account-menu"><summary aria-label="Abrir opções da conta"><UserRound size={19}/></summary><div><strong>{access.name}</strong><small>{access.email ?? "Acesso Company"}</small><OperationSwitcher current={area === "bank" ? "bank" : "atletas"} compact/><AddCurrentPageShortcut/><InstallCompanyMenuAction/><form action="/auth/signout" method="post"><button type="submit"><LogOut size={15}/>Sair</button></form></div></details>
       </div>
     </header>
     <nav className={`operation-mobile-bottom-nav ${area}`} aria-label="Navegação móvel da operação">

@@ -25,19 +25,26 @@ export default async function CompanyQuotesPage() {
 
   return <div className="company-workspace-v2 company-quotes-v2">
     <header className="company-workspace-heading company-quotes-heading">
-      <div><span>COMPANY · COMERCIAL</span><h1>Orçamentos</h1><p>Uma visão única das propostas. Ao criar, escolha a operação para usar sabores em Suplementos ou cor e tamanho na Fitness.</p></div>
+      <div><span>COMPANY · GESTÃO</span><h1>Histórico de orçamentos</h1><p>Todos os orçamentos de Suplementos e Fitness, com acesso para cancelar, reabrir ou consultar a venda.</p></div>
       <div className="company-quotes-actions">
         {canSupplements ? <Link className="button company-quote-supplements" href="/company/orcamentos/novo/suplementos"><ShoppingBag size={16}/> Novo Suplementos</Link> : null}
         {canFitness ? <Link className="button company-quote-fitness" href="/company/orcamentos/novo/fitness"><Shirt size={16}/> Novo Fitness</Link> : null}
       </div>
     </header>
 
-    {canSupplements ? <section className="company-quote-section supplements">
+    <nav className="company-quote-operation-tabs" aria-label="Filtrar histórico por operação">
+      <a href="#todos">Todos · {supplements.length + (fitnessResult.data?.length ?? 0)}</a>
+      {canSupplements ? <a href="#suplementos">Suplementos · {supplements.length}</a> : null}
+      {canFitness ? <a href="#fitness">Fitness · {fitnessResult.data?.length ?? 0}</a> : null}
+    </nav>
+    <span id="todos" className="company-anchor-target" />
+
+    {canSupplements ? <section id="suplementos" className="company-quote-section supplements">
       <header><div><ShoppingBag size={18}/><span>Suplementos</span></div><strong>{supplements.length} orçamento(s)</strong></header>
       <article className="panel"><QuotesTable quotes={supplements} companyMode/></article>
     </section> : null}
 
-    {canFitness ? <section className="company-quote-section fitness">
+    {canFitness ? <section id="fitness" className="company-quote-section fitness">
       <header><div><Shirt size={18}/><span>Fitness</span></div><strong>{fitnessResult.data?.length ?? 0} orçamento(s)</strong></header>
       <article className="panel"><FitnessQuotesTable rows={fitnessResult.data ?? []} companyMode/></article>
     </section> : null}

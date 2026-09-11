@@ -363,7 +363,7 @@ export async function GET(
     page.drawText(`- ${money(discount)}`, { x: M + 116, y: y - 62, size: 8.6, font: bold, color: GREEN });
   }
   if (agreedMarkup > 0) {
-    page.drawText("Lucro do combinado", { x: M + 16, y: y - 81, size: 8, font: regular, color: MUTED });
+    page.drawText("Adicional a prazo", { x: M + 16, y: y - 81, size: 8, font: regular, color: MUTED });
     page.drawText(`+ ${money(agreedMarkup)}`, { x: M + 116, y: y - 81, size: 8.6, font: bold, color: GOLD });
   }
   page.drawText("TOTAL FINAL", { x: W - M - 175, y: y - 23, size: 6.8, font: bold, color: GOLD });
