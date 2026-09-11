@@ -1033,9 +1033,9 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     .order("location_code", { ascending: true });
   if (error) throw error;
   const productIds = [...new Set((data ?? []).map((row) => String(row.product_id)))];
-  const { data: prices, error: priceError } = productIds.length ? await supabase.from("products").select("id,installment_price").in("id", productIds) : { data: [], error: null };
+  const { data: prices, error: priceError } = productIds.length ? await supabase.from("products").select("id,installment_price,sku,internal_code,barcode_value").in("id", productIds) : { data: [], error: null };
   if (priceError) throw priceError;
-  const installmentByProduct = new Map((prices ?? []).map((row) => [String(row.id), number(row.installment_price)]));
+  const productMetaByProduct = new Map((prices ?? []).map((row) => [String(row.id), { installment: number(row.installment_price), sku: typeof row.sku === "string" ? row.sku : null, internalCode: typeof row.internal_code === "string" ? row.internal_code : null, barcodeValue: typeof row.barcode_value === "string" ? row.barcode_value : null }]));
   return (data ?? []).map((row) => ({
     product_id: String(row.product_id),
     product_name: text(row.product_name, "Produto sem nome"),
@@ -1044,7 +1044,10 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     image_url: typeof row.image_url === "string" ? row.image_url : null,
     cost_price: number(row.cost_price),
     sale_price: number(row.sale_price),
-    installment_price: installmentByProduct.get(String(row.product_id)) ?? number(row.sale_price),
+    installment_price: productMetaByProduct.get(String(row.product_id))?.installment ?? number(row.sale_price),
+    sku: productMetaByProduct.get(String(row.product_id))?.sku ?? null,
+    internal_code: productMetaByProduct.get(String(row.product_id))?.internalCode ?? null,
+    barcode_value: productMetaByProduct.get(String(row.product_id))?.barcodeValue ?? null,
     location_id: String(row.location_id),
     location_code: text(row.location_code),
     location_name: text(row.location_name),
@@ -2330,6 +2333,8 @@ function normalizeFitnessStock(row: Record<string, unknown>): FitnessStockRow {
     size: text(row.size, "Único"),
     color: text(row.color, "Sem cor"),
     sku: typeof row.sku === "string" ? row.sku : null,
+    internal_code: typeof row.internal_code === "string" ? row.internal_code : null,
+    barcode_value: typeof row.barcode_value === "string" ? row.barcode_value : null,
     cost_price: number(row.cost_price),
     sale_price: number(row.sale_price),
     variant_active: Boolean(row.variant_active),

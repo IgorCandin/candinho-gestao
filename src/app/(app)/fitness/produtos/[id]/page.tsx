@@ -5,6 +5,7 @@ import { PageHeader } from "@/components/page-header";
 import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { FitnessProductImageViewer } from "@/components/fitness-product-image-viewer";
 import { FitnessSetManager } from "@/components/fitness-set-manager";
+import { ProductLabelPrintButton } from "@/components/product-label-print-button";
 import {
   getEntitySwipeNavigation,
   getFitnessProduct,
@@ -153,6 +154,7 @@ export default async function Page<T extends {
                 <th>Disponível</th>
                 <th>A caminho</th>
                 <th>Venda</th>
+                <th>Etiqueta</th>
               </tr>
             </thead>
 
@@ -204,6 +206,7 @@ export default async function Page<T extends {
                         </strong>
                       )}
                     </td>
+                    <td><ProductLabelPrintButton className="button ghost compact" label={{ operation: "Fitness", name: product.name, internalCode: variant.internal_code, barcodeValue: variant.barcode_value, cashPrice: variant.sale_price, installmentPrice: variant.sale_price, size: variant.size, color: variant.color }} /></td>
                   </tr>
                 );
               })}

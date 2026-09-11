@@ -34,6 +34,9 @@ export type SaleStockOption = {
   cost_price: number;
   sale_price: number;
   installment_price: number;
+  sku: string | null;
+  internal_code: string | null;
+  barcode_value: string | null;
   location_id: string;
   location_code: string;
   location_name: string;
@@ -756,6 +759,8 @@ export type FitnessStockRow = {
   size: string;
   color: string;
   sku: string | null;
+  internal_code: string | null;
+  barcode_value: string | null;
   cost_price: number;
   sale_price: number;
   variant_active: boolean;

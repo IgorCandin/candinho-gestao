@@ -11,6 +11,9 @@ export type SaleProductSearchOptionV45234 = {
   available: number;
   physical: number;
   locationCode: string;
+  sku?: string | null;
+  internalCode?: string | null;
+  barcodeValue?: string | null;
 };
 
 function normalize(value: string) {
@@ -47,10 +50,6 @@ export function SaleProductComboboxV45234({
     return () => document.removeEventListener("mousedown", close);
   }, []);
 
-  useEffect(() => {
-    setQuery(selected?.name ?? "");
-  }, [selected?.id]);
-
   const filtered = useMemo(() => {
     const needle = normalize(query.trim());
 
@@ -58,7 +57,7 @@ export function SaleProductComboboxV45234({
       ? options
       : options.filter((option) =>
           normalize(
-            `${option.name} ${option.brand ?? ""} ${option.category}`,
+            `${option.name} ${option.brand ?? ""} ${option.category} ${option.sku ?? ""} ${option.internalCode ?? ""} ${option.barcodeValue ?? ""}`,
           ).includes(needle),
         );
 
@@ -87,7 +86,7 @@ export function SaleProductComboboxV45234({
           value={query}
           required
           autoComplete="off"
-          placeholder="Digite creatina, whey, marca..."
+          placeholder="Nome, marca ou código..."
           onFocus={() => setOpen(true)}
           onChange={(event) => {
             setQuery(event.target.value);
@@ -96,6 +95,14 @@ export function SaleProductComboboxV45234({
             if (value) {
               onChange("");
             }
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== "Enter" || filtered.length !== 1) return;
+            event.preventDefault();
+            const option = filtered[0];
+            onChange(option.id);
+            setQuery(option.name);
+            setOpen(false);
           }}
         />
         {selected && <Check size={16} />}
@@ -130,6 +137,7 @@ export function SaleProductComboboxV45234({
                       {[option.brand, option.category]
                         .filter(Boolean)
                         .join(" · ")}
+                      {option.internalCode ? ` · cód. ${option.internalCode}` : ""}
                     </small>
                   </span>
                   <em>

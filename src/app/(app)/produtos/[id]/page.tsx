@@ -21,6 +21,7 @@ import { EntitySwipeNavigator } from "@/components/entity-swipe-navigator";
 import { PageHeader } from "@/components/page-header";
 import { ProductImageUploader } from "@/components/product-image-uploader";
 import { ProductInternalCostPanelV4521 } from "@/components/product-internal-cost-panel-v45-21";
+import { ProductLabelPrintButton } from "@/components/product-label-print-button";
 import {
   getEntitySwipeNavigation,
   getProductDetails,
@@ -130,6 +131,7 @@ export default async function ProductDetailsPage<T extends {
     leadsResult,
     supplierOrdersResult,
     recentSalesResult,
+    labelResult,
   ] = await Promise.all([
     getProductDetails(id),
     getEntitySwipeNavigation("product", id, companyMode),
@@ -170,6 +172,7 @@ export default async function ProductDetailsPage<T extends {
       .eq("product_id", id)
       .order("sold_at", { ascending: false })
       .limit(12),
+    supabase.from("products").select("internal_code,barcode_value").eq("id", id).maybeSingle(),
   ]);
 
   if (!product) notFound();
@@ -180,6 +183,7 @@ export default async function ProductDetailsPage<T extends {
     leadsResult,
     supplierOrdersResult,
     recentSalesResult,
+    labelResult,
   ]) {
     if (result.error) throw result.error;
   }
@@ -249,6 +253,7 @@ export default async function ProductDetailsPage<T extends {
               <Warehouse size={16} />
               Ver estoque
             </Link>
+            <ProductLabelPrintButton label={{ operation: "Suplementos", name: product.name, internalCode: labelResult.data?.internal_code ?? null, barcodeValue: labelResult.data?.barcode_value ?? null, cashPrice: product.sale_price, installmentPrice: product.installment_price }} />
             <Link className="button ghost" href={companyMode ? "/company/produtos" : "/produtos"}>
               <ArrowLeft size={16} />
               Voltar

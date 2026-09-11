@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, CircleDot, Clock3, ExternalLink, ListChecks } from "lucide-react";
+import { MigrationAuditBoard, type MigrationAuditRow } from "@/components/migration-audit-board";
+import { createClient } from "@/lib/supabase/server";
 
 type Step = { label: string; state: "done" | "test" | "doing" | "todo"; detail: string; href?: string };
 type Block = { title: string; scope: string; steps: Step[] };
@@ -53,12 +55,30 @@ const blocks: Block[] = [
 const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
 const allSteps = blocks.flatMap((block) => block.steps);
 
-export default function CompanyMigrationMapPage() {
+const auditRows: MigrationAuditRow[] = [
+  { key: "supp-home", operation: "supplements", area: "Home e indicadores", description: "Início, avisos, metas e atalhos de trabalho diário.", legacyHref: "/suplementos/hoje", companyHref: "/company/inicio" },
+  { key: "supp-potential", operation: "supplements", area: "Potencial e oportunidades", description: "Recompras, leads, cliente prioritário e recomendações.", legacyHref: "/suplementos/hoje", companyHref: "/company/vender" },
+  { key: "supp-agenda", operation: "supplements", area: "Agenda", description: "Tarefas, retornos, compromissos e calendário.", legacyHref: "/agenda", companyHref: "/company/gestao" },
+  { key: "supp-crm", operation: "supplements", area: "Clientes e CRM", description: "Cadastro, histórico, feed, relacionamento e exclusão de cliente.", legacyHref: "/clientes", companyHref: "/company/clientes" },
+  { key: "supp-sales", operation: "supplements", area: "Vendas e orçamentos", description: "Nova venda, leitor de código, PDF, prazo, cancelamento e reabertura.", legacyHref: "/vendas/nova", companyHref: "/company/vendas/nova/suplementos" },
+  { key: "supp-delivery", operation: "supplements", area: "Recebimentos e entregas", description: "Fila pendente, pagamento e entrega por item.", legacyHref: "/vendas/pendentes", companyHref: "/company/concluir" },
+  { key: "supp-products", operation: "supplements", area: "Produtos, combos e promoções", description: "Catálogo, saldo, custo, parceiros, combos e promoção sem estoque.", legacyHref: "/produtos", companyHref: "/company/produtos" },
+  { key: "supp-stock", operation: "supplements", area: "Estoque e transferências", description: "Saldos, origem disponível, múltiplos produtos, lotes e movimentações.", legacyHref: "/estoque", companyHref: "/company/estoque" },
+  { key: "supp-buy", operation: "supplements", area: "Compras e fornecedores", description: "Pedidos, fornecedores, recebimento e custo.", legacyHref: "/compras", companyHref: "/company/compras" },
+  { key: "supp-management", operation: "supplements", area: "Gestão e atalhos", description: "Relatórios, central dissolvida, atalhos Alt e configurações administrativas.", legacyHref: "/suplementos/painel", companyHref: "/company/gestao" },
+  { key: "fitness-home", operation: "fitness", area: "Fitness - ponto de partida", description: "A auditoria do Fitness abre quando Suplementos ficar totalmente em OK.", legacyHref: "/fitness", companyHref: "/company/produtos?operacao=Fitness" },
+];
+
+export default async function CompanyMigrationMapPage() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("migration_audit_checks").select("check_key,state,notes").in("check_key", auditRows.map((row) => row.key));
+  if (error) throw error;
   const count = (state: Step["state"]) => allSteps.filter((step) => step.state === state).length;
   return <div className="company-map-page company-migration-board">
     <header><span>COMPANY · CONTROLE DA MIGRAÇÃO</span><h1>O que já foi feito, o que testar e o que falta</h1><p>Cada linha aponta a tela, o estado real e a condição para aposentar o ERP antigo.</p></header>
     <section className="migration-scoreboard" aria-label="Resumo da migração"><article><CheckCircle2/><strong>{count("done")}</strong><span>concluídos</span></article><article><ListChecks/><strong>{count("test")}</strong><span>para testar</span></article><article><Clock3/><strong>{count("doing")}</strong><span>em execução</span></article><article><CircleDot/><strong>{count("todo")}</strong><span>pendentes</span></article></section>
     <nav className="migration-jump" aria-label="Blocos da migração">{blocks.map((block, index) => <a key={block.title} href={`#bloco-${index + 1}`}>{index + 1}</a>)}</nav>
+    <MigrationAuditBoard rows={auditRows} saved={(data ?? []) as Array<{ check_key: string; state: "pending" | "reviewing" | "approved" | "issue"; notes: string | null }>} />
     <section className="migration-blocks">{blocks.map((block, index) => <article className="migration-block" id={`bloco-${index + 1}`} key={block.title}><header><span>BLOCO {index + 1}</span><h2>{block.title}</h2><p>{block.scope}</p></header><div>{block.steps.map((step) => { const content = <><i className={`migration-state ${step.state}`}>{labels[step.state]}</i><span><strong>{step.label}</strong><small>{step.detail}</small></span>{step.href ? <ExternalLink size={16}/> : null}</>; return step.href ? <Link key={step.label} href={step.href}>{content}</Link> : <div key={step.label}>{content}</div>; })}</div></article>)}</section>
     <section className="company-dna"><div><span>REGRA DE SAÍDA</span><h2>Uma tela antiga só some quando a substituta estiver completa</h2></div><p>Função migrada, dados iguais, teste real aprovado, endereço corrigido e nenhum acesso necessário registrado no ERP antigo.</p></section>
   </div>;

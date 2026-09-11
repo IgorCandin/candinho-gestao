@@ -118,6 +118,7 @@ export function FitnessSaleForm({
     useState(today);
 
   const [notes, setNotes] = useState("");
+  const [scanCode, setScanCode] = useState("");
   const [loading, setLoading] =
     useState(false);
   const [message, setMessage] =
@@ -153,6 +154,20 @@ export function FitnessSaleForm({
         : "",
     });
   };
+
+  function addByCode() {
+    const needle = scanCode.trim().toLocaleLowerCase("pt-BR");
+    if (!needle) return;
+    const matches = options.filter((row) => [row.internal_code, row.barcode_value, row.sku].some((code) => code?.toLocaleLowerCase("pt-BR") === needle));
+    if (matches.length !== 1) {
+      setMessage(matches.length > 1 ? "Há mais de uma peça com este código. Confira a etiqueta." : "Código não encontrado entre as peças ativas.");
+      return;
+    }
+    const item = items.find((entry) => !entry.variantId) ?? items[items.length - 1];
+    selectItem(item.key, matches[0].variant_id);
+    setScanCode("");
+    setMessage(null);
+  }
 
   const total = items.reduce(
     (sum, item) =>
@@ -439,6 +454,14 @@ export function FitnessSaleForm({
           </div>
 
           <div className="panel-body sale-form-items">
+            <label className="field field-span-two">
+              <span>Código ou código de barras</span>
+              <div className="inline-form-actions">
+                <input className="input" value={scanCode} onChange={(event) => setScanCode(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter") { event.preventDefault(); addByCode(); } }} placeholder="Aponte a leitora ou digite o código da etiqueta" />
+                <button className="button ghost" type="button" onClick={addByCode}>Adicionar por código</button>
+              </div>
+              <small className="form-help">A leitora seleciona a peça no primeiro item vazio, incluindo tamanho e cor.</small>
+            </label>
             {items.map((item, index) => {
               const row = rowFor(
                 item.variantId,
@@ -510,6 +533,7 @@ export function FitnessSaleForm({
                               0
                                 ? ` · disp. ${option.available_quantity}`
                                 : ""}
+                              {option.internal_code ? ` · cód. ${option.internal_code}` : ""}
                             </option>
                           ),
                         )}

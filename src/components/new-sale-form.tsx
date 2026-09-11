@@ -464,6 +464,9 @@ export function NewSaleForm({
           localStock?.location_code ??
           location?.code ??
           "—",
+        sku: product.sku,
+        internalCode: product.internal_code,
+        barcodeValue: product.barcode_value,
       };
     });
   }, [locationId, locations, productOptions, stock]);
@@ -1186,7 +1189,7 @@ export function NewSaleForm({
 
                   <div className="sale-form-item-grid">
                     <label className="field sale-product-field">
-                      <span>Produto</span>
+                      <span>Produto ou código</span>
                       <SaleProductComboboxV45234
                         options={searchableProductOptions}
                         value={item.productId}
@@ -1198,8 +1201,8 @@ export function NewSaleForm({
                         }
                       />
                       <small>
-                        Produtos com saldo neste estoque aparecem
-                        em verde. Sem estoque continua selecionável.
+                        Digite ou leia o código da etiqueta e pressione Enter.
+                        Produtos com saldo neste estoque aparecem em verde.
                       </small>
                     </label>
 

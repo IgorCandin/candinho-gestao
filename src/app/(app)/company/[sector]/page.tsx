@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Truck } from "lucide-react";
+import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Printer, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
@@ -236,6 +236,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         <Link href="/company/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Suplementos e Fitness em uma visão única</span></div><b>→</b></Link>
         <Link href="/company/custos-insumos"><Boxes/><div><strong>Custos e insumos</strong><span>Materiais e custos das duas operações</span></div><b>→</b></Link>
         <Link href="/company/estoque"><Boxes/><div><strong>Estoque</strong><span>Saldos, locais, lotes, contagem e movimentações</span></div><b>→</b></Link>
+        <Link href="/company/gestao/etiquetas"><Printer/><div><strong>Imprimir etiquetas</strong><span>Códigos, barras e preços para Suplementos e Fitness</span></div><b>→</b></Link>
         <Link href="/company/orcamentos"><FileText/><div><strong>Histórico de orçamentos</strong><span>Todos, Suplementos e Fitness; cancelar e reabrir propostas</span></div><b>→</b></Link>
         <Link href="/company/atalhos"><Keyboard/><div><strong>Atalhos</strong><span>Consulte e remova combinações com Alt</span></div><b>→</b></Link>
         <Link href="/company/mapa"><GitBranch/><div><strong>Mapa da migração</strong><span>Andamento do ERP 2.0 e DNA da Company</span></div><b>→</b></Link>
