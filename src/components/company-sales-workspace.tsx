@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CalendarClock, ContactRound, FileText, Flame, MessageCircle, PackageSearch, Repeat2, Search, ShoppingBag, Sparkles, UserRoundPlus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CompanySalesQueueActions } from "@/components/company-sales-queue-actions";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow } from "@/lib/types";
@@ -94,7 +94,9 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads,
   const [queue, setQueue] = useState<Queue>("today");
   const [query, setQuery] = useState("");
   const [shown, setShown] = useState(24);
+  const queueSectionRef = useRef<HTMLElement | null>(null);
   useEffect(() => setShown(24), [queue, query]);
+  function openQueue(nextQueue: Queue) { setQueue(nextQueue); window.setTimeout(() => queueSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }
   const hotLeads = useMemo(() => leads.filter((lead) => lead.general_status === "pending").sort((a, b) => (LEAD_RANK[a.lead_status ?? ""] ?? 99) - (LEAD_RANK[b.lead_status ?? ""] ?? 99) || b.lead_date.localeCompare(a.lead_date)), [leads]);
   const rows = useMemo(() => {
     const source = queue === "today" ? priorityCustomers : queue === "repurchase" ? opportunities.filter((row) => row.opportunity_group === "recompra") : queue === "complementary" ? opportunities.filter((row) => row.opportunity_group === "produto_complementar") : [];
@@ -125,16 +127,16 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads,
       </header>
 
       <section className="company-sales-metrics">
-        <button type="button" onClick={() => setQueue("today")}><Flame size={18} /><span>Falar agora</span><strong>{priorityCustomers.length}</strong></button>
-        <button type="button" onClick={() => setQueue("repurchase")}><Repeat2 size={18} /><span>Recompras</span><strong>{repurchases}</strong></button>
-        <button type="button" onClick={() => setQueue("leads")}><ContactRound size={18} /><span>Leads abertos</span><strong>{hotLeads.length}</strong></button>
-        <button type="button" onClick={() => setQueue("complementary")}><Sparkles size={18} /><span>Complementares</span><strong>{complementary}</strong></button>
-        <button type="button" onClick={() => setQueue("fitness")}><ShoppingBag size={18}/><span>Fitness</span><strong>{visibleFitness.length}</strong></button>
+        <button type="button" onClick={() => openQueue("today")}><Flame size={18} /><span>Falar agora</span><strong>{priorityCustomers.length}</strong></button>
+        <button type="button" onClick={() => openQueue("repurchase")}><Repeat2 size={18} /><span>Recompras</span><strong>{repurchases}</strong></button>
+        <button type="button" onClick={() => openQueue("leads")}><ContactRound size={18} /><span>Leads abertos</span><strong>{hotLeads.length}</strong></button>
+        <button type="button" onClick={() => openQueue("complementary")}><Sparkles size={18} /><span>Complementares</span><strong>{complementary}</strong></button>
+        <button type="button" onClick={() => openQueue("fitness")}><ShoppingBag size={18}/><span>Fitness</span><strong>{visibleFitness.length}</strong></button>
       </section>
 
       {featured ? <section className="company-sales-feature"><div><span><Flame size={14} /> Comece por aqui</span><h2>{featured.customer_name} é a oportunidade mais forte agora</h2><p>{featured.recommended_action}</p></div><OpportunityCard row={featured} featured media={featured.recommended_product_id ? productMedia[featured.recommended_product_id] : undefined} /></section> : null}
 
-      <section className="company-sales-queue">
+      <section className="company-sales-queue" ref={queueSectionRef}>
         <div className="company-sales-toolbar">
           <div className="company-sales-tabs">{QUEUES.map(({ key, label, icon: Icon }) => <button type="button" className={queue === key ? "active" : ""} onClick={() => setQueue(key)} key={key}><Icon size={15} />{label}</button>)}</div>
           <label><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar cliente ou produto" /></label>
