@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { Suspense } from "react";
 import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Printer, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
@@ -21,7 +20,6 @@ import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { CompanyWorkflowSync } from "@/components/company-workflow-sync";
-import CentralOverview from "../../central/page";
 
 export const dynamic = "force-dynamic";
 
@@ -242,7 +240,6 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         <Link href="/company/mapa"><GitBranch/><div><strong>Mapa da migração</strong><span>Andamento do ERP 2.0 e DNA da Company</span></div><b>→</b></Link>
         <Link href="/bank"><Landmark/><div><strong>Candinho Bank</strong><span>Entradas, contas, faturas e fechamento financeiro</span></div><b>→</b></Link>
       </section>
-      <section className="company-embedded-central" aria-label="Informações consolidadas da Central"><Suspense fallback={<div className="panel panel-body"><span className="form-help">Carregando visão consolidada sem bloquear a Gestão…</span></div>}><CentralOverview /></Suspense></section>
       <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
       {canWrite ? <GoogleCalendarConnectionCard status={googleCalendar} /> : null}
       {!commercialQueue.skipped ? <CommercialContactAgendaCard snapshot={commercialQueue} companyMode /> : null}

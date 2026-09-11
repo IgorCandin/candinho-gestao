@@ -158,8 +158,10 @@ export function NewSaleForm({
 
   const [items, setItems] = useState<DraftItem[]>(
     initialQuote?.items.length
-      ? initialQuote.items.map((item) => ({
-          key: itemKey(),
+      ? initialQuote.items.map((item, index) => ({
+          // A edição de orçamento também é renderizada no servidor. A chave
+          // precisa ser reproduzível para não gerar HTML diferente no cliente.
+          key: `quote-${initialQuote.id}-${item.product_id}-${index}`,
           productId: item.product_id,
           flavorId: "",
           quantity: String(item.quantity),
