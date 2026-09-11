@@ -46,6 +46,41 @@ type TrainingPreview = {
   provider?: string;
 };
 
+type TrainingAnalysisResponse = TrainingPreview & {
+  error?: string;
+  code?: string;
+};
+
+async function readTrainingAnalysisResponse(response: Response) {
+  const contentType = response.headers.get("content-type") || "";
+  const raw = await response.text();
+  const excerpt = raw.replace(/\s+/g, " ").trim().slice(0, 300);
+  let data: TrainingAnalysisResponse | null = null;
+
+  if (contentType.toLowerCase().includes("application/json")) {
+    try {
+      data = JSON.parse(raw) as TrainingAnalysisResponse;
+    } catch {
+      throw new Error(`Erro ${response.status}: o Nexus retornou um JSON inválido.`);
+    }
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+        `Erro ${response.status}: ${excerpt || "a API não retornou detalhes do erro."}`,
+    );
+  }
+
+  if (!data) {
+    throw new Error(
+      `A API deveria retornar JSON, mas retornou ${contentType || "um formato não informado"}: ${excerpt || "resposta vazia"}`,
+    );
+  }
+
+  return data;
+}
+
 function safeFileName(name: string) {
   return name
     .normalize("NFD")
@@ -102,18 +137,15 @@ export function PhysiqueTrainingImportForm({
       const form = new FormData();
       form.set("file", file);
 
-      const response = await fetch("/api/atletas/interpretar-treino", {
+      const response = await fetch("/api/physique/interpretar-treino", {
         method: "POST",
         body: form,
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data?.error ?? "Não foi possível ler o PDF.");
+      const next = await readTrainingAnalysisResponse(response);
+      if (!Array.isArray(next.days)) {
+        throw new Error("O Nexus respondeu sem a lista de treinos. Tente analisar o PDF novamente.");
       }
-
-      const next = data as TrainingPreview;
       setPreview(next);
       setTitle(next.title ?? "");
       setGoal(next.goal ?? "");
