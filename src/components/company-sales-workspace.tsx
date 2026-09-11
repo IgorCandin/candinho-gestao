@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { ArrowRight, CalendarClock, ContactRound, FileText, Flame, MessageCircle, PackageSearch, Repeat2, Search, ShoppingBag, Sparkles, UserRoundPlus } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CompanySalesQueueActions } from "@/components/company-sales-queue-actions";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow } from "@/lib/types";
@@ -93,6 +93,8 @@ function FitnessOpportunityCard({ customer }: { customer: FitnessCustomerRow }) 
 export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads, fitnessCustomers, productMedia }: { opportunities: SalesOpportunity[]; priorityCustomers: SalesOpportunity[]; leads: LeadRow[]; fitnessCustomers: FitnessCustomerRow[]; productMedia: ProductMedia }) {
   const [queue, setQueue] = useState<Queue>("today");
   const [query, setQuery] = useState("");
+  const [shown, setShown] = useState(24);
+  useEffect(() => setShown(24), [queue, query]);
   const hotLeads = useMemo(() => leads.filter((lead) => lead.general_status === "pending").sort((a, b) => (LEAD_RANK[a.lead_status ?? ""] ?? 99) - (LEAD_RANK[b.lead_status ?? ""] ?? 99) || b.lead_date.localeCompare(a.lead_date)), [leads]);
   const rows = useMemo(() => {
     const source = queue === "today" ? priorityCustomers : queue === "repurchase" ? opportunities.filter((row) => row.opportunity_group === "recompra") : queue === "complementary" ? opportunities.filter((row) => row.opportunity_group === "produto_complementar") : [];
@@ -113,6 +115,7 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads,
   const featured = priorityCustomers[0] ?? null;
   const repurchases = opportunities.filter((row) => row.opportunity_group === "recompra").length;
   const complementary = opportunities.filter((row) => row.opportunity_group === "produto_complementar").length;
+  const totalRows = queue === "leads" ? visibleLeads.length : queue === "fitness" ? visibleFitness.length : groupedRows.length;
 
   return (
     <div className="company-sales-v2">
@@ -136,11 +139,12 @@ export function CompanySalesWorkspace({ opportunities, priorityCustomers, leads,
           <div className="company-sales-tabs">{QUEUES.map(({ key, label, icon: Icon }) => <button type="button" className={queue === key ? "active" : ""} onClick={() => setQueue(key)} key={key}><Icon size={15} />{label}</button>)}</div>
           <label><Search size={16} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar cliente ou produto" /></label>
         </div>
-        <div className="company-sales-count"><CalendarClock size={15} /><span>{queue === "leads" ? visibleLeads.length : queue === "fitness" ? visibleFitness.length : groupedRows.length} pessoa(s) nesta fila</span><small>Conclua uma ação por vez</small></div>
+        <div className="company-sales-count"><CalendarClock size={15} /><span>{totalRows} pessoa(s) nesta fila</span><small>Conclua uma ação por vez</small></div>
         <div className="company-sales-grid">
-          {queue === "leads" ? visibleLeads.map((lead) => <LeadCard lead={lead} key={`${lead.id}-${lead.item_id ?? "lead"}`} />) : queue === "fitness" ? visibleFitness.map((customer) => <FitnessOpportunityCard customer={customer} key={customer.id}/>) : groupedRows.map((group) => <OpportunityCard row={group[0]} relatedRows={group} media={group[0].recommended_product_id ? productMedia[group[0].recommended_product_id] : undefined} key={group[0].customer_id} />)}
+          {queue === "leads" ? visibleLeads.slice(0, shown).map((lead) => <LeadCard lead={lead} key={`${lead.id}-${lead.item_id ?? "lead"}`} />) : queue === "fitness" ? visibleFitness.slice(0, shown).map((customer) => <FitnessOpportunityCard customer={customer} key={customer.id}/>) : groupedRows.slice(0, shown).map((group) => <OpportunityCard row={group[0]} relatedRows={group} media={group[0].recommended_product_id ? productMedia[group[0].recommended_product_id] : undefined} key={group[0].customer_id} />)}
         </div>
-        {(queue === "leads" ? visibleLeads.length : queue === "fitness" ? visibleFitness.length : groupedRows.length) === 0 ? <div className="company-empty-state"><PackageSearch size={25} /><strong>Nenhuma oportunidade encontrada</strong><span>Troque a fila ou ajuste a busca.</span></div> : null}
+        {totalRows > shown ? <button className="button ghost company-sales-more" type="button" onClick={() => setShown((current) => current + 24)}>Mostrar mais 24 pessoas</button> : null}
+        {totalRows === 0 ? <div className="company-empty-state"><PackageSearch size={25} /><strong>Nenhuma oportunidade encontrada</strong><span>Troque a fila ou ajuste a busca.</span></div> : null}
       </section>
     </div>
   );
