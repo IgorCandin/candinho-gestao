@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Suspense } from "react";
 import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
@@ -62,12 +63,12 @@ export default async function CompanySectorPage({ params, searchParams }: { para
   if (sector === "vender") {
     const supabase = await createClient();
     const [opportunitiesResult, priorityResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers] = await Promise.all([
-      supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(300),
+      supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(180),
       supabase.from("customer_sales_opportunities_priority_v2").select("*").order("opportunity_score", { ascending: false }).limit(100),
-      supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(150),
+      supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(100),
       supabase.from("products").select("id,image_url,banner_image_url").eq("active", true),
-      supabase.from("customer_sales_opportunities_v1").select("*").order("opportunity_score", { ascending: false }).limit(500),
-      supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(2000),
+      supabase.from("customer_sales_opportunities_v1").select("*").order("opportunity_score", { ascending: false }).limit(300),
+      supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(600),
       access.role === "admin" || access.canAccessFitness ? getFitnessCustomers() : Promise.resolve([]),
     ]);
     if (opportunitiesResult.error) throw new Error(opportunitiesResult.error.message);
@@ -149,8 +150,8 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const [suppPost, fitnessPost, crm, feedback] = await Promise.all([
       canSupplements ? supabase.from("post_sale_batch_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
       canFitness ? supabase.from("fitness_post_sale_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
-      canSupplements ? supabase.from("customer_crm_overview").select("*").eq("active", true).order("radar_rank").limit(800) : Promise.resolve({ data: [], error: null }),
-      canSupplements ? supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,opportunity_subtype,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(1000) : Promise.resolve({ data: [], error: null }),
+      canSupplements ? supabase.from("customer_crm_overview").select("*").eq("active", true).order("radar_rank").limit(400) : Promise.resolve({ data: [], error: null }),
+      canSupplements ? supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,opportunity_subtype,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(500) : Promise.resolve({ data: [], error: null }),
     ]);
     for (const result of [suppPost, fitnessPost, crm, feedback]) if (result.error) throw new Error(result.error.message);
     const items: CompanyCareItem[] = [];
@@ -240,7 +241,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         <Link href="/company/mapa"><GitBranch/><div><strong>Mapa da migração</strong><span>Andamento do ERP 2.0 e DNA da Company</span></div><b>→</b></Link>
         <Link href="/bank"><Landmark/><div><strong>Candinho Bank</strong><span>Entradas, contas, faturas e fechamento financeiro</span></div><b>→</b></Link>
       </section>
-      <section className="company-embedded-central" aria-label="Informações consolidadas da Central"><CentralOverview /></section>
+      <section className="company-embedded-central" aria-label="Informações consolidadas da Central"><Suspense fallback={<div className="panel panel-body"><span className="form-help">Carregando visão consolidada sem bloquear a Gestão…</span></div>}><CentralOverview /></Suspense></section>
       <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
       {canWrite ? <GoogleCalendarConnectionCard status={googleCalendar} /> : null}
       {!commercialQueue.skipped ? <CommercialContactAgendaCard snapshot={commercialQueue} companyMode /> : null}

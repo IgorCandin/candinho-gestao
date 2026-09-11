@@ -1,19 +1,65 @@
 import Link from "next/link";
-import { Activity, Banknote, Boxes, Building2, CheckCircle2, CircleDot, Dumbbell, Mail, MonitorSmartphone, ShoppingBag, Store, UsersRound } from "lucide-react";
+import { CheckCircle2, CircleDot, Clock3, ExternalLink, ListChecks } from "lucide-react";
 
-const branches = [
-  { key: "comercial", title: "Comercial", icon: ShoppingBag, status: "testing", note: "Clientes, vendas, orçamentos e entregas migrados; rodada funcional em andamento.", href: "/company/vender" },
-  { key: "produtos", title: "Produtos e estoque", icon: Boxes, status: "testing", note: "Catálogo unificado, combos, promoções, parceiros e custo do saldo em validação.", href: "/company/produtos" },
-  { key: "gestao", title: "Gestão e Central", icon: Building2, status: "progress", note: "Central está sendo dissolvida dentro da Gestão; telas antigas ainda serão aposentadas.", href: "/company/gestao" },
-  { key: "bank", title: "Bank", icon: Banknote, status: "progress", note: "Cabeçalho e objetivos financeiros prontos; aprofundamento do Bank 2.0 continua pendente.", href: "/bank" },
-  { key: "atletas", title: "Atletas", icon: Dumbbell, status: "progress", note: "Base e fichas migradas; faltam avaliações, histórico, fotos e troca de ficha por atleta.", href: "/atletas" },
-  { key: "vitrine", title: "Vitrine", icon: Store, status: "audit", note: "Necessidade final ainda precisa ser descoberta no teste real.", href: "/vitrine" },
-  { key: "integracoes", title: "E-mail e Twilio", icon: Mail, status: "paused", note: "Integrações pausadas para retomada depois dos fluxos principais.", href: "/company/gestao/central/integracoes" },
-  { key: "devices", title: "Dispositivos", icon: MonitorSmartphone, status: "testing", note: "Computador em uso; revisão final ainda inclui iPhone, tablet e paisagem.", href: "/company/inicio" },
-  { key: "legacy", title: "ERP antigo", icon: UsersRound, status: "progress", note: "Auditar aba por aba de Suplementos, depois Fitness, até zerar acessos necessários.", href: "/dashboard" },
-] as const;
-const status = { testing: ["Em teste", "testing"], progress: ["Em migração", "progress"], audit: ["A auditar", "audit"], paused: ["Pausado", "paused"] } as const;
+type Step = { label: string; state: "done" | "test" | "doing" | "todo"; detail: string; href?: string };
+type Block = { title: string; scope: string; steps: Step[] };
+
+const blocks: Block[] = [
+  { title: "1 · Suplementos → Company", scope: "Zerar a necessidade operacional do ERP antigo", steps: [
+    { label: "Clientes e CRM", state: "test", detail: "Cadastro unificado, duplicidades consolidadas e exclusão corrigida; falta validar feed, botões e endereços.", href: "/company/clientes" },
+    { label: "Vendas e orçamentos", state: "test", detail: "Venda, adicional a prazo, PDF, histórico e cancelamento pela venda vinculada estão prontos para teste.", href: "/company/orcamentos" },
+    { label: "Entregas e recebimentos", state: "test", detail: "Fila unificada e entrega por item migradas; validar casos mistos de estoque e pagamento.", href: "/company/concluir" },
+    { label: "Produtos, combos e promoções", state: "doing", detail: "Painel e indicadores migrados; revisar CTs, combos ativos e promoção sem estoque.", href: "/company/produtos" },
+    { label: "Estoque e transferências", state: "test", detail: "Estoque está em Gestão; transferências em lote e filtro por saldo da origem aguardam teste.", href: "/company/produtos/transferencias" },
+    { label: "Compras e fornecedores", state: "doing", detail: "Estrutura unificada existe; falta conferir aba por aba e migrar movimentações restantes.", href: "/company/compras" },
+    { label: "Desativar Suplementos", state: "todo", detail: "Só depois de conferir links, medir zero acessos necessários e preservar consulta histórica." },
+  ]},
+  { title: "2 · Fitness → Company", scope: "Repetir a auditoria depois de Suplementos", steps: [
+    { label: "Clientes, vendas e orçamentos", state: "doing", detail: "Já aparecem nas filas Company; falta comparar todos os comportamentos com o Fitness antigo." },
+    { label: "Produtos, estoque e compras", state: "doing", detail: "Dados unificados parcialmente; faltam consignações, conversões, variações e movimentações." },
+    { label: "Fornecedores e pós-venda", state: "doing", detail: "Acesso Company existe; falta auditoria funcional completa." },
+    { label: "Desativar Fitness", state: "todo", detail: "Depende de zerar os acessos operacionais restantes." },
+  ]},
+  { title: "3 · Bank 2.0", scope: "Aprofundar o financeiro depois das operações", steps: [
+    { label: "Cabeçalho, Nexus e atualização", state: "done", detail: "Navegação, atalho do Nexus e correções de atualização foram migrados.", href: "/bank" },
+    { label: "Metas, caixa e situação financeira", state: "doing", detail: "Separar falta para a meta de situação crítica e considerar valores a receber." },
+    { label: "Pendências com valor e prazo", state: "todo", detail: "Criar objetivos como consulta, viagem e compras, com urgência e data limite." },
+    { label: "Caixa, entradas e faturas", state: "todo", detail: "Auditar cálculo, fechamento, projeção e ações profundas do Bank 2.0." },
+  ]},
+  { title: "4 · Atletas 2.0", scope: "Completar o prontuário esportivo", steps: [
+    { label: "Identidade, rotas e fichas", state: "test", detail: "Marca vermelha, /atletas e fichas estão migradas; cabeçalho entra na revisão final.", href: "/atletas" },
+    { label: "Avaliações e histórico", state: "todo", detail: "Migrar avaliações físicas e linha do tempo por atleta." },
+    { label: "Fotos e evolução", state: "todo", detail: "Organizar comparações, arquivos e atualizações do dossiê." },
+    { label: "Troca de ficha", state: "todo", detail: "Substituir a ficha ativa mantendo o histórico." },
+  ]},
+  { title: "5 · Central e Gestão", scope: "Dissolver a Central sem criar outra operação", steps: [
+    { label: "URL e acesso", state: "done", detail: "Gestão usa /company/gestao; /company/dia ficou só como redirecionamento.", href: "/company/gestao" },
+    { label: "Distribuir dados nas abas", state: "doing", detail: "Informações já aparecem em Gestão, mas ainda precisam ser separadas nos destinos corretos." },
+    { label: "Aposentar telas da Central", state: "todo", detail: "Conferir agenda, visão, prioridades, busca e alertas antes de remover a navegação antiga." },
+  ]},
+  { title: "6 · Vitrine e integrações", scope: "Definir pelo uso real", steps: [
+    { label: "Teste real da Vitrine", state: "todo", detail: "Descobrir o complemento necessário antes de fechar o produto.", href: "/vitrine" },
+    { label: "E-mail", state: "todo", detail: "Retomar configuração, envio, retorno e falhas." },
+    { label: "Twilio", state: "todo", detail: "Finalizar comunicação e validar o fluxo real no telefone." },
+  ]},
+  { title: "7 · Fechamento", scope: "Só começa após as funções principais", steps: [
+    { label: "Velocidade", state: "doing", detail: "Reduzir consultas grandes, custo da fila comercial e trabalho invisível em cada navegação." },
+    { label: "Computador", state: "test", detail: "Rodada funcional em andamento." },
+    { label: "iPhone, tablet e paisagem", state: "todo", detail: "Revisar cabeçalhos, menus, formulários, pop-ups e rodapés sem cortes." },
+    { label: "Links e nomes finais", state: "todo", detail: "Auditar rotas e confirmar zero dependência operacional do ERP antigo." },
+  ]},
+];
+
+const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
+const allSteps = blocks.flatMap((block) => block.steps);
 
 export default function CompanyMigrationMapPage() {
-  return <div className="company-map-page"><header><span>COMPANY · MAPA VIVO</span><h1>Migração sem pontas soltas</h1><p>Este é o controle oficial do ERP 2.0. Cada pacote atualiza uma ramificação até o sistema antigo deixar de ser necessário.</p></header><section className="company-mindmap" aria-label="Mapa da migração"><div className="company-map-core"><CircleDot/><strong>Candinho Company</strong><span>Um cadastro · uma navegação · uma verdade</span></div><div className="company-map-branches">{branches.map(({ key, title, icon: Icon, status: state, note, href }) => <Link href={href} className={`company-map-node ${state}`} key={key}><Icon/><div><span>{status[state][0]}</span><h2>{title}</h2><p>{note}</p></div><Activity/></Link>)}</div></section><section className="company-dna"><div><span>DNA DA COMPANY</span><h2>Regras que nenhum módulo pode quebrar</h2></div><div className="company-dna-grid"><article><CheckCircle2/><strong>Responsivo de origem</strong><p>Computador, telefone, tablet e paisagem sem remendos por tela.</p></article><article><CheckCircle2/><strong>Dados únicos</strong><p>Cliente, produto, estoque e financeiro sem cadastros duplicados.</p></article><article><CheckCircle2/><strong>Navegação previsível</strong><p>Logo volta ao início; perfil troca de operação; menus permanecem alcançáveis.</p></article><article><CheckCircle2/><strong>Migração comprovada</strong><p>Só inativar uma tela antiga quando a equivalente estiver migrada, testada e sem acesso necessário.</p></article></div></section></div>;
+  const count = (state: Step["state"]) => allSteps.filter((step) => step.state === state).length;
+  return <div className="company-map-page company-migration-board">
+    <header><span>COMPANY · CONTROLE DA MIGRAÇÃO</span><h1>O que já foi feito, o que testar e o que falta</h1><p>Cada linha aponta a tela, o estado real e a condição para aposentar o ERP antigo.</p></header>
+    <section className="migration-scoreboard" aria-label="Resumo da migração"><article><CheckCircle2/><strong>{count("done")}</strong><span>concluídos</span></article><article><ListChecks/><strong>{count("test")}</strong><span>para testar</span></article><article><Clock3/><strong>{count("doing")}</strong><span>em execução</span></article><article><CircleDot/><strong>{count("todo")}</strong><span>pendentes</span></article></section>
+    <nav className="migration-jump" aria-label="Blocos da migração">{blocks.map((block, index) => <a key={block.title} href={`#bloco-${index + 1}`}>{index + 1}</a>)}</nav>
+    <section className="migration-blocks">{blocks.map((block, index) => <article className="migration-block" id={`bloco-${index + 1}`} key={block.title}><header><span>BLOCO {index + 1}</span><h2>{block.title}</h2><p>{block.scope}</p></header><div>{block.steps.map((step) => { const content = <><i className={`migration-state ${step.state}`}>{labels[step.state]}</i><span><strong>{step.label}</strong><small>{step.detail}</small></span>{step.href ? <ExternalLink size={16}/> : null}</>; return step.href ? <Link key={step.label} href={step.href}>{content}</Link> : <div key={step.label}>{content}</div>; })}</div></article>)}</section>
+    <section className="company-dna"><div><span>REGRA DE SAÍDA</span><h2>Uma tela antiga só some quando a substituta estiver completa</h2></div><p>Função migrada, dados iguais, teste real aprovado, endereço corrigido e nenhum acesso necessário registrado no ERP antigo.</p></section>
+  </div>;
 }

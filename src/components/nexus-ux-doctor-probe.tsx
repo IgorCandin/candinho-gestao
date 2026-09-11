@@ -284,13 +284,13 @@ export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
 
     let resizeTimer = 0;
     const timers = [
-      window.setTimeout(() => inspectLayout(pathname), 550),
-      window.setTimeout(() => inspectLayout(pathname, true), 1600),
+      window.setTimeout(() => inspectLayout(pathname), 2600),
+      window.setTimeout(() => inspectLayout(pathname, true), 5600),
     ];
 
     const onResize = () => {
       window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(() => inspectLayout(pathname, true), 450);
+      resizeTimer = window.setTimeout(() => inspectLayout(pathname, true), 1000);
     };
 
     const onError = (event: ErrorEvent) => {
