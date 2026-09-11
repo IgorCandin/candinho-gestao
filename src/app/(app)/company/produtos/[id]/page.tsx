@@ -1,5 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { notFound } from "next/navigation";
+import Link from "next/link";
+import { Boxes } from "lucide-react";
 import LegacyProductPage from "../../../produtos/[id]/page";
 import { createClient } from "@/lib/supabase/server";
 import { CompanyNutritionLightbox } from "@/components/company-nutrition-lightbox";
@@ -15,6 +17,7 @@ export default async function CompanyProductPage({ params }: { params: Promise<{
 
   return <>
     <CompanyNutritionLightbox />
+    <div className="company-product-detail-stock-link"><Link className="button ghost" href="/company/estoque?operacao=supplements"><Boxes size={16}/>Abrir estoque</Link></div>
     <section className="company-product-detail-media">
       {media.banner_image_url ? <div className="company-product-detail-banner"><img src={media.banner_image_url} alt={`Banner de ${media.name}`}/></div> : null}
     </section>

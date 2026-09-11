@@ -19,13 +19,13 @@ export function CompanyStockHub({ fitness, initialOperation = "supplements" }: {
     ["Transferir", "Leve um ou vários produtos entre locais.", "/company/produtos/transferencias?operacao=supplements", ArrowRightLeft],
     ["Correção", "Ajuste de saldo com motivo e histórico.", "/estoque", Settings2],
     ["Reconciliação", "Revise divergências sem apagar auditoria.", "/estoque/reconciliacao", RefreshCcw],
-    ["Despesa / baixa", "Amostra, avaria, uso interno ou ação comercial.", "/company/acoes-comerciais", PackageMinus],
+    ["Despesa / baixa", "Amostra, avaria, uso interno ou ação comercial.", "/company/estoque/despesa", PackageMinus],
   ] as const : [
     ["Estoque", "Peças, tamanhos, cores e disponibilidade.", "/fitness/estoque", PackageSearch],
     ["Contagem física", "Conferência por variação; registra as diferenças.", "/fitness/estoque/conferencia", ClipboardCheck],
     ["Correção", "Ajuste individual de uma peça com motivo auditável.", "#ajuste-fitness", Settings2],
     ["Reconciliação", "A conferência física é a reconciliação oficial do Fitness.", "/fitness/estoque/conferencia", RefreshCcw],
-    ["Despesa / baixa", "Avaria ou uso interno sem gerar uma venda.", "/fitness/estoque#baixa-operacional", PackageMinus],
+    ["Despesa / baixa", "Avaria ou uso interno sem gerar uma venda.", "/company/estoque/despesa", PackageMinus],
   ] as const;
   return <div className="company-workspace-v2 company-stock-hub">
     <header className="company-workspace-head"><div><span>COMPANY · ESTOQUE</span><h1>Qual operação você quer movimentar?</h1><p>Contagem, correção e reconciliação respeitam a operação escolhida. Nada de abrir uma rotina de Suplementos para acertar uma peça Fitness.</p></div></header>
