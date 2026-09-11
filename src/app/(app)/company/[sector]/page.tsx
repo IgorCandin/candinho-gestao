@@ -63,7 +63,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
   if (sector === "vender") {
     const supabase = await createClient();
     const [opportunitiesResult, priorityResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers] = await Promise.all([
-      supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(180),
+      supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(250),
       supabase.from("customer_sales_opportunities_priority_v2").select("*").order("opportunity_score", { ascending: false }).limit(100),
       supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(100),
       supabase.from("products").select("id,image_url,banner_image_url").eq("active", true),
