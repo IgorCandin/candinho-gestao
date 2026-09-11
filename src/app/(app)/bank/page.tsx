@@ -13,6 +13,7 @@ import {
   ReceiptText,
   RefreshCcw,
   TrendingUp,
+  Target,
   Wallet,
 } from "lucide-react";
 import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
@@ -25,6 +26,7 @@ import {
   type BankMonthCommitment,
 } from "@/lib/bank-home-data";
 import { getBankMonthHomeDataV2 } from "@/lib/bank-home-data-v2";
+import { getBankFinancialGoals } from "@/lib/bank-financial-goals";
 import {
   formatCurrency,
   formatDateOnly,
@@ -165,12 +167,16 @@ export default async function BankDashboardPage({
 }) {
   const params = await searchParams;
 
-  const [data, month, debts] =
+  const [data, month, debts, financialGoals] =
     await Promise.all([
       getBankDashboardData(),
       getBankMonthHomeDataV2(),
       getBankDebts(),
+      getBankFinancialGoals(),
     ]);
+
+  const activeFinancialGoals = financialGoals.filter((goal) => goal.status === "active");
+  const financialGoalMissing = activeFinancialGoals.reduce((sum, goal) => sum + Math.max(goal.targetAmount - goal.reservedAmount, 0), 0);
 
   const openDebts = debts.filter(
     (debt) =>
@@ -407,6 +413,10 @@ export default async function BankDashboardPage({
           </div>
         </article>
       </div>
+
+      <Link className="bank-financial-goals-strip" href="/bank/objetivos">
+        <Target size={20}/><div><span>Pendências e objetivos financeiros</span><strong>{activeFinancialGoals.length ? `${activeFinancialGoals.length} aberto(s) · faltam ${formatCurrency(financialGoalMissing)} separar` : "Nenhum objetivo financeiro aberto"}</strong><small>Metas com prazo não são tratadas como déficit nem como compra de estoque.</small></div><ChevronRight/>
+      </Link>
 
       {selectedCommitment && (
         <article

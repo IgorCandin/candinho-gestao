@@ -8,6 +8,7 @@ import {
   ReceiptText,
   RefreshCcw,
   ShoppingBag,
+  Target,
 } from "lucide-react";
 
 const groups = [
@@ -74,6 +75,12 @@ const groups = [
         title: "Entradas recorrentes",
         description: "Gerencie fontes mensais e valores a receber.",
         icon: CircleDollarSign,
+      },
+      {
+        href: "/bank/objetivos",
+        title: "Pendências e objetivos",
+        description: "Reserve dinheiro para saúde, viagem, compras e urgências com prazo.",
+        icon: Target,
       },
     ],
   },
