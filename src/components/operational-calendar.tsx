@@ -15,6 +15,7 @@ import {
   ListChecks,
   LoaderCircle,
   MessageCircle,
+  Minus,
   NotebookPen,
   PackageOpen,
   Plus,
@@ -30,6 +31,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
+import deliveryStyles from "./sale-delivery-supplies.module.css";
 import type {
   AgendaEvent,
   AgendaPurchaseOrderOption,
@@ -41,6 +43,7 @@ import type {
 
 type CalendarView = "month" | "week" | "day" | "list";
 type ActionMode = "reschedule" | "note" | "complete" | "cancel" | null;
+type DeliverySupply = { supply_id: string; name: string; unit_name: string; quantity_on_hand: number; average_unit_cost: number; suggested_quantity: number; quantity: number };
 
 const categoryLabels: Record<AgendaEvent["category"], string> = {
   task: "Tarefa",
@@ -165,6 +168,11 @@ function actionErrorMessage(error: unknown) {
   return "Não foi possível atualizar o compromisso.";
 }
 
+function numberValue(value: unknown) {
+  const parsed = Number(value ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 export function OperationalCalendar({
   events,
   summary,
@@ -232,7 +240,7 @@ export function OperationalCalendar({
       const supabase = createClient();
       const delivery = name === "complete_operational_event" && args.p_source_type === "sale_delivery";
       const { error } = delivery
-        ? await supabase.rpc("mark_sale_delivered_with_supplies", { p_sale_id: args.p_source_id, p_delivered_on: args.p_completed_on, p_supplies: [] })
+        ? await supabase.rpc("mark_sale_delivered_with_supplies", { p_sale_id: args.p_source_id, p_delivered_on: args.p_completed_on, p_supplies: Array.isArray(args.p_supplies) ? args.p_supplies : [] })
         : await supabase.rpc(name, args);
       if (error) throw error;
       setMessage("Atualizado com sucesso.");
@@ -423,9 +431,30 @@ function EventDialog({ event, today, canWrite, actionMode, setActionMode, loadin
   const [notes, setNotes] = useState("");
   const [outcome, setOutcome] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<(typeof PAYMENT_METHODS)[number]>("Pix");
+  const [deliverySupplies, setDeliverySupplies] = useState<DeliverySupply[]>([]);
+  const [loadingSupplies, setLoadingSupplies] = useState(false);
+  const [deliveryMessage, setDeliveryMessage] = useState<string | null>(null);
   const whatsapp = whatsappUrl(event.customer_phone);
   const canCancel = ["task", "interaction", "sale_post_sale"].includes(event.source_type) && event.status === "planned";
   const canComplete = event.source_type !== "purchase_order" && event.status === "planned";
+
+  async function openCompletion() {
+    if (actionMode === "complete") { setActionMode(null); return; }
+    setActionMode("complete");
+    if (event.source_type !== "sale_delivery") return;
+    setDeliveryMessage(null);
+    setLoadingSupplies(true);
+    try {
+      const { data, error } = await createClient().rpc("get_sale_delivery_supply_options", { p_operation_scope: "supplements", p_sale_id: event.source_id });
+      if (error) throw error;
+      const raw = (data ?? {}) as Record<string, unknown>;
+      const rows = Array.isArray(raw.items) ? raw.items as Array<Record<string, unknown>> : [];
+      setDeliverySupplies(rows.map((item) => ({ supply_id: String(item.supply_id ?? ""), name: String(item.name ?? "Material"), unit_name: String(item.unit_name ?? "unidade"), quantity_on_hand: numberValue(item.quantity_on_hand), average_unit_cost: numberValue(item.average_unit_cost), suggested_quantity: numberValue(item.suggested_quantity), quantity: numberValue(item.suggested_quantity) })));
+    } catch (error) { setDeliveryMessage(actionErrorMessage(error)); }
+    finally { setLoadingSupplies(false); }
+  }
+
+  function setSupplyQuantity(id: string, quantity: number) { setDeliverySupplies((current) => current.map((item) => item.supply_id === id ? { ...item, quantity: Math.max(0, quantity) } : item)); }
 
   return <div className="modal-backdrop" onMouseDown={(e) => { if (e.currentTarget === e.target) onClose(); }}><section className="modal-card agenda-event-dialog">
     <div className="modal-head"><div><span className={`agenda-category-label ${eventTone(event, today)}`}>{categoryLabels[event.category]}</span><h2>{event.title}</h2><p>{event.subtitle}</p></div><button className="icon-button" type="button" onClick={onClose}><X size={18} /></button></div>
@@ -442,7 +471,7 @@ function EventDialog({ event, today, canWrite, actionMode, setActionMode, loadin
       <Link className="button ghost" href={event.href}><ExternalLink size={16} />Abrir registro</Link>
       {canWrite && event.status === "planned" && <button className="button ghost" type="button" onClick={() => setActionMode(actionMode === "reschedule" ? null : "reschedule")}><CalendarClock size={16} />Reagendar</button>}
       {canWrite && <button className="button ghost" type="button" onClick={() => setActionMode(actionMode === "note" ? null : "note")}><NotebookPen size={16} />Observação</button>}
-      {canWrite && canComplete && <button className="button gold" type="button" onClick={() => setActionMode(actionMode === "complete" ? null : "complete")}><CheckCircle2 size={16} />Concluir</button>}
+      {canWrite && canComplete && <button className="button gold" type="button" onClick={() => void openCompletion()}><CheckCircle2 size={16} />{event.source_type === "sale_delivery" ? "Entregar" : "Concluir"}</button>}
       {canWrite && canCancel && <button className="button danger" type="button" onClick={() => setActionMode(actionMode === "cancel" ? null : "cancel")}><Trash2 size={16} />Cancelar</button>}
     </div>
 
@@ -450,11 +479,12 @@ function EventDialog({ event, today, canWrite, actionMode, setActionMode, loadin
 
     {actionMode === "note" && <form className="agenda-inline-form single" onSubmit={(e) => { e.preventDefault(); onRun("append_operational_event_note", { p_source_type: event.source_type, p_source_id: event.source_id, p_note: notes }); }}><label className="field"><span>Nova observação</span><textarea className="textarea" rows={3} required value={notes} onChange={(e) => setNotes(e.target.value)} /></label><button className="button gold" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16} /> : <Save size={16} />}Adicionar</button></form>}
 
-    {actionMode === "complete" && <form className="agenda-inline-form single" onSubmit={(e) => { e.preventDefault(); onRun("complete_operational_event", { p_source_type: event.source_type, p_source_id: event.source_id, p_completed_on: today, p_outcome: outcome.trim() || null, p_notes: notes.trim() || null, p_payment_method: event.source_type === "sale_payment" ? paymentMethod : null }); }}>
+    {actionMode === "complete" && <form className="agenda-inline-form single" onSubmit={(e) => { e.preventDefault(); onRun("complete_operational_event", { p_source_type: event.source_type, p_source_id: event.source_id, p_completed_on: today, p_outcome: outcome.trim() || null, p_notes: notes.trim() || null, p_payment_method: event.source_type === "sale_payment" ? paymentMethod : null, p_supplies: event.source_type === "sale_delivery" ? deliverySupplies.map((item) => ({ supply_id: item.supply_id, quantity: item.quantity })) : [] }); }}>
       {event.source_type === "sale_payment" && <label className="field"><span>Forma de pagamento</span><select className="select" value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as (typeof PAYMENT_METHODS)[number])}>{PAYMENT_METHODS.map((method) => <option key={method}>{method}</option>)}</select></label>}
       {["interaction", "sale_post_sale"].includes(event.source_type) && <label className="field"><span>Resultado</span><input className="input" value={outcome} onChange={(e) => setOutcome(e.target.value)} placeholder="Ex.: cliente gostou, pediu retorno, recompra provável" /></label>}
+      {event.source_type === "sale_delivery" && <div className={deliveryStyles.materials}><div className={deliveryStyles.intro}><strong>Usou sacola, cartão ou outro material?</strong><span>Confirme a quantidade realmente usada. Deixe em zero caso não tenha usado.</span></div>{loadingSupplies ? <div className={deliveryStyles.hint}><LoaderCircle className="spin" size={14}/> Carregando materiais…</div> : deliverySupplies.length === 0 ? <div className={deliveryStyles.hint}>Nenhum material configurado. Você pode confirmar a entrega normalmente.</div> : <div className={deliveryStyles.rows}>{deliverySupplies.map((item) => <div className={deliveryStyles.row} key={item.supply_id}><div className={deliveryStyles.copy}><strong>{item.name}</strong><span>Estoque {item.quantity_on_hand} · sugestão {item.suggested_quantity} · {formatCurrency(item.average_unit_cost)} por {item.unit_name}</span></div><div className={deliveryStyles.quantity}><button type="button" onClick={() => setSupplyQuantity(item.supply_id, item.quantity - 1)}><Minus size={14}/></button><input aria-label={`Quantidade de ${item.name}`} type="number" min="0" step="1" value={item.quantity} onChange={(e) => setSupplyQuantity(item.supply_id, numberValue(e.target.value))}/><button type="button" onClick={() => setSupplyQuantity(item.supply_id, item.quantity + 1)}><Plus size={14}/></button></div></div>)}</div>}</div>}
       <label className="field"><span>Observação final (opcional)</span><textarea className="textarea" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></label>
-      <button className="button gold" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16} /> : <CheckCircle2 size={16} />}{event.source_type === "sale_delivery" ? "Marcar entregue" : event.source_type === "sale_payment" ? "Marcar recebido" : "Concluir compromisso"}</button>
+      {deliveryMessage ? <p className="form-message standalone-message">{deliveryMessage}</p> : null}<button className="button gold" disabled={loading || loadingSupplies}>{loading ? <LoaderCircle className="spin" size={16} /> : <CheckCircle2 size={16} />}{event.source_type === "sale_delivery" ? "Confirmar e dar baixa" : event.source_type === "sale_payment" ? "Marcar recebido" : "Concluir compromisso"}</button>
     </form>}
 
     {actionMode === "cancel" && <form className="agenda-inline-form single" onSubmit={(e) => { e.preventDefault(); onRun("cancel_operational_event", { p_source_type: event.source_type, p_source_id: event.source_id, p_reason: notes.trim() || null }); }}><label className="field"><span>Motivo do cancelamento</span><textarea className="textarea" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} /></label><button className="button danger" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16} /> : <Trash2 size={16} />}Confirmar cancelamento</button></form>}
