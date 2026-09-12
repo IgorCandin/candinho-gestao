@@ -805,11 +805,11 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
     zeroStock.length > 0
   ) {
     alerts.push({
-      tone: "critical",
+      tone: "attention",
       title:
         "Produtos zerados",
       description:
-        "Produtos sem saldo disponível para nova venda.",
+        "Produtos sem saldo disponível para nova venda. É uma necessidade de reposição, não uma crise financeira.",
       href: "/produtos",
       count:
         zeroStock.length,
