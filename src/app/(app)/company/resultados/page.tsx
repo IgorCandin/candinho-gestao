@@ -3,6 +3,7 @@ import { BarChart3, Dumbbell, PackageSearch, TrendingUp } from "lucide-react";
 import { redirect } from "next/navigation";
 import { getCurrentUserAccess, getFitnessSales, getPanelCS } from "@/lib/data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
+import { ProfitEvolutionChart } from "@/components/profit-evolution-portal";
 
 export const dynamic = "force-dynamic";
 
@@ -122,6 +123,8 @@ export default async function CompanyResultsPage({
           </i>
         </div>
       </section>
+
+      <ProfitEvolutionChart operation={operation} />
 
       <section className="company-results-grid">
         {operation === "company" ? (

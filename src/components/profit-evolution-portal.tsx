@@ -59,7 +59,11 @@ function margin(profit: number, revenue: number) {
   return `${((profit / revenue) * 100).toFixed(1).replace(".", ",")}%`;
 }
 
-function ProfitEvolutionChart() {
+export function ProfitEvolutionChart({
+  operation = "suplementos",
+}: {
+  operation?: "company" | "suplementos" | "fitness";
+}) {
   const [period, setPeriod] = useState<PeriodKey>("30d");
   const [mode, setMode] = useState<ViewMode>("period");
   const [data, setData] = useState<ProfitEvolutionResponse | null>(null);
@@ -77,7 +81,7 @@ function ProfitEvolutionChart() {
 
       try {
         const response = await fetch(
-          `/api/painel-cs/evolucao-lucro?period=${period}`,
+          `/api/painel-cs/evolucao-lucro?period=${period}&operation=${operation}`,
           { cache: "no-store" },
         );
 
@@ -108,7 +112,7 @@ function ProfitEvolutionChart() {
     return () => {
       cancelled = true;
     };
-  }, [period]);
+  }, [operation, period]);
 
   const chartPoints = useMemo(() => {
     if (!data) return [];

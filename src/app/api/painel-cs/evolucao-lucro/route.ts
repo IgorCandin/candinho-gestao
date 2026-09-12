@@ -29,6 +29,8 @@ type SaleProfitRow = {
   total_amount: number | string | null;
 };
 
+type Operation = "company" | "suplementos" | "fitness";
+
 const PERIODS: Record<
   PeriodKey,
   { label: string; bucket: BucketKind; days?: number; months?: number }
@@ -251,8 +253,19 @@ function bucketKey(
 
 export async function GET(request: NextRequest) {
   const access = await getCurrentUserAccess();
+  const requestedOperation = request.nextUrl.searchParams.get("operation");
+  const operation: Operation = requestedOperation === "fitness" || requestedOperation === "company"
+    ? requestedOperation
+    : "suplementos";
+  const canReadSupplements = access.role === "admin" || access.canAccessSupplements;
+  const canReadFitness = access.role === "admin" || access.canAccessFitness;
 
-  if (!access.active || !access.canAccessSupplements) {
+  if (
+    !access.active ||
+    (operation === "suplementos" && !canReadSupplements) ||
+    (operation === "fitness" && !canReadFitness) ||
+    (operation === "company" && !canReadSupplements && !canReadFitness)
+  ) {
     return NextResponse.json({ error: "Acesso não autorizado." }, { status: 403 });
   }
 
@@ -263,24 +276,38 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient();
 
-  const { data, error } = await supabase
-    .from("sales")
-    .select("delivered_at,total_profit,total_amount")
-    .eq("record_type", "sale")
-    .eq("delivery_status", "delivered")
-    .neq("general_status", "cancelled")
-    .gte("delivered_at", toDatabaseTimestamp(previousStart))
-    .lt("delivered_at", toDatabaseTimestamp(currentEnd))
-    .order("delivered_at", { ascending: true });
+  const supplementsQuery = canReadSupplements && operation !== "fitness"
+    ? supabase.from("sales").select("delivered_at,total_profit,total_amount")
+        .eq("record_type", "sale").eq("delivery_status", "delivered")
+        .neq("general_status", "cancelled")
+        .gte("delivered_at", toDatabaseTimestamp(previousStart))
+        .lt("delivered_at", toDatabaseTimestamp(currentEnd))
+        .order("delivered_at", { ascending: true })
+    : Promise.resolve({ data: [], error: null });
+  const fitnessQuery = canReadFitness && operation !== "suplementos"
+    ? supabase.from("fitness_sales_operational").select("delivered_on,total_profit,total_amount")
+        .eq("delivery_status", "delivered").neq("general_status", "cancelled")
+        .gte("delivered_on", dateKey(previousStart)).lt("delivered_on", dateKey(currentEnd))
+        .order("delivered_on", { ascending: true })
+    : Promise.resolve({ data: [], error: null });
+  const [supplementsResult, fitnessResult] = await Promise.all([supplementsQuery, fitnessQuery]);
 
-  if (error) {
+  if (supplementsResult.error || fitnessResult.error) {
+    const error = supplementsResult.error ?? fitnessResult.error;
     return NextResponse.json(
-      { error: `Não foi possível carregar a evolução do lucro: ${error.message}` },
+      { error: `Não foi possível carregar a evolução do lucro: ${error?.message ?? "erro desconhecido"}` },
       { status: 500 },
     );
   }
 
-  const rows = (data ?? []) as SaleProfitRow[];
+  const rows: SaleProfitRow[] = [
+    ...((supplementsResult.data ?? []) as SaleProfitRow[]),
+    ...((fitnessResult.data ?? []) as Array<{ delivered_on: string | null; total_profit: number | string | null; total_amount: number | string | null }>).map((row) => ({
+      delivered_at: row.delivered_on,
+      total_profit: row.total_profit,
+      total_amount: row.total_amount,
+    })),
+  ].sort((left, right) => (left.delivered_at ?? "").localeCompare(right.delivered_at ?? ""));
   const points = createEmptyPoints(config.bucket, currentStart, currentEnd);
   const pointMap = new Map(points.map((point) => [point.key, point]));
 
