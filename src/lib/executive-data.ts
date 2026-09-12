@@ -751,7 +751,7 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
         "Pós-vendas atrasados",
       description:
         "Existem acompanhamentos planejados com data já vencida.",
-      href: "/pos-venda",
+      href: "/company/acompanhar",
       count:
         postSaleOverdue,
     });
@@ -783,7 +783,7 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
         "Trocas/devoluções abertas",
       description:
         "Ocorrências ainda aguardam resolução operacional.",
-      href: "/trocas",
+      href: "/company/trocas",
       count:
         returns.length,
       amount:
@@ -810,7 +810,7 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
         "Produtos zerados",
       description:
         "Produtos sem saldo disponível para nova venda. É uma necessidade de reposição, não uma crise financeira.",
-      href: "/produtos",
+      href: "/company/produtos",
       count:
         zeroStock.length,
     });
@@ -825,7 +825,7 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
         "Estoque em atenção",
       description:
         "Produtos abaixo do mínimo, totalmente reservados ou zerados com reposição a caminho.",
-      href: "/produtos",
+      href: "/company/produtos",
       count:
         lowStock.length,
     });
@@ -842,7 +842,7 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
       description:
         "Parceiros com fechamento ou recompensa pendente de revisão.",
       href:
-        "/parceiros/gerencial",
+        "/company/parceiros/gerencial",
       count:
         partnerSettlementsPending.length,
     });
@@ -857,7 +857,7 @@ export async function getExecutiveSnapshot(): Promise<ExecutiveSnapshot> {
         "Projetos de Marketing com erro",
       description:
         "Existem projetos com processamento marcado como erro/falha.",
-      href: "/marketing",
+      href: "/company/marketing",
       count:
         marketingErrors,
     });
