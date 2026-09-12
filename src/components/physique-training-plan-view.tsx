@@ -289,283 +289,338 @@ const MUSCLE_ANALYSES: Record<AnalysisKey, MuscleAnalysis> = {
   },
 };
 
+// Match reviewed exercise names only: muscle-family substring matches can show a different movement.
+// Match reviewed exercise names only: muscle-family substring matches can show a different movement.
 const EXERCISE_VISUALS: ExerciseVisual[] = [
   {
-    exactNames: ["supino reto"],
-    src: "/images/physique/exercises/flat-barbell-bench-press.png",
-    label: "Peito, ombros e tríceps",
-    analysisKey: "chestPress",
-  },
-  {
-    exactNames: ["supino reto máquina", "supino reto maquina"],
-    src: "/images/physique/exercises/chest-press-machine-flat.webp",
-    label: "Peito e tríceps",
-    analysisKey: "chestPress",
-  },
-  {
-    exactNames: [
-      "supino inclinado com halter",
-      "supino inclinado máquina",
-      "supino inclinado maquina",
-      "supino inclinado máquina ou halter",
-      "supino inclinado maquina ou halter",
+    "exactNames": [
+      "Supino reto"
     ],
-    src: "/images/physique/exercises/chest-press.webp",
-    label: "Peito superior, ombros e tríceps",
-    analysisKey: "chestPress",
-    note: "Imagem representativa da família do movimento (supino/chest press inclinado).",
+    "src": "/images/physique/exercises/flat-barbell-bench-press.png",
+    "label": "Peito, ombros e tríceps",
+    "analysisKey": "chestPress",
+    "note": "Imagem: supino reto com barra."
   },
   {
-    exactNames: ["crossover baixo para cima"],
-    src: "/images/physique/exercises/low-to-high-cable-crossover.png",
-    label: "Peito superior",
-    analysisKey: "crossover",
+    "exactNames": [
+      "Supino reto máquina"
+    ],
+    "src": "/images/physique/exercises/horizontal-chest-machine.webp",
+    "label": "Peito e tríceps",
+    "analysisKey": "chestPress"
   },
   {
-    exactNames: ["rosca scott unilateral ou alternada"],
-    src: "/images/physique/exercises/preacher-curl.png",
-    label: "Bíceps e braquial",
-    analysisKey: "curl",
-    note: "Imagem representativa da variação Scott; a execução pode alternar ou ser unilateral.",
+    "exactNames": [
+      "Supino inclinado",
+      "Supino inclinado com halter",
+      "Supino inclinado com halteres"
+    ],
+    "src": "/images/physique/exercises/chest-press.webp",
+    "label": "Peito superior, ombros e tríceps",
+    "analysisKey": "chestPress",
+    "note": "Imagem: supino inclinado com halteres."
   },
   {
-    exactNames: ["rosca direta"],
-    src: "/images/physique/exercises/barbell-biceps-curl.png",
-    label: "Bíceps e braquial",
-    analysisKey: "curl",
+    "exactNames": [
+      "Supino inclinado máquina",
+      "Supino inclinado máquina ou halter"
+    ],
+    "src": "/images/physique/exercises/incline-chest-machine.webp",
+    "label": "Peito superior, ombros e tríceps",
+    "analysisKey": "chestPress",
+    "note": "Imagem: supino inclinado na máquina."
   },
   {
-    exactNames: ["rosca martelo"],
-    src: "/images/physique/exercises/biceps-curl.webp",
-    label: "Bíceps, braquial e braquiorradial",
-    analysisKey: "curl",
-    note: "Imagem representativa da rosca; o foco na martelo é a pegada neutra.",
+    "exactNames": [
+      "Crucifixo ou crossover",
+      "Crossover"
+    ],
+    "src": "/images/physique/exercises/cable-chest-fly.webp",
+    "label": "Peito",
+    "analysisKey": "crossover",
+    "note": "Imagem: crossover no cabo, uma das opções da ficha."
   },
   {
-    exactNames: ["tríceps francês unilateral no cabo", "triceps frances unilateral no cabo"],
-    src: "/images/physique/exercises/overhead-cable-triceps-extension.png",
-    label: "Tríceps",
-    analysisKey: "triceps",
+    "exactNames": [
+      "Crossover baixo para cima"
+    ],
+    "src": "/images/physique/exercises/low-cable-fly-corrected.webp",
+    "label": "Peito superior",
+    "analysisKey": "crossover"
   },
   {
-    exactNames: ["tríceps unilateral no cabo", "triceps unilateral no cabo"],
-    src: "/images/physique/exercises/triceps-cable.webp",
-    label: "Tríceps",
-    analysisKey: "triceps",
+    "exactNames": [
+      "Rosca Scott unilateral ou alternada",
+      "Rosca inclinada ou Scott",
+      "Rosca Scott ou máquina",
+      "Rosca Scott"
+    ],
+    "src": "/images/physique/exercises/preacher-curl.png",
+    "label": "Bíceps e braquial",
+    "analysisKey": "curl",
+    "note": "Imagem: rosca Scott unilateral com halter."
   },
   {
-    exactNames: ["flexão com pés elevados", "flexao com pes elevados"],
-    src: "/images/physique/exercises/decline-push-up.png",
-    label: "Peito, ombros e tríceps",
-    analysisKey: "pushUp",
+    "exactNames": [
+      "Rosca direta"
+    ],
+    "src": "/images/physique/exercises/barbell-biceps-curl.png",
+    "label": "Bíceps e braquial",
+    "analysisKey": "curl"
   },
   {
-    exactNames: ["flexão normal", "flexao normal", "flexão", "flexao", "flexão de braços", "flexao de bracos"],
-    src: "/images/physique/exercises/push-up.png",
-    label: "Peito, ombros e tríceps",
-    analysisKey: "pushUp",
+    "exactNames": [
+      "Rosca martelo"
+    ],
+    "src": "/images/physique/exercises/biceps-curl.webp",
+    "label": "Bíceps, braquial e braquiorradial",
+    "analysisKey": "curl",
+    "note": "Imagem: rosca martelo com pegada neutra."
   },
   {
-    exactNames: ["bike"],
-    src: "/images/physique/exercises/bike.webp",
-    label: "Core e condicionamento",
-    analysisKey: "bike",
+    "exactNames": [
+      "Tríceps francês unilateral no cabo"
+    ],
+    "src": "/images/physique/exercises/overhead-cable-triceps-extension.png",
+    "label": "Tríceps",
+    "analysisKey": "triceps"
   },
   {
-    exactNames: ["elevação pélvica no sofá", "elevacao pelvica no sofa", "elevação pélvica unilateral", "elevacao pelvica unilateral"],
-    src: "/images/physique/exercises/hip-thrust.webp",
-    label: "Glúteos e posteriores",
-    analysisKey: "hipThrust",
-    note: "Imagem representativa da elevação pélvica; a variação unilateral pode ter execução diferente da foto.",
+    "exactNames": [
+      "Tríceps francês ou testa",
+      "Tríceps francês"
+    ],
+    "src": "/images/physique/exercises/dumbbell-french-press.webp",
+    "label": "Tríceps",
+    "analysisKey": "triceps",
+    "note": "Imagem: tríceps francês com halter acima da cabeça."
   },
   {
-    exactNames: ["cadeira extensora"],
-    src: "/images/physique/exercises/knee-extension.webp",
-    label: "Quadríceps",
-    analysisKey: "kneeExtension",
+    "exactNames": [
+      "Tríceps unilateral no cabo"
+    ],
+    "src": "/images/physique/exercises/single-arm-pushdown.webp",
+    "label": "Tríceps",
+    "analysisKey": "triceps"
   },
   {
-    exactNames: ["cadeira ou mesa flexora bilateral", "mesa ou cadeira flexora bilateral"],
-    src: "/images/physique/exercises/leg-curl-bilateral.png",
-    label: "Posteriores de coxa",
-    analysisKey: "legCurl",
+    "exactNames": [
+      "Tríceps corda"
+    ],
+    "src": "/images/physique/exercises/triceps-cable.webp",
+    "label": "Tríceps",
+    "analysisKey": "triceps"
   },
   {
-    exactNames: ["flexora", "flexora unilateral"],
-    src: "/images/physique/exercises/leg-curl.webp",
-    label: "Posteriores de coxa",
-    analysisKey: "legCurl",
-    note: "Imagem representativa da flexora; a variação unilateral pode mudar a máquina ou a posição.",
+    "exactNames": [
+      "Flexão com pés elevados"
+    ],
+    "src": "/images/physique/exercises/decline-push-up.png",
+    "label": "Peito, ombros e tríceps",
+    "analysisKey": "pushUp"
   },
   {
-    exactNames: ["leg press"],
-    src: "/images/physique/exercises/leg-press.webp",
-    label: "Pernas e glúteos",
-    analysisKey: "legPress",
+    "exactNames": [
+      "Flexão normal",
+      "Flexão",
+      "Flexão de braços"
+    ],
+    "src": "/images/physique/exercises/push-up.png",
+    "label": "Peito, ombros e tríceps",
+    "analysisKey": "pushUp"
   },
   {
-    exactNames: ["stiff / terra romeno", "stiff moderado"],
-    src: "/images/physique/exercises/romanian-deadlift.webp",
-    label: "Posteriores e glúteos",
-    analysisKey: "hinge",
+    "exactNames": [
+      "Bike",
+      "Bicicleta",
+      "Spinning"
+    ],
+    "src": "/images/physique/exercises/bike.webp",
+    "label": "Pernas e condicionamento",
+    "analysisKey": "bike"
   },
   {
-    exactNames: ["agachamento livre ou smith", "agachamento isométrico", "agachamento sumô", "agachamento sumo"],
-    src: "/images/physique/exercises/squat.webp",
-    label: "Pernas e glúteos",
-    analysisKey: "squat",
-    note: "Imagem representativa da família do agachamento; sumô e isométrico têm base e intenção diferentes da foto padrão.",
+    "exactNames": [
+      "Elevação pélvica no sofá"
+    ],
+    "src": "/images/physique/exercises/sofa-hip-thrust.webp",
+    "label": "Glúteos e posteriores",
+    "analysisKey": "hipThrust"
   },
   {
-    exactNames: ["crucifixo inverso ou face pull"],
-    src: "/images/physique/exercises/reverse-fly.webp",
-    label: "Posterior de ombro e costas",
-    analysisKey: "reverseFly",
-    note: "Imagem representativa da família do movimento; face pull não tem exatamente a mesma foto do crucifixo inverso.",
+    "exactNames": [
+      "Elevação pélvica unilateral"
+    ],
+    "src": "/images/physique/exercises/single-leg-hip-thrust.webp",
+    "label": "Glúteos e posteriores",
+    "analysisKey": "hipThrust"
   },
   {
-    exactNames: ["puxada aberta"],
-    src: "/images/physique/exercises/pulldown.webp",
-    label: "Costas e bíceps",
-    analysisKey: "pulldown",
+    "exactNames": [
+      "Cadeira extensora"
+    ],
+    "src": "/images/physique/exercises/knee-extension.webp",
+    "label": "Quadríceps",
+    "analysisKey": "kneeExtension"
   },
   {
-    exactNames: ["remada máquina ou baixa", "remada maquina ou baixa"],
-    src: "/images/physique/exercises/row.webp",
-    label: "Costas e bíceps",
-    analysisKey: "row",
+    "exactNames": [
+      "Cadeira ou mesa flexora bilateral",
+      "Mesa ou cadeira flexora bilateral"
+    ],
+    "src": "/images/physique/exercises/leg-curl.webp",
+    "label": "Posteriores de coxa",
+    "analysisKey": "legCurl",
+    "note": "Imagem: mesa flexora bilateral, uma das opções da ficha."
   },
   {
-    exactNames: ["elevação lateral", "elevacao lateral"],
-    src: "/images/physique/exercises/lateral-raise.webp",
-    label: "Ombros",
-    analysisKey: "lateralRaise",
+    "exactNames": [
+      "Flexora",
+      "Mesa flexora"
+    ],
+    "src": "/images/physique/exercises/leg-curl.webp",
+    "label": "Posteriores de coxa",
+    "analysisKey": "legCurl"
   },
   {
-    exactNames: ["panturrilha no leg ou máquina", "panturrilha no leg ou maquina"],
-    src: "/images/physique/exercises/seated-leg-press-calf-raise.png",
-    label: "Panturrilhas",
-    analysisKey: "calf",
+    "exactNames": [
+      "Flexora unilateral"
+    ],
+    "src": "/images/physique/exercises/single-leg-curl.webp",
+    "label": "Posteriores de coxa",
+    "analysisKey": "legCurl"
   },
   {
-    exactNames: ["panturrilha unilateral", "panturrilha isométrica", "panturrilha isometrica"],
-    src: "/images/physique/exercises/calf-raise.webp",
-    label: "Panturrilhas",
-    analysisKey: "calf",
-    note: "Imagem representativa da panturrilha; unilateral e isométrica podem variar em apoio e postura.",
+    "exactNames": [
+      "Leg press",
+      "Agachamento ou Leg Press"
+    ],
+    "src": "/images/physique/exercises/leg-press.webp",
+    "label": "Pernas e glúteos",
+    "analysisKey": "legPress",
+    "note": "Imagem: leg press."
   },
   {
-    exactNames: ["abdominal reverso"],
-    src: "/images/physique/exercises/core-cardio.webp",
-    label: "Core",
-    analysisKey: "core",
-    note: "Ainda não há arte específica para abdominal reverso; esta imagem representa a categoria de core.",
-  },
-
-  // Fallbacks genéricos
-  {
-    terms: ["supino", "peitoral", "paralela", "mergulho"],
-    src: "/images/physique/exercises/chest-press-machine-flat.webp",
-    label: "Peito e tríceps",
-    analysisKey: "chestPress",
+    "exactNames": [
+      "Stiff / terra romeno",
+      "Stiff moderado",
+      "Stiff",
+      "Terra romeno"
+    ],
+    "src": "/images/physique/exercises/romanian-deadlift.webp",
+    "label": "Posteriores e glúteos",
+    "analysisKey": "hinge"
   },
   {
-    terms: ["crossover", "crucifixo"],
-    src: "/images/physique/exercises/chest-press-machine-flat.webp",
-    label: "Peito e ombros",
-    analysisKey: "crossover",
-    note: "Imagem representativa da família do movimento.",
+    "exactNames": [
+      "Agachamento livre ou Smith",
+      "Agachamento livre"
+    ],
+    "src": "/images/physique/exercises/squat.webp",
+    "label": "Pernas e glúteos",
+    "analysisKey": "squat",
+    "note": "Imagem: agachamento livre com barra."
   },
   {
-    terms: ["rosca", "curl"],
-    src: "/images/physique/exercises/biceps-curl.webp",
-    label: "Bíceps e braquial",
-    analysisKey: "curl",
+    "exactNames": [
+      "Agachamento sumô"
+    ],
+    "src": "/images/physique/exercises/sumo-squat.webp",
+    "label": "Pernas e glúteos",
+    "analysisKey": "squat"
   },
   {
-    terms: ["tríceps", "triceps"],
-    src: "/images/physique/exercises/triceps-cable.webp",
-    label: "Tríceps",
-    analysisKey: "triceps",
+    "exactNames": [
+      "Agachamento isométrico"
+    ],
+    "src": "/images/physique/exercises/wall-sit.webp",
+    "label": "Quadríceps e glúteos",
+    "analysisKey": "squat",
+    "note": "Imagem: agachamento isométrico com apoio na parede."
   },
   {
-    terms: ["panturrilha", "gêmeos", "gemeos"],
-    src: "/images/physique/exercises/calf-raise.webp",
-    label: "Panturrilhas",
-    analysisKey: "calf",
+    "exactNames": [
+      "Crucifixo inverso ou face pull",
+      "Face pull"
+    ],
+    "src": "/images/physique/exercises/reverse-fly.webp",
+    "label": "Posterior de ombro e costas",
+    "analysisKey": "reverseFly",
+    "note": "Imagem: face pull com corda, uma das opções da ficha."
   },
   {
-    terms: ["bike", "bicicleta", "spinning"],
-    src: "/images/physique/exercises/bike.webp",
-    label: "Core e condicionamento",
-    analysisKey: "bike",
+    "exactNames": [
+      "Puxada aberta",
+      "Puxada frontal"
+    ],
+    "src": "/images/physique/exercises/pulldown.webp",
+    "label": "Costas e bíceps",
+    "analysisKey": "pulldown"
   },
   {
-    terms: ["elevação pélvica", "elevacao pelvica", "hip thrust", "ponte de glúteo", "ponte de gluteo"],
-    src: "/images/physique/exercises/hip-thrust.webp",
-    label: "Glúteos e posteriores",
-    analysisKey: "hipThrust",
+    "exactNames": [
+      "Remada máquina ou baixa",
+      "Remada",
+      "Remada baixa"
+    ],
+    "src": "/images/physique/exercises/row.webp",
+    "label": "Costas e bíceps",
+    "analysisKey": "row",
+    "note": "Imagem: remada baixa no cabo."
   },
   {
-    terms: ["extensora"],
-    src: "/images/physique/exercises/knee-extension.webp",
-    label: "Quadríceps",
-    analysisKey: "kneeExtension",
+    "exactNames": [
+      "Remada ou puxada unilateral",
+      "Remada unilateral"
+    ],
+    "src": "/images/physique/exercises/single-arm-row.webp",
+    "label": "Costas e bíceps",
+    "analysisKey": "row",
+    "note": "Imagem: remada unilateral com halter."
   },
   {
-    terms: ["flexora", "leg curl"],
-    src: "/images/physique/exercises/leg-curl.webp",
-    label: "Posteriores de coxa",
-    analysisKey: "legCurl",
+    "exactNames": [
+      "Elevação lateral"
+    ],
+    "src": "/images/physique/exercises/lateral-raise.webp",
+    "label": "Ombros",
+    "analysisKey": "lateralRaise"
   },
   {
-    terms: ["leg press"],
-    src: "/images/physique/exercises/leg-press.webp",
-    label: "Pernas e glúteos",
-    analysisKey: "legPress",
+    "exactNames": [
+      "Panturrilha no leg ou máquina"
+    ],
+    "src": "/images/physique/exercises/seated-calf-corrected.webp",
+    "label": "Panturrilhas",
+    "analysisKey": "calf",
+    "note": "Imagem: panturrilha sentada na máquina."
   },
   {
-    terms: ["stiff", "romeno", "rdl", "terra"],
-    src: "/images/physique/exercises/romanian-deadlift.webp",
-    label: "Posteriores e glúteos",
-    analysisKey: "hinge",
+    "exactNames": [
+      "Panturrilha",
+      "Panturrilha isométrica"
+    ],
+    "src": "/images/physique/exercises/calf-raise.webp",
+    "label": "Panturrilhas",
+    "analysisKey": "calf",
+    "note": "Imagem: elevação dos calcanhares em pé; na isometria, sustente a posição indicada na ficha."
   },
   {
-    terms: ["agach", "sumô", "sumo", "avanço", "avanco", "passada", "afundo"],
-    src: "/images/physique/exercises/squat.webp",
-    label: "Pernas e glúteos",
-    analysisKey: "squat",
+    "exactNames": [
+      "Panturrilha unilateral"
+    ],
+    "src": "/images/physique/exercises/single-leg-calf-raise.webp",
+    "label": "Panturrilhas",
+    "analysisKey": "calf"
   },
   {
-    terms: ["face pull", "crucifixo inverso", "voador inverso", "reverse fly"],
-    src: "/images/physique/exercises/reverse-fly.webp",
-    label: "Posterior de ombro e costas",
-    analysisKey: "reverseFly",
-  },
-  {
-    terms: ["puxada", "pulldown", "pulley", "barra fixa"],
-    src: "/images/physique/exercises/pulldown.webp",
-    label: "Costas e bíceps",
-    analysisKey: "pulldown",
-  },
-  {
-    terms: ["remada"],
-    src: "/images/physique/exercises/row.webp",
-    label: "Costas e bíceps",
-    analysisKey: "row",
-  },
-  {
-    terms: ["ombro", "elevação lateral", "elevacao lateral", "desenvolvimento"],
-    src: "/images/physique/exercises/lateral-raise.webp",
-    label: "Ombros",
-    analysisKey: "lateralRaise",
-  },
-  {
-    terms: ["abdominal", "core", "prancha"],
-    src: "/images/physique/exercises/core-cardio.webp",
-    label: "Core",
-    analysisKey: "core",
-  },
+    "exactNames": [
+      "Abdominal reverso"
+    ],
+    "src": "/images/physique/exercises/reverse-crunch.webp",
+    "label": "Abdômen",
+    "analysisKey": "core"
+  }
 ];
 
 function normalize(value: string) {
