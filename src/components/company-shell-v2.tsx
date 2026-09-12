@@ -70,7 +70,7 @@ const SEARCH_ROUTES: RouteItem[] = [
   { label: "Produtos · Suplementos", note: "Cadastro e catálogo", href: "/company/produtos?operacao=Suplementos", keywords: "produto suplemento catálogo", icon: PackageSearch },
   { label: "Produtos · Fitness", note: "Cadastro e catálogo", href: "/company/produtos?operacao=Fitness", keywords: "produto fitness roupa catálogo", icon: PackageSearch },
   { label: "Meu Dia", note: "Rotinas e prioridades do negócio", href: "/company/gestao", keywords: "ferramenta meu dia rotina prioridade", icon: Sparkles },
-  { label: "Qualidade", note: "Saúde e consistência do ERP", href: "/nexus/qualidade", keywords: "ferramenta qualidade erro sistema", icon: ShieldCheck },
+  { label: "Qualidade", note: "Saúde e consistência da Company", href: "/company/qualidade", keywords: "ferramenta qualidade erro sistema atrito", icon: ShieldCheck },
   { label: "Relatar problema", note: "Registrar uma quebra para revisão", href: "#relatar-problema", keywords: "ferramenta relatar problema bug erro", icon: Bug, kind: "report" },
 ];
 

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Printer, Truck } from "lucide-react";
+import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Printer, ShieldCheck, Truck } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
 import { getOperationInvestmentSnapshot } from "@/lib/bank-data";
@@ -242,6 +242,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         <Link href="/company/orcamentos"><FileText/><div><strong>Histórico de orçamentos</strong><span>Todos, Suplementos e Fitness; cancelar e reabrir propostas</span></div><b>→</b></Link>
         <Link href="/company/atalhos"><Keyboard/><div><strong>Atalhos</strong><span>Consulte e remova combinações com Alt</span></div><b>→</b></Link>
         <Link href="/company/mapa"><GitBranch/><div><strong>Mapa da migração</strong><span>Andamento do ERP 2.0 e DNA da Company</span></div><b>→</b></Link>
+        <Link href="/company/qualidade"><ShieldCheck/><div><strong>Qualidade e atritos</strong><span>Erros, lentidão e rotas que mais precisam de revisão</span></div><b>→</b></Link>
         <Link href="/bank"><Landmark/><div><strong>Candinho Bank</strong><span>Entradas, contas, faturas e fechamento financeiro</span></div><b>→</b></Link>
       </section>
       <OperationInvestmentPanel data={investment}/>
