@@ -239,9 +239,12 @@ export function OperationalCalendar({
     try {
       const supabase = createClient();
       const delivery = name === "complete_operational_event" && args.p_source_type === "sale_delivery";
+      const operationalEventArgs = Object.fromEntries(
+        Object.entries(args).filter(([key]) => key !== "p_supplies"),
+      );
       const { error } = delivery
         ? await supabase.rpc("mark_sale_delivered_with_supplies", { p_sale_id: args.p_source_id, p_delivered_on: args.p_completed_on, p_supplies: Array.isArray(args.p_supplies) ? args.p_supplies : [] })
-        : await supabase.rpc(name, args);
+        : await supabase.rpc(name, name === "complete_operational_event" ? operationalEventArgs : args);
       if (error) throw error;
       setMessage("Atualizado com sucesso.");
       setActionMode(null);
