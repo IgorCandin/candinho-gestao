@@ -44,9 +44,10 @@ export default async function CompanyPurchasesPage() {
   const supplementSuggestions: CompanyPurchaseSuggestion[] = groups.map((group) => {
     const members = products.filter((product) => group.product_ids.includes(product.id));
     const current = members.reduce((sum, product) => sum + product.quantity, 0);
+    const incoming = members.reduce((sum, product) => sum + product.incoming, 0);
     const preferred = products.find((product) => product.id === group.preferred_product_id);
-    return { id: `supplements-${group.id}`, operation: "Suplementos" as const, productId: preferred?.id ?? group.preferred_product_id ?? "", name: group.name, detail: `Preferência: ${preferred?.name ?? "definir produto"}`, current, incoming: 0, target: group.ideal_stock, quantity: Math.max(group.ideal_stock - current, 0), minimum: group.minimum_stock };
-  }).filter((group) => group.productId && group.current <= group.minimum && group.quantity > 0);
+    return { id: `supplements-${group.id}`, operation: "Suplementos" as const, productId: preferred?.id ?? group.preferred_product_id ?? "", name: group.name, detail: `Preferência: ${preferred?.name ?? "definir produto"}`, current, incoming, target: group.ideal_stock, quantity: Math.max(group.ideal_stock - current - incoming, 0), minimum: group.minimum_stock };
+  }).filter((group) => group.productId && group.current + group.incoming <= group.minimum && group.quantity > 0);
   const fitnessSuggestions: CompanyPurchaseSuggestion[] = fitnessStock.filter((row) => row.variant_active && row.product_active && row.available_quantity + row.incoming_quantity <= row.minimum_stock && row.suggested_reorder_quantity > 0).map((row) => ({ id: `fitness-${row.variant_id}`, operation: "Fitness", productId: row.product_id, variantId: row.variant_id, name: row.product_name, detail: `${row.color} · tamanho ${row.size}${row.default_supplier_name ? ` · ${row.default_supplier_name}` : ""}`, current: row.available_quantity, incoming: row.incoming_quantity, target: row.reorder_target, quantity: row.suggested_reorder_quantity }));
   const groupedProductIds = new Set(groups.flatMap((group) => group.product_ids));
   const standaloneSuggestions: CompanyPurchaseSuggestion[] = products
