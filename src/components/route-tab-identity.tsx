@@ -11,34 +11,29 @@ type Operation =
   | "central"
   | "physique";
 
-const FAVICON_VERSION = "45.54.0";
+const FAVICON_VERSION = "45.55.0";
+const COMPANY_FAVICON = "/favicons/cc.png";
 
 const OPERATION = {
   company: {
     suffix: "Company",
-    icon: "/favicons/cc.png",
   },
   bank: {
     suffix: "Bank",
-    icon: "/favicons/cb.png",
   },
   fitness: {
     suffix: "Fitness",
-    icon: "/favicons/cf.png",
   },
   supplements: {
     suffix: "Suplementos",
-    icon: "/favicons/cs.png",
   },
   central: {
     suffix: "Central",
-    icon: "/favicons/cce.png",
   },
   physique: {
     suffix: "Physique",
-    icon: "/favicons/cc.png",
   },
-} satisfies Record<Operation, { suffix: string; icon: string }>;
+} satisfies Record<Operation, { suffix: string }>;
 
 const LABELS: Array<[string, string]> = [
   ["/central/marketing/produtos/nutricao", "Foto 03 · Nutrição IA"],
@@ -259,7 +254,7 @@ function applyIdentity(pathname: string) {
     : `${labelFor(pathname)} - ${config.suffix}`;
 
   const href =
-    `${config.icon}?v=${FAVICON_VERSION}`;
+    `${COMPANY_FAVICON}?v=${FAVICON_VERSION}`;
 
   ensureLink(
     "candinho-route-favicon",

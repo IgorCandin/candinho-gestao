@@ -32,8 +32,8 @@ export const metadata: Metadata = {
     images: ["/favicons/cf.png"],
   },
   icons: {
-    icon: "/favicons/cf.png?v=45.44.0",
-    shortcut: "/favicons/cf.png?v=45.44.0",
+    icon: "/favicons/cc.png?v=45.55.0",
+    shortcut: "/favicons/cc.png?v=45.55.0",
   },
 };
 

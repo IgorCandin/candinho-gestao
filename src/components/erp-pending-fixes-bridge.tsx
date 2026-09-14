@@ -70,36 +70,7 @@ function messageFromError(error: unknown, fallback: string) {
 }
 
 
-function operationFavicon(pathname: string) {
-  const starts = (route: string) => pathname === route || pathname.startsWith(`${route}/`);
-
-  if (starts("/bank")) return "/favicons/cb.png";
-  if (starts("/fitness")) return "/favicons/cf.png";
-  if (starts("/central") || starts("/nexus") || starts("/marketing")) {
-    return "/favicons/cce.png";
-  }
-  if (starts("/suplementos") || starts("/parceiro")) return "/favicons/cs.png";
-
-  const supplementRoots = [
-    "/agenda",
-    "/cadastros",
-    "/clientes",
-    "/estoque",
-    "/fornecedores",
-    "/leads",
-    "/movimentacoes",
-    "/orcamentos",
-    "/painel-cs",
-    "/parceiros",
-    "/pedidos-fornecedor",
-    "/pedidos-pendentes",
-    "/pos-venda",
-    "/produtos",
-    "/trocas",
-    "/vendas",
-  ];
-
-  if (supplementRoots.some(starts)) return "/favicons/cs.png";
+function operationFavicon() {
   return "/favicons/cc.png";
 }
 
@@ -153,7 +124,7 @@ export function ErpPendingFixesBridge() {
 
   // Mantém o ícone da aba preso à operação mesmo quando o Next altera o <head>.
   useEffect(() => {
-    const href = `${operationFavicon(pathname)}?v=45.39.0`;
+    const href = `${operationFavicon()}?v=45.55.0`;
 
     const apply = () => {
       let stable = document.getElementById("candinho-route-favicon") as HTMLLinkElement | null;
