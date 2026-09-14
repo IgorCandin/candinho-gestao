@@ -9,6 +9,15 @@ import { formatCurrency, formatDateOnly } from "@/lib/format";
 import { getSupplierOrdersScaleSnapshot } from "@/lib/supplier-orders-scale-data";
 import { createClient } from "@/lib/supabase/server";
 
+function fitnessGradeCategory(category: string, productName: string) {
+  return /legging/i.test(`${category} ${productName}`) ? "Legging" : category.trim() || "Vestuário";
+}
+
+function fitnessGradeSize(size: string) {
+  const normalized = size.trim().toLocaleUpperCase("pt-BR");
+  return normalized === "UNICO" || normalized === "ÚNICO" ? "Único" : normalized || "Único";
+}
+
 export default async function CompanyPurchasesPage() {
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
@@ -48,7 +57,40 @@ export default async function CompanyPurchasesPage() {
     const preferred = products.find((product) => product.id === group.preferred_product_id);
     return { id: `supplements-${group.id}`, operation: "Suplementos" as const, productId: preferred?.id ?? group.preferred_product_id ?? "", name: group.name, detail: `Preferência: ${preferred?.name ?? "definir produto"}`, current, incoming, target: group.ideal_stock, quantity: Math.max(group.ideal_stock - current - incoming, 0), minimum: group.minimum_stock };
   }).filter((group) => group.productId && group.current + group.incoming <= group.minimum && group.quantity > 0);
-  const fitnessSuggestions: CompanyPurchaseSuggestion[] = fitnessStock.filter((row) => row.variant_active && row.product_active && row.available_quantity + row.incoming_quantity <= row.minimum_stock && row.suggested_reorder_quantity > 0).map((row) => ({ id: `fitness-${row.variant_id}`, operation: "Fitness", productId: row.product_id, variantId: row.variant_id, name: row.product_name, detail: `${row.color} · tamanho ${row.size}${row.default_supplier_name ? ` · ${row.default_supplier_name}` : ""}`, current: row.available_quantity, incoming: row.incoming_quantity, target: row.reorder_target, quantity: row.suggested_reorder_quantity }));
+  const fitnessGrade = new Map<string, { category: string; size: string; rows: typeof fitnessStock }>();
+  for (const row of fitnessStock) {
+    if (!row.variant_active || !row.product_active) continue;
+    const category = fitnessGradeCategory(row.category, row.product_name);
+    const size = fitnessGradeSize(row.size);
+    const key = `${category.toLocaleLowerCase("pt-BR")}::${size.toLocaleLowerCase("pt-BR")}`;
+    const current = fitnessGrade.get(key) ?? { category, size, rows: [] };
+    current.rows.push(row);
+    fitnessGrade.set(key, current);
+  }
+  const fitnessSuggestions: CompanyPurchaseSuggestion[] = Array.from(fitnessGrade.entries()).flatMap(([key, grade]) => {
+    const current = grade.rows.reduce((sum, row) => sum + row.available_quantity, 0);
+    const incoming = grade.rows.reduce((sum, row) => sum + row.incoming_quantity, 0);
+    if (current + incoming > 0) return [];
+    const selected = [...grade.rows].sort((left, right) =>
+      Number(Boolean(right.default_supplier_id)) - Number(Boolean(left.default_supplier_id))
+      || right.reorder_target - left.reorder_target
+      || left.product_name.localeCompare(right.product_name, "pt-BR")
+      || left.color.localeCompare(right.color, "pt-BR")
+    )[0];
+    if (!selected) return [];
+    return [{
+      id: `fitness-grade-${key}`,
+      operation: "Fitness" as const,
+      productId: selected.product_id,
+      variantId: selected.variant_id,
+      name: `${grade.category} · tamanho ${grade.size}`,
+      detail: `${grade.rows.length} opção(ões) cadastrada(s) · sugestão: ${selected.product_name} · ${selected.color}${selected.default_supplier_name ? ` · ${selected.default_supplier_name}` : ""}`,
+      current,
+      incoming,
+      target: 1,
+      quantity: 1,
+    }];
+  });
   const groupedProductIds = new Set(groups.flatMap((group) => group.product_ids));
   const standaloneSuggestions: CompanyPurchaseSuggestion[] = products
     .filter((product) => !groupedProductIds.has(product.id) && product.ideal > 0 && product.quantity + product.incoming <= product.minimum)

@@ -83,7 +83,7 @@ export function NewSupplierOrderForm({
   companyMode?: boolean;
 }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"unit" | "batch" | null>(initialProductIds.length > 1 ? "batch" : initialProductIds.length === 1 ? "unit" : null);
+  const [mode, setMode] = useState<"unit" | "batch" | null>(companyMode ? "batch" : initialProductIds.length > 1 ? "batch" : initialProductIds.length === 1 ? "unit" : null);
   const [suppliers, setSuppliers] = useState(initialSuppliers);
   const [supplierId, setSupplierId] = useState("");
   const [orderedOn, setOrderedOn] = useState(todayBrazil());
@@ -600,7 +600,9 @@ export function NewSupplierOrderForm({
           <div className="panel-head">
             <div>
               <h2>
-                {mode === "unit"
+                {companyMode
+                  ? "Novo pedido"
+                  : mode === "unit"
                   ? "Pedido unitário"
                   : "Pedido em lote"}
               </h2>
@@ -610,14 +612,14 @@ export function NewSupplierOrderForm({
               </p>
             </div>
 
-            <button
+            {!companyMode ? <button
               className="button ghost compact-button"
               type="button"
               onClick={() => setMode(null)}
             >
               <X size={16} />
               Trocar tipo
-            </button>
+            </button> : null}
           </div>
 
           <div className="panel-body form-grid-two">
