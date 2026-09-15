@@ -122,13 +122,13 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const orders: CompletionOrder[] = [...supplements, ...fitness];
     const saleIds = orders.map((order) => order.id);
     const itemsResult = saleIds.length
-      ? await supabase.from("sale_items").select("sale_id,product_id,quantity,product:products(name,image_url)").in("sale_id", saleIds)
+      ? await supabase.from("sale_items").select("id,sale_id,product_id,quantity,delivered_quantity,product:products(name,image_url)").in("sale_id", saleIds)
       : { data: [], error: null };
     if (itemsResult.error) throw new Error(itemsResult.error.message);
-    const itemMedia: Record<string, Array<{ productId: string; name: string; imageUrl: string | null; quantity: number }>> = {};
+    const itemMedia: Record<string, Array<{ id: string; productId: string; name: string; imageUrl: string | null; quantity: number; deliveredQuantity: number }>> = {};
     for (const row of itemsResult.data ?? []) {
       const product = Array.isArray(row.product) ? row.product[0] : row.product;
-      (itemMedia[row.sale_id] ??= []).push({ productId: row.product_id, name: product?.name ?? "Produto", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity) });
+      (itemMedia[row.sale_id] ??= []).push({ id: row.id, productId: row.product_id, name: product?.name ?? "Produto", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity), deliveredQuantity: Number(row.delivered_quantity ?? 0) });
     }
     const fitnessIds = fitness.map((order) => order.id);
     if (fitnessIds.length) {
@@ -137,7 +137,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       for (const row of fitnessItems.data ?? []) {
         const variant = Array.isArray(row.variant) ? row.variant[0] : row.variant;
         const product = variant && (Array.isArray(variant.product) ? variant.product[0] : variant.product);
-        (itemMedia[row.sale_id] ??= []).push({ productId: variant?.product_id ?? row.sale_id, name: product?.name ?? "Produto Fitness", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity) });
+        (itemMedia[row.sale_id] ??= []).push({ id: row.sale_id, productId: variant?.product_id ?? row.sale_id, name: product?.name ?? "Produto Fitness", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity), deliveredQuantity: 0 });
       }
     }
     return <CompanyCompletionWorkspace orders={orders} itemMedia={itemMedia} />;

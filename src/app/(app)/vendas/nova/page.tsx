@@ -15,7 +15,7 @@ import { getActivePromotionRows } from "@/lib/active-promotion-data";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function NewSalePage<T extends {
-  searchParams: Promise<{ quote?: string }>;
+  searchParams: Promise<{ quote?: string; cliente?: string; produto?: string; lead?: string }>;
 }>(props: T) {
   const { searchParams } = props;
   const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
@@ -110,6 +110,8 @@ export default async function NewSalePage<T extends {
         combos={combos}
         lastPurchaseCosts={lastPurchaseCosts}
         initialQuote={initialQuote}
+        initialCustomerId={!initialQuote && customers.some((item) => item.id === params.cliente) ? params.cliente : undefined}
+        initialProductId={!initialQuote && stock.some((item) => item.product_id === params.produto) ? params.produto : undefined}
         companyMode={companyMode}
       />
     </>

@@ -2,8 +2,11 @@
 "use client";
 
 import Link from "next/link";
-import { CircleDollarSign, Clock3, ImageIcon, PackageCheck, Search, Truck } from "lucide-react";
+import { CircleDollarSign, Clock3, ImageIcon, PackageCheck, Search, Truck, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import { FitnessSaleActions } from "@/components/fitness-sale-actions";
+import { SalePaymentPanel } from "@/components/sale-payment-panel";
+import { SaleStatusActions } from "@/components/sale-status-actions";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import type { PendingOrderRow } from "@/lib/types";
 
@@ -18,11 +21,12 @@ const FILTERS: Array<{ id: Filter; label: string }> = [
 function amount(order: CompletionOrder) { return Number(order.outstanding_amount ?? (["paid", "received"].includes(order.payment_status) ? 0 : order.total_amount)); }
 function needsDelivery(order: CompletionOrder) { return !["delivered", "received"].includes(order.delivery_status); }
 
-type SaleItemMedia = { productId: string; name: string; imageUrl: string | null; quantity: number };
+type SaleItemMedia = { id: string; productId: string; name: string; imageUrl: string | null; quantity: number; deliveredQuantity: number };
 
 export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: CompletionOrder[]; itemMedia: Record<string, SaleItemMedia[]> }) {
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<CompletionOrder | null>(null);
   const today = new Date().toISOString().slice(0, 10);
   const metrics = useMemo(() => ({
     value: orders.reduce((sum, order) => sum + amount(order), 0),
@@ -60,10 +64,11 @@ export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: Comp
         return <article className="company-completion-card" key={`${order.operation ?? "Suplementos"}-${order.id}`}>
           <div className="company-completion-products">{(itemMedia[order.id] ?? []).slice(0, 5).map((item) => <span key={item.productId} title={`${item.name} ×${item.quantity}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name}/> : <ImageIcon/>}{item.quantity > 1 && <b>{item.quantity}×</b>}</span>)}</div>
           <div className="company-completion-body"><div className="company-completion-flags">{receive && <span className="receive">Receber</span>}{deliver && <span className="deliver">Entregar</span>}<span>{order.operation ?? "Suplementos"}</span></div><h2>{order.customer_name}</h2><p>{order.product_summary ?? "Venda sem resumo de produtos"}</p><small>{order.location_name} · {formatDateOnly(order.business_date)}</small>{due && receive && <small>Vencimento: {formatDateOnly(due)}</small>}</div>
-          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong><Link href={order.details_href ?? `/company/concluir/${order.id}`}>Concluir venda →</Link></div>
+          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong><button className="company-completion-open" type="button" onClick={() => setSelected(order)}>Concluir venda →</button></div>
         </article>;
       })}</div>
       {visible.length === 0 && <div className="company-empty-state"><PackageCheck/><strong>Nenhuma pendência aqui.</strong><span>Troque o filtro ou faça outra busca.</span></div>}
     </section>
+    {selected ? <div className="company-completion-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}><section className="company-completion-dialog" role="dialog" aria-modal="true" aria-labelledby="completion-title"><header><div><small>{selected.operation ?? "Suplementos"} · Concluir venda</small><h2 id="completion-title">{selected.customer_name}</h2><p>{selected.product_summary ?? "Venda registrada"} · {formatCurrency(selected.total_amount)}</p></div><button type="button" className="icon-button" aria-label="Fechar janela" onClick={() => setSelected(null)}><X size={18}/></button></header><div className="company-completion-dialog-body">{selected.operation === "Fitness" ? <FitnessSaleActions key={selected.id} saleId={selected.id} generalStatus={selected.general_status} paymentStatus={selected.payment_status} deliveryStatus={selected.delivery_status}/> : <><h3>Recebimento</h3><SalePaymentPanel key={`payment-${selected.id}`} saleId={selected.id} totalAmount={selected.total_amount} generalStatus={selected.general_status} paymentStatus={selected.payment_status}/><h3>Entregue / Cancelamento</h3><SaleStatusActions key={`status-${selected.id}`} saleId={selected.id} generalStatus={selected.general_status} paymentStatus={selected.payment_status} deliveryStatus={selected.delivery_status} items={(itemMedia[selected.id] ?? []).map((item) => ({ id: item.id, name: item.name, quantity: item.quantity, deliveredQuantity: item.deliveredQuantity }))}/></>}</div><footer><Link href={selected.details_href ?? `/company/concluir/${selected.id}`}>Ir para Orçamento · página completa →</Link><button type="button" className="button ghost" onClick={() => setSelected(null)}>Fechar</button></footer></section></div> : null}
   </div>;
 }

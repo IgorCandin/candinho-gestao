@@ -5,6 +5,7 @@ import { RadarFollowupButton } from "@/components/radar-followup-button";
 import { CustomerProfileEditor } from "@/components/customer-profile-editor";
 import { getCustomerDetails, getCustomerInteractions, getCustomerLeads, getCustomerPendingOrders, getCustomerSales } from "@/lib/data";
 import { formatCurrency, formatDate, formatDateOnly } from "@/lib/format";
+import { createClient } from "@/lib/supabase/server";
 
 type TimelineItem = {
   id: string;
@@ -35,6 +36,23 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
   ]);
 
   if (!customer) notFound();
+  const recentIds = sales.slice(0, 8).map((sale) => sale.id);
+  const supabase = await createClient();
+  const [quotesResult, itemsResult] = recentIds.length ? await Promise.all([
+    supabase.from("sales_quotes").select("id,sale_id").in("sale_id", recentIds).order("created_at", { ascending: false }),
+    supabase.from("sale_items").select("sale_id,product_id,product:products(name)").in("sale_id", recentIds),
+  ]) : [{ data: [], error: null }, { data: [], error: null }];
+  if (quotesResult.error) throw new Error(quotesResult.error.message);
+  if (itemsResult.error) throw new Error(itemsResult.error.message);
+  const quoteBySale = new Map<string, string>();
+  for (const quote of quotesResult.data ?? []) if (quote.sale_id && !quoteBySale.has(quote.sale_id)) quoteBySale.set(quote.sale_id, quote.id);
+  const productsBySale = new Map<string, Array<{ id: string; name: string }>>();
+  for (const item of itemsResult.data ?? []) {
+    const product = Array.isArray(item.product) ? item.product[0] : item.product;
+    const list = productsBySale.get(item.sale_id) ?? [];
+    list.push({ id: item.product_id, name: product?.name ?? "Produto" });
+    productsBySale.set(item.sale_id, list);
+  }
 
   const timeline: TimelineItem[] = [
     ...sales.map((sale) => ({ id: `sale-${sale.id}`, at: sale.business_at, kind: "Compra" as const, title: sale.product_summary || "Venda registrada", detail: formatCurrency(sale.total_amount), status: sale.payment_status })),
@@ -92,7 +110,7 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
           <article className="company-customer-panel">
             <header><div><span>COMPRAS</span><h2>Histórico comercial</h2></div><strong>{sales.length}</strong></header>
             <div className="company-customer-purchases">
-              {sales.slice(0, 8).map((sale) => <div key={sale.id}><div><strong>{sale.product_summary || "Venda sem resumo"}</strong><small>{formatDateOnly(sale.business_date)} · {sale.location_name}</small></div><span>{formatCurrency(sale.total_amount)}</span></div>)}
+              {sales.slice(0, 8).map((sale) => <div className="company-customer-purchase-row" key={sale.id}><Link className="company-customer-purchase-overlay" href={quoteBySale.has(sale.id) ? `/company/orcamentos/${quoteBySale.get(sale.id)}` : `/company/concluir/${sale.id}`} aria-label={`Abrir orçamento de ${formatDateOnly(sale.business_date)}`}/><div><strong>{(productsBySale.get(sale.id) ?? []).length ? (productsBySale.get(sale.id) ?? []).map((product, index) => <span key={`${product.id}-${index}`}>{index ? ", " : ""}<Link className="company-customer-product-link" href={`/company/produtos/${product.id}`}>{product.name}</Link></span>) : sale.product_summary || "Venda sem resumo"}</strong><small>{formatDateOnly(sale.business_date)} · {sale.location_name} · Abrir orçamento</small></div><span>{formatCurrency(sale.total_amount)}</span></div>)}
               {sales.length === 0 ? <div className="company-customer-empty">Nenhuma compra registrada.</div> : null}
             </div>
           </article>

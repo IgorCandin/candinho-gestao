@@ -113,6 +113,8 @@ export function NewSaleForm({
   combos,
   lastPurchaseCosts,
   initialQuote = null,
+  initialCustomerId,
+  initialProductId,
   companyMode = false,
 }: {
   customers: CustomerOption[];
@@ -122,6 +124,8 @@ export function NewSaleForm({
   combos: ProductComboSaleOption[];
   lastPurchaseCosts: Record<string, { cost: number | null; purchasedOn: string | null }>;
   initialQuote?: QuoteDraft | null;
+  initialCustomerId?: string;
+  initialProductId?: string;
   companyMode?: boolean;
 }) {
   const router = useRouter();
@@ -146,7 +150,7 @@ export function NewSaleForm({
     : "receivable";
 
   const [customerId, setCustomerId] = useState(
-    initialQuote?.customer_id ?? "",
+    initialQuote?.customer_id ?? initialCustomerId ?? "",
   );
   const [customerDraft, setCustomerDraft] = useState<{ id: string; name: string; city: string } | null>(null);
   const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
@@ -171,7 +175,7 @@ export function NewSaleForm({
           quantity: String(item.quantity),
           unitPrice: String(item.unit_price),
         }))
-      : [],
+      : initialProductId ? [{ key: `lead-product-${initialProductId}`, productId: initialProductId, flavorId: "", quantity: "1", unitPrice: String(stock.find((entry) => entry.product_id === initialProductId)?.sale_price ?? 0) }] : [],
   );
 
   const [discount, setDiscount] = useState(
