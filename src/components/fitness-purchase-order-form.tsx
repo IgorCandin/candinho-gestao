@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { FitnessStockRow, FitnessSupplierRow } from "@/lib/types";
 
-type Row = { key: string; variantId: string; quantity: string; unitCost: string; notes: string };
+type Row = { key: string; variantId: string; quantity: string; unitCost: string; notes: string; draftProduct?: { name: string; category: string; size: string; color: string } };
 const key = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
 const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
@@ -23,21 +23,24 @@ export function FitnessPurchaseOrderForm({ stock, suppliers, responsible, compan
   const [rows, setRows] = useState<Row[]>(seededRows.length ? seededRows : [{ key: key(), variantId: "", quantity: "1", unitCost: "0", notes: "" }]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [draftRowKey, setDraftRowKey] = useState<string | null>(null);
+  const [draft, setDraft] = useState({ name: "", category: "Vestuário", size: "", color: "" });
   const update = (itemKey: string, change: Partial<Row>) => setRows((current) => current.map((row) => row.key === itemKey ? { ...row, ...change } : row));
 
   async function submit(event: React.FormEvent) {
     event.preventDefault(); setLoading(true); setMessage(null);
     try {
       if (!supplierId && !supplierName.trim()) throw new Error("Informe o fornecedor.");
-      if (rows.some((row) => !row.variantId || Number(row.quantity) <= 0 || Number(row.unitCost) < 0)) throw new Error("Revise os itens.");
-      const { data, error } = await createClient().rpc("create_fitness_purchase_order_v2", { p_supplier_id: supplierId || null, p_supplier_name: supplierName.trim() || null, p_ordered_on: orderedOn, p_expected_on: expectedOn || null, p_freight: Number(freight) || 0, p_responsible: responsible, p_items: rows.map((row) => ({ variant_id: row.variantId, quantity: Number(row.quantity), unit_cost: Number(row.unitCost), notes: row.notes.trim() || null })), p_notes: notes.trim() || null });
+      if (rows.some((row) => (!row.variantId && !row.draftProduct) || Number(row.quantity) <= 0 || Number(row.unitCost) < 0)) throw new Error("Revise os itens.");
+      const hasDrafts = rows.some((row) => row.draftProduct);
+      const { data, error } = await createClient().rpc(hasDrafts ? "create_company_purchase_order_with_products_v1" : "create_fitness_purchase_order_v2", { ...(hasDrafts ? { p_operation: "fitness", p_destination_location_id: null } : {}), p_supplier_id: supplierId || null, p_supplier_name: supplierName.trim() || null, p_ordered_on: orderedOn, p_expected_on: expectedOn || null, p_freight: Number(freight) || 0, p_responsible: responsible, p_items: rows.map((row) => ({ variant_id: row.variantId || null, quantity: Number(row.quantity), unit_cost: Number(row.unitCost), notes: row.notes.trim() || null, ...(row.draftProduct ? { draft_product: row.draftProduct } : {}) })), p_notes: notes.trim() || null });
       if (error) throw error;
       router.push(companyMode ? `/company/compras/fitness/${String(data)}` : `/fitness/pedidos/${String(data)}`); router.refresh();
     } catch (error) { setMessage(error instanceof Error ? error.message : "Não foi possível criar o pedido."); }
     finally { setLoading(false); }
   }
 
-  return <form className="new-sale-layout" onSubmit={submit}>
+  return <><form className="new-sale-layout" onSubmit={submit}>
     <div className="new-sale-main">
       <article className="panel"><div className="panel-head"><div><h2>Fornecedor</h2><p>Use um cadastrado ou digite um novo marketplace/fornecedor.</p></div></div><div className="panel-body form-grid-two">
         <label className="field"><span>Fornecedor cadastrado</span><select className="select" value={supplierId} onChange={(event) => { setSupplierId(event.target.value); const supplier = suppliers.find((item) => item.id === event.target.value); if (supplier) setSupplierName(supplier.name); }}><option value="">Novo fornecedor</option>{suppliers.filter((item) => item.active).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
@@ -47,11 +50,11 @@ export function FitnessPurchaseOrderForm({ stock, suppliers, responsible, compan
         <label className="field"><span>Frete</span><input className="input" type="number" min="0" step="0.01" value={freight} onChange={(event) => setFreight(event.target.value)}/></label>
       </div></article>
       <article className="panel"><div className="panel-head"><div><h2>Itens</h2><p>Cor e tamanho são controlados separadamente.</p></div><button type="button" className="button ghost" onClick={() => setRows((current) => [...current, { key: key(), variantId: "", quantity: "1", unitCost: "0", notes: "" }])}><Plus size={16}/>Adicionar</button></div><div className="panel-body sale-form-items">{rows.map((row, index) => <div className="sale-form-item" key={row.key}><div className="sale-form-item-head"><strong>Item {index + 1}</strong>{rows.length > 1 ? <button type="button" className="icon-button" onClick={() => setRows((current) => current.filter((item) => item.key !== row.key))}><Trash2 size={16}/></button> : null}</div><div className="sale-form-item-grid">
-        <label className="field sale-product-field"><span>Produto · tamanho · cor</span><select className="select" value={row.variantId} onChange={(event) => { const selected = options.find((item) => item.variant_id === event.target.value); update(row.key, { variantId: event.target.value, unitCost: selected ? String(selected.cost_price) : row.unitCost }); }}><option value="">Selecione</option>{options.map((item) => <option key={item.variant_id} value={item.variant_id}>{item.product_name} · {item.size} · {item.color}</option>)}</select></label>
+        <label className="field sale-product-field"><span>Produto · tamanho · cor</span><select className="select" value={row.variantId} onChange={(event) => { const selected = options.find((item) => item.variant_id === event.target.value); update(row.key, { variantId: event.target.value, draftProduct: row.draftProduct && event.target.value === row.variantId ? row.draftProduct : undefined, unitCost: selected ? String(selected.cost_price) : row.unitCost }); }}><option value="">Selecione</option>{row.draftProduct ? <option value={row.variantId}>{row.draftProduct.name} · {row.draftProduct.size} · {row.draftProduct.color} · novo</option> : null}{options.map((item) => <option key={item.variant_id} value={item.variant_id}>{item.product_name} · {item.size} · {item.color}</option>)}</select>{companyMode ? <button className="button ghost" type="button" onClick={() => { setDraftRowKey(row.key); setDraft(row.draftProduct ?? { name: "", category: "Vestuário", size: "", color: "" }); }}>Não encontrou? Cadastrar produto</button> : null}</label>
         <label className="field"><span>Quantidade</span><input className="input" type="number" min="1" value={row.quantity} onChange={(event) => update(row.key, { quantity: event.target.value })}/></label>
         <label className="field"><span>Custo unitário</span><input className="input" type="number" min="0" step="0.01" value={row.unitCost} onChange={(event) => update(row.key, { unitCost: event.target.value })}/></label>
       </div></div>)}</div></article>
     </div>
     <aside className="new-sale-side"><article className="panel"><div className="panel-head"><div><h2>Observações</h2></div></div><div className="panel-body"><textarea className="textarea" rows={5} value={notes} onChange={(event) => setNotes(event.target.value)}/></div></article><article className="panel"><div className="panel-body">{message ? <p className="form-error visible">{message}</p> : null}<button className="button gold product-save-button" disabled={loading}>{loading ? <LoaderCircle className="spin" size={16}/> : <Save size={16}/>}Criar pedido</button></div></article></aside>
-  </form>;
+  </form>{draftRowKey ? <div className="company-quick-register-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDraftRowKey(null); }}><div className="company-quick-register-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-fitness-product-title"><h2 id="quick-fitness-product-title">Cadastrar peça para este pedido</h2><p>O cadastro será salvo somente junto com o pedido.</p>{(["name", "category", "size", "color"] as const).map((field) => <label className="field" key={field}><span>{{ name: "Nome da peça", category: "Categoria", size: "Tamanho", color: "Cor" }[field]}</span><input className="input" autoFocus={field === "name"} value={draft[field]} onChange={(event) => setDraft((current) => ({ ...current, [field]: event.target.value }))}/></label>)}<div className="company-quick-register-actions"><button className="button ghost" type="button" onClick={() => setDraftRowKey(null)}>Cancelar</button><button className="button gold" type="button" onClick={() => { if (!draft.name.trim() || !draft.size.trim() || !draft.color.trim()) { setMessage("Informe nome, tamanho e cor da peça."); return; } update(draftRowKey, { variantId: crypto.randomUUID(), draftProduct: { name: draft.name.trim(), category: draft.category.trim() || "Vestuário", size: draft.size.trim(), color: draft.color.trim() } }); setDraftRowKey(null); setMessage(null); }}>Usar neste pedido</button></div></div></div> : null}</>;
 }

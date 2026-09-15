@@ -72,7 +72,7 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
         <article><span><ShoppingBag size={16} /> Compras</span><strong>{customer.purchase_count}</strong><small>{customer.last_purchase_at ? `Última em ${formatDateOnly(customer.last_purchase_at)}` : "Sem compras"}</small></article>
         <article><span><CircleDollarSign size={16} /> Total comprado</span><strong>{formatCurrency(customer.total_spent)}</strong><small>Histórico consolidado</small></article>
         <article><span><Sparkles size={16} /> Leads</span><strong>{customer.lead_count}</strong><small>{leads.length ? "Interesses no histórico" : "Nenhum interesse aberto"}</small></article>
-        <article><span><CalendarClock size={16} /> Pendências</span><strong>{pending.length + customer.pending_followup_count}</strong><small>{pending.length} pedido(s) · {customer.pending_followup_count} retorno(s)</small></article>
+        <article><span><CalendarClock size={16} /> Pendências</span><strong>{pending.length + customer.pending_followup_count + (customer.phone ? 0 : 1)}</strong><small>{[`${pending.length} pedido(s)`, `${customer.pending_followup_count} retorno(s)`, ...(!customer.phone ? ["Telefone a completar"] : [])].join(" · ")}</small></article>
       </section>
 
       <section className="company-customer-layout">
@@ -102,7 +102,7 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
           <article className="company-customer-panel company-customer-profile">
             <header><div><span>PERFIL</span><h2>Dados do cliente</h2></div><UserRound size={18} /></header>
             <dl>
-              {customer.phone ? <div><dt><Phone size={14} /> Telefone</dt><dd>{customer.phone}</dd></div> : null}
+              <div><dt><Phone size={14} /> Telefone</dt><dd>{customer.phone || "Pendente — complete em Editar ficha"}</dd></div>
               {customer.email ? <div><dt><Mail size={14} /> E-mail</dt><dd>{customer.email}</dd></div> : null}
               {customer.city ? <div><dt><MapPin size={14} /> Cidade</dt><dd>{customer.city}</dd></div> : null}
               <div><dt>Origem operacional</dt><dd>Suplementos</dd></div>

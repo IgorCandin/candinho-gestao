@@ -148,6 +148,10 @@ export function NewSaleForm({
   const [customerId, setCustomerId] = useState(
     initialQuote?.customer_id ?? "",
   );
+  const [customerDraft, setCustomerDraft] = useState<{ id: string; name: string; city: string } | null>(null);
+  const [quickCustomerOpen, setQuickCustomerOpen] = useState(false);
+  const [quickCustomerName, setQuickCustomerName] = useState("");
+  const [quickCustomerCity, setQuickCustomerCity] = useState("");
   const [locationId, setLocationId] = useState(defaultLocation);
   const [quotedOn, setQuotedOn] = useState(
     initialQuote?.quoted_on ?? today,
@@ -789,8 +793,7 @@ export function NewSaleForm({
 
       const supabase = createClient();
 
-      const { data: quoteData, error: quoteError } =
-        await supabase.rpc("save_budget_quote_v4", {
+      const quoteArgs = {
           p_customer_id: customerId,
           p_location_id: locationId,
           p_quoted_on: quotedOn,
@@ -852,7 +855,13 @@ export function NewSaleForm({
                 }))
               : [],
           p_agreed_markup_amount: agreedMarkupValue,
-        });
+        };
+      const { data: quoteData, error: quoteError } = await supabase.rpc(
+        customerDraft && customerId === customerDraft.id ? "save_company_quote_with_customer_v1" : "save_budget_quote_v4",
+        customerDraft && customerId === customerDraft.id
+          ? { p_customer_draft: { name: customerDraft.name, city: customerDraft.city }, p_quote: quoteArgs }
+          : quoteArgs,
+      );
 
       if (quoteError) throw new Error(quoteError.message);
 
@@ -945,6 +954,7 @@ export function NewSaleForm({
   }
 
   return (
+    <>
     <form className="new-sale-layout" onSubmit={requestSave}>
       <div className="new-sale-main">
         {initialQuote && (
@@ -978,19 +988,14 @@ export function NewSaleForm({
             <label className="field">
               <span>Cliente</span>
               <CustomerCombobox
-                customers={customers}
+                customers={customerDraft ? [...customers, { id: customerDraft.id, name: `${customerDraft.name} · novo`, city: customerDraft.city || null, phone: null }] : customers}
                 value={customerId}
-                onChange={setCustomerId}
+                onChange={(value) => { setCustomerId(value); if (customerDraft && value !== customerDraft.id) setCustomerDraft(null); }}
               />
               <small>
                 Digite para buscar por nome, cidade ou telefone.
                 Cliente novo?{" "}
-                <Link
-                  className="inline-link"
-                  href={companyMode ? "/company/clientes/novo" : "/clientes/novo"}
-                >
-                  Cadastrar cliente
-                </Link>
+                {companyMode ? <button className="inline-link company-quick-register-trigger" type="button" onClick={() => { setQuickCustomerName(customerDraft?.name ?? ""); setQuickCustomerCity(customerDraft?.city ?? ""); setQuickCustomerOpen(true); }}>Cadastrar cliente</button> : <Link className="inline-link" href="/clientes/novo">Cadastrar cliente</Link>}
               </small>
             </label>
 
@@ -1021,18 +1026,14 @@ export function NewSaleForm({
           <div className="panel-head">
             <div>
               <h2>Produtos</h2>
-              <p>
-                Primeiro confirme o estoque. Depois pesquise um
-                produto pelo nome, marca ou categoria — ou aplique
-                um combo pronto.
-              </p>
+              <p>Escolha primeiro de qual estoque o produto vai sair; depois selecione os itens. A entrega ao cliente é definida mais abaixo.</p>
             </div>
           </div>
 
           <div className="panel-body sale-form-items">
             <div className="v45234-product-setup">
               <label className="field v45234-stock-field">
-                <span>Estoque / depósito de origem</span>
+                <span>Estoque de saída dos produtos</span>
                 <select
                   className="select"
                   required
@@ -1051,8 +1052,7 @@ export function NewSaleForm({
                   ))}
                 </select>
                 <small>
-                  CS já vem selecionado por padrão. Troque somente
-                  quando a venda sair de outro estoque.
+                  Este é o local que fornece o produto e terá o saldo reservado ou baixado. Não é o ponto de retirada do cliente. CS vem selecionado por padrão.
                 </small>
               </label>
 
@@ -2264,5 +2264,7 @@ export function NewSaleForm({
         </div>
       )}
     </form>
+    {quickCustomerOpen ? <div className="company-quick-register-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickCustomerOpen(false); }}><div className="company-quick-register-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-customer-title"><h2 id="quick-customer-title">Cadastro rápido de cliente</h2><p>Nome e cidade bastam agora. O telefone ficará como pendência na ficha. Se abandonar o orçamento, o cliente não será salvo.</p><label className="field"><span>Nome</span><input className="input" autoFocus value={quickCustomerName} onChange={(event) => setQuickCustomerName(event.target.value)}/></label><label className="field"><span>Cidade</span><input className="input" value={quickCustomerCity} onChange={(event) => setQuickCustomerCity(event.target.value)}/></label><div className="company-quick-register-actions"><button className="button ghost" type="button" onClick={() => setQuickCustomerOpen(false)}>Cancelar</button><button className="button gold" type="button" onClick={() => { if (!quickCustomerName.trim()) { setMessage("Informe o nome do cliente."); return; } const id = customerDraft?.id ?? crypto.randomUUID(); setCustomerDraft({ id, name: quickCustomerName.trim(), city: quickCustomerCity.trim() }); setCustomerId(id); setQuickCustomerOpen(false); setMessage(null); }}>Usar neste orçamento</button></div></div></div> : null}
+    </>
   );
 }

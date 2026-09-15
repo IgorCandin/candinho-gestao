@@ -16,7 +16,7 @@ function findOriginSelect() {
 
   const originLabel = labels.find((label) => {
     const caption = label.querySelector(":scope > span")?.textContent ?? "";
-    return caption.includes("Estoque / depósito de origem");
+    return caption.includes("Estoque de saída dos produtos");
   });
 
   return originLabel?.querySelector<HTMLSelectElement>("select") ?? null;

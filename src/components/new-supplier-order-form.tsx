@@ -32,6 +32,7 @@ type OrderItemDraft = {
   quantity: string;
   unitCost: string;
   notes: string;
+  draftProduct?: { name: string; category: string };
 };
 
 type FlavorOption = {
@@ -118,6 +119,9 @@ export function NewSupplierOrderForm({
   const [savingSupplier, setSavingSupplier] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [draftItemKey, setDraftItemKey] = useState<string | null>(null);
+  const [draftName, setDraftName] = useState("");
+  const [draftCategory, setDraftCategory] = useState("");
   const [flavors, setFlavors] = useState<FlavorOption[]>([]);
   const [flavorStock, setFlavorStock] = useState<FlavorStock[]>([]);
 
@@ -232,13 +236,16 @@ export function NewSupplierOrderForm({
     const product = products.find(
       (row) => row.id === productId,
     );
+    const currentItem = items.find((item) => item.key === key);
+    const keepDraft = currentItem?.draftProduct && currentItem.productId === productId;
 
     updateItem(key, {
       productId,
+      draftProduct: keepDraft ? currentItem.draftProduct : undefined,
       flavorId: "",
       unitCost: product
         ? String(product.cost_price.toFixed(2))
-        : "",
+        : keepDraft ? currentItem.unitCost : "",
     });
 
     if (newFlavorForKey === key) {
@@ -504,9 +511,17 @@ export function NewSupplierOrderForm({
 
     try {
       const supabase = createClient();
+      const hasDrafts = items.some((item) => item.draftProduct);
       const { data, error } = await supabase.rpc(
-        "create_purchase_order",
+        hasDrafts ? "create_company_purchase_order_with_products_v1" : "create_purchase_order",
         {
+          ...(hasDrafts ? {
+            p_operation: "supplements",
+            p_supplier_name: null,
+            p_expected_on: expectedOn || null,
+            p_freight: 0,
+            p_responsible: null,
+          } : {}),
           p_supplier_id: supplierId,
           p_ordered_on: orderedOn,
           p_destination_location_id: locationId,
@@ -516,6 +531,7 @@ export function NewSupplierOrderForm({
             quantity: Number(item.quantity),
             unit_cost: Number(item.unitCost),
             notes: item.notes.trim() || null,
+            ...(item.draftProduct ? { draft_product: item.draftProduct } : {}),
           })),
           p_notes: notes.trim() || null,
         },
@@ -525,7 +541,7 @@ export function NewSupplierOrderForm({
 
       const orderId = String(data);
 
-      if (expectedOn) {
+      if (expectedOn && !hasDrafts) {
         const { error: scheduleError } =
           await supabase.rpc(
             "reschedule_operational_event",
@@ -591,6 +607,7 @@ export function NewSupplierOrderForm({
   }
 
   return (
+    <>
     <form
       className="supplier-order-layout"
       onSubmit={submit}
@@ -843,6 +860,7 @@ export function NewSupplierOrderForm({
                         <option value="">
                           Selecione o produto
                         </option>
+                        {item.draftProduct ? <option value={item.productId}>{item.draftProduct.name} · novo (será salvo com o pedido)</option> : null}
                         {products.map((row) => (
                           <option
                             key={row.id}
@@ -853,6 +871,7 @@ export function NewSupplierOrderForm({
                         ))}
                       </select>
                     </label>
+                    {companyMode ? <button className="button ghost supplier-draft-product-button" type="button" onClick={() => { setDraftItemKey(item.key); setDraftName(item.draftProduct?.name ?? ""); setDraftCategory(item.draftProduct?.category ?? ""); }}>Não encontrou? Cadastrar produto</button> : null}
 
                     {productFlavors.length > 0 && (
                       <label className="field">
@@ -1199,5 +1218,7 @@ export function NewSupplierOrderForm({
         )}
       </aside>
     </form>
+    {draftItemKey ? <div className="company-quick-register-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDraftItemKey(null); }}><div className="company-quick-register-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-supplement-product-title"><h2 id="quick-supplement-product-title">Cadastrar produto para este pedido</h2><p>O produto só será cadastrado quando você criar o pedido. Se cancelar, nada será salvo.</p><label className="field"><span>Nome do produto</span><input className="input" autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)}/></label><label className="field"><span>Categoria</span><input className="input" value={draftCategory} onChange={(event) => setDraftCategory(event.target.value)} placeholder="Ex.: Whey, Creatina"/></label><div className="company-quick-register-actions"><button className="button ghost" type="button" onClick={() => setDraftItemKey(null)}>Cancelar</button><button className="button gold" type="button" onClick={() => { if (!draftName.trim()) { setMessage("Informe o nome do novo produto."); return; } const previous = items.find((item) => item.key === draftItemKey); updateItem(draftItemKey, { productId: previous?.draftProduct ? previous.productId : crypto.randomUUID(), draftProduct: { name: draftName.trim(), category: draftCategory.trim() || "Sem categoria" }, flavorId: "", unitCost: previous?.unitCost || "0" }); setDraftItemKey(null); setMessage(""); }}>Usar neste pedido</button></div></div></div> : null}
+    </>
   );
 }
