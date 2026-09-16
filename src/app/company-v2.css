@@ -443,15 +443,31 @@
 .company-sale-card .sales-feedback-button { padding: 6px 7px; font-size: 9px; }
 .company-queue-workflow { display: grid; gap: 7px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.055); }
 .company-queue-actions { display: flex; flex-wrap: wrap; gap: 6px; }
-.company-queue-action { display: inline-flex; align-items: center; gap: 5px; min-height: 30px; padding: 6px 9px; color: #9cadbf; font: inherit; font-size: 9px; font-weight: 820; border: 1px solid rgba(121,174,218,.17); border-radius: 8px; background: rgba(255,255,255,.018); cursor: pointer; transition: color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease; }
+.company-queue-action { display: inline-flex; align-items: center; gap: 6px; min-height: 38px; padding: 8px 10px; color: #b2c2d1; font: inherit; font-size: 11px; font-weight: 780; border: 1px solid rgba(121,174,218,.22); border-radius: 9px; background: rgba(255,255,255,.018); cursor: pointer; transition: color .18s ease,border-color .18s ease,background .18s ease,transform .18s ease; }
 .company-queue-action:hover:not(:disabled) { color: #eff9ff; border-color: rgba(72,185,255,.38); background: rgba(72,185,255,.08); transform: translateY(-1px); }
 .company-queue-action:disabled { opacity: .55; cursor: wait; }
 .company-queue-action.primary { color: #90d9ff; border-color: rgba(72,185,255,.32); background: rgba(72,185,255,.09); }
 .company-queue-action.success { color: #83e5ae; border-color: rgba(55,195,116,.25); background: rgba(55,195,116,.07); }
 .company-queue-action.danger { color: #d89494; border-color: rgba(224,100,100,.18); }
 .company-queue-action.quiet { color: #68798c; }
-.company-queue-stage { display: flex; align-items: center; gap: 6px; color: #8bd7ff; font-size: 9px; font-weight: 850; letter-spacing: .02em; }
-.company-queue-message { color: #7790a6; font-size: 9px; line-height: 1.4; }
+.company-queue-stage { display: flex; align-items: center; gap: 6px; color: #8bd7ff; font-size: 11px; font-weight: 750; }
+.company-queue-message { color: #a9bdd0; font-size: 11px; line-height: 1.4; }
+.company-queue-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.company-queue-heading span,.company-queue-heading strong { display: block; }
+.company-queue-heading span { color: #83e5ae; font-size: 10px; font-weight: 750; }
+.company-queue-heading strong { margin-top: 2px; color: #eaf3fb; font-size: 14px; }
+.company-queue-outcomes { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 7px; }
+.company-queue-outcomes .company-queue-action { justify-content: flex-start; min-height: 40px; padding: 9px 11px; font-size: 11px; text-align: left; }
+.company-queue-outcomes .company-queue-action.selected { color: #eaf7ff; border-color: #48b9ff; background: rgba(72,185,255,.14); }
+.company-queue-schedule { display: grid; gap: 9px; margin-top: 3px; padding: 13px; border: 1px solid rgba(72,185,255,.28); border-radius: 11px; background: rgba(72,185,255,.06); }
+.company-queue-schedule label { color: #d6eaf7; font-size: 11px; font-weight: 750; line-height: 1.4; }
+.company-queue-schedule > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.company-queue-schedule input { min-width: 160px; min-height: 38px; padding: 7px 10px; color: #eef8ff; color-scheme: dark; font: inherit; font-size: 12px; border: 1px solid rgba(121,174,218,.3); border-radius: 8px; background: #0a121b; }
+.company-queue-schedule button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 38px; padding: 8px 13px; color: #08141c; font: inherit; font-size: 11px; font-weight: 850; border: 0; border-radius: 8px; background: #9bdefd; cursor: pointer; }
+.company-queue-schedule button:disabled { opacity: .5; cursor: not-allowed; }
+.company-queue-schedule small { color: #94a7b8; font-size: 10px; line-height: 1.4; }
+.company-queue-workflow .company-queue-action:focus-visible,.company-queue-schedule input:focus-visible,.company-queue-schedule button:focus-visible { outline: 2px solid #8bd7ff; outline-offset: 2px; }
+@media(max-width:460px){.company-queue-outcomes{grid-template-columns:1fr}.company-queue-schedule input,.company-queue-schedule button{flex:1 1 100%}}
 
 @media(max-width:1000px){.company-sales-feature{grid-template-columns:1fr}.company-sales-metrics{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:720px){.company-sales-head,.company-sales-toolbar{align-items:stretch;flex-direction:column}.company-sales-head>div:last-child{flex-wrap:wrap}.company-sales-grid{grid-template-columns:1fr}.company-sales-metrics{grid-template-columns:1fr 1fr}.company-sales-feature{padding:18px}.company-sales-toolbar>label{width:100%}}
