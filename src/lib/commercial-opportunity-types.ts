@@ -20,6 +20,7 @@ export type SalesOpportunity = {
   last_feedback_status?: string | null;
   feedback_next_action_on?: string | null;
   feedback_at?: string | null;
+  scheduled_return?: boolean;
 };
 
 export type ProductSalesTarget = {

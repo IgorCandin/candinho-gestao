@@ -67,7 +67,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(100),
       supabase.from("products").select("id,image_url,banner_image_url").eq("active", true),
       supabase.from("customer_sales_opportunities_v1").select("*").order("opportunity_score", { ascending: false }).limit(300),
-      supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(600),
+      supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,feedback_status,next_action_on,created_at,notes").order("created_at", { ascending: false }).limit(600),
       access.role === "admin" || access.canAccessFitness ? getFitnessCustomers() : Promise.resolve([]),
     ]);
     if (opportunitiesResult.error) throw new Error(opportunitiesResult.error.message);
@@ -90,9 +90,15 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       if (feedback?.feedback_status !== "contacted" || (feedback.next_action_on && feedback.next_action_on > today)) return [];
       return [{ ...row, last_feedback_status: feedback.feedback_status, feedback_next_action_on: feedback.next_action_on, feedback_at: feedback.created_at } as SalesOpportunity];
     });
+    const dueScheduled = (baseResult.data ?? []).flatMap((row) => {
+      const feedback = latestFeedback.get(opportunityKey(row));
+      if (!feedback?.notes?.startsWith("Company · retorno combinado") || !feedback.next_action_on || feedback.next_action_on > today) return [];
+      if (!["later", "still_using"].includes(feedback.feedback_status)) return [];
+      return [{ ...row, last_feedback_status: feedback.feedback_status, feedback_next_action_on: feedback.next_action_on, feedback_at: feedback.created_at, scheduled_return: true } as SalesOpportunity];
+    });
 
     const opportunityMap = new Map<string, SalesOpportunity>();
-    for (const row of [...((opportunitiesResult.data ?? []) as SalesOpportunity[]), ...dueContacted]) opportunityMap.set(opportunityKey(row), row);
+    for (const row of [...((opportunitiesResult.data ?? []) as SalesOpportunity[]), ...dueContacted, ...dueScheduled]) opportunityMap.set(opportunityKey(row), row);
     const opportunities = [...opportunityMap.values()].sort((a, b) => b.opportunity_score - a.opportunity_score);
     const blockedCustomerIds = [...latestByCustomer.values()]
       .filter((feedback) => ["contacted", "later", "still_using"].includes(feedback.feedback_status) && Boolean(feedback.next_action_on && feedback.next_action_on > today))

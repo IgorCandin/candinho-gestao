@@ -74,11 +74,11 @@ export async function POST(
     lost_contact: { status: "dismissed", days: null, notes: "Company · contato perdido; separar da fila ativa" },
     no_response: { status: "later", days: 6, notes: "Company · não respondeu; primeira tentativa" },
     converted_sale: { status: "sale_completed", days: null, notes: "Company · resposta convertida em venda" },
-    preferred_wait: { status: "later", days: 30, notes: "Company · preferiu esperar; retomar em 30 dias" },
+    preferred_wait: { status: "later", days: null, notes: "Company · retorno combinado para comprar depois" },
     not_interested_month: { status: "not_interested", days: null, notes: "Company · não tem interesse agora" },
-    still_using: { status: "still_using", days: null, notes: "Company · ainda está usando" },
+    still_using: { status: "still_using", days: null, notes: "Company · retorno combinado para conferir o uso" },
     product_ended: { status: "product_ended", days: null, notes: "Company · cliente confirmou que está acabando" },
-    no_money: { status: "later", days: null, notes: "Company · sem dinheiro no momento" },
+    no_money: { status: "later", days: null, notes: "Company · retorno combinado após impedimento financeiro" },
     stopped_using: { status: "dismissed", days: null, notes: "Company · parou de usar" },
   }[workflowAction] : null;
 

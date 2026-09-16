@@ -63,7 +63,7 @@ function OpportunityCard({ row, relatedRows = [row], featured = false, media }: 
   return (
     <article className={`company-sale-card ${featured ? "featured" : ""}`}>
       <header>
-        <span className={`company-priority priority-${featured ? "alta" : "media"}`}>{featured ? row.last_feedback_status === "contacted" ? "Conferir resposta" : "Produto acabando" : row.last_feedback_status === "product_ended" ? "Confirmado pelo cliente" : "Prazo estimado"}</span>
+        <span className={`company-priority priority-${featured ? "alta" : "media"}`}>{featured ? row.scheduled_return ? "Retorno combinado" : row.last_feedback_status === "contacted" ? "Conferir resposta" : "Produto acabando" : row.last_feedback_status === "product_ended" ? "Confirmado pelo cliente" : "Prazo estimado"}</span>
         {!featured ? <span className="company-sale-score">Estimativa antiga: {row.priority.toLocaleLowerCase("pt-BR")}</span> : null}
       </header>
       <div className="company-sale-person">
@@ -113,6 +113,13 @@ export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, 
     const people = new Set<string>();
     const candidates: Array<{ kind: "lead"; lead: LeadRow } | { kind: "opportunity"; row: SalesOpportunity }> = [];
     const personKey = (id: string | null, name: string, phone: string | null) => id ?? `${name.toLocaleLowerCase("pt-BR")}:${phone ?? ""}`;
+    for (const row of opportunities.filter((item) => item.scheduled_return).sort((a, b) => (a.feedback_next_action_on ?? "").localeCompare(b.feedback_next_action_on ?? ""))) {
+      if (blockedPeople.has(row.customer_id)) continue;
+      const key = personKey(row.customer_id, row.customer_name, row.phone);
+      if (people.has(key)) continue;
+      people.add(key);
+      candidates.push({ kind: "opportunity", row });
+    }
     // A fresh, active lead is stronger evidence than a theoretical consumption date.
     for (const lead of hotLeads) {
       if ((LEAD_RANK[lead.lead_status ?? ""] ?? 99) > 3 || daysSince(lead.lead_date, today) > 30) continue;
@@ -123,10 +130,11 @@ export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, 
       candidates.push({ kind: "lead", lead });
     }
     for (const row of [...opportunities].sort((a, b) => Number(b.last_feedback_status === "product_ended") - Number(a.last_feedback_status === "product_ended") || b.opportunity_score - a.opportunity_score)) {
+      if (row.scheduled_return) continue;
       if (blockedPeople.has(row.customer_id)) continue;
       const confirmedEnd = row.last_feedback_status === "product_ended";
       const responseDue = row.last_feedback_status === "contacted" && Boolean(row.feedback_next_action_on && row.feedback_next_action_on <= today);
-      if (!confirmedEnd && !responseDue) continue;
+      if (!row.scheduled_return && !confirmedEnd && !responseDue) continue;
       const key = personKey(row.customer_id, row.customer_name, row.phone);
       if (people.has(key)) continue;
       people.add(key);
@@ -176,7 +184,7 @@ export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, 
         <button type="button" onClick={() => openQueue("fitness")}><ShoppingBag size={18}/><span>Fitness</span><strong>{visibleFitness.length}</strong></button>
       </section>
 
-      {featured ? <section className="company-sales-feature"><div><span><Flame size={14} /> Comece por aqui</span><h2>{featured.kind === "lead" ? featured.lead.customer_name : featured.row.customer_name}</h2><p>{featured.kind === "lead" ? "Interesse recente registrado. Confira o lead antes de chamar." : featured.row.last_feedback_status === "contacted" ? "Verifique se respondeu ao contato anterior antes de enviar outra mensagem." : "Cliente informou que o produto acabou. Confirme se ainda precisa comprar."}</p></div></section> : null}
+      {featured ? <section className="company-sales-feature"><div><span><Flame size={14} /> Comece por aqui</span><h2>{featured.kind === "lead" ? featured.lead.customer_name : featured.row.customer_name}</h2><p>{featured.kind === "lead" ? "Interesse recente registrado. Confira o lead antes de chamar." : featured.row.scheduled_return ? "Chegou a data combinada com o cliente. Confira o histórico antes do contato." : featured.row.last_feedback_status === "contacted" ? "Verifique se respondeu ao contato anterior antes de enviar outra mensagem." : "Cliente informou que o produto acabou. Confirme se ainda precisa comprar."}</p></div></section> : null}
 
       <section className="company-sales-queue" ref={queueSectionRef}>
         <div className="company-sales-toolbar">
