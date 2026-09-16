@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 
-type WorkflowAction = "called" | "skipped" | "lost_contact" | "no_response" | "converted_sale" | "preferred_wait" | "not_interested_month";
+type WorkflowAction = "called" | "skipped" | "lost_contact" | "no_response" | "converted_sale" | "preferred_wait" | "not_interested_month" | "still_using" | "product_ended" | "no_money" | "stopped_using";
 
 function isResponseCheck(opportunity: SalesOpportunity) {
   if (opportunity.last_feedback_status !== "contacted") return false;
@@ -15,26 +15,27 @@ function isResponseCheck(opportunity: SalesOpportunity) {
   return opportunity.feedback_next_action_on <= today;
 }
 
-export function CompanySalesQueueActions({ opportunity, relatedOpportunities = [opportunity] }: { opportunity: SalesOpportunity; relatedOpportunities?: SalesOpportunity[] }) {
+export function CompanySalesQueueActions({ opportunity }: { opportunity: SalesOpportunity }) {
   const router = useRouter();
   const [loading, setLoading] = useState<WorkflowAction | null>(null);
   const [answered, setAnswered] = useState(false);
+  const [nextDate, setNextDate] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const responseCheck = isResponseCheck(opportunity);
 
   async function save(action: WorkflowAction) {
     if (loading) return;
+    if (["preferred_wait", "still_using", "no_money"].includes(action) && !nextDate) {
+      setMessage("Escolha a data combinada com o cliente antes de salvar.");
+      return;
+    }
     setLoading(action);
     setMessage(null);
     try {
-      const responses = await Promise.all(relatedOpportunities.map(async (item) => {
-        const response = await fetch(`/api/customers/${item.customer_id}/sales-opportunities`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workflow_action: action, recommended_product_id: item.recommended_product_id, opportunity_group: item.opportunity_group, opportunity_subtype: item.opportunity_subtype }) });
-        const payload = (await response.json()) as { error?: string };
-        if (!response.ok) throw new Error(payload.error || "Não foi possível atualizar a fila.");
-        return payload;
-      }));
-      void responses;
-      setMessage(action === "called" ? "Contato registrado. Retorno criado para amanhã." : action === "lost_contact" ? "Retirado da fila ativa." : action === "converted_sale" ? "Conversão registrada." : "Cliente movido para a fila de 30 dias.");
+      const response = await fetch(`/api/customers/${opportunity.customer_id}/sales-opportunities`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workflow_action: action, next_action_on: nextDate || null, recommended_product_id: opportunity.recommended_product_id, opportunity_group: opportunity.opportunity_group, opportunity_subtype: opportunity.opportunity_subtype }) });
+      const payload = (await response.json()) as { error?: string };
+      if (!response.ok) throw new Error(payload.error || "Não foi possível atualizar a fila.");
+      setMessage(action === "called" ? "Contato registrado. Confira a resposta daqui a 6 dias, se não houver retorno antes." : action === "no_response" ? "Sem resposta registrado. Próxima tentativa limitada pela regra de 6/30 dias." : action === "lost_contact" || action === "stopped_using" ? "Retirado da fila ativa." : action === "converted_sale" ? "Conversão registrada." : nextDate ? `Próximo contato: ${nextDate}.` : "Resultado registrado.");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível atualizar a fila.");
@@ -50,15 +51,20 @@ export function CompanySalesQueueActions({ opportunity, relatedOpportunities = [
   );
 
   return <div className="company-queue-workflow">
-    {responseCheck ? answered ? <>
+    {answered ? <>
       <div className="company-queue-stage"><Check size={13} /> Respondeu — qual foi o resultado?</div>
+      <label className="company-queue-stage">Data combinada para voltar, quando aplicável <input type="date" value={nextDate} onChange={(event) => setNextDate(event.target.value)} /></label>
       <div className="company-queue-actions">
         {button("converted_sale", "Virou venda", ShoppingBag, "success")}
-        {button("preferred_wait", "Preferiu esperar", CalendarClock)}
+        {button("product_ended", "Está acabando", ShoppingBag, "success")}
+        {button("still_using", "Ainda está usando", CalendarClock)}
+        {button("preferred_wait", "Comprar depois", CalendarClock)}
+        {button("no_money", "Sem dinheiro agora", CalendarClock)}
+        {button("stopped_using", "Parou de usar", ThumbsDown)}
         {button("not_interested_month", "Não quer", ThumbsDown)}
         <button type="button" className="company-queue-action quiet" onClick={() => setAnswered(false)}><ChevronLeft size={13} />Voltar</button>
       </div>
-    </> : <>
+    </> : responseCheck ? <>
       <div className="company-queue-stage"><RotateCcw size={13} /> Retorno do contato</div>
       <div className="company-queue-actions">
         <button type="button" className="company-queue-action success" onClick={() => setAnswered(true)}><Check size={13} />Respondeu</button>
@@ -66,6 +72,7 @@ export function CompanySalesQueueActions({ opportunity, relatedOpportunities = [
       </div>
     </> : <div className="company-queue-actions">
       {button("called", "Chamei", MessageCircle, "primary")}
+      <button type="button" className="company-queue-action success" onClick={() => setAnswered(true)}><Check size={13} />Respondeu</button>
       {button("skipped", "Pular", SkipForward)}
       {button("lost_contact", "Perdi contato", PhoneOff, "danger")}
     </div>}

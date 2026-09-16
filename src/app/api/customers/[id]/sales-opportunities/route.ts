@@ -69,13 +69,17 @@ export async function POST(
 
   const workflowAction = clean(body.workflow_action, 40);
   const workflow = workflowAction ? {
-    called: { status: "contacted", days: 1, notes: "Company · contato iniciado; confirmar resposta" },
+    called: { status: "contacted", days: 6, notes: "Company · contato iniciado; confirmar resposta" },
     skipped: { status: "later", days: 30, notes: "Company · pulado para o fim da fila mensal" },
     lost_contact: { status: "dismissed", days: null, notes: "Company · contato perdido; separar da fila ativa" },
-    no_response: { status: "later", days: 30, notes: "Company · não respondeu; tentar novamente em 30 dias" },
+    no_response: { status: "later", days: 6, notes: "Company · não respondeu; primeira tentativa" },
     converted_sale: { status: "sale_completed", days: null, notes: "Company · resposta convertida em venda" },
     preferred_wait: { status: "later", days: 30, notes: "Company · preferiu esperar; retomar em 30 dias" },
-    not_interested_month: { status: "later", days: 30, notes: "Company · não quer agora; retomar em 30 dias" },
+    not_interested_month: { status: "not_interested", days: null, notes: "Company · não tem interesse agora" },
+    still_using: { status: "still_using", days: null, notes: "Company · ainda está usando" },
+    product_ended: { status: "product_ended", days: null, notes: "Company · cliente confirmou que está acabando" },
+    no_money: { status: "later", days: null, notes: "Company · sem dinheiro no momento" },
+    stopped_using: { status: "dismissed", days: null, notes: "Company · parou de usar" },
   }[workflowAction] : null;
 
   if (workflowAction && !workflow) {
@@ -99,7 +103,25 @@ export async function POST(
   }
 
   const supabase = await createClient();
-  const workflowNextAction = workflow?.days == null ? null : brazilDateAfter(workflow.days);
+  const requestedDate = clean(body.next_action_on, 10);
+  if (requestedDate && (!/^\d{4}-\d{2}-\d{2}$/.test(requestedDate) || requestedDate < brazilDateAfter(1))) {
+    return NextResponse.json({ error: "Escolha uma data futura para o retorno." }, { status: 400 });
+  }
+  if (["preferred_wait", "still_using", "no_money"].includes(workflowAction ?? "") && !requestedDate) {
+    return NextResponse.json({ error: "Informe a data combinada para o próximo contato." }, { status: 400 });
+  }
+  let workflowNextAction = workflow?.days == null ? null : brazilDateAfter(workflow.days);
+  if (workflowAction === "no_response") {
+    const since = `${brazilDateAfter(-30)}T00:00:00-03:00`;
+    const { data: previous, error: historyError } = await supabase.from("customer_sales_opportunity_feedback")
+      .select("created_at,notes").eq("customer_id", id).gte("created_at", since)
+      .ilike("notes", "Company · não respondeu%")
+      .order("created_at", { ascending: false }).limit(20);
+    if (historyError) return NextResponse.json({ error: historyError.message }, { status: 400 });
+    const attempts = new Set((previous ?? []).map((item) => item.created_at.slice(0, 16)));
+    workflowNextAction = brazilDateAfter(attempts.size > 0 ? 30 : 6);
+  }
+  if (requestedDate && ["preferred_wait", "still_using", "no_money"].includes(workflowAction ?? "")) workflowNextAction = requestedDate;
 
   if (workflowAction === "called" && workflowNextAction) {
     const { error: scheduleError } = await supabase.rpc("central_schedule_radar_followup", {

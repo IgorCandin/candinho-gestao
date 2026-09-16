@@ -62,9 +62,8 @@ export default async function CompanySectorPage({ params, searchParams }: { para
 
   if (sector === "vender") {
     const supabase = await createClient();
-    const [opportunitiesResult, priorityResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers] = await Promise.all([
+    const [opportunitiesResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers] = await Promise.all([
       supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(250),
-      supabase.from("customer_sales_opportunities_priority_v2").select("*").order("opportunity_score", { ascending: false }).limit(100),
       supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(100),
       supabase.from("products").select("id,image_url,banner_image_url").eq("active", true),
       supabase.from("customer_sales_opportunities_v1").select("*").order("opportunity_score", { ascending: false }).limit(300),
@@ -72,7 +71,6 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       access.role === "admin" || access.canAccessFitness ? getFitnessCustomers() : Promise.resolve([]),
     ]);
     if (opportunitiesResult.error) throw new Error(opportunitiesResult.error.message);
-    if (priorityResult.error) throw new Error(priorityResult.error.message);
     if (leadsResult.error) throw new Error(leadsResult.error.message);
     if (mediaResult.error) throw new Error(mediaResult.error.message);
     if (baseResult.error) throw new Error(baseResult.error.message);
@@ -80,9 +78,11 @@ export default async function CompanySectorPage({ params, searchParams }: { para
 
     const opportunityKey = (row: { customer_id: string; recommended_product_id?: string | null; opportunity_group?: string | null }) => `${row.customer_id}:${row.recommended_product_id ?? "none"}:${row.opportunity_group ?? "none"}`;
     const latestFeedback = new Map<string, (typeof feedbackResult.data extends Array<infer Row> ? Row : never)>();
+    const latestByCustomer = new Map<string, (typeof feedbackResult.data extends Array<infer Row> ? Row : never)>();
     for (const feedback of feedbackResult.data ?? []) {
       const key = opportunityKey(feedback);
       if (!latestFeedback.has(key)) latestFeedback.set(key, feedback);
+      if (!latestByCustomer.has(feedback.customer_id)) latestByCustomer.set(feedback.customer_id, feedback);
     }
     const today = brazilToday();
     const dueContacted = (baseResult.data ?? []).flatMap((row) => {
@@ -94,13 +94,12 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const opportunityMap = new Map<string, SalesOpportunity>();
     for (const row of [...((opportunitiesResult.data ?? []) as SalesOpportunity[]), ...dueContacted]) opportunityMap.set(opportunityKey(row), row);
     const opportunities = [...opportunityMap.values()].sort((a, b) => b.opportunity_score - a.opportunity_score);
+    const blockedCustomerIds = [...latestByCustomer.values()]
+      .filter((feedback) => ["contacted", "later", "still_using"].includes(feedback.feedback_status) && Boolean(feedback.next_action_on && feedback.next_action_on > today))
+      .map((feedback) => feedback.customer_id);
 
-    const priorityByCustomer = new Map<string, SalesOpportunity>();
-    for (const row of [...((priorityResult.data ?? []) as SalesOpportunity[]), ...dueContacted].sort((a, b) => b.opportunity_score - a.opportunity_score)) {
-      if (!priorityByCustomer.has(row.customer_id)) priorityByCustomer.set(row.customer_id, row);
-    }
     const productMedia = Object.fromEntries((mediaResult.data ?? []).map((row) => [row.id, { photo1: row.image_url, photo2: row.banner_image_url }]));
-    return <CompanySalesWorkspace opportunities={opportunities} priorityCustomers={[...priorityByCustomer.values()]} leads={(leadsResult.data ?? []) as LeadRow[]} fitnessCustomers={fitnessCustomers} productMedia={productMedia} />;
+    return <CompanySalesWorkspace opportunities={opportunities} leads={(leadsResult.data ?? []) as LeadRow[]} fitnessCustomers={fitnessCustomers} productMedia={productMedia} blockedCustomerIds={blockedCustomerIds} />;
   }
 
   if (sector === "concluir") {
