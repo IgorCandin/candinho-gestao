@@ -1033,9 +1033,20 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     .order("location_code", { ascending: true });
   if (error) throw error;
   const productIds = [...new Set((data ?? []).map((row) => String(row.product_id)))];
-  const { data: prices, error: priceError } = productIds.length ? await supabase.from("products").select("id,installment_price,sku,internal_code,barcode_value").in("id", productIds) : { data: [], error: null };
+  const [{ data: prices, error: priceError }, { data: incomingOrders, error: incomingError }] = await Promise.all([
+    productIds.length ? supabase.from("products").select("id,installment_price,sku,internal_code,barcode_value").in("id", productIds) : Promise.resolve({ data: [], error: null }),
+    supabase.from("purchase_order_items").select("product_id,quantity_ordered,quantity_received,order:purchase_orders!inner(status,destination_location_id)").in("order.status", ["pending", "partial"]),
+  ]);
   if (priceError) throw priceError;
+  if (incomingError) throw incomingError;
   const productMetaByProduct = new Map((prices ?? []).map((row) => [String(row.id), { installment: number(row.installment_price), sku: typeof row.sku === "string" ? row.sku : null, internalCode: typeof row.internal_code === "string" ? row.internal_code : null, barcodeValue: typeof row.barcode_value === "string" ? row.barcode_value : null }]));
+  const incomingByProductAndLocation = new Map<string, number>();
+  for (const item of incomingOrders ?? []) {
+    const order = Array.isArray(item.order) ? item.order[0] : item.order;
+    if (!order) continue;
+    const key = `${item.product_id}:${order.destination_location_id}`;
+    incomingByProductAndLocation.set(key, (incomingByProductAndLocation.get(key) ?? 0) + Math.max(number(item.quantity_ordered) - number(item.quantity_received), 0));
+  }
   return (data ?? []).map((row) => ({
     product_id: String(row.product_id),
     product_name: text(row.product_name, "Produto sem nome"),
@@ -1054,6 +1065,7 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     physical_quantity: number(row.physical_quantity),
     reserved_quantity: number(row.reserved_quantity),
     available_quantity: number(row.available_quantity),
+    incoming_quantity: incomingByProductAndLocation.get(`${row.product_id}:${row.location_id}`) ?? 0,
   }));
 }
 

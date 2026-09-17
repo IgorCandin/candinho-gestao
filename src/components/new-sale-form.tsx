@@ -470,6 +470,7 @@ export function NewSaleForm({
         brand: product.brand,
         available: Number(localStock?.available_quantity ?? 0),
         physical: Number(localStock?.physical_quantity ?? 0),
+        incoming: Number(localStock?.incoming_quantity ?? 0),
         locationCode:
           localStock?.location_code ??
           location?.code ??
@@ -1371,13 +1372,11 @@ export function NewSaleForm({
                           {displayedAvailable}
                         </strong>
                       </span>
-                      {selectedFlavorStock && (
+                      {(selectedFlavorStock || row.incoming_quantity > 0) && (
                         <span>
                           A caminho{" "}
                           <strong>
-                            {
-                              selectedFlavorStock.incoming
-                            }
+                            {selectedFlavorStock?.incoming ?? row.incoming_quantity}
                           </strong>
                         </span>
                       )}

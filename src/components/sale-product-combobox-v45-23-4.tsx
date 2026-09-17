@@ -10,6 +10,7 @@ export type SaleProductSearchOptionV45234 = {
   brand: string | null;
   available: number;
   physical: number;
+  incoming: number;
   locationCode: string;
   sku?: string | null;
   internalCode?: string | null;
@@ -64,7 +65,7 @@ export function SaleProductComboboxV45234({
     return [...rows]
       .sort((a, b) => {
         const stockDelta =
-          Number(b.available > 0) - Number(a.available > 0);
+          Number(b.available > 0) - Number(a.available > 0) || Number(b.incoming > 0) - Number(a.incoming > 0);
 
         if (stockDelta !== 0) return stockDelta;
 
@@ -143,7 +144,9 @@ export function SaleProductComboboxV45234({
                   <em>
                     {available
                       ? `${option.available} disp. · ${option.locationCode}`
-                      : `Sem estoque · ${option.locationCode}`}
+                      : option.incoming > 0
+                        ? `Zerado agora · ${option.incoming} a caminho · ${option.locationCode}`
+                        : `Sem estoque · ${option.locationCode}`}
                   </em>
                   {option.id === value && <Check size={15} />}
                 </button>
