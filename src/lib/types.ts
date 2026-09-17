@@ -44,6 +44,7 @@ export type SaleStockOption = {
   reserved_quantity: number;
   available_quantity: number;
   incoming_quantity: number;
+  awaiting_sales_quantity: number;
 };
 
 export type LocationOption = { id: string; code: string; name: string; city: string | null; };

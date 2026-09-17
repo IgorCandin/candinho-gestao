@@ -11,6 +11,7 @@ export type SaleProductSearchOptionV45234 = {
   available: number;
   physical: number;
   incoming: number;
+  awaiting: number;
   locationCode: string;
   sku?: string | null;
   internalCode?: string | null;
@@ -145,7 +146,7 @@ export function SaleProductComboboxV45234({
                     {available
                       ? `${option.available} disp. · ${option.locationCode}`
                       : option.incoming > 0
-                        ? `Zerado agora · ${option.incoming} a caminho · ${option.locationCode}`
+                        ? `Zerado agora · ${option.incoming} a caminho · ${Math.max(option.incoming - option.awaiting, 0)} livre após ${option.awaiting} un. já aguardando · ${option.locationCode}`
                         : `Sem estoque · ${option.locationCode}`}
                   </em>
                   {option.id === value && <Check size={15} />}

@@ -471,6 +471,7 @@ export function NewSaleForm({
         available: Number(localStock?.available_quantity ?? 0),
         physical: Number(localStock?.physical_quantity ?? 0),
         incoming: Number(localStock?.incoming_quantity ?? 0),
+        awaiting: Number(localStock?.awaiting_sales_quantity ?? 0),
         locationCode:
           localStock?.location_code ??
           location?.code ??
@@ -1172,6 +1173,11 @@ export function NewSaleForm({
                 selectedFlavorStock
                   ? selectedFlavorStock.available
                   : row?.available_quantity ?? 0;
+              const arriving = selectedFlavorStock?.incoming ?? row?.incoming_quantity ?? 0;
+              const waiting = row?.awaiting_sales_quantity ?? 0;
+              // Reservas sem sabor definido também competem pelo mesmo produto.
+              // Descontar todas aqui é conservador e evita prometer estoque alheio.
+              const freeOnArrival = Math.max(arriving - waiting, 0);
 
               return (
                 <div
@@ -1376,9 +1382,22 @@ export function NewSaleForm({
                         <span>
                           A caminho{" "}
                           <strong>
-                            {selectedFlavorStock?.incoming ?? row.incoming_quantity}
+                            {arriving}
                           </strong>
                         </span>
+                      )}
+                      {arriving > 0 && (
+                        <>
+                          <span>Clientes anteriores aguardando <strong>{waiting}</strong></span>
+                          <span className={freeOnArrival < quantity ? "warning-text" : ""}>
+                            {selectedFlavorStock ? "Livre na chegada (conservador)" : "Livre na chegada"} <strong>{freeOnArrival}</strong>
+                          </span>
+                        </>
+                      )}
+                      {arriving > 0 && displayedAvailable < quantity && freeOnArrival < quantity && (
+                        <p className="warning-text" role="status">
+                          A chegada já está comprometida com pedidos anteriores. Esta venda entrará na fila; não prometa entrega imediata.
+                        </p>
                       )}
                       <span>
                         Condição{" "}

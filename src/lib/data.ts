@@ -1033,12 +1033,14 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     .order("location_code", { ascending: true });
   if (error) throw error;
   const productIds = [...new Set((data ?? []).map((row) => String(row.product_id)))];
-  const [{ data: prices, error: priceError }, { data: incomingOrders, error: incomingError }] = await Promise.all([
+  const [{ data: prices, error: priceError }, { data: incomingOrders, error: incomingError }, { data: waitingReservations, error: waitingError }] = await Promise.all([
     productIds.length ? supabase.from("products").select("id,installment_price,sku,internal_code,barcode_value").in("id", productIds) : Promise.resolve({ data: [], error: null }),
     supabase.from("purchase_order_items").select("product_id,quantity_ordered,quantity_received,order:purchase_orders!inner(status,destination_location_id)").in("order.status", ["pending", "partial"]),
+    supabase.from("stock_reservations").select("product_id,location_id,quantity_requested,quantity_reserved").in("status", ["awaiting_stock", "partial"]),
   ]);
   if (priceError) throw priceError;
   if (incomingError) throw incomingError;
+  if (waitingError) throw waitingError;
   const productMetaByProduct = new Map((prices ?? []).map((row) => [String(row.id), { installment: number(row.installment_price), sku: typeof row.sku === "string" ? row.sku : null, internalCode: typeof row.internal_code === "string" ? row.internal_code : null, barcodeValue: typeof row.barcode_value === "string" ? row.barcode_value : null }]));
   const incomingByProductAndLocation = new Map<string, number>();
   for (const item of incomingOrders ?? []) {
@@ -1046,6 +1048,12 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     if (!order) continue;
     const key = `${item.product_id}:${order.destination_location_id}`;
     incomingByProductAndLocation.set(key, (incomingByProductAndLocation.get(key) ?? 0) + Math.max(number(item.quantity_ordered) - number(item.quantity_received), 0));
+  }
+  const waitingByProductAndLocation = new Map<string, number>();
+  for (const reservation of waitingReservations ?? []) {
+    const key = `${reservation.product_id}:${reservation.location_id}`;
+    const missing = Math.max(number(reservation.quantity_requested) - number(reservation.quantity_reserved), 0);
+    waitingByProductAndLocation.set(key, (waitingByProductAndLocation.get(key) ?? 0) + missing);
   }
   return (data ?? []).map((row) => ({
     product_id: String(row.product_id),
@@ -1066,6 +1074,7 @@ export async function getSaleStockOptions(): Promise<SaleStockOption[]> {
     reserved_quantity: number(row.reserved_quantity),
     available_quantity: number(row.available_quantity),
     incoming_quantity: incomingByProductAndLocation.get(`${row.product_id}:${row.location_id}`) ?? 0,
+    awaiting_sales_quantity: waitingByProductAndLocation.get(`${row.product_id}:${row.location_id}`) ?? 0,
   }));
 }
 
