@@ -19,7 +19,8 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/format";
@@ -143,6 +144,7 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
   const [enrichmentLoading, setEnrichmentLoading] = useState(false);
   const [enrichment, setEnrichment] = useState<ProductEnrichmentPreview | null>(null);
   const [enrichmentFeedback, setEnrichmentFeedback] = useState<string | null>(null);
+  const enrichmentCloseButton = useRef<HTMLButtonElement>(null);
 
   const isEditing = Boolean(product);
   const cost = numeric(draft.costPrice);
@@ -161,22 +163,45 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
     [flavors],
   );
 
-  const enrichmentAvailableCount = useMemo(() => {
-    if (!enrichment) return 0;
+  const enrichmentRows = useMemo(() => {
+    if (!enrichment) return [];
     const suggestions = enrichment.suggestions;
     return [
-      !draft.brand.trim() && suggestions.brand,
-      !draft.category.trim() && suggestions.category,
-      !draft.description.trim() && suggestions.description,
-      !draft.objective.trim() && suggestions.objective,
-      !draft.idealProfile.trim() && suggestions.ideal_profile,
-      !draft.durationDays.trim() && suggestions.duration_days,
-      !draft.information.trim() && suggestions.information,
-      !draft.quickMessage.trim() && suggestions.quick_message,
-      !draft.keywords.trim() && suggestions.keywords,
-      !draft.level.trim() && suggestions.level,
-    ].filter(Boolean).length;
+      { label: "Marca", current: draft.brand, suggested: suggestions.brand },
+      { label: "Categoria", current: draft.category, suggested: suggestions.category },
+      { label: "Descrição", current: draft.description, suggested: suggestions.description },
+      { label: "Objetivo", current: draft.objective, suggested: suggestions.objective },
+      { label: "Perfil ideal", current: draft.idealProfile, suggested: suggestions.ideal_profile },
+      { label: "Duração (dias)", current: draft.durationDays, suggested: suggestions.duration_days ? String(suggestions.duration_days) : null },
+      { label: "Informações", current: draft.information, suggested: suggestions.information },
+      { label: "Mensagem rápida", current: draft.quickMessage, suggested: suggestions.quick_message },
+      { label: "Palavras-chave", current: draft.keywords, suggested: suggestions.keywords },
+      { label: "Nível", current: draft.level, suggested: suggestions.level },
+    ].filter((row) => row.suggested?.trim());
   }, [draft, enrichment]);
+  const enrichmentAvailableCount = enrichmentRows.filter((row) => !row.current.trim()).length;
+
+  const closeEnrichment = useCallback(() => {
+    setEnrichment(null);
+    setEnrichmentFeedback(null);
+  }, []);
+
+  useEffect(() => {
+    if (!enrichment) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    enrichmentCloseButton.current?.focus();
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") closeEnrichment();
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [enrichment, closeEnrichment]);
 
   useEffect(() => {
     if (!product) return;
@@ -322,6 +347,7 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
       level: current.level.trim() ? current.level : suggestions.level ?? current.level,
     }));
     setEnrichmentFeedback("Informações aplicadas somente nos campos vazios. Revise o formulário antes de salvar.");
+    setEnrichment(null);
   }
 
   function enableFlavorMode() {
@@ -460,13 +486,14 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
   }
 
   return (
+    <>
     <form className="product-editor-layout" onSubmit={submit}>
       <div className="product-editor-main">
         <article className="panel">
           <div className="panel-head">
             <div><h2>Identificação</h2><p>Nome, categoria e organização do catálogo.</p></div>
             <button className="button ghost compact-button" type="button" onClick={enrichProduct} disabled={enrichmentLoading} title="O Nexus consulta dados públicos e sugere apenas campos cadastrais vazios. Dados internos não são inventados.">
-              {enrichmentLoading ? <LoaderCircle className="spin" size={16}/> : <Sparkles size={16}/>} {enrichmentLoading ? "Pesquisando" : "Completar com Nexus"}
+              {enrichmentLoading ? <LoaderCircle className="spin" size={16}/> : <Sparkles size={16}/>} {enrichmentLoading ? "Pesquisando" : "Pesquisar com Nexus"}
             </button>
           </div>
 
@@ -478,35 +505,7 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
             <label className="field"><span>Fornecedor padrão</span><select className="select" value={draft.supplierId} onChange={(event) => update("supplierId", event.target.value)}><option value="">Sem fornecedor padrão</option>{suppliers.map((supplier) => <option key={supplier.id} value={supplier.id}>{supplier.name}</option>)}</select></label>
           </div>
 
-          {(enrichment || enrichmentFeedback) && (
-            <div className="product-nexus-enrichment">
-              <div className="product-nexus-enrichment-head">
-                <span className="product-nexus-enrichment-icon"><Globe2 size={17}/></span>
-                <div>
-                  <strong>Nexus · Cadastro assistido</strong>
-                  <small>Pesquisa dados públicos e completa textos cadastrais. Preço, estoque, SKU, fornecedor e classificação ABCZ são dados internos e nunca são inventados.</small>
-                </div>
-                {enrichment && <span className={`badge ${enrichment.confidence === "alta" ? "green" : enrichment.confidence === "media" ? "orange" : "gray"}`}>Confiança {enrichment.confidence}</span>}
-              </div>
-
-              {enrichment?.fallbackUsed && <p className="product-nexus-research-note"><AlertTriangle size={14}/> Pesquisa pública indisponível ou insuficiente. O Nexus usou um fallback descritivo seguro sem inventar dados técnicos.</p>}
-              {enrichment?.research_note && <p className="product-nexus-research-note">{enrichment.research_note}</p>}
-
-              {enrichment && (
-                <div className="product-nexus-enrichment-result">
-                  <div><strong>{enrichmentAvailableCount} campo(s) vazio(s) podem ser preenchidos</strong><span>O Nexus não sobrescreve o que você já digitou.</span></div>
-                  <div className="product-nexus-enrichment-actions">
-                    <button className="button gold compact-button" type="button" onClick={applyEnrichment} disabled={enrichmentAvailableCount === 0}><Check size={15}/>Aplicar nos campos vazios</button>
-                    <button className="button ghost compact-button" type="button" onClick={() => setEnrichment(null)}><X size={15}/>Fechar</button>
-                  </div>
-                </div>
-              )}
-
-              {enrichment?.sources.length ? <div className="product-nexus-sources"><span>Fontes consultadas</span><div>{enrichment.sources.slice(0, 5).map((url) => <a href={url} target="_blank" rel="noreferrer" key={url}>{sourceHost(url)}<ExternalLink size={11}/></a>)}</div></div> : null}
-              {enrichmentFeedback && <p className="form-help">{enrichmentFeedback}</p>}
-              <small className="product-nexus-save-warning">Nada é salvo automaticamente. Revise as sugestões e salve o produto somente quando estiver de acordo.</small>
-            </div>
-          )}
+          {enrichmentFeedback && !enrichment ? <p className="form-help product-nexus-inline-feedback" role="status">{enrichmentFeedback}</p> : null}
         </article>
 
         <article className="panel">
@@ -624,5 +623,25 @@ export function ProductForm({ product, suppliers, categories, companyMode = fals
         </article>
       </aside>
     </form>
+    {enrichment && createPortal(
+      <div className="product-nexus-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) closeEnrichment(); }}>
+        <section className="product-nexus-modal" role="dialog" aria-modal="true" aria-labelledby="product-nexus-modal-title">
+          <header className="product-nexus-enrichment-head">
+            <span className="product-nexus-enrichment-icon"><Globe2 size={18}/></span>
+            <div><strong id="product-nexus-modal-title">Nexus · resultado da pesquisa</strong><small>Confira os dados antes de atualizar o cadastro de {draft.name}.</small></div>
+            <button ref={enrichmentCloseButton} className="product-nexus-modal-close" type="button" aria-label="Fechar resultado do Nexus" onClick={closeEnrichment}><X size={19}/></button>
+          </header>
+          <div className="product-nexus-modal-summary"><span className={`badge ${enrichment.confidence === "alta" ? "green" : enrichment.confidence === "media" ? "orange" : "gray"}`}>Confiança {enrichment.confidence}</span><strong>{enrichmentAvailableCount} campo(s) vazio(s) para atualizar</strong></div>
+          {enrichment.fallbackUsed ? <p className="product-nexus-research-note"><AlertTriangle size={15}/> A pesquisa pública foi insuficiente. O Nexus usou uma descrição de apoio; confira com cuidado.</p> : null}
+          {enrichment.research_note ? <p className="product-nexus-research-note">{enrichment.research_note}</p> : null}
+          <div className="product-nexus-modal-results">
+            {enrichmentRows.length ? enrichmentRows.map((row) => <article key={row.label} className={row.current.trim() ? "already-filled" : "will-apply"}><div><strong>{row.label}</strong><span>{row.current.trim() ? "Já preenchido · não será alterado" : "Será aplicado"}</span></div><p>{row.suggested}</p></article>) : <p>Nenhuma sugestão cadastral encontrada. Seus campos permanecem como estão.</p>}
+          </div>
+          {enrichment.sources.length ? <div className="product-nexus-sources"><span>Fontes consultadas</span><div>{enrichment.sources.slice(0, 5).map((url) => <a href={url} target="_blank" rel="noreferrer" key={url}>{sourceHost(url)}<ExternalLink size={11}/></a>)}</div></div> : null}
+          <footer><small>Preço, estoque, SKU e fornecedor não são alterados. Nada é salvo até você salvar o produto.</small><div><button className="button ghost" type="button" onClick={closeEnrichment}>Cancelar</button><button className="button gold" type="button" onClick={applyEnrichment} disabled={enrichmentAvailableCount === 0}><Check size={16}/>Atualizar campos</button></div></footer>
+        </section>
+      </div>, document.body,
+    )}
+    </>
   );
 }
