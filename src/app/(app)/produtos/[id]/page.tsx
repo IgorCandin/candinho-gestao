@@ -132,6 +132,7 @@ export default async function ProductDetailsPage<T extends {
     supplierOrdersResult,
     recentSalesResult,
     labelResult,
+    locationStockResult,
   ] = await Promise.all([
     getProductDetails(id),
     getEntitySwipeNavigation("product", id, companyMode),
@@ -173,6 +174,12 @@ export default async function ProductDetailsPage<T extends {
       .order("sold_at", { ascending: false })
       .limit(12),
     supabase.from("products").select("internal_code,barcode_value").eq("id", id).maybeSingle(),
+    companyMode
+      ? supabase.from("inventory_location_overview")
+          .select("location_id,location_code,location_name,location_city,physical_quantity,reserved_quantity,available_quantity,incoming_quantity")
+          .eq("product_id", id)
+          .order("location_name")
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
   if (!product) notFound();
@@ -184,11 +191,28 @@ export default async function ProductDetailsPage<T extends {
     supplierOrdersResult,
     recentSalesResult,
     labelResult,
+    locationStockResult,
   ]) {
     if (result.error) throw result.error;
   }
 
   const state = stockState(product.stock_status);
+  const locationStockRows = (locationStockResult.data ?? [])
+    .map((row) => ({
+      id: String(row.location_id),
+      code: String(row.location_code ?? ""),
+      name: String(row.location_name ?? "Local"),
+      city: typeof row.location_city === "string" ? row.location_city : null,
+      physical: Number(row.physical_quantity ?? 0),
+      reserved: Number(row.reserved_quantity ?? 0),
+      available: Number(row.available_quantity ?? 0),
+      incoming: Number(row.incoming_quantity ?? 0),
+    }))
+    .sort((a, b) =>
+      Number(b.physical + b.incoming > 0) - Number(a.physical + a.incoming > 0) ||
+      b.available - a.available ||
+      a.name.localeCompare(b.name, "pt-BR"),
+    );
   const activePromotion = getSupplementPromotion(id, promotionRows);
   const flavorEnabled = Boolean(
     flavorSummaryResult.data?.flavor_tracking_enabled,
@@ -427,6 +451,15 @@ export default async function ProductDetailsPage<T extends {
           </span>
         </article>
       </section>
+
+      {companyMode && <section className="company-product-location-stock" aria-label="Estoque por local">
+        <header><div><span>COMPANY · ESTOQUE</span><h2>Onde estão as unidades</h2><p>Saldo separado por ponto de estoque. Disponível é o que pode entrar em uma nova venda agora.</p></div><strong>{locationStockRows.filter((row) => row.physical > 0).length} local(is) com unidades</strong></header>
+        {locationStockRows.length ? <div className="company-product-location-grid">{locationStockRows.map((row) => <article key={row.id} className={row.physical > 0 || row.incoming > 0 ? "has-stock" : "no-stock"}>
+          <div className="company-product-location-title"><Warehouse size={18}/><div><strong>{row.name}</strong><small>{row.code}{row.city ? ` · ${row.city}` : ""}</small></div></div>
+          <div className="company-product-location-available"><span>Disponível agora</span><strong>{row.available}</strong></div>
+          <dl><div><dt>Físico</dt><dd>{row.physical}</dd></div><div><dt>Reservado</dt><dd>{row.reserved}</dd></div><div><dt>A caminho</dt><dd>{row.incoming}</dd></div></dl>
+        </article>)}</div> : <p className="company-product-location-empty">Nenhum local de estoque ativo encontrado para este produto.</p>}
+      </section>}
 
       <ProductInternalCostPanelV4521
         productId={product.id}

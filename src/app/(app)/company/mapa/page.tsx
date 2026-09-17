@@ -12,7 +12,7 @@ const blocks: Block[] = [
     { label: "Vendas e orçamentos", state: "test", detail: "Venda, adicional a prazo, PDF, histórico e cancelamento pela venda vinculada estão prontos para teste.", href: "/company/orcamentos" },
     { label: "Entregas e recebimentos", state: "test", detail: "Fila unificada e entrega por item migradas; validar casos mistos de estoque e pagamento.", href: "/company/concluir" },
     { label: "Produtos, fotos, combos e promoções", state: "doing", detail: "Fotos por produto estão na Company; falta padronizar proporção e enquadramento dos banners já cadastrados, além de revisar CTs, combos e promoções.", href: "/company/produtos" },
-    { label: "Estoque e transferências", state: "test", detail: "Estoque está em Gestão; transferências em lote e filtro por saldo da origem aguardam teste.", href: "/company/produtos/transferencias" },
+    { label: "Estoque e transferências", state: "test", detail: "A ficha Company mostra o saldo por local; conferir os números com o estoque, transferências em lote e filtro por saldo da origem.", href: "/company/produtos/transferencias" },
     { label: "Compras e fornecedores", state: "doing", detail: "Estrutura unificada existe; falta conferir aba por aba e migrar movimentações restantes.", href: "/company/compras" },
     { label: "Desativar Suplementos", state: "todo", detail: "Só depois de conferir links, medir zero acessos necessários e preservar consulta histórica." },
   ]},
