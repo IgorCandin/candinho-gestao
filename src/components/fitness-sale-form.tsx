@@ -1,10 +1,13 @@
 "use client";
 
 import {
+  FileText,
   LoaderCircle,
+  PackageCheck,
   Plus,
   Save,
   Trash2,
+  X,
 } from "lucide-react";
 import {
   useMemo,
@@ -130,6 +133,8 @@ export function FitnessSaleForm({
   const [scanCode, setScanCode] = useState("");
   const [loading, setLoading] =
     useState(false);
+  const [choiceOpen, setChoiceOpen] = useState(false);
+  const [confirmedStep, setConfirmedStep] = useState(false);
   const [message, setMessage] =
     useState<string | null>(null);
 
@@ -212,11 +217,7 @@ export function FitnessSaleForm({
     setSource("");
   }
 
-  async function submit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
-    event.preventDefault();
-    const asQuote = (event.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "quote";
+  async function persist(asQuote: boolean) {
     setLoading(true);
     setMessage(null);
 
@@ -304,6 +305,7 @@ export function FitnessSaleForm({
 
       if (error) throw error;
 
+      setChoiceOpen(false);
       router.push(asQuote
         ? (companyMode ? `/company/orcamentos/fitness/${String(data)}` : `/fitness/orcamentos/${String(data)}`)
         : (companyMode ? `/company/concluir/fitness/${String(data)}` : `/fitness/vendas/${String(data)}`));
@@ -317,6 +319,22 @@ export function FitnessSaleForm({
     } finally {
       setLoading(false);
     }
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (companyMode && !confirmedStep) {
+      setMessage(null);
+      setChoiceOpen(true);
+      return;
+    }
+    void persist(false);
+  }
+
+  function confirmQuote() {
+    setChoiceOpen(false);
+    setConfirmedStep(true);
+    window.setTimeout(() => document.getElementById("fitness-payment-step")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
   }
 
   return (
@@ -681,6 +699,8 @@ export function FitnessSaleForm({
       </div>
 
       <aside className="new-sale-side">
+        {companyMode && confirmedStep && <div className="v4515-inline-confirm-heading" id="fitness-payment-step"><span>Orçamento confirmado</span><strong>Agora finalize a venda</strong><small>Informe pagamento e entrega antes de salvar.</small><button type="button" className="button ghost" onClick={() => setConfirmedStep(false)}>Voltar à escolha</button></div>}
+        {(!companyMode || confirmedStep) && <>
         <article className="panel">
           <div className="panel-head">
             <div>
@@ -688,8 +708,12 @@ export function FitnessSaleForm({
             </div>
           </div>
 
-          <div className="panel-body product-switch-list">
-            <label className="field">
+          <div className={`panel-body ${companyMode ? "option-stack" : "product-switch-list"}`}>
+            {companyMode ? ([
+              ["receivable", "A receber", "Sem data combinada."],
+              ["paid", "Pago", "Registra o recebimento integral."],
+              ["combined", "Pagamento combinado", "Informe a data combinada."],
+            ] as const).map(([value, title, description]) => <label className={`choice-card ${paymentMode === value ? "active" : ""}`} key={value}><input type="radio" name="fitnessPaymentMode" checked={paymentMode === value} onChange={() => setPaymentMode(value)}/><span><strong>{title}</strong><small>{description}</small></span></label>) : <label className="field">
               <span>Situação</span>
               <select
                 className="select"
@@ -710,7 +734,7 @@ export function FitnessSaleForm({
                   Pagamento combinado
                 </option>
               </select>
-            </label>
+            </label>}
 
             {paymentMode === "paid" && (
               <>
@@ -815,6 +839,7 @@ export function FitnessSaleForm({
             )}
           </div>
         </article>
+        </>}
 
         <article className="panel product-editor-summary">
           <div className="panel-body">
@@ -847,12 +872,12 @@ export function FitnessSaleForm({
               ) : (
                 <Save size={17} />
               )}
-              Salvar venda
+              {companyMode ? (confirmedStep ? "Confirmar venda" : "Salvar orçamento") : "Salvar venda"}
             </button>
-            {companyMode && <button type="submit" className="button ghost product-save-button" disabled={loading} name="saveMode" value="quote">Salvar orçamento (sem pagamento nem entrega)</button>}
           </div>
         </article>
       </aside>
+      {companyMode && choiceOpen && <div className="budget-choice-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !loading) setChoiceOpen(false); }}><section className="budget-choice-modal" role="dialog" aria-modal="true" aria-labelledby="fitness-budget-choice-title"><button className="budget-choice-close" type="button" aria-label="Fechar" disabled={loading} onClick={() => setChoiceOpen(false)}><X size={18}/></button><div className="budget-choice-heading"><FileText size={25}/><div><span>Salvar orçamento · Fitness</span><h2 id="fitness-budget-choice-title">O cliente já confirmou?</h2><p>Escolha o destino. Você poderá consultar o orçamento nos dois casos.</p></div></div><div className="budget-choice-grid"><button className="budget-choice-card confirmed" type="button" disabled={loading} onClick={confirmQuote}><PackageCheck size={25}/><span><strong>Orçamento confirmado</strong><small>Continue para informar pagamento e entrega antes de criar a venda.</small></span></button><button className="budget-choice-card quote" type="button" disabled={loading} onClick={() => void persist(true)}><FileText size={25}/><span><strong>Apenas orçamento</strong><small>Salva a proposta sem registrar pagamento ou entrega.</small></span>{loading && <LoaderCircle className="spin" size={18}/>}</button></div>{message && <p className="form-error visible" role="alert">{message}</p>}</section></div>}
     </form>
   );
 }
