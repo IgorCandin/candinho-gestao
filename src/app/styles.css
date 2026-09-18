@@ -2332,6 +2332,10 @@ h1{font-size:clamp(27px,3vw,36px)}
 
 /* Bank · Manual Inteligente */
 .bank-manual-update-form{display:grid;gap:18px}
+.bank-dashboard-dialog-backdrop{position:fixed;inset:0;z-index:1100;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.76)}
+.bank-dashboard-dialog{width:min(100%,760px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(217,164,65,.32);border-radius:20px;background:#10151c;box-shadow:0 24px 70px #000a}
+.bank-dashboard-dialog-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 20px;border-bottom:1px solid var(--line)}
+.bank-dashboard-dialog-content{overflow-y:auto;overscroll-behavior:contain;padding:18px;min-height:0}.bank-dashboard-dialog-content>.panel{margin:0}.bank-dashboard-dialog-content .bank-balance-update-actions{flex-wrap:wrap}
 .bank-manual-update-list{display:grid;gap:10px}
 .bank-manual-update-row{display:grid;grid-template-columns:minmax(180px,.8fr) minmax(220px,.7fr) minmax(180px,.55fr);align-items:end;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.015)}
 .bank-manual-update-row>div:first-of-type{display:grid;gap:4px;align-self:center}.bank-manual-update-row>div:first-of-type strong{font-size:12px}.bank-manual-update-row>div:first-of-type span,.bank-manual-update-row>small{color:var(--muted);font-size:9px;line-height:1.45}

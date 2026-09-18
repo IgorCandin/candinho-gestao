@@ -91,9 +91,6 @@ export async function saveBankQuickUpdate(formData: FormData) {
   revalidatePath("/bank/contas");
   revalidatePath("/bank/visao-anual");
 
-  redirect(
-    `/bank/atualizar?salvo=1&data=${encodeURIComponent(
-      balanceDate,
-    )}`,
-  );
+  if (formData.get("return_to") === "dashboard") redirect("/bank?salvo=saldos");
+  redirect(`/bank/atualizar?salvo=1&data=${encodeURIComponent(balanceDate)}`);
 }

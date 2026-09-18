@@ -12,13 +12,16 @@ import {
   PencilLine,
   ReceiptText,
   RefreshCcw,
+  Save,
   TrendingUp,
   Target,
   Wallet,
 } from "lucide-react";
 import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
 import { BankPaidForm } from "@/components/bank-paid-form";
+import { BankDashboardDialog } from "@/components/bank-dashboard-dialog";
 import {
+  getBankAccounts,
   getBankDashboardData,
   getBankDebts,
 } from "@/lib/bank-data";
@@ -32,6 +35,7 @@ import {
   formatDateOnly,
 } from "@/lib/format";
 import { adjustBankMonthCommitment } from "./commitment-actions";
+import { saveBankQuickUpdate } from "./atualizar/actions";
 
 function commitmentTone(
   item: BankMonthCommitment,
@@ -133,6 +137,7 @@ function CommitmentList({
           <div className="bank-header-actions">
             <Link
               className="button ghost compact-button"
+              scroll={false}
               href={`/bank?compromisso=${encodeURIComponent(
                 item.id,
               )}`}
@@ -162,17 +167,20 @@ export default async function BankDashboardPage({
 }: {
   searchParams: Promise<{
     compromisso?: string;
+    saldo?: string;
     salvo?: string;
   }>;
 }) {
   const params = await searchParams;
+  const updatingBalances = params.saldo === "1";
 
-  const [data, month, debts, financialGoals] =
+  const [data, month, debts, financialGoals, accounts] =
     await Promise.all([
       getBankDashboardData(),
       getBankMonthHomeDataV2(),
       getBankDebts(),
       getBankFinancialGoals(),
+      updatingBalances ? getBankAccounts() : Promise.resolve([]),
     ]);
 
   const activeFinancialGoals = financialGoals.filter((goal) => goal.status === "active");
@@ -273,10 +281,7 @@ export default async function BankDashboardPage({
           pequena vitória
         </span>
 
-        <Link
-          className="button gold"
-          href="/bank/atualizar"
-        >
+        <Link className="button gold" href="/bank?saldo=1" scroll={false}>
           <RefreshCcw size={16} />
           Atualizar saldos
         </Link>
@@ -286,14 +291,8 @@ export default async function BankDashboardPage({
         <div className="bank-success-banner">
           <CheckCircle2 size={18} />
           <div>
-            <strong>
-              Compromisso atualizado com
-              sucesso.
-            </strong>
-            <span>
-              Os totais deste mês já foram
-              recalculados.
-            </span>
+            <strong>{params.salvo === "saldos" ? "Saldos atualizados com sucesso." : "Compromisso atualizado com sucesso."}</strong>
+            <span>{params.salvo === "saldos" ? "O painel já mostra os saldos informados." : "Os totais deste mês já foram recalculados."}</span>
           </div>
         </div>
       )}
@@ -418,10 +417,9 @@ export default async function BankDashboardPage({
         <Target size={20}/><div><span>Pendências e objetivos financeiros</span><strong>{activeFinancialGoals.length ? `${activeFinancialGoals.length} aberto(s) · faltam ${formatCurrency(financialGoalMissing)} separar` : "Nenhum objetivo financeiro aberto"}</strong><small>Metas com prazo não são tratadas como déficit nem como compra de estoque.</small></div><ChevronRight/>
       </Link>
 
-      {selectedCommitment && (
+      {selectedCommitment && <BankDashboardDialog title="Detalhes da pendência">
         <article
           className="panel bank-income-form-panel"
-          style={{ marginTop: 18 }}
         >
           <div className="panel-head">
             <div>
@@ -437,6 +435,7 @@ export default async function BankDashboardPage({
             <Link
               className="button ghost compact-button"
               href="/bank"
+              scroll={false}
             >
               Fechar
             </Link>
@@ -520,6 +519,7 @@ export default async function BankDashboardPage({
               <Link
                 className="button ghost"
                 href="/bank"
+                scroll={false}
               >
                 Cancelar
               </Link>
@@ -533,7 +533,30 @@ export default async function BankDashboardPage({
             </div>
           </form>
         </article>
-      )}
+      </BankDashboardDialog>}
+
+      {updatingBalances && <BankDashboardDialog title="Atualizar saldos">
+        <form action={saveBankQuickUpdate} className="bank-manual-update-form">
+          <input type="hidden" name="return_to" value="dashboard"/>
+          <article className="panel bank-manual-update-settings">
+            <div className="panel-head"><div><h2>Saldo real das contas</h2><p>Preencha só as contas que mudaram. As demais permanecem como estão.</p></div></div>
+            <div className="panel-body"><label className="field"><span>Data da conferência</span><input className="input" type="date" name="balance_date" defaultValue={new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())} required/></label></div>
+          </article>
+          <article className="panel"><div className="panel-body bank-manual-update-list">
+            {accounts.map((account) => {
+              const id = String(account.id);
+              return <div className="bank-manual-update-row" key={id}>
+                <input type="hidden" name="account_id" value={id}/>
+                <div><strong>{String(account.name ?? "Conta")}</strong><span>{String(account.origin ?? account.account_type ?? "Conta")}</span></div>
+                <label className="field"><span>Saldo atual: {formatCurrency(Number(account.balance ?? 0))}</span><div className="bank-money-input"><b>R$</b><input className="input" name={`balance:${id}`} inputMode="decimal" placeholder="Novo saldo (opcional)"/></div></label>
+                <small>{account.balance_date ? `Último registro: ${formatDateOnly(String(account.balance_date))}` : "Nunca atualizado"}</small>
+              </div>;
+            })}
+            {accounts.length === 0 && <div className="bank-empty-state">Nenhuma conta cadastrada.</div>}
+          </div></article>
+          <div className="bank-balance-update-actions"><Link className="button ghost" href="/bank" scroll={false}>Cancelar</Link><button className="button gold" type="submit"><Save size={16}/>Salvar saldos</button></div>
+        </form>
+      </BankDashboardDialog>}
 
       {month.overdue.length > 0 && (
         <article
@@ -848,10 +871,7 @@ export default async function BankDashboardPage({
       />
 
       <div className="bank-quick-actions">
-        <Link
-          href="/bank/atualizar"
-          className="bank-quick-card"
-        >
+        <Link href="/bank?saldo=1" scroll={false} className="bank-quick-card">
           <RefreshCcw size={20} />
           <div>
             <strong>Atualizar saldos</strong>
