@@ -115,14 +115,20 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       access.role === "admin" || access.canAccessFitness ? getFitnessDashboardPendingSales(500) : Promise.resolve([]),
     ]);
     if (error) throw new Error(error.message);
-    const supplements: CompletionOrder[] = ((data ?? []) as PendingOrderRow[]).map((order) => ({ ...order, operation: "Suplementos" as const, details_href: `/company/concluir/${order.id}`, customer_key: order.customer_name.split(" - ")[0].trim().toLocaleLowerCase("pt-BR") }));
+    const fitnessCustomerIds = [...new Set(fitnessSales.map((sale) => sale.customer_id).filter((id): id is string => Boolean(id)))];
+    const fitnessCustomersResult = fitnessCustomerIds.length
+      ? await supabase.from("fitness_customers").select("id,core_customer_id").in("id", fitnessCustomerIds)
+      : { data: [], error: null };
+    if (fitnessCustomersResult.error) throw new Error(fitnessCustomersResult.error.message);
+    const coreByFitnessCustomer = new Map((fitnessCustomersResult.data ?? []).map((customer) => [customer.id, customer.core_customer_id]));
+    const supplements: CompletionOrder[] = ((data ?? []) as PendingOrderRow[]).map((order) => ({ ...order, operation: "Suplementos" as const, details_href: `/company/concluir/${order.id}`, customer_key: order.customer_id ?? `supplement:${order.id}` }));
     const fitness: CompletionOrder[] = fitnessSales.map((sale) => ({
       id: sale.id, customer_id: sale.customer_id, customer_name: sale.customer_name, location_id: "fitness", location_code: "FIT", location_name: "Candinho Fitness",
       business_at: sale.created_at, business_date: sale.quoted_on, order_at: sale.created_at, paid_at: sale.paid_on, delivered_at: sale.delivered_on, general_status: sale.general_status,
       payment_status: sale.payment_status, delivery_status: sale.delivery_status, payment_method: sale.payment_method, payment_condition: null, total_amount: sale.total_amount,
       total_profit: sale.total_profit, product_summary: sale.product_summary, total_items: sale.total_items, primary_product_id: null, primary_image_url: null,
       payment_due_at: sale.payment_due_on, price_condition: null, partner_id: null, partner_name: null, reservation_status: sale.reservation_status,
-      operation: "Fitness", details_href: `/company/concluir/fitness/${sale.id}`, customer_key: sale.customer_name.split(" - ")[0].trim().toLocaleLowerCase("pt-BR"),
+      operation: "Fitness", details_href: `/company/concluir/fitness/${sale.id}`, customer_key: (sale.customer_id && coreByFitnessCustomer.get(sale.customer_id)) || `fitness:${sale.customer_id ?? sale.id}`,
     }));
     const orders: CompletionOrder[] = [...supplements, ...fitness];
     const saleIds = orders.map((order) => order.id);
