@@ -1350,6 +1350,15 @@ body.company-custom-cursor-active .install-help-overlay button{cursor:pointer!im
 .company-quick-register-dialog .field{display:grid;gap:7px}.company-completion-open{padding:8px 10px;color:#dff5ff;font-size:11px;font-weight:750;border:1px solid rgba(72,185,255,.28);border-radius:9px;background:rgba(72,185,255,.08);cursor:pointer}.company-completion-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:16px;background:rgba(0,0,0,.76)}.company-completion-dialog{width:min(100%,760px);max-height:calc(100dvh - 32px);display:flex;flex-direction:column;overflow:hidden;border:1px solid rgba(121,174,218,.35);border-radius:20px;background:#0e151f;box-shadow:0 24px 70px #0009}.company-completion-dialog>header,.company-completion-dialog>footer{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px}.company-completion-dialog>header{border-bottom:1px solid #ffffff18}.company-completion-dialog>header small{color:#48b9ff}.company-completion-dialog>header h2{margin:4px 0}.company-completion-dialog>header p{margin:0;color:#9aabbc}.company-completion-dialog-body{overflow:auto;padding:18px 22px}.company-completion-dialog-body h3{font-size:13px;color:#bfeaff;margin:14px 0 8px}.company-completion-dialog>footer{border-top:1px solid #ffffff18}.company-completion-dialog>footer a{color:#bfeaff;font-size:12px}@media(max-width:600px){.company-completion-dialog>footer{flex-direction:column;align-items:stretch}.company-completion-dialog>footer .button{text-align:center}}
 .company-customer-purchase-row{position:relative;cursor:pointer}.company-customer-purchase-overlay{position:absolute;inset:0;z-index:1}.company-customer-product-link{position:relative;z-index:2;color:#dff5ff;text-decoration:underline;text-decoration-color:#48b9ff80;text-underline-offset:2px}.company-customer-purchase-row:hover{background:#48b9ff0b}.company-customer-purchase-row strong{white-space:normal}
 .company-quick-register-trigger{padding:0;border:0;background:none;font:inherit;cursor:pointer}
+.company-fitness-sale-detail .sale-items-list,.company-fitness-quote-detail .sale-items-list{gap:10px}
+.company-fitness-sale-detail .sale-item-card{min-width:0}
+.company-fitness-sale-detail .sale-item-copy,.company-fitness-quote-detail .company-fitness-quote-item>div{min-width:0}
+.company-fitness-quote-item{display:flex;justify-content:space-between;align-items:center;gap:20px;padding:15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.02)}
+.company-fitness-quote-item>div{display:grid;gap:5px}
+.company-fitness-quote-item>div:last-child{text-align:right;justify-items:end;flex-shrink:0}
+.company-fitness-quote-item strong{font-size:14px}
+.company-fitness-quote-item span,.company-fitness-quote-item small{color:var(--muted);font-size:11px}
+@media(max-width:620px){.company-fitness-quote-item{align-items:flex-start;gap:12px}.company-fitness-quote-item>div:last-child{max-width:42%}.company-fitness-quote-item strong{overflow-wrap:anywhere}}
 @media(max-width:700px){
   .company-completion-backdrop.company-grouped-receipt-backdrop{
     align-items:start;

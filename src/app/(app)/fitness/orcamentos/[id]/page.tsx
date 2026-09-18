@@ -1,8 +1,12 @@
 import Link from "next/link";
 import {
+  ArrowLeft,
+  CalendarDays,
+  CircleDollarSign,
   FileText,
   MessageSquareText,
   ShoppingBag,
+  UserRound,
   UsersRound,
 } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
@@ -72,6 +76,42 @@ export default async function Page<T extends {
   const rows = (
     itemsResult.data ?? []
   ) as QuoteItemRow[];
+
+  if (companyMode) {
+    return <>
+      <PageHeader
+        eyebrow="Company · Orçamentos · Fitness"
+        title={`Orçamento #${q.quote_number}`}
+        description={`${q.customer_name} · ${formatDateOnly(q.quoted_on)} · válido até ${formatDateOnly(q.valid_until)}`}
+        action={<div className="page-header-actions">
+          <Link className="button ghost" href="/company/orcamentos"><ArrowLeft size={16}/>Voltar aos orçamentos</Link>
+          <a className="button gold" href={`/api/fitness/orcamentos/${id}/pdf`} target="_blank" rel="noreferrer"><FileText size={16}/>Abrir PDF</a>
+        </div>}
+      />
+      <section className="sale-details-layout company-fitness-quote-detail">
+        <div className="sale-details-main">
+          <article className="panel">
+            <div className="panel-head"><div><h2>Peças da proposta</h2><p>{rows.length} {rows.length === 1 ? "variação" : "variações"} · a disponibilidade será conferida ao confirmar</p></div><strong className="sale-total-highlight">{formatCurrency(q.total_amount)}</strong></div>
+            <div className="panel-body sale-items-list">
+              {rows.map((item) => <div className="company-fitness-quote-item" key={item.id}>
+                <div><strong>{item.product_name}</strong><span>Tamanho {item.size} · {item.color}</span></div>
+                <div><span>{item.quantity} {item.quantity === 1 ? "peça" : "peças"}</span><strong>{formatCurrency(item.total_price)}</strong><small>{formatCurrency(item.unit_price)} por peça</small></div>
+              </div>)}
+            </div>
+          </article>
+          {access.canWriteFitness && q.status === "quoted" && <FitnessQuoteConvertForm id={id} companyMode/>}
+          {q.sale_id && <article className="panel"><div className="panel-head"><div><h2>Venda criada</h2><p>Continue o atendimento na venda já vinculada a este orçamento.</p></div></div><div className="panel-body"><Link className="button gold" href={`/company/concluir/fitness/${q.sale_id}`}>Abrir venda confirmada</Link></div></article>}
+        </div>
+        <aside className="sale-details-side">
+          <article className="panel"><div className="panel-head"><div><h2>Situação</h2><p>Etapa atual da proposta</p></div><ShoppingBag size={19}/></div><div className="panel-body sale-detail-list"><div className="sale-detail-line"><span>Status</span><strong>{statusLabel(q.status)}</strong></div><div className="sale-detail-line"><span>Validade</span><strong>{formatDateOnly(q.valid_until)}</strong></div></div></article>
+          <article className="panel"><div className="panel-head"><div><h2>Cliente</h2><p>Dados para continuar o atendimento</p></div><UserRound size={19}/></div><div className="panel-body sale-detail-list"><div className="sale-detail-line"><span>Nome</span><strong>{q.customer_name}</strong></div>{q.customer_phone && <div className="sale-detail-line"><span>Telefone</span><strong>{q.customer_phone}</strong></div>}{q.city && <div className="sale-detail-line"><span>Cidade</span><strong>{q.city}</strong></div>}</div></article>
+          <article className="panel"><div className="panel-head"><div><h2>Datas e responsável</h2></div><CalendarDays size={19}/></div><div className="panel-body sale-detail-list"><div className="sale-detail-line"><span>Orçamento</span><strong>{formatDateOnly(q.quoted_on)}</strong></div>{q.responsible && <div className="sale-detail-line"><span>Responsável</span><strong>{q.responsible}</strong></div>}<div className="sale-detail-line"><span>Quantidade</span><strong>{q.total_units} peça(s)</strong></div></div></article>
+          {q.notes && <article className="panel"><div className="panel-head"><div><h2>Observações</h2></div><MessageSquareText size={19}/></div><div className="panel-body"><p className="sale-notes">{q.notes}</p></div></article>}
+          <article className="panel sale-total-panel"><CircleDollarSign size={22}/><div><span>Total da proposta</span><strong>{formatCurrency(q.total_amount)}</strong></div></article>
+        </aside>
+      </section>
+    </>;
+  }
 
   return (
     <>
