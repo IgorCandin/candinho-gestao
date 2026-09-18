@@ -52,7 +52,7 @@ export function CompanyGroupedReceipt({ orders, onClose }: { orders: CompletionO
     } finally { setWorking(false); }
   }
 
-  return <div className="company-completion-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+  return <div className="company-completion-backdrop company-grouped-receipt-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
     <section className="company-completion-dialog company-grouped-receipt" role="dialog" aria-modal="true" aria-labelledby="grouped-receipt-title">
       <header><div><small>COMPANY · RECEBIMENTO CONJUNTO</small><h2 id="grouped-receipt-title">{orders[0]?.customer_name}</h2><p>Um pagamento, distribuído entre vendas do mesmo cliente.</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={onClose}>×</button></header>
       <form onSubmit={save} className="company-grouped-receipt-form">
