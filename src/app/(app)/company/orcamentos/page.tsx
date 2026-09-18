@@ -27,8 +27,8 @@ export default async function CompanyQuotesPage() {
     <header className="company-workspace-heading company-quotes-heading">
       <div><span>COMPANY · GESTÃO</span><h1>Histórico de orçamentos</h1><p>Todos os orçamentos de Suplementos e Fitness, com acesso para cancelar, reabrir ou consultar a venda.</p></div>
       <div className="company-quotes-actions">
-        {canSupplements ? <Link className="button company-quote-supplements" href="/company/orcamentos/novo/suplementos"><ShoppingBag size={16}/> Novo Suplementos</Link> : null}
-        {canFitness ? <Link className="button company-quote-fitness" href="/company/orcamentos/novo/fitness"><Shirt size={16}/> Novo Fitness</Link> : null}
+        {canSupplements ? <Link className="button company-quote-supplements" href="/company/vendas/nova/suplementos"><ShoppingBag size={16}/> Novo orçamento · Suplementos</Link> : null}
+        {canFitness ? <Link className="button company-quote-fitness" href="/company/vendas/nova/fitness"><Shirt size={16}/> Novo orçamento · Fitness</Link> : null}
       </div>
     </header>
 

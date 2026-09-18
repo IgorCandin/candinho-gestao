@@ -1,5 +1,6 @@
-import FitnessNewQuotePage from "../../../../fitness/orcamentos/novo/page";
+import { redirect } from "next/navigation";
 
-export default function CompanyFitnessNewQuotePage({ searchParams }: { searchParams: Promise<{ interest?: string }> }) {
-  return <FitnessNewQuotePage searchParams={searchParams} companyMode />;
+export default async function CompanyFitnessNewQuotePage({ searchParams }: { searchParams: Promise<{ interest?: string }> }) {
+  const { interest } = await searchParams;
+  redirect(interest ? `/company/vendas/nova/fitness?interest=${encodeURIComponent(interest)}` : "/company/vendas/nova/fitness");
 }

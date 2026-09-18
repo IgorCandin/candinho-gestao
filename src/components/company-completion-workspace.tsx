@@ -2,7 +2,7 @@
 "use client";
 
 import Link from "next/link";
-import { CircleDollarSign, Clock3, ImageIcon, PackageCheck, Search, Truck, X } from "lucide-react";
+import { CircleDollarSign, Clock3, ImageIcon, PackageCheck, Plus, Search, Truck, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { FitnessSaleActions } from "@/components/fitness-sale-actions";
 import { CompanyGroupedReceipt } from "@/components/company-grouped-receipt";
@@ -63,7 +63,7 @@ export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: Comp
   };
 
   return <div className="company-workspace-v2">
-    <header className="company-workspace-head"><div><span>COMPANY · OPERAÇÃO</span><h1>Concluir vendas</h1><p>Pagamento e entrega juntos, para nenhuma venda ficar pela metade.</p></div></header>
+    <header className="company-workspace-head"><div><span>COMPANY · OPERAÇÃO</span><h1>Concluir vendas</h1><p>Pagamento e entrega juntos, para nenhuma venda ficar pela metade.</p></div><Link className="button company-blue" href="/company/vendas/nova"><Plus size={16}/>Nova venda</Link></header>
     <section className="company-workspace-metrics">
       <article><CircleDollarSign/><span>A receber</span><strong>{formatCurrency(metrics.value)}</strong></article>
       <article><Clock3/><span>Pagamentos</span><strong>{metrics.receive}</strong></article>

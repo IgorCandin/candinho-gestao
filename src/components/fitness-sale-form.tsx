@@ -57,12 +57,16 @@ export function FitnessSaleForm({
   responsible,
   companyMode = false,
   waitingByVariant = {},
+  initialCustomerId,
+  initialNotes = "",
 }: {
   stock: FitnessStockRow[];
   customers: FitnessCustomerRow[];
   responsible: string;
   companyMode?: boolean;
   waitingByVariant?: Record<string, number>;
+  initialCustomerId?: string;
+  initialNotes?: string;
 }) {
   const router = useRouter();
 
@@ -89,18 +93,18 @@ export function FitnessSaleForm({
   }, [options]);
 
   const [customerId, setCustomerId] =
-    useState("");
+    useState(initialCustomerId ?? "");
   const selectedCustomer = customers.find(
     (customer) => customer.id === customerId,
   );
 
   const [customerName, setCustomerName] =
-    useState("");
-  const [phone, setPhone] = useState("");
+    useState(selectedCustomer?.name ?? "");
+  const [phone, setPhone] = useState(selectedCustomer?.phone ?? "");
   const [instagram, setInstagram] =
-    useState("");
-  const [city, setCity] = useState("");
-  const [source, setSource] = useState("");
+    useState(selectedCustomer?.instagram ?? "");
+  const [city, setCity] = useState(selectedCustomer?.city ?? "");
+  const [source, setSource] = useState(selectedCustomer?.source ?? "");
 
   const [quotedOn, setQuotedOn] =
     useState(today);
@@ -129,7 +133,7 @@ export function FitnessSaleForm({
   const [deliveredOn, setDeliveredOn] =
     useState(today);
 
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState(initialNotes);
   const [scanCode, setScanCode] = useState("");
   const [loading, setLoading] =
     useState(false);

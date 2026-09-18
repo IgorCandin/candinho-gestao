@@ -88,7 +88,7 @@ export default async function NewSalePage<T extends {
         title={
           initialQuote
             ? "Revisar Orçamento"
-            : "Novo Orçamento"
+            : "Nova venda ou orçamento"
         }
         description={
           initialQuote
