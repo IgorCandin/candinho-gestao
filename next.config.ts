@@ -231,14 +231,6 @@ const nextConfig: NextConfig = {
     return {
       beforeFiles: [
         {
-          source: "/company/estoque",
-          destination: "/estoque",
-        },
-        {
-          source: "/company/estoque/:path*",
-          destination: "/estoque/:path*",
-        },
-        {
           source: "/company/gestao/central/:path*",
           destination: "/central/:path*",
         },
@@ -277,6 +269,14 @@ const nextConfig: NextConfig = {
             "/central/marketing/:path*",
           destination:
             "/marketing/:path*",
+        },
+      ],
+      afterFiles: [
+        // Preserve legacy inventory details without overriding Company pages
+        // such as /company/estoque/despesa.
+        {
+          source: "/company/estoque/:path*",
+          destination: "/estoque/:path*",
         },
       ],
     };

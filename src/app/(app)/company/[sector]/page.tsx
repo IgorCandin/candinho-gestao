@@ -165,12 +165,12 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     }
     const fitnessIds = fitness.map((order) => order.id);
     if (fitnessIds.length) {
-      const fitnessItems = await supabase.from("fitness_sale_items").select("sale_id,quantity,variant:fitness_variants(product_id,product:fitness_products(name,image_url))").in("sale_id", fitnessIds);
+      const fitnessItems = await supabase.from("fitness_sale_items").select("sale_id,quantity,variant:fitness_variants(product_id,image_url,product:fitness_products(name,image_url))").in("sale_id", fitnessIds);
       if (fitnessItems.error) throw new Error(fitnessItems.error.message);
       for (const row of fitnessItems.data ?? []) {
         const variant = Array.isArray(row.variant) ? row.variant[0] : row.variant;
         const product = variant && (Array.isArray(variant.product) ? variant.product[0] : variant.product);
-        (itemMedia[row.sale_id] ??= []).push({ id: row.sale_id, productId: variant?.product_id ?? row.sale_id, name: product?.name ?? "Produto Fitness", imageUrl: product?.image_url ?? null, quantity: Number(row.quantity), deliveredQuantity: 0 });
+        (itemMedia[row.sale_id] ??= []).push({ id: row.sale_id, productId: variant?.product_id ?? row.sale_id, name: product?.name ?? "Produto Fitness", imageUrl: variant?.image_url || product?.image_url || null, quantity: Number(row.quantity), deliveredQuantity: 0 });
       }
     }
     return <CompanyCompletionWorkspace orders={orders} itemMedia={itemMedia} />;

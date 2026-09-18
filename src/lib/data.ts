@@ -2548,7 +2548,7 @@ export async function getFitnessSaleDetails(saleId: string): Promise<FitnessSale
   const supabase = await createClient();
   const [saleResult, itemsResult] = await Promise.all([
     supabase.from("fitness_sales_operational").select("*").eq("id",saleId).maybeSingle(),
-    supabase.from("fitness_sale_items").select("id,variant_id,quantity,unit_cost,unit_price,fitness_variants!inner(id,product_id,size,color,sku,fitness_products!inner(id,name,image_url)),fitness_stock_reservations(status,quantity_reserved)").eq("sale_id",saleId),
+    supabase.from("fitness_sale_items").select("id,variant_id,quantity,unit_cost,unit_price,fitness_variants!inner(id,product_id,size,color,sku,image_url,fitness_products!inner(id,name,image_url)),fitness_stock_reservations(status,quantity_reserved)").eq("sale_id",saleId),
   ]);
   if (saleResult.error) throw saleResult.error;
   if (itemsResult.error) throw itemsResult.error;
@@ -2558,7 +2558,7 @@ export async function getFitnessSaleDetails(saleId: string): Promise<FitnessSale
     const product = variant.fitness_products as Record<string, unknown>;
     const reservations = Array.isArray(row.fitness_stock_reservations) ? row.fitness_stock_reservations as Record<string, unknown>[] : [];
     const reservation = reservations[0];
-    return { id:String(row.id),variant_id:String(row.variant_id),product_id:String(variant.product_id),product_name:text(product.name),image_url:typeof product.image_url==="string"?product.image_url:null,size:text(variant.size),color:text(variant.color),sku:typeof variant.sku==="string"?variant.sku:null,quantity:number(row.quantity),unit_cost:number(row.unit_cost),unit_price:number(row.unit_price),reservation_status:reservation?text(reservation.status):null,quantity_reserved:reservation?number(reservation.quantity_reserved):0 };
+    return { id:String(row.id),variant_id:String(row.variant_id),product_id:String(variant.product_id),product_name:text(product.name),image_url:typeof variant.image_url==="string" && variant.image_url ? variant.image_url : typeof product.image_url==="string" ? product.image_url : null,size:text(variant.size),color:text(variant.color),sku:typeof variant.sku==="string"?variant.sku:null,quantity:number(row.quantity),unit_cost:number(row.unit_cost),unit_price:number(row.unit_price),reservation_status:reservation?text(reservation.status):null,quantity_reserved:reservation?number(reservation.quantity_reserved):0 };
   });
   return { ...normalizeFitnessSale(saleResult.data as Record<string, unknown>), items };
 }
