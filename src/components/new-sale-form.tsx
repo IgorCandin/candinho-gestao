@@ -71,17 +71,6 @@ type FlavorStock = {
   incoming: number;
 };
 
-function todayInSaoPaulo() {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(new Date());
-
-  return `${parts.find((part) => part.type === "year")?.value}-${parts.find((part) => part.type === "month")?.value}-${parts.find((part) => part.type === "day")?.value}`;
-}
-
 function addDays(date: string, amount: number) {
   const value = new Date(`${date}T12:00:00`);
   value.setDate(value.getDate() + amount);
@@ -115,6 +104,7 @@ export function NewSaleForm({
   initialQuote = null,
   initialCustomerId,
   initialProductId,
+  today,
   companyMode = false,
 }: {
   customers: CustomerOption[];
@@ -126,10 +116,10 @@ export function NewSaleForm({
   initialQuote?: QuoteDraft | null;
   initialCustomerId?: string;
   initialProductId?: string;
+  today: string;
   companyMode?: boolean;
 }) {
   const router = useRouter();
-  const today = todayInSaoPaulo();
 
   const defaultLocation =
     initialQuote?.location_id ??

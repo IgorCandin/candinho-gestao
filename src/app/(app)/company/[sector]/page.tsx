@@ -115,7 +115,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       access.role === "admin" || access.canAccessFitness ? getFitnessDashboardPendingSales(500) : Promise.resolve([]),
     ]);
     if (error) throw new Error(error.message);
-    const supplements = ((data ?? []) as PendingOrderRow[]).map((order) => ({ ...order, operation: "Suplementos" as const, details_href: `/company/concluir/${order.id}`, customer_key: order.customer_name.split(" - ")[0].trim().toLocaleLowerCase("pt-BR") }));
+    const supplements: CompletionOrder[] = ((data ?? []) as PendingOrderRow[]).map((order) => ({ ...order, operation: "Suplementos" as const, details_href: `/company/concluir/${order.id}`, customer_key: order.customer_name.split(" - ")[0].trim().toLocaleLowerCase("pt-BR") }));
     const fitness: CompletionOrder[] = fitnessSales.map((sale) => ({
       id: sale.id, customer_id: sale.customer_id, customer_name: sale.customer_name, location_id: "fitness", location_code: "FIT", location_name: "Candinho Fitness",
       business_at: sale.created_at, business_date: sale.quoted_on, order_at: sale.created_at, paid_at: sale.paid_on, delivered_at: sale.delivered_on, general_status: sale.general_status,
@@ -126,6 +126,28 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     }));
     const orders: CompletionOrder[] = [...supplements, ...fitness];
     const saleIds = orders.map((order) => order.id);
+    const supplementIds = supplements.map((order) => order.id);
+    if (supplementIds.length) {
+      const [reservationsResult, incomingResult] = await Promise.all([
+        supabase.from("stock_reservations").select("sale_id,product_id,location_id,quantity_requested,quantity_reserved").in("sale_id", supplementIds).in("status", ["awaiting_stock", "partial"]),
+        supabase.from("purchase_order_items").select("product_id,quantity_ordered,quantity_received,order:purchase_orders!inner(id,status,destination_location_id)").in("order.status", ["pending", "partial"]),
+      ]);
+      if (reservationsResult.error) throw new Error(reservationsResult.error.message);
+      if (incomingResult.error) throw new Error(incomingResult.error.message);
+      const arriving = new Map<string, string>();
+      for (const item of incomingResult.data ?? []) {
+        const order = Array.isArray(item.order) ? item.order[0] : item.order;
+        if (!order || Number(item.quantity_ordered) <= Number(item.quantity_received)) continue;
+        arriving.set(`${item.product_id}:${order.destination_location_id}`, String(order.id));
+      }
+      const orderBySale = new Map<string, string>();
+      for (const reservation of reservationsResult.data ?? []) {
+        if (Number(reservation.quantity_requested) <= Number(reservation.quantity_reserved)) continue;
+        const orderId = arriving.get(`${reservation.product_id}:${reservation.location_id}`);
+        if (orderId) orderBySale.set(String(reservation.sale_id), orderId);
+      }
+      for (const order of supplements) order.incoming_order_id = orderBySale.get(order.id) ?? null;
+    }
     const itemsResult = saleIds.length
       ? await supabase.from("sale_items").select("id,sale_id,product_id,quantity,delivered_quantity,product:products(name,image_url)").in("sale_id", saleIds)
       : { data: [], error: null };

@@ -37,11 +37,13 @@ export function FitnessCustomerPicker({
   selectedId,
   onSelect,
   onNew,
+  allowNew = true,
 }: {
   customers: FitnessCustomerPick[];
   selectedId: string;
   onSelect: (id: string) => void;
   onNew: () => void;
+  allowNew?: boolean;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const selected =
@@ -69,12 +71,6 @@ export function FitnessCustomerPicker({
     return () =>
       document.removeEventListener("mousedown", close);
   }, []);
-
-  useEffect(() => {
-    if (selected) {
-      setQuery(selected.name);
-    }
-  }, [selected?.id]);
 
   const filtered = useMemo(() => {
     const needle = normalize(query.trim());
@@ -209,7 +205,7 @@ export function FitnessCustomerPicker({
             </div>
           )}
 
-          <button
+          {allowNew && <button
             className="fitness-customer-new-v4515"
             type="button"
             onClick={() => {
@@ -225,7 +221,7 @@ export function FitnessCustomerPicker({
                 Preencher os dados nesta venda
               </small>
             </span>
-          </button>
+          </button>}
         </div>
       )}
     </div>

@@ -30,6 +30,7 @@ const PAYMENT_METHODS = [
 
 type DraftItem = {
   key: string;
+  productId: string;
   variantId: string;
   quantity: string;
   unitPrice: string;
@@ -52,11 +53,13 @@ export function FitnessSaleForm({
   customers,
   responsible,
   companyMode = false,
+  waitingByVariant = {},
 }: {
   stock: FitnessStockRow[];
   customers: FitnessCustomerRow[];
   responsible: string;
   companyMode?: boolean;
+  waitingByVariant?: Record<string, number>;
 }) {
   const router = useRouter();
 
@@ -76,6 +79,11 @@ export function FitnessSaleForm({
         ),
     [stock],
   );
+  const productOptions = useMemo(() => {
+    const unique = new Map<string, string>();
+    options.forEach((row) => unique.set(row.product_id, row.product_name));
+    return [...unique].sort((a, b) => a[1].localeCompare(b[1], "pt-BR"));
+  }, [options]);
 
   const [customerId, setCustomerId] =
     useState("");
@@ -97,7 +105,8 @@ export function FitnessSaleForm({
     DraftItem[]
   >([
     {
-      key: key(),
+      key: "initial-fitness-item",
+      productId: "",
       variantId: "",
       quantity: "1",
       unitPrice: "",
@@ -148,6 +157,7 @@ export function FitnessSaleForm({
     const row = rowFor(variantId);
 
     update(itemKey, {
+      productId: row?.product_id ?? "",
       variantId,
       unitPrice: row
         ? String(row.sale_price)
@@ -206,10 +216,14 @@ export function FitnessSaleForm({
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+    const asQuote = (event.nativeEvent as SubmitEvent).submitter?.getAttribute("value") === "quote";
     setLoading(true);
     setMessage(null);
 
     try {
+      if (companyMode && !selectedCustomer) {
+        throw new Error("Selecione um cliente cadastrado na busca.");
+      }
       if (!customerName.trim()) {
         throw new Error(
           "Informe o cliente.",
@@ -229,10 +243,9 @@ export function FitnessSaleForm({
         );
       }
 
-      const { data, error } =
-        await createClient().rpc(
-          "create_fitness_sale_v2",
-          {
+      const quoteUntil = new Date(`${quotedOn}T12:00:00`);
+      quoteUntil.setDate(quoteUntil.getDate() + 7);
+      const customerArgs = {
             p_customer_id:
               customerId || null,
             p_customer_name:
@@ -254,6 +267,18 @@ export function FitnessSaleForm({
                 item.unitPrice,
               ),
             })),
+      };
+      const { data, error } = asQuote
+        ? await createClient().rpc("save_fitness_quote", {
+            ...customerArgs,
+            p_quote_id: null,
+            p_valid_until: quoteUntil.toISOString().slice(0, 10),
+            p_discount_amount: 0,
+            p_responsible: responsible,
+            p_notes: notes.trim() || null,
+          })
+        : await createClient().rpc("create_fitness_sale_v2", {
+            ...customerArgs,
             p_payment_mode: paymentMode,
             p_paid_on:
               paymentMode === "paid"
@@ -275,12 +300,13 @@ export function FitnessSaleForm({
             p_responsible: responsible,
             p_notes:
               notes.trim() || null,
-          },
-        );
+          });
 
       if (error) throw error;
 
-      router.push(companyMode ? `/company/concluir/fitness/${String(data)}` : `/fitness/vendas/${String(data)}`);
+      router.push(asQuote
+        ? (companyMode ? `/company/orcamentos/fitness/${String(data)}` : `/fitness/orcamentos/${String(data)}`)
+        : (companyMode ? `/company/concluir/fitness/${String(data)}` : `/fitness/vendas/${String(data)}`));
       router.refresh();
     } catch (error) {
       setMessage(
@@ -319,9 +345,17 @@ export function FitnessSaleForm({
                 selectedId={customerId}
                 onSelect={chooseCustomer}
                 onNew={startNewCustomer}
+                allowNew={!companyMode}
               />
             </div>
 
+            {companyMode ? (
+              <div className="field field-span-two" role="status">
+                {selectedCustomer
+                  ? <small>Selecionado: <strong>{selectedCustomer.name}</strong>{selectedCustomer.city ? ` · ${selectedCustomer.city}` : ""}{selectedCustomer.phone ? ` · ${selectedCustomer.phone}` : ""}</small>
+                  : <small>Escolha um cliente da lista. Para cadastrar alguém novo, use Company → Clientes.</small>}
+              </div>
+            ) : <>
             <label className="field">
               <span>Nome</span>
               <input
@@ -406,6 +440,7 @@ export function FitnessSaleForm({
                 ))}
               </select>
             </label>
+            </>}
 
             <label className="field">
               <span>Data da venda</span>
@@ -441,6 +476,7 @@ export function FitnessSaleForm({
                   ...current,
                   {
                     key: key(),
+                    productId: "",
                     variantId: "",
                     quantity: "1",
                     unitPrice: "",
@@ -449,7 +485,7 @@ export function FitnessSaleForm({
               }
             >
               <Plus size={16} />
-              Adicionar
+              Adicionar produto
             </button>
           </div>
 
@@ -497,11 +533,19 @@ export function FitnessSaleForm({
                     )}
                   </div>
 
-                  <div className="sale-form-item-grid">
-                    <label className="field sale-product-field">
+                  <div className={`sale-form-item-grid${companyMode ? " fitness-company-item-grid" : ""}`}>
+                    {companyMode && <label className="field sale-product-field">
                       <span>Produto</span>
+                      <select className="select" required value={item.productId} onChange={(event) => update(item.key, { productId: event.target.value, variantId: "", unitPrice: "" })}>
+                        <option value="">Escolha o modelo</option>
+                        {productOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+                      </select>
+                    </label>}
+                    <label className="field sale-product-field">
+                      <span>{companyMode ? "Tamanho e cor" : "Produto"}</span>
                       <select
                         className="select"
+                        required
                         value={item.variantId}
                         onChange={(event) =>
                           selectItem(
@@ -511,10 +555,10 @@ export function FitnessSaleForm({
                         }
                       >
                         <option value="">
-                          Selecione
+                          {companyMode ? "Escolha a variação" : "Selecione"}
                         </option>
 
-                        {options.map(
+                        {options.filter((option) => !companyMode || option.product_id === item.productId).map(
                           (option) => (
                             <option
                               key={
@@ -524,15 +568,12 @@ export function FitnessSaleForm({
                                 option.variant_id
                               }
                             >
-                              {
-                                option.product_name
-                              }{" "}
-                              · {option.size} ·{" "}
-                              {option.color}
+                              {companyMode ? `${option.size} · ${option.color}` : `${option.product_name} · ${option.size} · ${option.color}`}
                               {option.available_quantity >
                               0
                                 ? ` · disp. ${option.available_quantity}`
                                 : ""}
+                              {option.incoming_quantity > 0 ? ` · chegada livre ${Math.max(option.incoming_quantity - (waitingByVariant[option.variant_id] ?? 0), 0)}/${option.incoming_quantity}` : ""}
                               {option.internal_code ? ` · cód. ${option.internal_code}` : ""}
                             </option>
                           ),
@@ -601,6 +642,7 @@ export function FitnessSaleForm({
                           }
                         </strong>
                       </span>
+                      {row.incoming_quantity > 0 && <><span>Clientes anteriores aguardando <strong>{waitingByVariant[row.variant_id] ?? 0}</strong></span><span className={Math.max(row.incoming_quantity - (waitingByVariant[row.variant_id] ?? 0), 0) < Number(item.quantity) ? "warning-text" : ""}>Livre na chegada <strong>{Math.max(row.incoming_quantity - (waitingByVariant[row.variant_id] ?? 0), 0)}</strong></span></>}
                       <span>
                         Padrão{" "}
                         <strong>
@@ -614,6 +656,7 @@ export function FitnessSaleForm({
                 </div>
               );
             })}
+            {companyMode && <button type="button" className="button ghost" onClick={() => setItems((current) => [...current, { key: key(), productId: "", variantId: "", quantity: "1", unitPrice: "" }])}><Plus size={16} />Adicionar outro produto</button>}
           </div>
         </article>
 
@@ -793,6 +836,8 @@ export function FitnessSaleForm({
             <button
               className="button gold product-save-button"
               disabled={loading}
+              name="saveMode"
+              value="sale"
             >
               {loading ? (
                 <LoaderCircle
@@ -804,6 +849,7 @@ export function FitnessSaleForm({
               )}
               Salvar venda
             </button>
+            {companyMode && <button type="submit" className="button ghost product-save-button" disabled={loading} name="saveMode" value="quote">Salvar orçamento (sem pagamento nem entrega)</button>}
           </div>
         </article>
       </aside>

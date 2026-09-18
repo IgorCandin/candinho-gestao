@@ -6,6 +6,7 @@ import {
   getFitnessStock,
 } from "@/lib/data";
 import { getFitnessCompanyCustomerDirectory } from "@/lib/fitness-customer-directory-data";
+import { createClient } from "@/lib/supabase/server";
 import {
   applyFitnessStockPromotions,
   getActivePromotionRows,
@@ -19,11 +20,19 @@ export default async function Page<T extends object>(props: T) {
     redirect(companyMode ? "/company/vender" : "/fitness");
   }
 
-  const [baseStock, customers, promotionRows] = await Promise.all([
+  const supabase = await createClient();
+  const [baseStock, customers, promotionRows, waitingResult] = await Promise.all([
     getFitnessStock(),
     getFitnessCompanyCustomerDirectory(),
     getActivePromotionRows(),
+    supabase.from("fitness_stock_reservations").select("variant_id,quantity_requested,quantity_reserved").in("status", ["awaiting_stock", "partial"]),
   ]);
+  if (waitingResult.error) throw new Error(waitingResult.error.message);
+  const waitingByVariant: Record<string, number> = {};
+  for (const row of waitingResult.data ?? []) {
+    const id = String(row.variant_id);
+    waitingByVariant[id] = (waitingByVariant[id] ?? 0) + Math.max(Number(row.quantity_requested) - Number(row.quantity_reserved), 0);
+  }
 
   const stock = applyFitnessStockPromotions(
     baseStock,
@@ -43,6 +52,7 @@ export default async function Page<T extends object>(props: T) {
         customers={customers}
         responsible={access.name}
         companyMode={companyMode}
+        waitingByVariant={waitingByVariant}
       />
     </>
   );

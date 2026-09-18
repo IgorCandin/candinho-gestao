@@ -11,12 +11,12 @@ import { SaleStatusActions } from "@/components/sale-status-actions";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import type { PendingOrderRow } from "@/lib/types";
 
-export type CompletionOrder = PendingOrderRow & { outstanding_amount?: number | null; payment_state?: string | null; next_payment_due_at?: string | null; operation?: "Suplementos" | "Fitness"; details_href?: string; customer_key?: string };
-type Filter = "all" | "both" | "receive" | "deliver" | "late";
+export type CompletionOrder = PendingOrderRow & { outstanding_amount?: number | null; payment_state?: string | null; next_payment_due_at?: string | null; operation?: "Suplementos" | "Fitness"; details_href?: string; customer_key?: string; incoming_order_id?: string | null };
+type Filter = "all" | "receive" | "deliver" | "late";
 
 const FILTERS: Array<{ id: Filter; label: string }> = [
-  { id: "all", label: "Todas" }, { id: "both", label: "Receber e entregar" },
-  { id: "receive", label: "Só receber" }, { id: "deliver", label: "Só entregar" }, { id: "late", label: "Vencidas" },
+  { id: "all", label: "Todas" }, { id: "receive", label: "Receber" },
+  { id: "deliver", label: "Entregar" }, { id: "late", label: "Vencidas" },
 ];
 
 function amount(order: CompletionOrder) { return Number(order.outstanding_amount ?? (["paid", "received"].includes(order.payment_status) ? 0 : order.total_amount)); }
@@ -41,7 +41,7 @@ export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: Comp
     const receive = amount(order) > .005;
     const deliver = needsDelivery(order);
     const due = order.next_payment_due_at ?? order.payment_due_at;
-    const matchesFilter = filter === "all" || (filter === "both" && receive && deliver) || (filter === "receive" && receive && !deliver) || (filter === "deliver" && deliver && !receive) || (filter === "late" && receive && !!due && due.slice(0, 10) < today);
+    const matchesFilter = filter === "all" || (filter === "receive" && receive) || (filter === "deliver" && deliver) || (filter === "late" && receive && !!due && due.slice(0, 10) < today);
     const needle = query.trim().toLocaleLowerCase("pt-BR");
       return matchesFilter && (!needle || `${order.customer_name} ${order.product_summary ?? ""} ${order.location_name}`.toLocaleLowerCase("pt-BR").includes(needle));
     });
@@ -73,8 +73,8 @@ export function CompanyCompletionWorkspace({ orders, itemMedia }: { orders: Comp
         const receive = amount(order) > .005; const deliver = needsDelivery(order); const due = order.next_payment_due_at ?? order.payment_due_at;
         return <article className="company-completion-card" key={`${order.operation ?? "Suplementos"}-${order.id}`}>
           <div className="company-completion-products">{(itemMedia[order.id] ?? []).slice(0, 5).map((item) => <span key={item.productId} title={`${item.name} ×${item.quantity}`}>{item.imageUrl ? <img src={item.imageUrl} alt={item.name}/> : <ImageIcon/>}{item.quantity > 1 && <b>{item.quantity}×</b>}</span>)}</div>
-          <div className="company-completion-body"><div className="company-completion-flags">{receive && <span className="receive">Receber</span>}{deliver && <span className="deliver">Entregar</span>}<span>{order.operation ?? "Suplementos"}</span></div><h2>{order.customer_name}</h2><p>{order.product_summary ?? "Venda sem resumo de produtos"}</p><small>{order.location_name} · {formatDateOnly(order.business_date)}</small>{due && receive && <small>Vencimento: {formatDateOnly(due)}</small>}</div>
-          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong><button className="company-completion-open" type="button" onClick={() => setSelected(order)}>Concluir venda →</button>{order.operation !== "Fitness" && order.customer_id && (payableByCustomer.get(order.customer_id)?.length ?? 0) > 1 && <button className="company-completion-group-open" type="button" onClick={() => setGroupCustomerId(order.customer_id)}>Pagar vendas juntas</button>}</div>
+          <div className="company-completion-body"><div className="company-completion-flags">{receive && <span className="receive">Receber</span>}{deliver && <span className="deliver">Entregar</span>}<span>{order.operation ?? "Suplementos"}</span></div><h2>{order.customer_name}</h2><p>{order.product_summary ?? "Venda sem resumo de produtos"}</p><small>{order.location_name} · {formatDateOnly(order.business_date)}</small>{due && receive && <small>Vencimento: {formatDateOnly(due)}</small>}{order.incoming_order_id && <strong className="warning-text">Mercadoria a caminho · esta venda aguarda entrada no estoque</strong>}</div>
+          <div className="company-completion-value"><span>Pendente</span><strong>{formatCurrency(amount(order))}</strong>{order.incoming_order_id && <Link className="company-completion-open" href={`/company/compras/suplementos/${order.incoming_order_id}`}>Receber mercadoria →</Link>}<button className="company-completion-open" type="button" onClick={() => setSelected(order)}>{order.incoming_order_id ? "Atualizar pagamento/entrega →" : "Concluir venda →"}</button>{order.operation !== "Fitness" && order.customer_id && (payableByCustomer.get(order.customer_id)?.length ?? 0) > 1 && <button className="company-completion-group-open" type="button" onClick={() => setGroupCustomerId(order.customer_id)}>Pagar vendas juntas</button>}</div>
         </article>;
       })}</div>
       {visible.length === 0 && <div className="company-empty-state"><PackageCheck/><strong>Nenhuma pendência aqui.</strong><span>Troque o filtro ou faça outra busca.</span></div>}

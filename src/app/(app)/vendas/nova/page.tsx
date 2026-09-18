@@ -74,6 +74,10 @@ export default async function NewSalePage<T extends {
       },
     ]),
   );
+  const dateParts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date());
+  const today = `${dateParts.find((part) => part.type === "year")?.value}-${dateParts.find((part) => part.type === "month")?.value}-${dateParts.find((part) => part.type === "day")?.value}`;
 
   return (
     <>
@@ -112,6 +116,7 @@ export default async function NewSalePage<T extends {
         initialQuote={initialQuote}
         initialCustomerId={!initialQuote && customers.some((item) => item.id === params.cliente) ? params.cliente : undefined}
         initialProductId={!initialQuote && stock.some((item) => item.product_id === params.produto) ? params.produto : undefined}
+        today={today}
         companyMode={companyMode}
       />
     </>
