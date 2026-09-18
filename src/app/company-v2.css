@@ -1258,6 +1258,13 @@ body.company-custom-cursor-active .install-help-overlay button{cursor:pointer!im
   }
 }
 
+.company-shell-v2 .new-sale-layout .fitness-customer-combobox-v4515 .customer-combobox-menu{
+  position:static;
+  max-height:min(320px,45dvh);
+  margin-top:7px;
+  box-shadow:none;
+}
+
 @media(max-width:430px){
   .operation-mobile-bottom-nav.bank,
   .operation-mobile-bottom-nav.company{
