@@ -661,6 +661,9 @@ export type PartnerOverview = {
   current_cycle_revenue: number;
   current_cycle_profit: number;
   reward_units_due: number;
+  reward_sales_covered: number;
+  next_reward_at_sales: number | null;
+  sales_to_next_reward: number | null;
   progress_sales: number;
   progress_pct: number;
   estimated_reward_amount: number;

@@ -2193,6 +2193,15 @@ function normalizePartnerOverview(row: Record<string, unknown>): PartnerOverview
     current_cycle_revenue: number(row.current_cycle_revenue),
     current_cycle_profit: number(row.current_cycle_profit),
     reward_units_due: number(row.reward_units_due),
+    reward_sales_covered: number(row.reward_sales_covered),
+    next_reward_at_sales:
+      row.next_reward_at_sales === null || row.next_reward_at_sales === undefined
+        ? null
+        : number(row.next_reward_at_sales),
+    sales_to_next_reward:
+      row.sales_to_next_reward === null || row.sales_to_next_reward === undefined
+        ? null
+        : number(row.sales_to_next_reward),
     progress_sales: number(row.progress_sales),
     progress_pct: number(row.progress_pct),
     estimated_reward_amount: number(row.estimated_reward_amount),
