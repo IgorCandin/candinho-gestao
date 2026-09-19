@@ -15,11 +15,11 @@ export function CompanyStockHub({ fitness, categoryRows, canUpdateCategories, in
     return !needle ? fitness : fitness.filter((item) => `${item.name} ${item.size} ${item.color}`.toLocaleLowerCase("pt-BR").includes(needle));
   }, [fitness, query]);
   const cards = operation === "supplements" ? [
-    ["Estoque", "Produtos, saldos, locais, sabores e histórico dentro da Company.", "/company/produtos?operacao=Suplementos", PackageSearch],
+    ["Estoque", "Área completa: saldos, locais, reservas, sabores, lotes e histórico.", "/company/estoque/suplementos", PackageSearch],
     ["Categorias com Nexus", "Revise o giro e atualize a curva A/B/C/Z.", "#categorias-nexus", Sparkles],
     ["Contagem física", "Confirme o que existe de verdade em cada local.", "/estoque/reconciliacao/contagem", ClipboardCheck],
     ["Transferir", "Leve um ou vários produtos entre locais.", "/company/produtos/transferencias?operacao=supplements", ArrowRightLeft],
-    ["Correção", "Abra o produto na Company e ajuste o saldo com histórico.", "/company/produtos?operacao=Suplementos", Settings2],
+    ["Correção", "Ajuste o saldo com motivo e mantenha o histórico.", "/company/estoque/suplementos", Settings2],
     ["Reconciliação", "Revise divergências sem apagar auditoria.", "/estoque/reconciliacao", RefreshCcw],
     ["Despesa / baixa", "Amostra, avaria, uso interno ou ação comercial.", "/company/estoque/despesa?operacao=supplements", PackageMinus],
   ] as const : [
