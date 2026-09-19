@@ -30,9 +30,11 @@ export type CompanyReplenishmentGroup = {
 export function CompanyReplenishmentGroups({
   groups,
   products,
+  leanMode = false,
 }: {
   groups: CompanyReplenishmentGroup[];
   products: CompanyReplenishmentProduct[];
+  leanMode?: boolean;
 }) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
@@ -50,15 +52,15 @@ export function CompanyReplenishmentGroups({
     const current = members.reduce((sum, product) => sum + product.quantity, 0);
     const incoming = members.reduce((sum, product) => sum + product.incoming, 0);
     const projected = current + incoming;
-    const shortage = Math.max(group.ideal_stock - projected, 0);
-    const status: "buy" | "covered" = projected <= group.minimum_stock && shortage > 0
-      ? "buy"
-      : "covered";
+    const essential = members.some((product) => product.salesCategory === "A" && !product.restricted);
+    const target = leanMode ? (essential ? Math.max(group.minimum_stock, 1) : 0) : group.ideal_stock;
+    const shortage = Math.max(target - projected, 0);
+    const status: "buy" | "covered" = shortage > 0 ? "buy" : "covered";
     return { group, members, current, incoming, projected, shortage, status };
   }).sort((left, right) => {
     const rank = { buy: 0, covered: 1 };
     return rank[left.status] - rank[right.status] || left.group.name.localeCompare(right.group.name, "pt-BR");
-  }), [groups, products]);
+  }), [groups, leanMode, products]);
   const groupsToBuy = groupSnapshots.filter((snapshot) => snapshot.status === "buy");
   const groupsCovered = groupSnapshots.filter((snapshot) => snapshot.status === "covered");
 
@@ -154,7 +156,7 @@ export function CompanyReplenishmentGroups({
         <div>
           <span>Regra inteligente</span>
           <h2>Grupos de reposição</h2>
-          <p>Some produtos equivalentes e compre apenas a marca preferida quando o grupo realmente estiver baixo.</p>
+          <p>{leanMode ? "Caixa enxuto: apenas grupos com produto A abaixo do mínimo entram em Comprar agora." : "Some produtos equivalentes e compre apenas a marca preferida quando o grupo realmente estiver baixo."}</p>
         </div>
         <button className="button gold" type="button" onClick={() => { if (creating) resetForm(); else setCreating(true); }}>
           <Plus size={16} /> Novo grupo

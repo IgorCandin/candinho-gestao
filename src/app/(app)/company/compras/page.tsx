@@ -125,7 +125,7 @@ export default async function CompanyPurchasesPage() {
   return (
     <div className="company-v2-page">
       <header className="company-v2-page-head"><div><span>Company · Comprar e repor</span><h1>Comprar somente o que faz falta</h1><p>Produtos equivalentes trabalham juntos. Pedidos cancelados deixam de contar como mercadoria a caminho.</p></div><div className="page-header-actions"><form action={setInventoryPolicyMode}><input type="hidden" name="mode" value={leanMode ? "standard" : "lean"}/><button className={leanMode ? "button company-blue" : "button ghost"} type="submit">{leanMode ? "Caixa enxuto ativo" : "Estoque padrão ativo"}</button></form><Link className="button company-blue" href="/company/compras/novo"><Plus size={16} />Novo pedido</Link></div></header>
-      <CompanyReplenishmentGroups groups={groups} products={products} />
+      <CompanyReplenishmentGroups groups={groups} products={products} leanMode={leanMode} />
       <CompanyPurchaseSuggestions suggestions={suggestions} leanMode={leanMode} />
       <section className="company-orders-section">
         <div className="company-section-heading"><div><span>Acompanhamento</span><h2>Pedidos em aberto</h2><p>{orders.pendingUnits} unidades a caminho em {orders.pendingCount} pedidos.</p></div></div>
