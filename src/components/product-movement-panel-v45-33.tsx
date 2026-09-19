@@ -105,6 +105,7 @@ export function ProductMovementPanelV4533({
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [cancelOutflowId, setCancelOutflowId] = useState<string | null>(null);
+  const [cancelAdjustmentId, setCancelAdjustmentId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
 
@@ -258,6 +259,43 @@ export function ProductMovementPanelV4533({
     }
   }
 
+  async function cancelAdjustment() {
+    if (!cancelAdjustmentId || !cancelReason.trim()) return;
+
+    setCancelling(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/inventory-adjustments/reverse", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          movement_id: cancelAdjustmentId,
+          reason: cancelReason.trim(),
+        }),
+      });
+      const raw = await response.text();
+      const payload = raw ? (JSON.parse(raw) as { error?: string }) : {};
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Não foi possível estornar o acerto.");
+      }
+
+      setCancelAdjustmentId(null);
+      setCancelReason("");
+      setMessage("Acerto estornado. O movimento original foi preservado no histórico.");
+      await load();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível estornar o acerto.",
+      );
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   const entries = rows
     .filter((row) => row.quantity_delta > 0)
     .reduce((sum, row) => sum + row.quantity_delta, 0);
@@ -265,6 +303,13 @@ export function ProductMovementPanelV4533({
   const exits = rows
     .filter((row) => row.quantity_delta < 0)
     .reduce((sum, row) => sum + Math.abs(row.quantity_delta), 0);
+
+  const reversedAdjustmentIds = new Set(
+    rows.flatMap((row) => {
+      const match = row.notes?.match(/^Estorno do acerto ([0-9a-f-]{36}):/i);
+      return match?.[1] ? [match[1]] : [];
+    }),
+  );
 
   const content = (
     <article className="panel product-movement-panel-v4533" id="historico-produto">
@@ -426,6 +471,24 @@ export function ProductMovementPanelV4533({
                           <Undo2 size={14} />
                           Estornar
                         </button>
+                      ) : row.movement_type === "adjustment" &&
+                          !row.outflow_id &&
+                          !row.historical_correction &&
+                          !row.notes?.startsWith("Estorno do acerto ") &&
+                          !reversedAdjustmentIds.has(row.movement_id) ? (
+                        <button
+                          className="button ghost compact-button danger-text"
+                          type="button"
+                          onClick={() => {
+                            setCancelAdjustmentId(row.movement_id);
+                            setCancelReason("");
+                          }}
+                        >
+                          <Undo2 size={14} />
+                          Estornar acerto
+                        </button>
+                      ) : reversedAdjustmentIds.has(row.movement_id) ? (
+                        <small className="crm-cell-note">Estornado</small>
                       ) : null}
                     </td>
                   </tr>
@@ -462,6 +525,39 @@ export function ProductMovementPanelV4533({
             <div className="modal-actions">
               <button className="button ghost" type="button" onClick={() => setCancelOutflowId(null)} disabled={cancelling}>Voltar</button>
               <button className="button danger" type="button" onClick={() => void cancelOutflow()} disabled={cancelling || !cancelReason.trim()}>
+                {cancelling ? <LoaderCircle className="spin" size={15} /> : <Undo2 size={15} />}
+                {cancelling ? "Estornando" : "Confirmar estorno"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {cancelAdjustmentId && (
+        <div className="product-movement-reversal-v4533" role="dialog" aria-modal="true">
+          <div className="product-movement-reversal-card-v4533">
+            <div className="sale-action-form-head">
+              <div>
+                <strong>Estornar este acerto de estoque?</strong>
+                <span>Será criado um movimento contrário. O acerto original continuará visível para auditoria.</span>
+              </div>
+              <button className="icon-button" type="button" onClick={() => setCancelAdjustmentId(null)} disabled={cancelling}>
+                <X size={17} />
+              </button>
+            </div>
+            <label className="field">
+              <span>Motivo do estorno</span>
+              <textarea
+                className="textarea"
+                rows={3}
+                required
+                value={cancelReason}
+                onChange={(event) => setCancelReason(event.target.value)}
+                placeholder="Ex.: acerto lançado no produto errado"
+              />
+            </label>
+            <div className="modal-actions">
+              <button className="button ghost" type="button" onClick={() => setCancelAdjustmentId(null)} disabled={cancelling}>Voltar</button>
+              <button className="button danger" type="button" onClick={() => void cancelAdjustment()} disabled={cancelling || !cancelReason.trim()}>
                 {cancelling ? <LoaderCircle className="spin" size={15} /> : <Undo2 size={15} />}
                 {cancelling ? "Estornando" : "Confirmar estorno"}
               </button>
