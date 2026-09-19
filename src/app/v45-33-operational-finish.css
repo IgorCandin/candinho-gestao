@@ -3,7 +3,36 @@
    ========================================================= */
 
 .product-movement-panel-v4533 {
+  scroll-margin-top: 120px;
   margin-top: 18px;
+}
+
+.product-movement-reversal-v4533 {
+  position: fixed;
+  inset: 0;
+  z-index: 10020;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(2 8 16 / 76%);
+  backdrop-filter: blur(8px);
+}
+
+.product-movement-reversal-card-v4533 {
+  width: min(560px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--panel);
+  box-shadow: 0 24px 80px rgb(0 0 0 / 42%);
+}
+
+.product-movement-reversal-card-v4533 .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .product-movement-panel-v4533 .panel-head h2 {

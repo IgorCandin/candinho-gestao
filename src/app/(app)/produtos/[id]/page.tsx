@@ -7,6 +7,7 @@ import {
   CircleDollarSign,
   ClipboardList,
   Edit3,
+  History,
   PackageCheck,
   PackagePlus,
   ShoppingBag,
@@ -276,6 +277,10 @@ export default async function ProductDetailsPage<T extends {
             <Link className="button ghost" href={companyMode ? `/company/produtos/${product.id}#estoque` : `/estoque/${product.id}`}>
               <Warehouse size={16} />
               Ver estoque
+            </Link>
+            <Link className="button ghost" href={`#historico-produto`}>
+              <History size={16} />
+              Histórico
             </Link>
             <ProductLabelPrintButton label={{ operation: "Suplementos", name: product.name, internalCode: labelResult.data?.internal_code ?? null, barcodeValue: labelResult.data?.barcode_value ?? null, cashPrice: product.sale_price, installmentPrice: product.installment_price }} />
             <Link className="button ghost" href={companyMode ? "/company/produtos" : "/produtos"}>

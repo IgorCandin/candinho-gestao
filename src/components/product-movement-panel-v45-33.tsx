@@ -10,6 +10,8 @@ import {
   PackageCheck,
   RefreshCcw,
   ShoppingBag,
+  Undo2,
+  X,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
@@ -100,6 +102,9 @@ export function ProductMovementPanelV4533({
   const [rows, setRows] = useState<MovementRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [cancelOutflowId, setCancelOutflowId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelling, setCancelling] = useState(false);
 
   const load = useCallback(async () => {
     if (!productId) return;
@@ -138,6 +143,8 @@ export function ProductMovementPanelV4533({
 
   useEffect(() => {
     if (!enabled || !productId) {
+      // The portal host belongs to the current product route.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHost(null);
       return;
     }
@@ -162,7 +169,14 @@ export function ProductMovementPanelV4533({
 
       currentHost = document.createElement("div");
       currentHost.dataset.productMovementHostV4533 = "true";
-      content.appendChild(currentHost);
+      const firstSeparatedHistory =
+        content.querySelector<HTMLElement>(".product-history-panel");
+
+      if (firstSeparatedHistory) {
+        content.insertBefore(currentHost, firstSeparatedHistory);
+      } else {
+        content.appendChild(currentHost);
+      }
       setHost(currentHost);
       return true;
     }
@@ -191,6 +205,8 @@ export function ProductMovementPanelV4533({
   }, [enabled, productId, pathname]);
 
   useEffect(() => {
+    // Reset stale rows before loading a different product.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRows([]);
     setMessage(null);
 
@@ -201,6 +217,43 @@ export function ProductMovementPanelV4533({
 
   if (!enabled || !productId || !host) return null;
 
+  async function cancelOutflow() {
+    if (!cancelOutflowId || !cancelReason.trim()) return;
+
+    setCancelling(true);
+    setMessage(null);
+
+    try {
+      const response = await fetch("/api/commercial-outflows", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: cancelOutflowId,
+          reason: cancelReason.trim(),
+        }),
+      });
+      const raw = await response.text();
+      const payload = raw ? (JSON.parse(raw) as { error?: string }) : {};
+
+      if (!response.ok) {
+        throw new Error(payload.error ?? "Não foi possível estornar a saída.");
+      }
+
+      setCancelOutflowId(null);
+      setCancelReason("");
+      setMessage("Saída estornada. O saldo voltou ao estoque e o histórico foi preservado.");
+      await load();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "Não foi possível estornar a saída.",
+      );
+    } finally {
+      setCancelling(false);
+    }
+  }
+
   const entries = rows
     .filter((row) => row.quantity_delta > 0)
     .reduce((sum, row) => sum + row.quantity_delta, 0);
@@ -210,7 +263,7 @@ export function ProductMovementPanelV4533({
     .reduce((sum, row) => sum + Math.abs(row.quantity_delta), 0);
 
   const content = (
-    <article className="panel product-movement-panel-v4533">
+    <article className="panel product-movement-panel-v4533" id="historico-produto">
       <div className="panel-head">
         <div>
           <h2>
@@ -218,8 +271,8 @@ export function ProductMovementPanelV4533({
             Movimentações do produto
           </h2>
           <p>
-            Linha do tempo auditável: vendas, brindes, uso interno,
-            ajustes, transferências, compras e cancelamentos.
+            Linha do tempo auditável: leads, vendas, despesas, ajustes,
+            transferências, entradas de fornecedor e estornos.
           </p>
         </div>
 
@@ -343,20 +396,32 @@ export function ProductMovementPanelV4533({
                       </span>
                     </td>
                     <td>
-                      {row.sale_id ? (
+                      {row.movement_type === "new_lead" ? (
+                        <Link
+                          className="button ghost compact-button"
+                          href={companyMode ? "/company/vender" : `/leads/${row.sale_id}`}
+                        >
+                          Lead
+                        </Link>
+                      ) : row.sale_id ? (
                         <Link
                           className="button ghost compact-button"
                           href={companyMode ? `/company/concluir/${row.sale_id}` : `/suplementos/vendas/${row.sale_id}`}
                         >
                           Venda
                         </Link>
-                      ) : row.outflow_id ? (
-                        <Link
-                          className="button ghost compact-button"
-                          href={companyMode ? "/company/produtos" : "/suplementos/saidas"}
+                      ) : row.outflow_id && row.movement_type === "commercial_outflow" ? (
+                        <button
+                          className="button ghost compact-button danger-text"
+                          type="button"
+                          onClick={() => {
+                            setCancelOutflowId(row.outflow_id);
+                            setCancelReason("");
+                          }}
                         >
-                          Saída
-                        </Link>
+                          <Undo2 size={14} />
+                          Estornar
+                        </button>
                       ) : null}
                     </td>
                   </tr>
@@ -364,6 +429,40 @@ export function ProductMovementPanelV4533({
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {cancelOutflowId && (
+        <div className="product-movement-reversal-v4533" role="dialog" aria-modal="true">
+          <div className="product-movement-reversal-card-v4533">
+            <div className="sale-action-form-head">
+              <div>
+                <strong>Estornar esta despesa / saída?</strong>
+                <span>O saldo voltará ao estoque. O lançamento original continuará visível no histórico.</span>
+              </div>
+              <button className="icon-button" type="button" onClick={() => setCancelOutflowId(null)} disabled={cancelling}>
+                <X size={17} />
+              </button>
+            </div>
+            <label className="field">
+              <span>Motivo do estorno</span>
+              <textarea
+                className="textarea"
+                rows={3}
+                required
+                value={cancelReason}
+                onChange={(event) => setCancelReason(event.target.value)}
+                placeholder="Ex.: despesa lançada no produto errado"
+              />
+            </label>
+            <div className="modal-actions">
+              <button className="button ghost" type="button" onClick={() => setCancelOutflowId(null)} disabled={cancelling}>Voltar</button>
+              <button className="button danger" type="button" onClick={() => void cancelOutflow()} disabled={cancelling || !cancelReason.trim()}>
+                {cancelling ? <LoaderCircle className="spin" size={15} /> : <Undo2 size={15} />}
+                {cancelling ? "Estornando" : "Confirmar estorno"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </article>

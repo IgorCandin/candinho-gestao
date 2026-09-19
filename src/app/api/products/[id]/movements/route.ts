@@ -38,7 +38,7 @@ export async function GET(
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc(
-    "product_movement_timeline_v1",
+    "product_movement_timeline_v2",
     {
       p_product_id: id,
       p_limit: 150,
