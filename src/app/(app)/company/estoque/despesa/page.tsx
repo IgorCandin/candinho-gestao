@@ -3,9 +3,10 @@ import { CompanyStockExpenseWorkspace } from "@/components/company-stock-expense
 import { getCurrentUserAccess, getFitnessStock } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function CompanyStockExpensePage() {
+export default async function CompanyStockExpensePage({ searchParams }: { searchParams: Promise<{ operacao?: string }> }) {
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
+  const params = await searchParams;
 
   const supabase = await createClient();
   const safeRows = async <Row,>(request: PromiseLike<{ data: Row[] | null; error: unknown }>) => {
@@ -30,6 +31,7 @@ export default async function CompanyStockExpensePage() {
 
   return (
     <CompanyStockExpenseWorkspace
+      initialOperation={params.operacao === "fitness" ? "fitness" : "supplements"}
       supplements={products.map((item) => ({ id: String(item.id), name: String(item.name), flavorTracking: Boolean(item.flavor_tracking_enabled) }))}
       locations={locations.map((item) => ({ id: String(item.id), name: String(item.name), code: String(item.code) }))}
       flavors={flavors.map((item) => ({ id: String(item.id), productId: String(item.product_id), name: String(item.name) }))}

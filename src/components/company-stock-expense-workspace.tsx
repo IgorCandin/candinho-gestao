@@ -12,16 +12,17 @@ type Stock = { productId: string; locationId: string; quantity: number };
 type FlavorStock = { flavorId: string; locationId: string; quantity: number };
 type Fitness = { id: string; name: string; size: string; color: string; available: number };
 
-export function CompanyStockExpenseWorkspace({ supplements, locations, flavors, stock, flavorStock, fitness }: {
+export function CompanyStockExpenseWorkspace({ supplements, locations, flavors, stock, flavorStock, fitness, initialOperation = "supplements" }: {
   supplements: Supplement[];
   locations: Location[];
   flavors: Flavor[];
   stock: Stock[];
   flavorStock: FlavorStock[];
   fitness: Fitness[];
+  initialOperation?: "supplements" | "fitness";
 }) {
   const router = useRouter();
-  const [operation, setOperation] = useState<"supplements" | "fitness">("supplements");
+  const [operation, setOperation] = useState<"supplements" | "fitness">(initialOperation);
   const [productId, setProductId] = useState(supplements[0]?.id ?? "");
   const [locationId, setLocationId] = useState(locations[0]?.id ?? "");
   const [flavorId, setFlavorId] = useState("");
