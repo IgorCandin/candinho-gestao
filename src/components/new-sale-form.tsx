@@ -340,24 +340,24 @@ export function NewSaleForm({
         return;
       }
 
-      setFlavors(
-        (flavorResult.data ?? []).map((row) => ({
+      const loadedFlavors = (flavorResult.data ?? []).map((row) => ({
           id: String(row.id),
           productId: String(row.product_id),
           name: String(row.name ?? ""),
-        })),
-      );
+        }));
+      setFlavors(loadedFlavors);
 
-      setFlavorStock(
-        (stockResult.data ?? []).map((row) => ({
+      const loadedStock = (stockResult.data ?? []).map((row) => ({
           flavorId: String(row.flavor_id),
           locationId: String(row.location_id),
           physical: Number(row.physical_quantity ?? 0),
           reserved: Number(row.reserved_quantity ?? 0),
           available: Number(row.available_quantity ?? 0),
           incoming: Number(row.incoming_quantity ?? 0),
-        })),
-      );
+        }));
+      setFlavorStock(loadedStock);
+
+      const preferredFlavor = (productId: string) => loadedFlavors.find((flavor) => flavor.productId === productId && loadedStock.some((row) => row.flavorId === flavor.id && row.locationId === defaultLocation && row.available > 0))?.id ?? "";
 
       if (initialQuote && quoteItemsResult.data?.length) {
         setItems(
@@ -365,11 +365,13 @@ export function NewSaleForm({
             key: itemKey(),
             productId: String(row.product_id),
             flavorId:
-              typeof row.flavor_id === "string" ? row.flavor_id : "",
+              typeof row.flavor_id === "string" ? row.flavor_id : preferredFlavor(String(row.product_id)),
             quantity: String(row.quantity),
             unitPrice: String(row.unit_price),
           })),
         );
+      } else {
+        setItems((current) => current.map((item) => item.productId && !item.flavorId ? { ...item, flavorId: preferredFlavor(item.productId) } : item));
       }
 
       if (initialQuote) {
@@ -428,7 +430,7 @@ export function NewSaleForm({
     return () => {
       cancelled = true;
     };
-  }, [initialQuote, today]);
+  }, [initialQuote, today, defaultLocation]);
 
   const productOptions = useMemo(() => {
     const map = new Map<string, SaleStockOption>();
@@ -512,9 +514,10 @@ export function NewSaleForm({
       rowFor(productId) ??
       stock.find((entry) => entry.product_id === productId);
 
+    const preferredFlavor = flavorsFor(productId).find((flavor) => (flavorStockFor(flavor.id)?.available ?? 0) > 0);
     updateItem(key, {
       productId,
-      flavorId: "",
+      flavorId: preferredFlavor?.id ?? "",
       unitPrice: row ? String(row.sale_price) : "",
     });
   }
@@ -1034,9 +1037,14 @@ export function NewSaleForm({
                   className="select"
                   required
                   value={locationId}
-                  onChange={(event) =>
-                    setLocationId(event.target.value)
-                  }
+                  onChange={(event) => {
+                    const nextLocation = event.target.value;
+                    setLocationId(nextLocation);
+                    setItems((current) => current.map((item) => {
+                      const preferred = flavors.find((flavor) => flavor.productId === item.productId && flavorStock.some((row) => row.flavorId === flavor.id && row.locationId === nextLocation && row.available > 0));
+                      return { ...item, flavorId: preferred?.id ?? "" };
+                    }));
+                  }}
                 >
                   {locations.map((location) => (
                     <option
@@ -1210,7 +1218,7 @@ export function NewSaleForm({
                     </label>
 
                     {productFlavors.length > 0 && (
-                      <label className="field">
+                      <label className={`field${productFlavors.filter((flavor) => (flavorStockFor(flavor.id)?.available ?? 0) > 0).length > 1 ? " variation-choice-multiple" : ""}`}>
                         <span>Sabor</span>
                         <select
                           className="select"
@@ -1248,6 +1256,7 @@ export function NewSaleForm({
                             );
                           })}
                         </select>
+                        {productFlavors.filter((flavor) => (flavorStockFor(flavor.id)?.available ?? 0) > 0).length > 1 && <small>Mais sabores disponíveis — confira a opção.</small>}
                       </label>
                     )}
 

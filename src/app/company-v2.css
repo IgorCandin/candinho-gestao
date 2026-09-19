@@ -1265,6 +1265,7 @@ body.company-custom-cursor-active .install-help-overlay button{cursor:pointer!im
   box-shadow:none;
 }
 
+
 @media(max-width:430px){
   .operation-mobile-bottom-nav.bank,
   .operation-mobile-bottom-nav.company{

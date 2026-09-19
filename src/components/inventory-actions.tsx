@@ -115,24 +115,26 @@ export function InventoryActions({
         return;
       }
 
-      setFlavors(
-        (flavorResult.data ?? []).map((row) => ({
+      const loadedFlavors = (flavorResult.data ?? []).map((row) => ({
           id: String(row.id),
           productId: String(row.product_id),
           name: String(row.name ?? ""),
-        })),
-      );
+        }));
+      setFlavors(loadedFlavors);
 
-      setFlavorInventory(
-        (inventoryResult.data ?? []).map((row) => ({
+      const loadedInventory = (inventoryResult.data ?? []).map((row) => ({
           flavorId: String(row.flavor_id),
           locationId: String(row.location_id),
           physical: Number(row.physical_quantity ?? 0),
           reserved: Number(row.reserved_quantity ?? 0),
           available: Number(row.available_quantity ?? 0),
           incoming: Number(row.incoming_quantity ?? 0),
-        })),
-      );
+        }));
+      setFlavorInventory(loadedInventory);
+      if (initialMode && initialProductId) {
+        const preferred = loadedFlavors.find((flavor) => flavor.productId === initialProductId && loadedInventory.some((row) => row.flavorId === flavor.id && row.locationId === validInitialLocation && row.available > 0));
+        if (preferred) setFlavorId(preferred.id);
+      }
     }
 
     void load();
@@ -140,7 +142,7 @@ export function InventoryActions({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialMode, initialProductId, validInitialLocation]);
 
   const current = useMemo(
     () =>
@@ -167,13 +169,15 @@ export function InventoryActions({
       (row) => row.flavorId === flavorId && row.locationId === locationId,
     ) ?? null;
 
+  const preferredFlavorId = (nextProductId: string, nextLocationId: string) => flavors.find((flavor) => flavor.productId === nextProductId && flavorInventory.some((row) => row.flavorId === flavor.id && row.locationId === nextLocationId && row.available > 0))?.id ?? "";
+
   function open(next: Exclude<ActionMode, null>) {
     setMode(next);
     setMessage("");
     setQuantity("");
     setNotes("");
     setDate(todayBrazil());
-    setFlavorId("");
+    setFlavorId(preferredFlavorId(initialProductId || productId, initialLocationId || locationId));
 
     if (initialProductId) setProductId(initialProductId);
     if (initialLocationId) setLocationId(initialLocationId);
@@ -338,7 +342,7 @@ export function InventoryActions({
                   value={productId}
                   onChange={(event) => {
                     setProductId(event.target.value);
-                    setFlavorId("");
+                    setFlavorId(preferredFlavorId(event.target.value, locationId));
                   }}
                   disabled={Boolean(initialProductId)}
                 >
@@ -352,7 +356,7 @@ export function InventoryActions({
               </label>
 
               {productFlavors.length > 0 && (
-                <label className="field">
+                <label className={`field${productFlavors.filter((flavor) => flavorInventory.some((row) => row.flavorId === flavor.id && row.locationId === locationId && row.available > 0)).length > 1 ? " variation-choice-multiple" : ""}`}>
                   <span>Sabor</span>
                   <select
                     className="select"
@@ -375,6 +379,7 @@ export function InventoryActions({
                       );
                     })}
                   </select>
+                  {productFlavors.filter((flavor) => flavorInventory.some((row) => row.flavorId === flavor.id && row.locationId === locationId && row.available > 0)).length > 1 && <small>Mais sabores disponíveis — confira antes de continuar.</small>}
                 </label>
               )}
 
@@ -384,7 +389,7 @@ export function InventoryActions({
                   className="select"
                   required
                   value={locationId}
-                  onChange={(event) => setLocationId(event.target.value)}
+                  onChange={(event) => { setLocationId(event.target.value); setFlavorId(preferredFlavorId(productId, event.target.value)); }}
                   disabled={Boolean(initialLocationId) && mode === "count"}
                 >
                   {locations.map((location) => (

@@ -558,12 +558,16 @@ export function FitnessSaleForm({
                   <div className={`sale-form-item-grid${companyMode ? " fitness-company-item-grid" : ""}`}>
                     {companyMode && <label className="field sale-product-field">
                       <span>Produto</span>
-                      <select className="select" required value={item.productId} onChange={(event) => update(item.key, { productId: event.target.value, variantId: "", unitPrice: "" })}>
+                      <select className="select" required value={item.productId} onChange={(event) => {
+                        const productId = event.target.value;
+                        const preferred = options.find((option) => option.product_id === productId && option.available_quantity > 0);
+                        update(item.key, { productId, variantId: preferred?.variant_id ?? "", unitPrice: preferred ? String(preferred.sale_price) : "" });
+                      }}>
                         <option value="">Escolha o modelo</option>
                         {productOptions.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
                       </select>
                     </label>}
-                    <label className="field sale-product-field">
+                    <label className={`field sale-product-field${companyMode && options.filter((option) => option.product_id === item.productId && option.available_quantity > 0).length > 1 ? " variation-choice-multiple" : ""}`}>
                       <span>{companyMode ? "Tamanho e cor" : "Produto"}</span>
                       <select
                         className="select"
@@ -601,6 +605,7 @@ export function FitnessSaleForm({
                           ),
                         )}
                       </select>
+                      {companyMode && options.filter((option) => option.product_id === item.productId && option.available_quantity > 0).length > 1 && <small>Mais tamanhos ou cores disponíveis — confira a variação.</small>}
                     </label>
 
                     <label className="field">

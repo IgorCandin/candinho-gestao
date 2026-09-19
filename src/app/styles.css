@@ -416,6 +416,8 @@ h1 { margin: 7px 0 0; font-size: clamp(28px, 4vw, 42px); line-height: 1.04; lett
 
 .dashboard-grid { grid-template-columns: minmax(0, 1.45fr) minmax(300px, .75fr); margin-top: 18px; }
 .panel { overflow: hidden; }
+.variation-choice-multiple{padding:8px;border:1px solid rgba(234,179,76,.8);border-radius:12px;background:rgba(234,179,76,.07)}
+.variation-choice-multiple>small{color:#eac77e}
 .panel-head { padding: 19px 20px; display: flex; align-items: center; justify-content: space-between; gap: 14px; border-bottom: 1px solid var(--line); }
 .panel-head h2 { font-size: 15px; margin: 0; }
 .panel-head p { color: var(--muted); font-size: 12px; margin: 4px 0 0; }
