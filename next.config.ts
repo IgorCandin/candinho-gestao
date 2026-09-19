@@ -108,6 +108,18 @@ const nextConfig: NextConfig = {
         destination: "/company/clientes/:path*",
         permanent: false,
       },
+      // Produtos e o histórico do produto já vivem na Company.
+      // Mantém links antigos funcionando sem tirar o usuário da operação unificada.
+      {
+        source: "/suplementos/produtos",
+        destination: "/company/produtos",
+        permanent: false,
+      },
+      {
+        source: "/suplementos/produtos/:path*",
+        destination: "/company/produtos/:path*",
+        permanent: false,
+      },
       {
         source: "/physique",
         destination: "/atletas/inicio",

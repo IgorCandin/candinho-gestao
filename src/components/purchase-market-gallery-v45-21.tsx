@@ -511,7 +511,7 @@ export function PurchaseMarketGalleryV4521({
 
                           <div className="v4521-card-footer">
                             <Link
-                              href={`/suplementos/produtos/${row.product_id}`}
+                              href={`/company/produtos/${row.product_id}`}
                             >
                               Ver produto
                             </Link>

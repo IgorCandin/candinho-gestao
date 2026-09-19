@@ -122,7 +122,7 @@ export async function InventoryProductManagementV4521() {
 
       <section className="stats-grid product-stats-grid">
         <StatCard
-          href="/suplementos/produtos"
+          href="/company/produtos"
           label="Produtos ativos"
           value={String(active.length)}
           note={`${products.length} cadastrados`}
@@ -145,7 +145,7 @@ export async function InventoryProductManagementV4521() {
         />
 
         <StatCard
-          href="/suplementos/estoque#gestao-produtos"
+          href="/company/estoque/suplementos#gestao-produtos"
           label="Sem miniatura"
           value={String(missingPhotos)}
           note="Precisam de foto principal"
@@ -153,7 +153,7 @@ export async function InventoryProductManagementV4521() {
         />
 
         <StatCard
-          href="/suplementos/estoque#gestao-produtos"
+          href="/company/estoque/suplementos#gestao-produtos"
           label="Cadastros incompletos"
           value={String(incomplete)}
           note="Somente campos aplicáveis"
@@ -161,7 +161,7 @@ export async function InventoryProductManagementV4521() {
         />
 
         <StatCard
-          href="/suplementos/estoque#gestao-produtos"
+          href="/company/estoque/suplementos#gestao-produtos"
           label="Qualidade média"
           value={`${avg}%`}
           note="Preenchimento útil do catálogo"
