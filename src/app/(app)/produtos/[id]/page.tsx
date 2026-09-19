@@ -23,6 +23,7 @@ import { PageHeader } from "@/components/page-header";
 import { ProductImageUploader } from "@/components/product-image-uploader";
 import { ProductInternalCostPanelV4521 } from "@/components/product-internal-cost-panel-v45-21";
 import { ProductLabelPrintButton } from "@/components/product-label-print-button";
+import { ProductMovementPanelV4533 } from "@/components/product-movement-panel-v45-33";
 import {
   getEntitySwipeNavigation,
   getProductDetails,
@@ -470,6 +471,7 @@ export default async function ProductDetailsPage<T extends {
         productId={product.id}
         salePrice={product.sale_price}
       />
+      <ProductMovementPanelV4533 productIdOverride={product.id} />
       {activePromotion && (
         <article className="panel product-active-promotion-panel">
           <div>

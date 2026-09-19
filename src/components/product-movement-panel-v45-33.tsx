@@ -88,14 +88,16 @@ function IconFor({ row }: { row: MovementRow }) {
 
 export function ProductMovementPanelV4533({
   enabled = true,
+  productIdOverride,
 }: {
   enabled?: boolean;
+  productIdOverride?: string;
 }) {
   const pathname = usePathname();
   const companyMode = pathname.startsWith("/company/");
   const productId = useMemo(
-    () => productIdFromPath(pathname),
-    [pathname],
+    () => productIdOverride ?? productIdFromPath(pathname),
+    [pathname, productIdOverride],
   );
 
   const [host, setHost] = useState<HTMLElement | null>(null);
@@ -142,6 +144,8 @@ export function ProductMovementPanelV4533({
   }, [productId]);
 
   useEffect(() => {
+    if (productIdOverride) return;
+
     if (!enabled || !productId) {
       // The portal host belongs to the current product route.
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -202,7 +206,7 @@ export function ProductMovementPanelV4533({
       currentHost?.remove();
       setHost(null);
     };
-  }, [enabled, productId, pathname]);
+  }, [enabled, productId, pathname, productIdOverride]);
 
   useEffect(() => {
     // Reset stale rows before loading a different product.
@@ -215,7 +219,7 @@ export function ProductMovementPanelV4533({
     }
   }, [enabled, productId, load]);
 
-  if (!enabled || !productId || !host) return null;
+  if (!enabled || !productId || (!productIdOverride && !host)) return null;
 
   async function cancelOutflow() {
     if (!cancelOutflowId || !cancelReason.trim()) return;
@@ -468,5 +472,5 @@ export function ProductMovementPanelV4533({
     </article>
   );
 
-  return createPortal(content, host);
+  return productIdOverride ? content : createPortal(content, host!);
 }
