@@ -14,6 +14,8 @@ export type CompanyReplenishmentProduct = {
   incoming: number;
   minimum: number;
   ideal: number;
+  salesCategory: string;
+  restricted: boolean;
 };
 
 export type CompanyReplenishmentGroup = {
