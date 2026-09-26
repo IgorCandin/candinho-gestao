@@ -6,6 +6,7 @@ import { CustomerProfileEditor } from "@/components/customer-profile-editor";
 import { getCustomerDetails, getCustomerInteractions, getCustomerLeads, getCustomerPendingOrders, getCustomerSales } from "@/lib/data";
 import { formatCurrency, formatDate, formatDateOnly } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
+import { CompanyContextTabs } from "@/components/company-context-tabs";
 
 type TimelineItem = {
   id: string;
@@ -86,7 +87,9 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
         </div>
       </section>
 
-      <section className="company-customer-metrics">
+      <CompanyContextTabs label="Navegação da ficha do cliente" items={[{label:"Resumo",href:"#resumo",note:"indicadores"},{label:"Linha do tempo",href:"#linha-do-tempo",note:"compras e contatos"},{label:"Compras",href:"#compras",note:"histórico comercial"},{label:"Perfil",href:"#perfil",note:"dados e cuidados"}]}/>
+
+      <section className="company-customer-metrics" id="resumo">
         <article><span><ShoppingBag size={16} /> Compras</span><strong>{customer.purchase_count}</strong><small>{customer.last_purchase_at ? `Última em ${formatDateOnly(customer.last_purchase_at)}` : "Sem compras"}</small></article>
         <article><span><CircleDollarSign size={16} /> Total comprado</span><strong>{formatCurrency(customer.total_spent)}</strong><small>Histórico consolidado</small></article>
         <article><span><Sparkles size={16} /> Leads</span><strong>{customer.lead_count}</strong><small>{leads.length ? "Interesses no histórico" : "Nenhum interesse aberto"}</small></article>
@@ -95,7 +98,7 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
 
       <section className="company-customer-layout">
         <div className="company-customer-main">
-          <article className="company-customer-panel">
+          <article className="company-customer-panel" id="linha-do-tempo">
             <header><div><span>HISTÓRICO INTEGRADO</span><h2>Linha do tempo</h2></div><strong>{timeline.length}</strong></header>
             <div className="company-customer-timeline">
               {timeline.map((item) => <div key={item.id} className="company-customer-event">
@@ -107,7 +110,7 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
             </div>
           </article>
 
-          <article className="company-customer-panel">
+          <article className="company-customer-panel" id="compras">
             <header><div><span>COMPRAS</span><h2>Histórico comercial</h2></div><strong>{sales.length}</strong></header>
             <div className="company-customer-purchases">
               {sales.slice(0, 8).map((sale) => <div className="company-customer-purchase-row" key={sale.id}><Link className="company-customer-purchase-overlay" href={quoteBySale.has(sale.id) ? `/company/orcamentos/${quoteBySale.get(sale.id)}` : `/company/concluir/${sale.id}`} aria-label={`Abrir orçamento de ${formatDateOnly(sale.business_date)}`}/><div><strong>{(productsBySale.get(sale.id) ?? []).length ? (productsBySale.get(sale.id) ?? []).map((product, index) => <span key={`${product.id}-${index}`}>{index ? ", " : ""}<Link className="company-customer-product-link" href={`/company/produtos/${product.id}`}>{product.name}</Link></span>) : sale.product_summary || "Venda sem resumo"}</strong><small>{formatDateOnly(sale.business_date)} · {sale.location_name} · Abrir orçamento</small></div><span>{formatCurrency(sale.total_amount)}</span></div>)}
@@ -117,7 +120,7 @@ export default async function CompanyCustomerPage({ params }: { params: Promise<
         </div>
 
         <aside className="company-customer-side">
-          <article className="company-customer-panel company-customer-profile">
+          <article className="company-customer-panel company-customer-profile" id="perfil">
             <header><div><span>PERFIL</span><h2>Dados do cliente</h2></div><UserRound size={18} /></header>
             <dl>
               <div><dt><Phone size={14} /> Telefone</dt><dd>{customer.phone || "Pendente — complete em Editar ficha"}</dd></div>

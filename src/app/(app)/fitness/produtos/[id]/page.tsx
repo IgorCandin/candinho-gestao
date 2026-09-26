@@ -134,7 +134,7 @@ export default async function Page<T extends {
         config={setConfig}
       />
 
-      <article className="panel">
+      <article className="panel" id="variacoes">
         <div className="panel-head">
           <div>
             <h2>Tamanhos e cores</h2>

@@ -7,6 +7,7 @@ import { CompanyNutritionLightbox } from "@/components/company-nutrition-lightbo
 import { CompanyProductPhotoPanel } from "@/components/company-product-photo-panel";
 import { getCompanyProductPhotos } from "@/lib/company-product-photos";
 import { getCurrentUserAccess } from "@/lib/data";
+import { CompanyContextTabs } from "@/components/company-context-tabs";
 
 export const dynamic = "force-dynamic";
 
@@ -17,8 +18,9 @@ export default async function CompanyProductPage({ params }: { params: Promise<{
 
   return <>
     <CompanyNutritionLightbox />
-    <div className="company-product-detail-stock-link"><CompanyProductPhotoPanel module="supplements" productId={id} productName={media.name} initialSlots={media.slots} canEdit={access.active && (access.role === "admin" || access.canWriteSupplements)}/><Link className="button ghost" href="/company/estoque?operacao=supplements"><Boxes size={16}/>Abrir estoque</Link></div>
-    <section className="company-product-detail-media">
+    <CompanyContextTabs label="Navegação da ficha do produto" items={[{label:"Visão geral",href:"#visao-geral",note:"preço e cadastro"},{label:"Fotos",href:"#fotos",note:"galeria"},{label:"Estoque",href:"#estoque",note:"saldo e locais"},{label:"Histórico",href:"#historico-produto",note:"movimentações"}]}/>
+    <div className="company-product-detail-stock-link" id="fotos"><CompanyProductPhotoPanel module="supplements" productId={id} productName={media.name} initialSlots={media.slots} canEdit={access.active && (access.role === "admin" || access.canWriteSupplements)}/><Link className="button ghost" href="/company/estoque?operacao=supplements"><Boxes size={16}/>Abrir estoque</Link></div>
+    <section className="company-product-detail-media" id="visao-geral">
       {media.slots[1]?.url ? <div className="company-product-detail-banner"><img src={media.slots[1].url} alt={`Banner de ${media.name}`}/></div> : null}
     </section>
     <LegacyProductPage params={Promise.resolve({ id })} companyMode/>
