@@ -7,7 +7,13 @@ import { BankPaidForm } from "@/components/bank-paid-form";
 import type { BankMonthCommitment } from "@/lib/bank-home-data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 
-type MonthBlock = { label: string; referenceMonth: string; rows: BankMonthCommitment[] };
+type MonthBlock = {
+  label: string;
+  referenceMonth: string;
+  rows: BankMonthCommitment[];
+  openingBalance: number;
+  receivable: number;
+};
 
 function groupByDay(rows: BankMonthCommitment[]) {
   const groups = new Map<string, BankMonthCommitment[]>();
@@ -18,20 +24,22 @@ function groupByDay(rows: BankMonthCommitment[]) {
   return [...groups.entries()];
 }
 
-export function BankMobileAgenda({ months, balance, receivable }: { months: MonthBlock[]; balance: number; receivable: number }) {
+export function BankMobileAgenda({ months }: { months: MonthBlock[] }) {
   const [selected, setSelected] = useState<(BankMonthCommitment & { referenceMonth: string }) | null>(null);
-  const totalCommitments = months.reduce((monthTotal, month) => monthTotal + month.rows.reduce((sum, row) => sum + row.amount, 0), 0);
-  let runningBalance = balance + receivable;
 
   return <div className="bank-mobile-agenda">
-    <section className="bank-mobile-summary" aria-label="Resumo financeiro">
-      <div><span>Saldo atual</span><strong>{formatCurrency(balance)}</strong><small>Saldo real das contas</small></div>
-      <div><span>A receber</span><strong>{formatCurrency(receivable)}</strong><small>Valores ainda pendentes</small></div>
-      <div><span>Contas exibidas</span><strong>{formatCurrency(totalCommitments)}</strong><small>Mês atual + próximo</small></div>
-      <div className={balance + receivable - totalCommitments < 0 ? "negative" : "positive"}><span>Diferença projetada</span><strong>{formatCurrency(balance + receivable - totalCommitments)}</strong><small>Saldo + receber − contas</small></div>
-    </section>
-    {months.map((month) => <section className="bank-mobile-month" key={month.referenceMonth}>
+    {months.map((month, monthIndex) => {
+      const monthCommitments = month.rows.reduce((sum, row) => sum + row.amount, 0);
+      const monthDifference = month.openingBalance + month.receivable - monthCommitments;
+      let runningBalance = month.openingBalance + month.receivable;
+      return <section className="bank-mobile-month" key={month.referenceMonth}>
       <header><div><span>AGENDA FINANCEIRA</span><h2>{month.label}</h2></div><strong>{formatCurrency(month.rows.reduce((sum, row) => sum + row.amount, 0))}</strong></header>
+      <div className="bank-mobile-summary" aria-label={`Resumo de ${month.label}`}>
+        <div><span>{monthIndex === 0 ? "Saldo atual" : "Saldo inicial projetado"}</span><strong>{formatCurrency(month.openingBalance)}</strong><small>{monthIndex === 0 ? "Saldo real das contas" : "Diferença final do mês anterior"}</small></div>
+        <div><span>A receber no mês</span><strong>{formatCurrency(month.receivable)}</strong><small>Operações + demais entradas previstas</small></div>
+        <div><span>Contas do mês</span><strong>{formatCurrency(monthCommitments)}</strong><small>Somente este mês</small></div>
+        <div className={monthDifference < 0 ? "negative" : "positive"}><span>Diferença do mês</span><strong>{formatCurrency(monthDifference)}</strong><small>Saldo inicial + receber − contas</small></div>
+      </div>
       {groupByDay(month.rows).map(([day, rows]) => {
         const dayTotal = rows.reduce((sum, row) => sum + row.amount, 0);
         runningBalance -= dayTotal;
@@ -52,7 +60,7 @@ export function BankMobileAgenda({ months, balance, receivable }: { months: Mont
         </div>
       </div>})}
       {month.rows.length === 0 ? <p className="bank-mobile-empty">Nenhum compromisso aberto neste mês.</p> : null}
-    </section>)}
+    </section>})}
 
     {selected ? <div className="bank-mobile-modal-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelected(null); }}>
       <section className="bank-mobile-modal" role="dialog" aria-modal="true" aria-label="Detalhes da conta">
