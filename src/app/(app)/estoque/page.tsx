@@ -191,7 +191,7 @@ export default async function StockPage() {
         />
 
         <StatCard
-          href="/pedidos-pendentes"
+          href="/company/concluir"
           label="Reservadas"
           value={String(summary.reserved_units)}
           note="Separadas para vendas abertas"
@@ -206,7 +206,7 @@ export default async function StockPage() {
         />
 
         <StatCard
-          href="/pedidos-fornecedor"
+          href="/company/compras"
           label="A caminho"
           value={String(summary.incoming_units)}
           note="Pedidos de fornecedor em aberto"

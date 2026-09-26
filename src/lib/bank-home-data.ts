@@ -78,11 +78,13 @@ function monthOf(value: unknown) {
     : null;
 }
 
-export async function getBankMonthHomeData(): Promise<BankMonthHomeData> {
+export async function getBankMonthHomeData(referenceMonth?: string): Promise<BankMonthHomeData> {
   const supabase = await createClient();
   const today = isoDateInSaoPaulo();
-  const { start, nextStart, year, month } =
-    monthBounds(today);
+  const referenceDate = referenceMonth?.slice(0, 7)
+    ? `${referenceMonth.slice(0, 7)}-01`
+    : today;
+  const { start, nextStart, year, month } = monthBounds(referenceDate);
 
   const [
     chargesResult,

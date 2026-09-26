@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { markBankCommitmentAsPaid } from "@/app/(app)/bank/actions";
 
-export function BankPaidForm({ commitmentKey, referenceMonth }: { commitmentKey: string; referenceMonth: string }) {
+export function BankPaidForm({ commitmentKey, referenceMonth, returnTo = "/bank" }: { commitmentKey: string; referenceMonth: string; returnTo?: string }) {
   const router = useRouter();
   const [hidden, setHidden] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -26,6 +26,7 @@ export function BankPaidForm({ commitmentKey, referenceMonth }: { commitmentKey:
   }}>
     <input type="hidden" name="commitment_key" value={commitmentKey}/>
     <input type="hidden" name="reference_month" value={referenceMonth}/>
+    <input type="hidden" name="return_to" value={returnTo}/>
     <button className="button ghost compact-button" type="submit" disabled={pending}>
       {pending ? <LoaderCircle className="spin" size={14}/> : <CheckCircle2 size={14}/>}
       {pending ? "Pagando..." : "Paguei"}

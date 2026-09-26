@@ -19,8 +19,8 @@ function nextMonthStart(referenceMonth: string) {
   )}-01`;
 }
 
-export async function getBankMonthHomeDataV2(): Promise<BankMonthHomeData> {
-  const base = await getBankMonthHomeData();
+export async function getBankMonthHomeDataV2(referenceMonth?: string): Promise<BankMonthHomeData> {
+  const base = await getBankMonthHomeData(referenceMonth);
   const supabase = await createClient();
 
   const [

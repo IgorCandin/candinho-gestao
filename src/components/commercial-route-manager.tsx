@@ -74,13 +74,16 @@ export function CommercialRouteManager({
   selectedRouteId,
   queue,
   today,
+  companyMode = false,
 }: {
   routes: CommercialRouteSummary[];
   selectedRouteId: string | null;
   queue: CommercialRouteQueueRow[];
   today: string;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
+  const routesBase = companyMode ? "/company/rotas" : "/vendas/rotas";
   const [routeOn, setRouteOn] = useState(today);
   const [city, setCity] = useState("");
   const [notes, setNotes] = useState("");
@@ -116,7 +119,7 @@ export function CommercialRouteManager({
 
     setCity("");
     setNotes("");
-    router.push(`/vendas/rotas?route=${String(data)}`);
+    router.push(`${routesBase}?route=${String(data)}`);
     router.refresh();
   }
 
@@ -227,7 +230,7 @@ export function CommercialRouteManager({
             {routes.map((route) => (
               <Link
                 key={route.id}
-                href={`/vendas/rotas?route=${route.id}`}
+                href={`${routesBase}?route=${route.id}`}
                 className={`${styles.routeCard} ${
                   route.id === selectedRouteId ? styles.routeCardActive : ""
                 }`}
@@ -298,6 +301,7 @@ export function CommercialRouteManager({
                         row={row}
                         busy={busy === row.route_customer_id}
                         onAction={act}
+                        companyMode={companyMode}
                       />
                     ))}
                   </div>
@@ -318,6 +322,7 @@ export function CommercialRouteManager({
                         row={row}
                         busy={busy === row.route_customer_id}
                         onAction={act}
+                        companyMode={companyMode}
                       />
                     ))}
                   </div>
@@ -335,6 +340,7 @@ function CustomerCard({
   row,
   busy,
   onAction,
+  companyMode,
 }: {
   row: CommercialRouteQueueRow;
   busy: boolean;
@@ -342,6 +348,7 @@ function CustomerCard({
     row: CommercialRouteQueueRow,
     action: "notified" | "skipped" | "pending",
   ) => Promise<void>;
+  companyMode: boolean;
 }) {
   return (
     <article className={styles.customerCard}>
@@ -394,7 +401,7 @@ function CustomerCard({
           <span className={styles.noPhone}>Sem telefone</span>
         )}
 
-        <Link className="button ghost" href={`/clientes/${row.customer_id}`}>
+        <Link className="button ghost" href={companyMode ? `/company/clientes/${row.customer_id}` : `/clientes/${row.customer_id}`}>
           <ExternalLink size={16} />
           CRM
         </Link>

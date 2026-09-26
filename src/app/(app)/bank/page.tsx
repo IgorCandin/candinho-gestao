@@ -16,6 +16,7 @@ import {
   TrendingUp,
   Target,
   Wallet,
+  Smartphone,
 } from "lucide-react";
 import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
 import { BankPaidForm } from "@/components/bank-paid-form";
@@ -871,6 +872,11 @@ export default async function BankDashboardPage({
       />
 
       <div className="bank-quick-actions">
+        <Link href="/bank/mobile" className="bank-quick-card">
+          <Smartphone size={20} />
+          <div><strong>Área Mobile</strong><span>Contas do mês atual e do próximo, organizadas por dia.</span></div>
+          <ChevronRight size={17} />
+        </Link>
         <Link href="/bank?saldo=1" scroll={false} className="bank-quick-card">
           <RefreshCcw size={20} />
           <div>

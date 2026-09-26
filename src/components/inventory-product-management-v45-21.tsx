@@ -137,7 +137,7 @@ export async function InventoryProductManagementV4521() {
         />
 
         <StatCard
-          href="/suplementos/pedidos-fornecedor"
+          href="/company/compras"
           label="Unidades a caminho"
           value={String(incoming)}
           note="Pedidos de fornecedor"

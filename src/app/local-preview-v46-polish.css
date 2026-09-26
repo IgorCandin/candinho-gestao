@@ -1,0 +1,93 @@
+/* Pacote visual v46: mantém a entrada equilibrada em notebook e celular. */
+.company-v2-home:has(.company-priority-preview) {
+  display: block !important;
+  padding-bottom: 28px !important;
+}
+
+.company-v2-home:has(.company-priority-preview) > :not(.company-entry-portal):not(.company-v2-grid):not(.company-v2-glow) {
+  width: min(1180px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.company-v2-home:has(.company-priority-preview) .company-v2-hero {
+  max-width: 920px;
+  margin-top: clamp(22px, 3.5vh, 38px);
+  margin-bottom: clamp(18px, 2.5vh, 26px);
+}
+
+.company-v2-home:has(.company-priority-preview) .company-v2-hero h1 {
+  max-width: 900px;
+  font-size: clamp(36px, 4vw, 56px);
+}
+
+.company-v2-home:has(.company-priority-preview) .company-priority-preview,
+.company-v2-home:has(.company-priority-preview) .company-action-grid,
+.company-v2-home:has(.company-priority-preview) .company-comments-preview {
+  max-width: none;
+}
+
+.company-v2-home:has(.company-priority-preview) .company-action-card {
+  min-height: 132px;
+}
+
+.company-v2-home:has(.company-priority-preview) .company-v2-footer {
+  margin-top: 14px;
+}
+
+.bank-mobile-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.bank-mobile-summary > div {
+  display: flex;
+  min-height: 112px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 16px;
+  border: 1px solid #27313d;
+  border-radius: 16px;
+  background: #0d1219;
+}
+
+.bank-mobile-summary span,
+.bank-mobile-summary small,
+.bank-mobile-day-balance span {
+  color: #8995a4;
+}
+
+.bank-mobile-summary strong {
+  font-size: clamp(20px, 2.5vw, 28px);
+}
+
+.bank-mobile-summary .positive strong,
+.bank-mobile-day-balance strong.positive { color: #65dca0; }
+.bank-mobile-summary .negative strong,
+.bank-mobile-day-balance strong.negative { color: #ff8585; }
+
+.bank-mobile-day-balance {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 2px 10px;
+  font-size: 12px;
+}
+
+.bank-mobile-day-balance strong {
+  color: #e8edf3;
+  margin-left: 4px;
+}
+
+@media (max-width: 760px) {
+  .bank-mobile-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .bank-mobile-summary > div { min-height: 98px; padding: 13px; }
+  .bank-mobile-day-balance { flex-direction: column; gap: 4px; }
+  .company-v2-home:has(.company-priority-preview) .company-v2-hero h1 { font-size: 38px; }
+}
+
+@media (max-width: 430px) {
+  .bank-mobile-summary { grid-template-columns: 1fr; }
+}

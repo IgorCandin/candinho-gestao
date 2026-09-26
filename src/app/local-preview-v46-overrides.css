@@ -1,0 +1,5 @@
+.company-v2-home:has(.company-priority-preview) {
+  height: auto !important;
+  min-height: 100dvh !important;
+  overflow-y: auto !important;
+}

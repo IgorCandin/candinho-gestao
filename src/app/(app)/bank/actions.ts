@@ -90,6 +90,7 @@ export async function markBankCommitmentAsPaid(
       "reference_month",
     ) ?? "",
   ).trim();
+  const returnTo = String(formData.get("return_to") ?? "/bank");
 
   if (
     !commitmentKey ||
@@ -201,5 +202,5 @@ export async function markBankCommitmentAsPaid(
   }
 
   revalidateBank();
-  redirect("/bank?salvo=pago");
+  redirect(returnTo === "/bank/mobile" ? "/bank/mobile?salvo=pago" : "/bank?salvo=pago");
 }

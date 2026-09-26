@@ -84,6 +84,15 @@ function isUuid(value: string | null) {
 }
 
 export function ErpPendingFixesBridge() {
+  const configured = Boolean(
+    process.env.NEXT_PUBLIC_SUPABASE_URL &&
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  );
+
+  return configured ? <ConfiguredErpPendingFixesBridge /> : null;
+}
+
+function ConfiguredErpPendingFixesBridge() {
   const pathname = usePathname() || "/";
   const router = useRouter();
   const searchParams = useSearchParams();
