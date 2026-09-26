@@ -58,6 +58,7 @@ async function requireBankWriteAccess() {
 
 function revalidateBank() {
   revalidatePath("/bank");
+  revalidatePath("/bank/mobile");
   revalidatePath(
     "/bank/atualizar",
   );
