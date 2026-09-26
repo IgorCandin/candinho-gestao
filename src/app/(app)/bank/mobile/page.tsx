@@ -31,7 +31,7 @@ export default async function BankMobilePage() {
   const currentCommitments = current.commitments.reduce((sum, row) => sum + row.amount, 0);
   const currentDifference = balance + currentReceivable - currentCommitments;
   const nextProjection = dashboard.annualProjection.find((item) => item.referenceMonth.slice(0, 7) === following.referenceMonth.slice(0, 7));
-  const followingReceivable = configured ? Number(nextProjection?.totalExpectedIncome ?? following.receivableThisMonthTotal) : 1250;
+  const followingReceivable = configured ? Number(nextProjection?.totalExpectedIncome ?? 0) : 1250;
   return <main className="bank-mobile-page">
     <header className="bank-mobile-page-head"><div><span>CANDINHO BANK</span><h1>Contas por dia</h1><p>Mês atual e próximo mês juntos, sem carregar a tela com detalhes desnecessários.</p></div><div><Link href="/bank"><ArrowLeft size={16}/>Visão completa</Link><span><LayoutList size={16}/>Área Mobile</span></div></header>
     <BankMobileAgenda months={[
