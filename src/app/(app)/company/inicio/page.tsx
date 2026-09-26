@@ -5,7 +5,6 @@ import { CompanyActionGrid } from "@/components/company-action-grid";
 import { OperationSwitcher } from "@/components/operation-switcher";
 import { CompanyEntryPortal } from "@/components/company-entry-portal";
 import { CompanyPriorityPreview } from "@/components/company-priority-preview";
-import { CompanyCommentsPreview } from "@/components/company-comments-preview";
 
 export default async function CompanyEntryPage() {
   const [access, dashboard] = await Promise.all([getCurrentUserAccess(), getDashboard()]);
@@ -28,7 +27,6 @@ export default async function CompanyEntryPage() {
     </header>
     <CompanyPriorityPreview receive={dashboard.pendingPaymentCount} deliver={dashboard.pendingDeliveryCount} incoming={dashboard.operational.incoming_units} />
     <CompanyActionGrid />
-    <CompanyCommentsPreview />
     <footer className="company-v2-footer"><span>Escolha uma direção. Execute sem se perder.</span><div><Link className="company-legacy-link" href="/company/vitrine">Gerenciar vitrine</Link><Link className="company-legacy-link" href="/dashboard">Voltar às operações do ERP 1.0</Link></div></footer>
   </main>;
 }
