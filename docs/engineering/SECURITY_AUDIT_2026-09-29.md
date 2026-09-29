@@ -64,6 +64,29 @@ Rotas sob `/api/catalogo` são deliberadamente públicas para catálogo e geraç
 
 Nenhum segredo, dado real, regra de venda ou saldo de estoque foi alterado nesta auditoria.
 
+## Validação no Supabase de produção — 29/09/2026
+
+Com autorização do responsável, o Advisor e as configurações do projeto
+`candinho-suplementos` foram inspecionados em modo de leitura antes da correção.
+
+Achados confirmados e corrigidos:
+
+- `purchase_planning_overview`, `product_sales_category_intelligence` e
+  `replenishment_overview` voltaram a usar `security_invoker=true`;
+- a função exclusivamente interna `defer_sale_acquisition_cost_v4545()` deixou
+  de ser executável por `PUBLIC`, `anon` e `authenticated`;
+- a própria transação verificou as três opções de view e os privilégios da
+  função antes do `commit`;
+- após atualizar o linter, o Security Advisor passou a mostrar **0 erros**.
+
+O aviso `Leaked Password Protection Disabled` permanece porque o recurso é
+disponível apenas no plano Pro. Nenhuma assinatura ou custo foi criado. Os
+buckets públicos encontrados são exclusivamente os de imagens de produto;
+arquivos internos permanecem sem a marcação `PUBLIC` e possuem políticas.
+
+Migration versionada:
+`supabase/migrations/20260929175034_harden_live_advisor_findings.sql`.
+
 ## Qualidade encontrada durante a validação
 
 - `npm audit --omit=dev`: aprovado, zero vulnerabilidades.
