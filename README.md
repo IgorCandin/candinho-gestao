@@ -2,6 +2,15 @@
 
 ERP da Candinho Company para as operações de Suplementos, Fitness, Bank, Central, Marketing e Physique.
 
+## Continuidade do desenvolvimento
+
+- `AGENTS.md` — instruções obrigatórias para agentes e futuras tarefas
+- `docs/engineering/CONTEXT.md` — arquitetura e decisões atuais
+- `docs/engineering/BUSINESS_RULES.md` — regras confirmadas e hipóteses a validar
+- `docs/engineering/OBSERVATIONS.md` — correções e padrões recorrentes
+- `docs/engineering/WORK_QUEUE.md` — fila técnica única e ordem de execução
+- `docs/engineering/SECURITY_AUDIT_2026-09-29.md` — auditoria mais recente
+
 ## Estrutura do projeto
 
 - `src/` — aplicação Next.js e componentes da interface
