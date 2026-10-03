@@ -89,6 +89,16 @@ Migration versionada:
 
 ## Qualidade encontrada durante a validação
 
+### Atualização de 03/10/2026 — políticas de escrita
+
+Aplicada pelo conector Supabase a migration `restrict_open_write_policies`.
+As políticas de `ux_issue_reports` e `customer_partner_link_reviews` agora
+validam o perfil ativo e o acesso correspondente ao fluxo. Escrita direta foi
+limitada às colunas utilizadas pelas rotas atuais, protegendo autoria e vínculos.
+Revisores autorizados podem continuar revisões iniciadas por outro usuário.
+Verificação no banco confirmou atualização de status permitida e alteração de
+autoria/cliente negada. Teste visual dos fluxos ainda pendente.
+
 - `npm audit --omit=dev`: aprovado, zero vulnerabilidades.
 - `npx tsc --noEmit`: aprovado.
 - Compilação Next.js: código compilado com sucesso; prerender local bloqueado somente pela ausência das variáveis Supabase.
