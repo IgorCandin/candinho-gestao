@@ -99,6 +99,15 @@ Revisores autorizados podem continuar revisões iniciadas por outro usuário.
 Verificação no banco confirmou atualização de status permitida e alteração de
 autoria/cliente negada. Teste visual dos fluxos ainda pendente.
 
+### Atualização de 03/10/2026 — funções internas
+
+Aplicada em produção a migration `20261003131229_secure_helper_functions.sql`.
+Dez funções auxiliares passaram a usar `search_path=pg_catalog`, após revisão
+das definições. Seis funções de trigger perderam execução direta pelo cliente;
+seus triggers continuam responsáveis pela execução automática. Não houve
+alteração de regras comerciais nem de registros reais. Testes SQL de slug e
+relacionamento passaram; testes visuais de venda, sabores e agenda pendentes.
+
 - `npm audit --omit=dev`: aprovado, zero vulnerabilidades.
 - `npx tsc --noEmit`: aprovado.
 - Compilação Next.js: código compilado com sucesso; prerender local bloqueado somente pela ausência das variáveis Supabase.

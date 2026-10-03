@@ -1,0 +1,13 @@
+begin;
+alter function public.touch_ux_issue_report_updated_at() set search_path = pg_catalog;
+alter function public.touch_customer_partner_link_review_updated_at() set search_path = pg_catalog;
+alter function public.normalize_commercial_route_city_v1(text) set search_path = pg_catalog;
+alter function public.normalize_nexus_route_v1(text) set search_path = pg_catalog;
+alter function public.nexus_scope_from_route_v1(text) set search_path = pg_catalog;
+alter function public.operational_supply_apply_sensible_defaults() set search_path = pg_catalog;
+alter function public.nexus_touch_updated_at_v1() set search_path = pg_catalog;
+alter function public.inverse_customer_relationship_type_v1(text) set search_path = pg_catalog;
+alter function public.catalog_slugify_v1(text) set search_path = pg_catalog;
+alter function public.catalog_touch_updated_at_v1() set search_path = pg_catalog;
+revoke execute on function public.queue_post_sale_google_calendar_sync(), public.queue_strategic_agenda_google_calendar_sync(), public.enforce_product_flavor_activation_guard(), public.require_product_flavor_when_enabled(), public.sync_post_sale_batch_trigger(), public.fitness_refresh_quote_totals() from public, anon, authenticated;
+commit;
