@@ -18,7 +18,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { CustomerCombobox } from "@/components/customer-combobox";
@@ -121,6 +121,17 @@ export function NewSaleForm({
   companyMode?: boolean;
 }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    // Legacy DOM enhancements must wait for this streamed form to hydrate.
+    // A sibling/layout effect can run while its HTML is still server-owned.
+    const form = formRef.current;
+    if (!form) return;
+    form.dataset.saleFormHydrated = "true";
+    form.dispatchEvent(new Event("candinho:sale-form-ready", { bubbles: true }));
+    return () => { delete form.dataset.saleFormHydrated; };
+  }, []);
 
   const defaultLocation =
     initialQuote?.location_id ??
@@ -955,7 +966,7 @@ export function NewSaleForm({
 
   return (
     <>
-    <form className="new-sale-layout" onSubmit={requestSave}>
+    <form ref={formRef} className="new-sale-layout" onSubmit={requestSave}>
       <div className="new-sale-main">
         {initialQuote && (
           <article className="panel budget-conversion-banner">

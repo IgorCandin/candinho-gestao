@@ -678,6 +678,9 @@ export function CommercialSaleRefinementUX({
     }
 
     function scan() {
+      // The server streams the form independently from this sibling. Do not
+      // insert/rewrite React-owned HTML before the form's hydration commits.
+      if (!document.querySelector('.new-sale-layout[data-sale-form-hydrated="true"]')) return;
       document
         .querySelectorAll(".sale-form-item")
         .forEach((item) => enhanceItem(item));
@@ -689,6 +692,7 @@ export function CommercialSaleRefinementUX({
     }
 
     scan();
+    document.addEventListener("candinho:sale-form-ready", scan);
 
     const observer = new MutationObserver(scan);
 
@@ -698,6 +702,7 @@ export function CommercialSaleRefinementUX({
     });
 
     return () => {
+      document.removeEventListener("candinho:sale-form-ready", scan);
       observer.disconnect();
       cleanups.forEach((cleanup) => cleanup());
 

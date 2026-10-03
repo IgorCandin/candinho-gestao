@@ -20,13 +20,15 @@ export function CommercialBudgetOptionalPanelsV45234() {
   useEffect(() => {
     const active =
       pathname === "/vendas/nova" ||
-      pathname === "/suplementos/vendas/nova";
+      pathname === "/suplementos/vendas/nova" ||
+      pathname === "/company/vendas/nova/suplementos";
 
     if (!active) return;
 
     const cleanups: Array<() => void> = [];
 
     function enhance() {
+      if (!document.querySelector('.new-sale-layout[data-sale-form-hydrated="true"]')) return;
       for (const panel of document.querySelectorAll<HTMLElement>(
         ".new-sale-main > article.panel",
       )) {
@@ -90,6 +92,7 @@ export function CommercialBudgetOptionalPanelsV45234() {
     }
 
     enhance();
+    document.addEventListener("candinho:sale-form-ready", enhance);
 
     const observer = new MutationObserver(enhance);
     observer.observe(document.body, {
@@ -98,6 +101,7 @@ export function CommercialBudgetOptionalPanelsV45234() {
     });
 
     return () => {
+      document.removeEventListener("candinho:sale-form-ready", enhance);
       observer.disconnect();
       cleanups.forEach((cleanup) => cleanup());
     };
