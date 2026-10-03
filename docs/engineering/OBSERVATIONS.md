@@ -39,6 +39,16 @@ Referências:
 
 ## Revisão
 
+### OBS-004 — Pós-venda permanece após cancelamento
+
+- Data: 03/10/2026.
+- Contexto: calendário do ERP e fila de contatos de pós-venda.
+- Evidência: consulta em produção confirmou 3 tarefas automáticas de reposição ainda planejadas para vendas canceladas, incluindo Edirlei. O pós-venda agrupado já estava cancelado; a reposição era a origem do contato ativo.
+- Sugestão: conferir vínculo do compromisso com a venda e tratamento do cancelamento na geração, atualização e sincronização da agenda. Retirar da fila o contato originado exclusivamente pela venda cancelada, preservando histórico e contatos de outras vendas válidas do cliente.
+- Status: corrigido no banco em 03/10/2026; consulta pós-correção confirmou zero tarefas automáticas ativas ligadas a vendas canceladas e tarefa de Edirlei cancelada. Histórico e vínculos preservados. Validação visual pendente.
+- Teste esperado: criar venda com pós-venda, cancelar e verificar que o contato deixa a agenda/fila ativa; uma segunda venda válida do cliente deve manter seu contato.
+
+
 Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis para:
 
 - regra em `AGENTS.md`;

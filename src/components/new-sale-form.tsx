@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { BodyPortal } from "@/components/body-portal";
 import Link from "next/link";
 import {
   CheckCircle2,
@@ -2285,7 +2286,7 @@ export function NewSaleForm({
         </div>
       )}
     </form>
-    {quickCustomerOpen ? <div className="company-quick-register-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickCustomerOpen(false); }}><div className="company-quick-register-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-customer-title"><h2 id="quick-customer-title">Cadastro rápido de cliente</h2><p>Nome e cidade bastam agora. O telefone ficará como pendência na ficha. Se abandonar o orçamento, o cliente não será salvo.</p><label className="field"><span>Nome</span><input className="input" autoFocus value={quickCustomerName} onChange={(event) => setQuickCustomerName(event.target.value)}/></label><label className="field"><span>Cidade</span><input className="input" value={quickCustomerCity} onChange={(event) => setQuickCustomerCity(event.target.value)}/></label><div className="company-quick-register-actions"><button className="button ghost" type="button" onClick={() => setQuickCustomerOpen(false)}>Cancelar</button><button className="button gold" type="button" onClick={() => { if (!quickCustomerName.trim()) { setMessage("Informe o nome do cliente."); return; } const id = customerDraft?.id ?? crypto.randomUUID(); setCustomerDraft({ id, name: quickCustomerName.trim(), city: quickCustomerCity.trim() }); setCustomerId(id); setQuickCustomerOpen(false); setMessage(null); }}>Usar neste orçamento</button></div></div></div> : null}
+    {quickCustomerOpen ? <BodyPortal><div className="company-quick-register-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickCustomerOpen(false); }}><div className="company-quick-register-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-customer-title"><h2 id="quick-customer-title">Cadastro rápido de cliente</h2><p>Nome e cidade bastam agora. O telefone ficará como pendência na ficha. Se abandonar o orçamento, o cliente não será salvo.</p><label className="field"><span>Nome</span><input className="input" autoFocus value={quickCustomerName} onChange={(event) => setQuickCustomerName(event.target.value)}/></label><label className="field"><span>Cidade</span><input className="input" value={quickCustomerCity} onChange={(event) => setQuickCustomerCity(event.target.value)}/></label><div className="company-quick-register-actions"><button className="button ghost" type="button" onClick={() => setQuickCustomerOpen(false)}>Cancelar</button><button className="button gold" type="button" onClick={() => { if (!quickCustomerName.trim()) { setMessage("Informe o nome do cliente."); return; } const id = customerDraft?.id ?? crypto.randomUUID(); setCustomerDraft({ id, name: quickCustomerName.trim(), city: quickCustomerCity.trim() }); setCustomerId(id); setQuickCustomerOpen(false); setMessage(null); }}>Usar neste orçamento</button></div></div></div></BodyPortal> : null}
     </>
   );
 }
