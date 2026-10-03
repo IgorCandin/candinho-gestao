@@ -49,6 +49,22 @@ Referências:
 - Teste esperado: criar venda com pós-venda, cancelar e verificar que o contato deixa a agenda/fila ativa; uma segunda venda válida do cliente deve manter seu contato.
 
 
+### OBS-005 — Melhorias de DOM e carregamento da Nova venda
+
+- Data: 03/10/2026.
+- Contexto: Nova venda Suplementos na Company e hidratação de conteúdo transmitido pelo servidor.
+- Evidência: React 418 reproduzido em produção nos commits ab4b121 e 859ca73. CommercialSaleRefinementUX alterava o DOM sem conferir se NewSaleForm já estava hidratado. O marcador de prontidão publicado impede essa corrida específica, mas o erro persistiu: a causa completa continua aberta.
+- Sugestão: preservar melhorias e campos; investigar divergência restante sem esconder erros ou remover renderização do servidor em toda a página.
+- Status: proteção parcial publicada; Doctor não encerrado. Tipos aprovados e lint direcionado com zero erros (aviso preexistente de dependência no NewSaleForm).
+
+### OBS-006 — Marcações locais de migração entre operações
+
+- Data: 03/10/2026.
+- Contexto: mapa com duas instâncias do roteiro (Suplementos e Fitness).
+- Evidência: saveLocal escrevia o mapa da instância inteira, possivelmente desatualizado, e uma sincronização bem-sucedida removia todo o cache compartilhado. Isso podia perder marcações de outras linhas/da outra operação.
+- Sugestão: mesclar pelo check_key com o cache atual, remover apenas a linha sincronizada e notificar as duas instâncias. Falhas de conexão e de armazenamento não podem deixar o botão travado nem fingir persistência.
+- Status: corrigido no código; verificação de tipos e lint direcionado aprovados. Não alterar marcações reais para testar em produção.
+
 Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis para:
 
 - regra em `AGENTS.md`;

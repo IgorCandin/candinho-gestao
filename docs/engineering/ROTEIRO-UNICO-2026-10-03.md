@@ -7,11 +7,13 @@ Atualizado em 03/10/2026. O roteiro de 17/09 é histórico: seus itens “public
 - Cancelamento de venda: corrigido o contato automático de reposição que continuava ativo. Foram encontrados 3 casos, incluindo Edirlei; eles foram cancelados sem apagar tarefas, vínculos ou histórico, com registro de auditoria. Uma rotina automática trata futuros cancelamentos. A consulta pós-correção confirmou zero contatos/reminders ativos de vendas canceladas. Caminho: [Gestão/calendário](https://candinho.duckdns.org/company/gestao) e [Atender e acompanhar](https://candinho.duckdns.org/company/acompanhar). O contato do Edirlei não deve estar na fila ativa; o histórico cancelado permanece.
 - Segurança: políticas do Doctor e revisão de parceiros, 10 funções auxiliares protegidas e execução direta de 6 funções internas bloqueada. Aplicado no banco e testes SQL aprovados; o responsável confirmou os testes anteriores. Isso não significa que todos os avisos de segurança foram corrigidos.
 
-## 2. Preparado no código; publicação pendente
+## 2. Publicado em 03/10; conferência parcial
 
-- Cadastro rápido de cliente em Nova venda Suplementos: janela fora dos contêineres da página, com altura dinâmica e rolagem. Testar no iPhone com teclado aberto/fechado depois de publicar: [Nova venda](https://candinho.duckdns.org/company/vendas/nova/suplementos). Não marcar o sinal do Doctor resolvido antes desse teste.
+- Cadastro rápido de cliente em Nova venda Suplementos: janela fora dos contêineres da página, com altura dinâmica e rolagem. Em produção, abriu como filha direta do BODY e inteiramente dentro da área visível observada (559×572). A tentativa de simular 414×848 não mudou a área efetiva do navegador; isso NÃO comprova teste no iPhone. Conferir com teclado aberto/fechado: [Nova venda](https://candinho.duckdns.org/company/vendas/nova/suplementos).
 - Mapa Fitness: adicionados blocos de venda/orçamento, conclusão, produtos/fotos/variações, estoque/histórico, compras, CRM, consignações e resultados, com contagem separada. Nenhum bloco foi marcado OK automaticamente. Testar persistência de OK/Falta após atualizar: [Mapa](https://candinho.duckdns.org/company/mapa).
-- Arquivos SQL das correções de segurança e cancelamento, testes e documentação precisam ser enviados ao GitHub. O envio pelo terminal não consegue conectar; a escrita pelo conector foi bloqueada pela política deste ambiente. Não anunciar publicação dessas telas até liberar o envio e confirmar a implantação.
+- GitHub liberado: commits 7b0a8dd, 62102a7 e ab4b121 enviados à main. Vercel confirmou produção READY para ab4b121 (dpl_6uhTGR7RkH7jxdx1HaqHZ35QMJPw). A proteção contra melhorias visuais alterarem o formulário antes da hidratação foi publicada no commit 859ca73, também READY (dpl_E771N1LRm4qFcuyfM9undEAVcfJw), mas o erro React 418 ainda reapareceu: não considerar essa causa encerrada.
+- Conferências online sem mutações: Resultados carregou o gráfico e os valores; Despesa/baixa abriu para Suplementos e Fitness. Isso comprova carregamento, não baixa real nem exatidão contábil completa.
+- Mapa: correção complementar para preservar marcações locais de outras operações ao salvar/sincronizar uma linha; não apagar todo o cache. Nenhum estado OK foi criado artificialmente.
 
 ## 3. Doctor: corrigir causas, não apagar sinais
 
@@ -19,8 +21,8 @@ Consulta ao banco em 03/10 encontrou 8 sinais ativos:
 
 | Rota | Sinal | Última ocorrência | Próximo trabalho |
 | --- | --- | --- | --- |
-| /company/resultados | React 419 | 29/09 | Reproduzir falha de renderização no servidor e conferir logs |
-| /company/vendas/nova/suplementos | React 418, desktop | 29/09 | Reproduzir divergência de HTML entre servidor e navegador |
+| /company/resultados | React 419 | 29/09 | Gráfico carregou em 03/10; erro não reapareceu nessa navegação, mas falta reprodução suficiente antes de encerrar |
+| /company/vendas/nova/suplementos | React 418, desktop | 03/10 | Erro reproduzido em produção antes e depois de 859ca73; investigar divergência de HTML restante |
 | /company/vendas/nova/suplementos | React 418, mobile | 29/09 | Reproduzir no celular, sem ocultar o erro |
 | /company/vendas/nova/suplementos | janela de cadastro cortada | 29/09 | Publicar correção preparada e testar teclado/rolagem |
 | /atletas | menu Physique cortado | 11/09 | Reproduzir na dimensão registrada e testar navegação |
@@ -28,7 +30,7 @@ Consulta ao banco em 03/10 encontrou 8 sinais ativos:
 | /suplementos/hoje | erro de componente no servidor | 03/09 | Conferir rota antiga e logs atuais |
 | /suplementos/estoque | rodapé cortado | 30/08 | Reproduzir no celular |
 
-Nenhum desses 8 registros foi apagado ou encerrado nesta rodada. Data antiga não prova correção. Após correção + reprodução aprovada, atualizar para resolvido com evidência, preservando ocorrências e histórico. React 418 indica divergência de hidratação; React 419 indica falha do servidor dentro de uma área Suspense, não necessariamente a mesma causa.
+Nenhum registro foi apagado nem encerrado manualmente nesta rodada. A contagem inicial de 8 não é um total final: novos testes podem gerar novos sinais. Data antiga não prova correção. Após correção + reprodução aprovada, atualizar para resolvido com evidência, preservando ocorrências e histórico. React 418 indica divergência de hidratação; React 419 indica falha do servidor dentro de uma área Suspense, não necessariamente a mesma causa. O navegador negou acesso ao teste local; o arquivo temporário foi removido e o servidor parado, sem tentar contornar a restrição.
 
 ## 4. Operação: conferir por lote, sem refazer tudo
 
@@ -57,8 +59,8 @@ Há implementação no código para os caminhos abaixo, mas não foi feita homol
 ## Como o responsável ajuda sem perder tempo
 
 1. Conferir se Edirlei saiu da fila ativa e informar se o mesmo contato ainda aparece no Google Calendar (caso use a sincronização).
-2. Após publicação, testar no iPhone só a janela de cadastro e rolagem; enviar rota + print se cortar.
+2. Testar no iPhone só a janela de cadastro e rolagem, já publicada; enviar rota + print se cortar.
 3. Enviar o PDF original quando formos validar a importação, e escolher um exemplo de consignação/prova que usa no dia a dia.
 4. Para cada falha: rota, cliente/produto, esperado e ocorrido. Não precisa reenviar toda a história.
 
-Ordem: cancelamento validado → publicar lote preparado → Doctor → operação/consignações → Bank/Atletas/Vitrine → homologação → desligamento. Este documento concentra o que falta; nenhum item foi declarado concluído só por existir no código.
+Ordem: conferir cancelamento → Doctor (React 418 primeiro) → operação/consignações → Bank/Atletas/Vitrine → homologação → desligamento. Publicação foi desbloqueada. Este documento concentra o que falta; nenhum item foi declarado concluído só por existir no código.
