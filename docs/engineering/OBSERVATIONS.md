@@ -65,6 +65,14 @@ Referências:
 - Sugestão: mesclar pelo check_key com o cache atual, remover apenas a linha sincronizada e notificar as duas instâncias. Falhas de conexão e de armazenamento não podem deixar o botão travado nem fingir persistência.
 - Status: corrigido no código; verificação de tipos e lint direcionado aprovados. Não alterar marcações reais para testar em produção.
 
+### OBS-007 — Mapa sem permissão de leitura/gravação
+
+- Data: 06/10/2026.
+- Evidência: log de produção de 16:07 UTC registrou permission denied for table migration_audit_checks. Consulta confirmou ausência de SELECT/INSERT/UPDATE para authenticated, apesar da migration histórica de grant; RLS estava ativa.
+- Correção: restaurar somente leitura e upsert para authenticated, preservando políticas e dados. Remover TRUNCATE/REFERENCES/TRIGGER desnecessários de anon/authenticated; não conceder DELETE nem acesso anônimo.
+- Status: migration 20261006162033 aplicada online. Teste com papel authenticated e administrador ativo leu, inseriu e atualizou dentro de transação com ROLLBACK; zero registros fictícios restantes. Advisors sem ERROR; alertas anteriores permanecem. CLI não disponível: arquivo usa a versão exata registrada pelo Supabase, não timestamp inventado.
+- Próximo: confirmar janela do mapa e persistência visual quando houver navegação disponível. React 418 continua independente e aberto.
+
 Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis para:
 
 - regra em `AGENTS.md`;

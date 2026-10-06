@@ -1,6 +1,14 @@
 # Candinho Company — roteiro único atualizado
 
-Atualizado em 03/10/2026. O roteiro de 17/09 é histórico: seus itens “publicados” não comprovam testes atuais. Não desligar módulos antigos por um indicador 10/10.
+Atualizado em 06/10/2026. O roteiro de 17/09 é histórico: seus itens “publicados” não comprovam testes atuais. Não desligar módulos antigos por um indicador 10/10.
+
+## Avanço de 06/10 — sem depender de testes do responsável
+
+- Mapa de migração: corrigida online a falta de permissão para ler e salvar. Leitura, inclusão e atualização validadas com usuário autorizado em transação desfeita; nenhum OK fictício, venda ou estoque alterado. Migration 20261006162033 preserva RLS e bloqueia exclusão/acesso anônimo. Teste posterior opcional: [Mapa](https://candinho.duckdns.org/company/mapa), marcar uma linha e atualizar para conferir persistência.
+- Doctor consultado novamente: 7 sinais ativos; React 418 da Nova venda teve nova ocorrência em 06/10 (22 desktop, 5 mobile). Não é apenas erro antigo; segue aberto. Nenhum sinal apagado ou encerrado manualmente nesta rodada.
+- A abertura pelo navegador de teste excedeu o tempo de resposta do domínio; a correção do banco foi validada diretamente, mas não equivale a homologação visual.
+- Segurança: verificação após a migration não apontou ERROR; avisos anteriores sobre funções privilegiadas, extensão e senha vazada permanecem.
+- Ordem restante: React 418 e telas cortadas → regressão de vendas/estoque/consignações → Bank, PDF e Vitrine → homologação final. O responsável não precisa testar agora; quando puder, concentrar em mapa, Nova venda e janela no iPhone.
 
 ## 1. Corrigido no banco; conferir agora
 
