@@ -11,7 +11,8 @@ import { formatDateTime } from "@/lib/format";
 function detailText(details: Record<string, unknown>, key: string) { const value = details[key]; return value == null ? null : String(value); }
 const statusLabel: Record<string,string> = { open: "Aberta", reviewing: "Em análise", resolved: "Resolvida" };
 
-export default async function InventoryReconciliationPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+export default async function InventoryReconciliationPage({ searchParams, companyMode=false }: { searchParams: Promise<{ status?: string }>; companyMode?: boolean }) {
+  const base=companyMode?"/company/estoque":"/estoque";
   const access = await getCurrentUserAccess();
   if (!(access.role === "admin" || access.canAccessSupplements)) redirect("/dashboard");
   const params = await searchParams;
@@ -22,12 +23,12 @@ export default async function InventoryReconciliationPage({ searchParams }: { se
   const products = items.filter((item)=>item.attention_type==="product");
 
   return <>
-    <PageHeader eyebrow="Estoque" title="Reconciliação V2" description="Acompanhe divergências, coloque itens em análise e registre resoluções sem alterar o estoque automaticamente." action={<Link className="button ghost" href="/estoque"><ArrowLeft size={16}/>Voltar ao estoque</Link>}/>
+    <PageHeader eyebrow="Estoque" title="Reconciliação V2" description="Acompanhe divergências, coloque itens em análise e registre resoluções sem alterar o estoque automaticamente." action={<Link className="button ghost" href={base}><ArrowLeft size={16}/>Voltar ao estoque</Link>}/>
 
     <section className="stats-grid inventory-reconciliation-stats">
-      <StatCard href="/estoque/reconciliacao?status=open" label="Abertas" value={String(data.summary.open)} note="Ainda não revisadas" icon={TriangleAlert}/>
-      <StatCard href="/estoque/reconciliacao?status=reviewing" label="Em análise" value={String(data.summary.reviewing)} note="Conferência em andamento" icon={SearchCheck}/>
-      <StatCard href="/estoque/reconciliacao?status=resolved" label="Resolvidas atuais" value={String(data.summary.resolved_current)} note="Marcadas como revisadas" icon={CheckCircle2}/>
+      <StatCard href={`${base}/reconciliacao?status=open`} label="Abertas" value={String(data.summary.open)} note="Ainda não revisadas" icon={TriangleAlert}/>
+      <StatCard href={`${base}/reconciliacao?status=reviewing`} label="Em análise" value={String(data.summary.reviewing)} note="Conferência em andamento" icon={SearchCheck}/>
+      <StatCard href={`${base}/reconciliacao?status=resolved`} label="Resolvidas atuais" value={String(data.summary.resolved_current)} note="Marcadas como revisadas" icon={CheckCircle2}/>
       <StatCard label="Total atual" value={String(data.summary.total_current)} note="Pendências detectadas pelo sistema" icon={ShieldAlert}/>
     </section>
 
@@ -36,9 +37,9 @@ export default async function InventoryReconciliationPage({ searchParams }: { se
     </article>
 
     <nav className="reconciliation-tabs">
-      <Link className={status==="open"?"active":""} href="/estoque/reconciliacao?status=open">Abertas</Link>
-      <Link className={status==="reviewing"?"active":""} href="/estoque/reconciliacao?status=reviewing">Em análise</Link>
-      <Link className={status==="resolved"?"active":""} href="/estoque/reconciliacao?status=resolved">Resolvidas</Link>
+      <Link className={status==="open"?"active":""} href={`${base}/reconciliacao?status=open`}>Abertas</Link>
+      <Link className={status==="reviewing"?"active":""} href={`${base}/reconciliacao?status=reviewing`}>Em análise</Link>
+      <Link className={status==="resolved"?"active":""} href={`${base}/reconciliacao?status=resolved`}>Resolvidas</Link>
     </nav>
 
     <section className="inventory-reconciliation-grid reconciliation-v2-grid">
@@ -48,7 +49,7 @@ export default async function InventoryReconciliationPage({ searchParams }: { se
           {locations.length===0 ? <div className="empty"><ClipboardCheck size={24}/><strong>Nenhum ponto neste status</strong>Troque o filtro para visualizar outras etapas da reconciliação.</div> : locations.map((item)=><div className={`inventory-reconciliation-row-v2 ${item.review_status}`} key={`${item.attention_type}-${item.entity_id}-${item.issue_code}`}>
             <div className="reconciliation-row-head"><span><TriangleAlert size={17}/></span><div><strong>{item.title}</strong><small>{item.issue_code==="legacy_not_migrated"?"Histórico antigo ainda não foi convertido para movimentos canônicos.":"O sistema não possui uma contagem física confirmada para este ponto."}</small></div><b>{statusLabel[item.review_status] ?? item.review_status}</b></div>
             {item.review_notes && <p className="reconciliation-note">Última observação: {item.review_notes}</p>}
-            {access.canWriteSupplements && <InventoryReconciliationActions attentionType={item.attention_type} entityId={item.entity_id} issueCode={item.issue_code} currentStatus={item.review_status} currentNotes={item.review_notes}/>}          
+            {access.canWriteSupplements && <InventoryReconciliationActions companyMode={companyMode} attentionType={item.attention_type} entityId={item.entity_id} issueCode={item.issue_code} currentStatus={item.review_status} currentNotes={item.review_notes}/>}
           </div>)}
         </div>
       </article>
@@ -57,9 +58,9 @@ export default async function InventoryReconciliationPage({ searchParams }: { se
         <div className="panel-head"><div><h2>Produtos em atenção</h2><p>Itens zerados, abaixo do mínimo ou com divergência operacional.</p></div><PackageSearch size={20}/></div>
         <div className="inventory-reconciliation-list">
           {products.length===0 ? <div className="empty"><ClipboardCheck size={24}/><strong>Nenhum produto neste status</strong>Não há produtos nessa etapa da revisão.</div> : products.slice(0,80).map((item)=><div className={`inventory-reconciliation-row-v2 product ${item.review_status}`} key={`${item.attention_type}-${item.entity_id}-${item.issue_code}`}>
-            <div className="reconciliation-row-head"><span><ShieldAlert size={17}/></span><div><Link href={`/estoque/${item.entity_id}`}><strong>{item.title}</strong></Link><small>{detailText(item.details,"location_name") ?? (item.issue_code==="out_of_stock"?"Produto zerado com meta de estoque.":"Abra o produto para revisar o saldo e a reposição.")}</small></div><b>{statusLabel[item.review_status] ?? item.review_status}</b></div>
+            <div className="reconciliation-row-head"><span><ShieldAlert size={17}/></span><div><Link href={`${base}/${item.entity_id}`}><strong>{item.title}</strong></Link><small>{detailText(item.details,"location_name") ?? (item.issue_code==="out_of_stock"?"Produto zerado com meta de estoque.":"Abra o produto para revisar o saldo e a reposição.")}</small></div><b>{statusLabel[item.review_status] ?? item.review_status}</b></div>
             {item.review_notes && <p className="reconciliation-note">Última observação: {item.review_notes}</p>}
-            {access.canWriteSupplements && <InventoryReconciliationActions attentionType={item.attention_type} entityId={item.entity_id} issueCode={item.issue_code} currentStatus={item.review_status} currentNotes={item.review_notes}/>}          
+            {access.canWriteSupplements && <InventoryReconciliationActions companyMode={companyMode} attentionType={item.attention_type} entityId={item.entity_id} issueCode={item.issue_code} currentStatus={item.review_status} currentNotes={item.review_notes}/>}
           </div>)}
         </div>
       </article>

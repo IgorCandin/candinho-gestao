@@ -270,6 +270,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     return <div className="company-workspace-v2 company-global-agenda"><CompanyWorkflowSync/>
       <header className="company-workspace-heading"><span>COMPANY · GESTÃO</span><h1>Visão da empresa</h1><p>Confira os números, organize a agenda e abra cadastros administrativos sem procurar por várias operações.</p></header>
       <section className="company-management-links">
+        <Link href="/company/ferramentas"><Boxes/><div><strong>Ferramentas de Suplementos e Fitness</strong><span>Consignações, estoque inteligente, PDFs, Nexus e hábitos</span></div><b>→</b></Link>
         {access.role === "admin" || access.canAccessFitness ? <Link href="/company/fitness/oportunidades"><ShoppingBag/><div><strong>Fitness · possibilidades de venda</strong><span>Tamanho observado, categoria e estoque disponível</span></div><b>→</b></Link> : null}
         <Link href="/company/escritorio"><GitBranch/><div><strong>Escritório de operações</strong><span>Salas, personagens e pendências reais por área</span></div><b>→</b></Link>
         <Link href="/company/central"><BarChart3/><div><strong>Sala do Dono</strong><span>Valores, resultados e atalhos executivos</span></div><b>→</b></Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { companyDestination } from "@/lib/company-destination";
 import {
   Bot,
   CheckCircle2,
@@ -61,7 +62,7 @@ function signalGroup(signal: NexusSignal): FilterKey {
   return "operation";
 }
 
-export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief }) {
+export function NexusCommandCenter({ initialBrief, companyMode = false }: { initialBrief: NexusBrief; companyMode?: boolean }) {
   const [brief, setBrief] = useState(initialBrief);
   const [filter, setFilter] = useState<FilterKey>("all");
   const [loading, setLoading] = useState(false);
@@ -289,7 +290,7 @@ export function NexusCommandCenter({ initialBrief }: { initialBrief: NexusBrief 
             </div>
             <div className="panel-body nexus-playbook-list">
               {execution.map((item) => (
-                <Link href={item.href} key={item.label}>
+                <Link href={companyMode ? companyDestination(item.href) : item.href} key={item.label}>
                   <strong>{item.label}</strong>
                   <span>{item.note}</span>
                 </Link>

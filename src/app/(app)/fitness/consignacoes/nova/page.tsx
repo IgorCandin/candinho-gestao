@@ -7,11 +7,11 @@ import {
 } from "@/lib/data";
 import { getFitnessCompanyCustomerDirectory } from "@/lib/fitness-customer-directory-data";
 
-export default async function Page() {
+export default async function Page({companyMode=false}:{companyMode?:boolean}={}) {
   const access = await getCurrentUserAccess();
 
   if (!access.canWriteFitness) {
-    redirect("/fitness");
+    redirect(companyMode ? "/company/inicio" : "/fitness");
   }
 
   const [stock, customers] = await Promise.all([
@@ -31,6 +31,7 @@ export default async function Page() {
         stock={stock}
         customers={customers}
         responsible={access.name}
+        companyMode={companyMode}
       />
     </>
   );

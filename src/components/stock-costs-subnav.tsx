@@ -7,9 +7,10 @@ import styles from "./stock-costs-subnav.module.css";
 
 export function StockCostsSubnav({ operation }: { operation: "supplements" | "fitness" }) {
   const pathname = usePathname();
-  const stockHref = operation === "fitness" ? "/fitness/estoque" : "/estoque";
-  const costsHref = `${stockHref}/custos`;
-  const onCosts = pathname.startsWith(costsHref);
+  const companyMode = pathname.startsWith("/company/");
+  const stockHref = companyMode ? `/company/estoque?operacao=${operation}` : operation === "fitness" ? "/fitness/estoque" : "/estoque";
+  const costsHref = companyMode ? `/company/custos-insumos?operacao=${operation}` : `${stockHref}/custos`;
+  const onCosts = companyMode ? pathname.startsWith("/company/custos-insumos") : pathname.startsWith(costsHref);
 
   return (
     <nav className={styles.nav} aria-label="Áreas do estoque">

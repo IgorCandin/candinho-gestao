@@ -16,6 +16,14 @@ Referências:
 
 ## Observações atuais
 
+### OBS-MIG-20261016 — Migrar retorno de ação, não somente o link de entrada
+
+- Contexto: continuar Suplementos/Fitness na Company sem retirar funções.
+- Evidência: consignações não tinham páginas Company e criação/acerto/cancelamento voltavam ao Fitness; movimentações perdiam contexto nos filtros/paginação. Cesta Nexus dependia de painel/título ausente no DOM atual.
+- Mudança: composição das páginas existentes em rotas Company, contexto explícito nos componentes compartilhados, filtros/retornos nativos e catálogo de ferramentas pela Gestão. Cesta renderizada diretamente, preservando decisões e mesmas RPCs. Nenhuma regra ou dado de produção alterado.
+- Status: testes automatizados de acerto/venda, devolução, cancelamento, falha e contexto legado; TypeScript e lint direcionado aprovados. Homologação autenticada/visual e ações reais continuam pendentes. Publicação deve ser confirmada no relato da entrega.
+- Referências: `MIGRACAO-COMPANY-2026-10-16.md`, `tests/company-tools-migration.test.cjs`, `/company/mapa`.
+
 ### Entradas e 13º no Planejamento — 16/10/2026
 
 - Contexto: responsável sentiu falta de visualizar/confirmar entradas e citou 13º Igor/Giulia sem valor ou data conhecidos.

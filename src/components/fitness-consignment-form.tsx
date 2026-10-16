@@ -47,10 +47,12 @@ export function FitnessConsignmentForm({
   stock,
   customers,
   responsible,
+  companyMode = false,
 }: {
   stock: FitnessStockRow[];
   customers: FitnessCustomerRow[];
   responsible: string;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
 
@@ -219,7 +221,7 @@ export function FitnessConsignmentForm({
       if (error) throw error;
 
       router.push(
-        `/fitness/consignacoes/${String(data)}`,
+        `${companyMode ? "/company/fitness" : "/fitness"}/consignacoes/${String(data)}`,
       );
       router.refresh();
     } catch (error) {

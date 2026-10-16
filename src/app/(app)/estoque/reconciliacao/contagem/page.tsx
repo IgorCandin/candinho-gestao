@@ -15,11 +15,14 @@ import {
 
 export default async function ReconciliationCountPage({
   searchParams,
+  companyMode = false,
 }: {
+  companyMode?: boolean;
   searchParams: Promise<{
     local?: string;
   }>;
 }) {
+  const backHref=companyMode?"/company/estoque/reconciliacao":"/estoque/reconciliacao";
   const params =
     await searchParams;
 
@@ -51,7 +54,7 @@ export default async function ReconciliationCountPage({
           action={
             <Link
               className="button ghost"
-              href="/estoque/reconciliacao"
+              href={backHref}
             >
               <ArrowLeft
                 size={16}
@@ -91,7 +94,7 @@ export default async function ReconciliationCountPage({
         action={
           <Link
             className="button ghost"
-            href="/estoque/reconciliacao"
+            href={backHref}
           >
             <ArrowLeft
               size={16}
@@ -202,7 +205,7 @@ export default async function ReconciliationCountPage({
               selectedLocation.id
             }
             initialMode="count"
-            successHref="/estoque/reconciliacao"
+            successHref={backHref}
           />
         </div>
       </article>

@@ -12,11 +12,11 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function NexusHabitsPage() {
+export default async function NexusHabitsPage({companyMode=false}:{companyMode?:boolean}={}) {
   const access = await getCurrentUserAccess();
 
   if (!(access.role === "admin" || access.canWriteSupplements)) {
-    redirect("/suplementos");
+    redirect(companyMode ? "/company/inicio" : "/suplementos");
   }
 
   const supabase = await createClient();
@@ -35,7 +35,7 @@ export default async function NexusHabitsPage() {
         title="Como o Nexus aprendeu sua rotina"
         description="Padrões de navegação usados para ordenar atalhos e detectar fluxos repetitivos. Não é leitura de conteúdo pessoal."
         action={
-          <Link className="button ghost" href="/suplementos/nexus">
+          <Link className="button ghost" href={companyMode ? "/company/suplementos/nexus" : "/suplementos/nexus"}>
             <ArrowLeft size={15} /> Voltar ao Nexus
           </Link>
         }
@@ -49,7 +49,7 @@ export default async function NexusHabitsPage() {
         </span>
       </div>
 
-      <NexusHabitsPanel snapshot={snapshot} />
+      <NexusHabitsPanel snapshot={snapshot} companyMode={companyMode} />
     </>
   );
 }

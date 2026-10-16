@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { companyDestination } from "@/lib/company-destination";
 import {
   Activity,
   Bot,
@@ -26,8 +27,10 @@ function dateTime(value: string | null) {
 
 export function NexusHabitsPanel({
   snapshot,
+  companyMode = false,
 }: {
   snapshot: NexusDailySnapshot;
+  companyMode?: boolean;
 }) {
   return (
     <section className="nexus-habits-v453">
@@ -89,7 +92,7 @@ export function NexusHabitsPanel({
               );
 
               return href ? (
-                <Link href={href} key={item.route}>{content}</Link>
+                <Link href={companyMode ? companyDestination(href) : href} key={item.route}>{content}</Link>
               ) : (
                 <div key={item.route}>{content}</div>
               );
@@ -122,7 +125,7 @@ export function NexusHabitsPanel({
                     <span>
                       {workflow.repetitions} repetições · {workflow.distinct_days} dia(s)
                     </span>
-                    {href && <Link href={href}>Ir para o último passo</Link>}
+                    {href && <Link href={companyMode ? companyDestination(href) : href}>Ir para o último passo</Link>}
                   </article>
                 );
               })

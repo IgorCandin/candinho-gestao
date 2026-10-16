@@ -5,7 +5,7 @@ import { FitnessNexusPurchaseBasketV2 } from "@/components/fitness-nexus-purchas
 import { PageHeader } from "@/components/page-header";
 import { getFitnessNexusSnapshot } from "@/lib/fitness-nexus-data";
 
-export default async function FitnessNexusPage() {
+export default async function FitnessNexusPage({companyMode=false}:{companyMode?:boolean}={}) {
   const snapshot = await getFitnessNexusSnapshot();
 
   return (
@@ -15,7 +15,7 @@ export default async function FitnessNexusPage() {
         title="Nexus Fitness"
         description="Estoque, giro, mix e sinais de demanda organizados em próximos passos. O histórico orienta família, tamanho e cor; a escolha do novo modelo e do fornecedor continua humana."
         action={
-          <Link className="button ghost" href="/fitness/estoque">
+          <Link className="button ghost" href={companyMode ? "/company/estoque?operacao=fitness" : "/fitness/estoque"}>
             <ArrowLeft size={16} />
             Voltar ao Setor Operacional
           </Link>
@@ -23,9 +23,9 @@ export default async function FitnessNexusPage() {
       />
 
       <div className="fitness-nexus-lab-v2">
-        <FitnessNexusCenter snapshot={snapshot} />
+        <FitnessNexusCenter snapshot={snapshot} companyMode={companyMode} />
       </div>
-      <FitnessNexusPurchaseBasketV2 />
+      <FitnessNexusPurchaseBasketV2 companyMode={companyMode} />
     </>
   );
 }
