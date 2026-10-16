@@ -59,7 +59,17 @@ export function BankMonthPlanner({ data, initialMonth }: { data: BankPlanningDat
     <details className="bank-planner-incomes"><summary>Conferir entradas e valores já recebidos</summary><p>Recebidos são informativos: não somamos novamente ao saldo. Salários adiantados são abatidos das previsões.</p>{month.incomes.map(row => <div key={row.id}><span>{row.title}{row.kind === "transfer" ? " · transferência, não renda" : ""}</span><strong>{formatCurrency(row.amount)} · {row.state === "received" ? "conferido" : "a conferir"}</strong></div>)}<Link href="/bank/entradas">Abrir entradas e conferência</Link></details>
     <section className="bank-planner-simulator" aria-label="Simulador de plano"><div><h2>Cabe um plano?</h2><p>Simulação apenas. Não cria despesa nem altera seu saldo.</p></div><label>Nome do plano<input value={title} onChange={event => setTitle(event.target.value)} /></label><label>Orçamento (R$)<input inputMode="decimal" placeholder="0,00" value={budget} onChange={event => setBudget(event.target.value)} aria-invalid={parsed === null}/></label><output aria-live="polite">{parsed === null ? "Informe um valor como 1.200,50." : <><strong>{title || "Seu plano"}: {plan.afterPlan < 0 ? "faltariam" : "sobrariam"} {formatCurrency(Math.abs(plan.afterPlan))}</strong><small>Após pagar os compromissos. Com entradas ainda a conferir: {formatCurrency(plan.projectedAfterPlan)}.</small></>}</output></section>
     <div className="bank-planner-card-head"><div><h2>Contas e cartões</h2><small>Arraste para o lado ou use as setas</small></div><div><button aria-label="Cartões anteriores" onClick={() => scrollCards(-1)}><ChevronLeft/></button><button aria-label="Próximos cartões" onClick={() => scrollCards(1)}><ChevronRight/></button></div></div>
-    <div className="bank-planner-cards" ref={track} aria-label="Filtrar compromissos por cartão"
+    <div className="bank-planner-cards" ref={track} role="group" aria-label="Filtrar compromissos por cartão"
+      onKeyDown={event => {
+        if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+        const buttons = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>("button"));
+        const index = buttons.indexOf(event.target as HTMLButtonElement);
+        if (index < 0) return;
+        event.preventDefault();
+        const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : Math.max(0, Math.min(buttons.length - 1, index + (event.key === "ArrowRight" ? 1 : -1)));
+        buttons[next]?.focus({ preventScroll: true });
+        buttons[next]?.scrollIntoView({ block: "nearest", inline: "nearest", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+      }}
       onPointerDown={event => {
         skipClick.current = false;
         if (event.pointerType !== "mouse" || event.button !== 0) return;
