@@ -1,4 +1,4 @@
-export type PlanningIncome = { id: string; title: string; amount: number; state: "pending" | "received"; kind: "income" | "transfer"; advance?: number };
+export type PlanningIncome = { id: string; title: string; amount: number; state: "pending" | "received"; kind: "income" | "transfer"; advance?: number; sourceId?: string; confirmedAmount?: number; href?: string };
 export type PlanningReserve = { id: string; month: string; amount: number; outsideBalances: boolean };
 export const cents = (value: number) => Math.round((Number.isFinite(value) ? value : 0) * 100);
 

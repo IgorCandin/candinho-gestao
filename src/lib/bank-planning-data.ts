@@ -6,7 +6,7 @@ import type { PlanningIncome, PlanningReserve } from "@/lib/bank-planning";
 
 export type PlanningCard = { id: string; name: string; institution: string; holder: string; closingDay?: number | null; dueDay?: number | null };
 export type PlanningMonth = { referenceMonth: string; label: string; rows: BankMonthCommitment[]; incomes: PlanningIncome[] };
-export type BankPlanningData = { currentMonth: string; balance: number; balanceDate: string | null; reserves: PlanningReserve[]; months: PlanningMonth[]; cards: PlanningCard[]; warnings: string[] };
+export type BankPlanningData = { currentMonth: string; balance: number; balanceDate: string | null; reserves: PlanningReserve[]; months: PlanningMonth[]; cards: PlanningCard[]; warnings: string[]; canWrite?: boolean };
 
 // Reconciliation metadata, NOT new financial entries. Source: audit 3373, 15/10/2026.
 // Bound to the existing reserve and income sources; never repeats in another month.
@@ -49,14 +49,14 @@ export async function getBankPlanningData(): Promise<BankPlanningData> {
     for (const source of eligible) {
       const received = (receipts.data ?? []).filter(row => row.source_id === source.id && row.reference_month === base.referenceMonth).reduce((sum, row) => sum + Number(row.amount), 0);
       const advance = base.referenceMonth === "2026-11-01" ? advances.get(String(source.id)) ?? 0 : 0;
-      if (received > 0) incomes.push({ id: `receipt:${source.id}`, title: `${source.name} · recebido (já refletido no saldo)`, amount: received, state: "received", kind: "income" });
+      if (received > 0) incomes.push({ id: `receipt:${source.id}`, title: `${source.name} · recebimento registrado (confira o saldo)`, amount: received, state: "received", kind: "income" });
       const outstanding = Math.max(0, Number(source.amount) - received - advance);
-      if (outstanding > 0) incomes.push({ id: `source:${source.id}`, title: String(source.name), amount: outstanding, state: "pending", kind: "income" });
+      if (outstanding > 0) incomes.push({ id: `source:${source.id}`, title: String(source.name), amount: outstanding, state: "pending", kind: "income", sourceId: String(source.id), confirmedAmount: received });
     }
     for (const row of receivables.data ?? []) {
       if (!String(row.due_date).startsWith(base.referenceMonth.slice(0, 7)) || ["received", "cancelled"].includes(String(row.status))) continue;
       if (row.source_id && eligible.some(source => source.id === row.source_id)) continue;
-      incomes.push({ id: String(row.id), title: String(row.title), amount: Math.max(0, Number(row.amount) - Number(row.received_amount)), state: "pending", kind: /transfer/i.test(String(row.category)) ? "transfer" : "income" });
+      incomes.push({ id: String(row.id), title: String(row.title), amount: Math.max(0, Number(row.amount) - Number(row.received_amount)), state: "pending", kind: /transfer/i.test(String(row.category)) ? "transfer" : "income", href: `/bank/entradas?receber=${encodeURIComponent(String(row.id))}` });
     }
     // Explicit schedules use outstanding amounts (not the original sale total).
     // Undated/overdue operations stay in the current month, not both months.
@@ -74,5 +74,5 @@ export async function getBankPlanningData(): Promise<BankPlanningData> {
     });
     return { referenceMonth: base.referenceMonth, label: base.monthLabel, rows, incomes };
   });
-  return { currentMonth: current.referenceMonth, balance: (accounts.data ?? []).reduce((sum, row) => sum + Number(row.balance), 0), balanceDate: (accounts.data ?? []).map(row => row.balance_date as string | null).filter((date): date is string => Boolean(date)).sort()[0] ?? null, reserves, months, cards: (cards.data ?? []).map(row => ({ id: String(row.id), name: String(row.name), institution: String(row.institution ?? "Banco"), holder: String(row.holder_name ?? "Titular não informado"), closingDay: row.closing_day ? Number(row.closing_day) : null, dueDay: row.due_day ? Number(row.due_day) : null })), warnings };
+  return { canWrite: access.canWriteBank, currentMonth: current.referenceMonth, balance: (accounts.data ?? []).reduce((sum, row) => sum + Number(row.balance), 0), balanceDate: (accounts.data ?? []).map(row => row.balance_date as string | null).filter((date): date is string => Boolean(date)).sort()[0] ?? null, reserves, months, cards: (cards.data ?? []).map(row => ({ id: String(row.id), name: String(row.name), institution: String(row.institution ?? "Banco"), holder: String(row.holder_name ?? "Titular não informado"), closingDay: row.closing_day ? Number(row.closing_day) : null, dueDay: row.due_day ? Number(row.due_day) : null })), warnings };
 }

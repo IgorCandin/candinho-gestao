@@ -23,6 +23,9 @@ O responsável autorizou publicação direta em 16/10. Os pacotes #30 e #31 agor
 
 ## Implementação ainda faltando
 
+- [ ] Entradas no Planejamento: conferir apresentação por mês, confirmação com data/valor reais e atualização sem sair da tela. Recebimento mensal é total acumulado (upsert), não incremento; atualizar saldo das contas separadamente. Implementação desta rodada reutiliza RPC existente, sem executar recebimentos reais nos testes.
+- [ ] 13º Igor/Giulia: lembrete visível, valores e datas desconhecidos, fora dos totais. Consulta somente leitura em 16/10 não encontrou fontes com nome 13/décimo. O lembrete não é lançamento no banco e não some automaticamente; ao cadastrar valores/datas reais, revisar para não duplicar e conectar acompanhamento por identidade em etapa posterior. Não inferir salário, mês ou parcelas.
+
 - [ ] Ampliar horizonte financeiro além do próximo mês. Hoje as parcelas futuras aparecem, mas capacidade financeira nesses meses permanece “a conferir”.
 - [ ] Escritório: lista filtrada dos cadastros sem telefone, com acesso direto ao cadastro; atualmente abre a lista geral de clientes.
 - [ ] Escritório: reposição usando critérios e filas existentes, sem inventar recomendação de compra.

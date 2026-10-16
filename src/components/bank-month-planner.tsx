@@ -9,6 +9,7 @@ import { bankCardBrand } from "@/lib/bank-card-brand";
 import { calculateBankPlan } from "@/lib/bank-planning";
 import { BankInstallmentSimulator } from "@/components/bank-installment-simulator";
 import { BankCardCycle } from "@/components/bank-card-cycle";
+import { BankPlanningIncomes } from "@/components/bank-planning-incomes";
 import type { BankPlanningData } from "@/lib/bank-planning-data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import "./bank-month-planner.css";
@@ -56,7 +57,7 @@ export function BankMonthPlanner({ data, initialMonth, today = "" }: { data: Ban
       <article><span>Compromissos em aberto</span><strong>{formatCurrency(plan.commitments)}</strong><small>Todas as contas do mês, inclusive atrasadas</small></article>
       <article><span>Diferença com o disponível</span><strong className={plan.difference < 0 ? "negative" : "positive"}>{formatCurrency(plan.difference)}</strong><small>Se todas as previsões entrarem: {formatCurrency(plan.projected)}</small></article>
     </div>
-    <details className="bank-planner-incomes"><summary>Conferir entradas e valores já recebidos</summary><p>Recebidos são informativos: não somamos novamente ao saldo. Salários adiantados são abatidos das previsões.</p>{month.incomes.map(row => <div key={row.id}><span>{row.title}{row.kind === "transfer" ? " · transferência, não renda" : ""}</span><strong>{formatCurrency(row.amount)} · {row.state === "received" ? "conferido" : "a conferir"}</strong></div>)}<Link href="/bank/entradas">Abrir entradas e conferência</Link></details>
+    <BankPlanningIncomes key={month.referenceMonth} incomes={month.incomes} month={month.referenceMonth} canWrite={data.canWrite === true}/>
     <BankInstallmentSimulator data={data}/>
     <div className="bank-planner-card-head"><div><h2>Contas e cartões</h2><small>Arraste para o lado ou use as setas</small></div><div><button aria-label="Cartões anteriores" onClick={() => scrollCards(-1)}><ChevronLeft/></button><button aria-label="Próximos cartões" onClick={() => scrollCards(1)}><ChevronRight/></button></div></div>
     <div className="bank-card-cycle-controls"><label>Se eu comprar em…<input type="date" value={cycleDate} onChange={event => setCycleDate(event.target.value)}/></label><Link href="/bank/faturas">Conferir ou editar datas dos cartões</Link><small>Estimativa por fechamento e vencimento cadastrados, não autorização para gastar. No dia do fechamento, confirme com o banco.</small></div>

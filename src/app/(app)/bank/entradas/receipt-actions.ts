@@ -70,5 +70,21 @@ export async function markBankIncomeSourceReceived(formData: FormData) {
   revalidatePath("/bank");
   revalidatePath("/bank/entradas");
   revalidatePath("/bank/visao-anual");
+  revalidatePath("/bank/planejamento");
+  revalidatePath("/bank/mobile");
+  if (formData.get("return_to") === "planning") return;
   redirect("/bank/entradas?salvo=entrada-recebida");
+}
+
+export async function confirmPlannerIncome(_previous: { message: string; ok: boolean }, formData: FormData) {
+  // Same permission-checked RPC as Entradas. Receipt is a monthly total (upsert), not an increment.
+  formData.set("return_to", "planning");
+  try {
+    const amount = parseOptionalMoney(formData.get("amount"));
+    if (amount === null || amount <= 0) throw new Error("Informe o valor real recebido.");
+    await markBankIncomeSourceReceived(formData);
+    return { ok: true, message: "Recebimento confirmado. Confira o saldo das contas: este registro não atualiza o saldo automaticamente." };
+  } catch {
+    return { ok: false, message: "Não foi possível confirmar. Confira valor, data e sua permissão; consulte Entradas antes de tentar novamente." };
+  }
 }

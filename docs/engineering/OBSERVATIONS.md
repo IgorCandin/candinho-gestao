@@ -16,6 +16,13 @@ Referências:
 
 ## Observações atuais
 
+### Entradas e 13º no Planejamento — 16/10/2026
+
+- Contexto: responsável sentiu falta de visualizar/confirmar entradas e citou 13º Igor/Giulia sem valor ou data conhecidos.
+- Evidência: Planejamento escondia entradas em disclosure sem formulário. RPC existente de recebimento mensal faz upsert por fonte/mês e não altera saldo de contas. Consulta somente leitura não encontrou fonte com nome 13/décimo.
+- Mudança: seção visível, formulário de fonte mensal com valor acumulado e data reais; links para recebíveis/vendas na origem; nenhuma confirmação executada pelo agente. Lembrete do 13º é apenas pendência de planejamento, não lançamento financeiro e não entra nos totais.
+- Status: implementação nesta rodada; testes de usuário continuam pendentes. Não inferir valores/datas, nem presumir que confirmação atualiza o saldo automaticamente.
+
 ### OBS-001 — Não anunciar publicação sem evidência
 
 - Contexto: em conversas anteriores, funcionalidades foram descritas como publicadas sem que o comportamento em produção estivesse confirmado.
