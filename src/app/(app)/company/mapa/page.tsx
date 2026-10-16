@@ -55,6 +55,10 @@ const blocks: Block[] = [
 ];
 
 const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
+blocks.push({ title: "Escritório de operações", scope: "Visão complementar; não substitui as filas nem executa ações", steps: [
+  { label: "Salas e indicadores reais", state: "test", detail: "Clientes sem telefone, vendas a entregar e compromissos Bank do mês, com permissões e erro distinto de zero. Conferir contadores, celular e links; ainda não homologado.", href: "/company/escritorio" },
+  { label: "Reposição e anotações compartilhadas", state: "todo", detail: "Conectar critérios existentes de reposição e definir armazenamento auditável das notas. Não há agentes autônomos nem serviço de IA contratado." },
+] });
 const allSteps = blocks.flatMap((block) => block.steps);
 
 const auditRows: MigrationAuditRow[] = [
