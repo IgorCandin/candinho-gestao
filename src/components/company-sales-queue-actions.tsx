@@ -4,6 +4,7 @@ import { CalendarClock, Check, ChevronLeft, LoaderCircle, MessageCircle, PhoneOf
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
+import { notifyCompanyWorkflowUpdated } from "@/components/company-workflow-sync";
 
 type WorkflowAction = "called" | "skipped" | "lost_contact" | "no_response" | "converted_sale" | "preferred_wait" | "not_interested_month" | "still_using" | "product_ended" | "no_money" | "stopped_using";
 
@@ -44,6 +45,7 @@ export function CompanySalesQueueActions({ opportunity }: { opportunity: SalesOp
       const response = await fetch(`/api/customers/${opportunity.customer_id}/sales-opportunities`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ workflow_action: action, next_action_on: nextDate || null, recommended_product_id: opportunity.recommended_product_id, opportunity_group: opportunity.opportunity_group, opportunity_subtype: opportunity.opportunity_subtype }) });
       const payload = (await response.json()) as { error?: string };
       if (!response.ok) throw new Error(payload.error || "Não foi possível atualizar a fila.");
+      notifyCompanyWorkflowUpdated();
       setMessage(action === "called" ? "Contato registrado. Confira a resposta daqui a 6 dias, se não houver retorno antes." : action === "no_response" ? "Sem resposta registrado. Próxima tentativa limitada pela regra de 6/30 dias." : action === "lost_contact" || action === "stopped_using" ? "Retirado da fila ativa." : action === "converted_sale" ? "Conversão registrada." : ["preferred_wait", "still_using", "no_money"].includes(action) ? `Próximo contato: ${nextDate}.` : "Resultado registrado.");
       router.refresh();
     } catch (error) {

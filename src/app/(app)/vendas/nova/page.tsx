@@ -114,6 +114,7 @@ export default async function NewSalePage<T extends {
         combos={combos}
         lastPurchaseCosts={lastPurchaseCosts}
         initialQuote={initialQuote}
+        initialLeadId={!initialQuote ? params.lead?.trim() : undefined}
         initialCustomerId={!initialQuote && customers.some((item) => item.id === params.cliente) ? params.cliente : undefined}
         initialProductId={!initialQuote && stock.some((item) => item.product_id === params.produto) ? params.produto : undefined}
         today={today}

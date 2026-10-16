@@ -6,7 +6,11 @@ import { useRouter } from "next/navigation";
 export const COMPANY_WORKFLOW_SYNC_KEY = "company-workflow-updated-at";
 
 export function notifyCompanyWorkflowUpdated() {
-  window.localStorage.setItem(COMPANY_WORKFLOW_SYNC_KEY, String(Date.now()));
+  try {
+    window.localStorage.setItem(COMPANY_WORKFLOW_SYNC_KEY, String(Date.now()));
+  } catch {
+    // A confirmed save must remain successful when browser storage is unavailable.
+  }
 }
 
 export function CompanyWorkflowSync() {
