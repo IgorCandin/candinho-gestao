@@ -81,6 +81,13 @@ Referências:
 - Mudança: novo planejamento separa saldo, reserva por mês, recebimentos informativos e previsões a conferir. Reserva entra uma vez, sem transporte automático; simulação não grava dados. Usa compromissos existentes, sem reimportação.
 - Status: implementação e nove testes aprovados na branch codex/bank-month-planner; PR #26 em rascunho, preview READY, produção não alterada. Validação visual e ações mutantes reais não homologadas. Ver BANK-PLANEJAMENTO-2026-10-16.md.
 
+### OBS-009 — Normalizar a marca, não só a caixa
+
+- Contexto: logos de bancos enviadas com margens internas diferentes; Nubank tinha marca pequena dentro de uma imagem grande.
+- Evidência: mesma caixa de 64px deixou Nubank desproporcional às outras logos na prévia.
+- Mudança: enquadramento óptico por marca, com escala uniforme e recorte de margem via CSS, preservando arquivos originais e proporções. Regra de antecipar esse acabamento registrada em AGENTS.md; não esperar apontamentos repetidos.
+- Status: ajuste de apresentação, sem alteração financeira. Conferir conjunto antes de publicar.
+
 Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis para:
 
 - regra em `AGENTS.md`;
