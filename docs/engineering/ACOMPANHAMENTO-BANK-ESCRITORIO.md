@@ -7,10 +7,10 @@ Atualizado em 16/10/2026. Atualizar este arquivo conforme cada teste/implementa�
 | Item | Estado | Evidência / destino |
 | --- | --- | --- |
 | Planejamento e simulador parcelado | Publicado, teste do usuário pendente | PR #27 integrado, produção READY commit 701617e; `/bank/planejamento` |
-| Fechamento/vencimento nos cards e data de comparação | Implementado em prévia, NÃO publicado | PR #30 aberto; verificação Vercel SUCCESS em 16/10 |
-| Escritório de operações | Implementado em prévia, NÃO publicado | PR #31 aberto; verificação Vercel SUCCESS em 16/10 |
+| Fechamento/vencimento nos cards e data de comparação | Integrado para publicação, teste do usuário pendente | PR #30 integrado em 16/10; `/bank/planejamento` |
+| Escritório de operações | Integrado para publicação, teste do usuário pendente | PR #31 integrado em 16/10, commit 8785bf2; `/company/escritorio` |
 
-As prévias #30 e #31 são pacotes separados. A prévia do escritório não inclui automaticamente os cartões novos da #30. Não interpretar ausência nessa prévia como perda da implementação. Não publicar/mesclar por causa desta atualização documental.
+O responsável autorizou publicação direta em 16/10. Os pacotes #30 e #31 agora estão juntos no main; testar no domínio oficial após confirmação READY da hospedagem, não nas prévias antigas. Publicação não equivale a homologação dos testes abaixo. Registrar confirmação da hospedagem separadamente.
 
 ## Testes do responsável — ainda não aprovados
 

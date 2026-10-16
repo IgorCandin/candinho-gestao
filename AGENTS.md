@@ -31,6 +31,8 @@ Não diga que algo foi publicado, corrigido ou testado sem registrar a evidênci
 
 ## Validação mínima
 
+- Preferência confirmada em 16/10/2026: neste trabalho, publicar melhorias autorizadas após as verificações técnicas e entregar links do site oficial para teste, sem exigir rodada manual de prévia. Isso não autoriza alterações fora do escopo, ignorar falhas de build ou executar mudanças arriscadas em dados/regras sem confirmação. Testes do responsável continuam pendentes até retorno explícito.
+
 Execute, conforme a mudança:
 
 ```bash
