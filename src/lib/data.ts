@@ -2284,7 +2284,7 @@ export async function getPartnerDetails(partnerId: string): Promise<PartnerDetai
   const supabase = await createClient();
   const [overviewResult, salesResult, settlementsResult, unassignedResult] = await Promise.all([
     supabase.from("partner_management_overview").select("*").eq("id", partnerId).maybeSingle(),
-    supabase.from("partner_sales_history").select("*").eq("partner_id", partnerId).order("sale_date", { ascending: false }).limit(300),
+    supabase.from("partner_sales_history").select("*").eq("partner_id", partnerId).neq("general_status", "cancelled").order("sale_date", { ascending: false }).limit(300),
     supabase.from("partnership_settlements").select("*").eq("partner_id", partnerId).order("period_end", { ascending: false }),
     supabase.from("unassigned_partnership_sales").select("*").or(`suggested_partner_id.eq.${partnerId},suggested_partner_id.is.null`).order("sale_date", { ascending: false }).limit(100),
   ]);
