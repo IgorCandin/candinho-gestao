@@ -114,3 +114,13 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Extensão da auditoria: a ficha de parceiros também lia canceladas e mostrava somente pagamento/entrega; filtrar as compras efetivas nessa consulta, mantendo as operações canceladas disponíveis nos orçamentos/vendas para auditoria. Fitness já apresenta a situação correta e exclui canceladas dos totais e do pós-venda.
 - Referências: `supabase/tests/cancelled_purchase_history.sql`, `supabase/tests/cancelled_post_sale_draft_rollback.sql`, `tests/post-sale-state.test.cjs`.
 
+### OBS-011 — Vitrine de descoberta e acesso direto às ações
+
+- Data: 16/10/2026.
+- Contexto: responsável autorizou uma segunda Vitrine, preservando a original, e melhorias diretas em Company, Bank e Atletas.
+- Mudança: `/catalogo/descobrir` usa as mesmas fontes públicas de estoque, preços, promoções, imagens, tamanhos/cores e encomendas. Coleções por operação, oito disponíveis por vez, favoritos apenas durante a visita e detalhes em diálogo nativo. Indisponíveis ficam recolhidos ao final. O atendimento/compra continua nas páginas existentes; não há nova reserva ou baixa de estoque.
+- Operação: filtro textual de ações na Company e nos portais Bank/Atletas; Bank inclui planejamento mensal. Links nativos nesses dois portais eliminam a espera artificial e permitem abrir em outra aba. As demais entradas preservam seu comportamento. Movimento reduzido é respeitado nos cartões da Company.
+- Evidência: navegação local com produtos reais conferiu filtros, favorito, detalhes, tamanhos/cores de Fitness, expansão progressiva e layout de 390px sem overflow. Corrigido conflito de tamanho de botões imposto pelo CSS público antigo. Testes de ações usaram montagem local temporária removida antes de publicar, sem contornar autenticação ou alterar registros.
+- Verificações gerais: lint completo revelou 92 erros/28 avisos em arquivos anteriores; lint dos arquivos desta alteração é conferido separadamente. Auditoria das dependências existentes apontou Next.js crítico, sharp e source-map-js altos; nenhuma dependência foi adicionada ou atualizada nesta mudança. Atualização de segurança merece trabalho próprio.
+- Status: implementação concluída; verificação final de compilação e publicação em andamento. Validação do responsável ainda pendente.
+
