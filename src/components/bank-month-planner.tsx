@@ -26,6 +26,15 @@ export function BankMonthPlanner({ data, initialMonth }: { data: BankPlanningDat
   const [budget, setBudget] = useState("");
   const [title, setTitle] = useState("Chá de bebê do Mateus");
   const track = useRef<HTMLDivElement>(null);
+  const drag = useRef({ startX: 0, scroll: 0, pointer: -1, moved: false });
+  const skipClick = useRef(false);
+  function scrollCards(direction: number) {
+    const element = track.current;
+    if (!element) return;
+    const card = element.querySelector<HTMLElement>("button");
+    const step = (card?.offsetWidth ?? 250) + 14;
+    element.scrollBy({ left: direction * step, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
   const month = data.months.find(row => row.referenceMonth === monthKey) ?? data.months[0];
   const parsed = parsePlanBudget(budget);
   const plan = calculateBankPlan({ month: month.referenceMonth, currentMonth: data.currentMonth, balance: data.balance, reserves: data.reserves, incomes: month.incomes, commitments: month.rows.map(row => row.amount), budget: parsed ?? 0 });
@@ -41,8 +50,34 @@ export function BankMonthPlanner({ data, initialMonth }: { data: BankPlanningDat
     </div>
     <details className="bank-planner-incomes"><summary>Conferir entradas e valores já recebidos</summary><p>Recebidos são informativos: não somamos novamente ao saldo. Salários adiantados são abatidos das previsões.</p>{month.incomes.map(row => <div key={row.id}><span>{row.title}{row.kind === "transfer" ? " · transferência, não renda" : ""}</span><strong>{formatCurrency(row.amount)} · {row.state === "received" ? "conferido" : "a conferir"}</strong></div>)}<Link href="/bank/entradas">Abrir entradas e conferência</Link></details>
     <section className="bank-planner-simulator" aria-label="Simulador de plano"><div><h2>Cabe um plano?</h2><p>Simulação apenas. Não cria despesa nem altera seu saldo.</p></div><label>Nome do plano<input value={title} onChange={event => setTitle(event.target.value)} /></label><label>Orçamento (R$)<input inputMode="decimal" placeholder="0,00" value={budget} onChange={event => setBudget(event.target.value)} aria-invalid={parsed === null}/></label><output aria-live="polite">{parsed === null ? "Informe um valor como 1.200,50." : <><strong>{title || "Seu plano"}: {plan.afterPlan < 0 ? "faltariam" : "sobrariam"} {formatCurrency(Math.abs(plan.afterPlan))}</strong><small>Após pagar os compromissos. Com entradas ainda a conferir: {formatCurrency(plan.projectedAfterPlan)}.</small></>}</output></section>
-    <div className="bank-planner-card-head"><h2>Contas e cartões</h2><div><button aria-label="Cartões anteriores" onClick={() => track.current?.scrollBy({ left: -300, behavior: "smooth" })}><ChevronLeft/></button><button aria-label="Próximos cartões" onClick={() => track.current?.scrollBy({ left: 300, behavior: "smooth" })}><ChevronRight/></button></div></div>
-    <div className="bank-planner-cards" ref={track} aria-label="Filtrar compromissos por cartão">
+    <div className="bank-planner-card-head"><div><h2>Contas e cartões</h2><small>Arraste para o lado ou use as setas</small></div><div><button aria-label="Cartões anteriores" onClick={() => scrollCards(-1)}><ChevronLeft/></button><button aria-label="Próximos cartões" onClick={() => scrollCards(1)}><ChevronRight/></button></div></div>
+    <div className="bank-planner-cards" ref={track} aria-label="Filtrar compromissos por cartão"
+      onPointerDown={event => {
+        skipClick.current = false;
+        if (event.pointerType !== "mouse" || event.button !== 0) return;
+        drag.current = { startX: event.clientX, scroll: event.currentTarget.scrollLeft, pointer: event.pointerId, moved: false };
+      }}
+      onPointerMove={event => {
+        const state = drag.current;
+        if (state.pointer !== event.pointerId || event.buttons !== 1) return;
+        const delta = event.clientX - state.startX;
+        if (!state.moved && Math.abs(delta) < 6) return;
+        state.moved = true;
+        skipClick.current = true;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        event.currentTarget.dataset.dragging = "true";
+        event.currentTarget.scrollLeft = state.scroll - delta;
+        event.preventDefault();
+      }}
+      onPointerUp={event => {
+        drag.current.pointer = -1;
+        delete event.currentTarget.dataset.dragging;
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      }}
+      onPointerCancel={event => { drag.current.pointer = -1; delete event.currentTarget.dataset.dragging; }}
+      onPointerLeave={event => { if (!drag.current.moved) drag.current.pointer = -1; if (!event.buttons) { drag.current.pointer = -1; delete event.currentTarget.dataset.dragging; } }}
+      onClickCapture={event => { if (skipClick.current && event.detail !== 0) { event.preventDefault(); event.stopPropagation(); skipClick.current = false; } }}
+      onDragStart={event => event.preventDefault()}>
       {[{ id: "all", name: "Todas as contas", institution: "Visão geral", holder: "Todos os titulares" }, ...data.cards, { id: "other", name: "Demais compromissos", institution: "Sem cartão vinculado", holder: "Recorrências, empréstimos e cobranças" }].map(card => <button key={card.id} style={{ "--bank-color": bankColor(card.institution) } as CSSProperties} aria-pressed={cardId === card.id} onClick={() => setCardId(card.id)}><BankPlannerLogo institution={card.institution}/><span>{card.institution}</span><strong>{card.name}</strong><small>Titular: {card.holder}</small><b>{formatCurrency(month.rows.filter(row => card.id === "all" || (card.id === "other" ? !row.cardId : row.cardId === card.id)).reduce((sum, row) => sum + row.amount, 0))}</b></button>)}
     </div>
     <p className="bank-planner-filter-note">O cartão filtra somente a lista abaixo. O resumo e o simulador continuam considerando o mês inteiro.</p>

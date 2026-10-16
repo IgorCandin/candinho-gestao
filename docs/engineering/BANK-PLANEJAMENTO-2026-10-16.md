@@ -35,6 +35,12 @@
 
 ## Roteiro de homologação
 
+### Conferência e refinamento após login
+
+- Prévia 7156a2c navegada com autenticação: outubro/novembro, simulador 500, filtros Sicoob CPF/CNPJ/Giulia, Todos, setas e detalhes/fechar/Escape conferidos. Dimensões 390x844 e 1366x768 sem overflow horizontal da página; nenhum erro de console observado. Sem testar pagamentos/adiamentos mutantes.
+- Totais efetivos: outubro 2.231,58 e novembro 7.819,41. Diferença de 200/400 em relação à tabela corresponde às semanas da psicóloga já cadastradas, preservadas.
+- Refinamento solicitado: Planejamento substitui Nexus no cabeçalho/rodapé Bank; rota Nexus continua existente. Cards com arraste por mouse (limiar de movimento evita selecionar após arrastar), toque nativo e setas por largura de cartão. Logos em moldura uniforme, sem distorção e sem arraste da imagem. Estas mudanças ficam no mesmo PR, não em produção.
+
 1. Abrir planejamento em desktop e celular, alternar meses. Conferir saldos atuais e reserva exclusivamente no mês de destino.
 2. Expandir entradas: depósito ainda pendente, salários antecipados não repetidos e diferenças explicitamente a conferir.
 3. Selecionar cada Sicoob: lista deve conter só a fatura daquele ID/titular; Todas as contas restaura cronologia completa. Testar setas/toque.

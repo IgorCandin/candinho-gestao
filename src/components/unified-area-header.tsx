@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bot, CircleDollarSign, Dumbbell, Home, Landmark, ListChecks, LogOut, ReceiptText, RefreshCcw, UserRound, UsersRound } from "lucide-react";
+import { CalendarDays, CircleDollarSign, Dumbbell, Home, Landmark, ListChecks, LogOut, ReceiptText, RefreshCcw, UserRound, UsersRound } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
@@ -14,7 +14,7 @@ import { AddCurrentPageShortcut } from "@/components/company-shortcuts";
 const bankLeft = [
   { href: "/bank", label: "Visão geral", icon: Landmark },
   { href: "/company/inicio", label: "Company", icon: Home },
-  { href: "/bank/nexus", label: "Nexus", icon: Bot },
+  { href: "/bank/planejamento", label: "Planejamento", icon: CalendarDays },
 ];
 const bankRight = [
   { href: "/bank/organizar", label: "Caixa", icon: CircleDollarSign },
@@ -38,7 +38,7 @@ export function UnifiedAreaHeader({ area, access }: { area: "bank" | "physique";
   const right = area === "bank" ? bankRight : physiqueRight;
   const brand = area === "bank" ? BRAND_ASSETS.bank.complete : BRAND_ASSETS.physique.complete;
   const root = area === "bank" ? "/bank/inicio" : "/atletas/inicio";
-  const isActive = (href: string) => pathname === href || (href !== root && !href.startsWith("/company") && pathname.startsWith(`${href}/`));
+  const isActive = (href: string) => (href === "/bank/planejamento" && pathname === "/bank/mobile") || pathname === href || (href !== root && !href.startsWith("/company") && pathname.startsWith(`${href}/`));
   const renderNav = (items: typeof left) => items.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={isActive(href) ? "active" : ""} aria-label={label} title={label}><span className="company-nav-icon"><Icon size={19}/></span><span className="company-nav-label">{label}</span></Link>);
 
   return <>
