@@ -27,6 +27,7 @@ export default async function CompanyEntryPage() {
     </header>
     <CompanyPriorityPreview receive={dashboard.pendingPaymentCount} deliver={dashboard.pendingDeliveryCount} incoming={dashboard.operational.incoming_units} />
     <CompanyActionGrid />
+    <Link className="button ghost" href="/company/escritorio">Escritório · visão das pendências</Link>
     <footer className="company-v2-footer"><span>Escolha uma direção. Execute sem se perder.</span><div><Link className="company-legacy-link" href="/company/vitrine">Gerenciar vitrine</Link><Link className="company-legacy-link" href="/dashboard">Voltar às operações do ERP 1.0</Link></div></footer>
   </main>;
 }

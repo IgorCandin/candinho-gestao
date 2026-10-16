@@ -24,6 +24,7 @@ const blocks: Block[] = [
   ]},
   { title: "3 · Bank 2.0", scope: "Aprofundar o financeiro depois das operações", steps: [
     { label: "Planejamento mensal e cartões", state: "test", detail: "Planejamento publicado em 16/10: mês atual/próximo, reservas separadas, simulador e cartões por titular. Conferir valores sem marcar previsões como recebidas.", href: "/bank/planejamento" },
+    { label: "Fechamento e vencimento separados", state: "test", detail: "Implementado na prévia do PR #30, ainda não publicado. Conferir datas reais e compra antes/no dia/depois do fechamento. A prévia do escritório (#31) é separada; acompanhamento único em docs/engineering/ACOMPANHAMENTO-BANK-ESCRITORIO.md." },
     { label: "Simulador parcelado", state: "doing", detail: "Preparados total, parcelas, cartão, compra e início ajustável. Testar 1.000 em 10x100 e fechamento. Falta ampliar dados financeiros além do próximo mês; parcelas futuras não significam orçamento conferido.", href: "/bank/planejamento" },
     { label: "Acabamento e navegação Bank", state: "test", detail: "Revisão de teclado, foco, textos longos e aba ativa preparada. Validar no iPhone: deslizar cartões, abrir/fechar detalhes, pagar e adiar somente uma conta real desejada. Não representa aprovação automática.", href: "/bank/planejamento" },
     { label: "Metas, caixa e situação financeira", state: "doing", detail: "Separar falta para a meta de situação crítica e considerar valores a receber." },
@@ -59,6 +60,10 @@ blocks.push({ title: "Escritório visual · proposta", scope: "Localizar pendên
 ] });
 
 const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
+blocks.push({ title: "Escritório de operações", scope: "Visão complementar; não substitui as filas nem executa ações", steps: [
+  { label: "Salas e indicadores reais", state: "test", detail: "Clientes sem telefone, vendas a entregar e compromissos Bank do mês, com permissões e erro distinto de zero. Conferir contadores, celular e links; ainda não homologado.", href: "/company/escritorio" },
+  { label: "Reposição e anotações compartilhadas", state: "todo", detail: "Conectar critérios existentes de reposição e definir armazenamento auditável das notas. Não há agentes autônomos nem serviço de IA contratado." },
+] });
 const allSteps = blocks.flatMap((block) => block.steps);
 
 const auditRows: MigrationAuditRow[] = [
