@@ -149,4 +149,5 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Rolagem move camadas da abertura, coleções e faixa tipográfica; fotos da galeria revelam-se conforme entram na tela. Ponteiro inclina o destaque em desktop. Sem nova biblioteca, autoplay ou bloqueio da rolagem; movimento reduzido preserva conteúdo estático.
 - Conferência local em desktop e 390px: fontes maiores, recortes carregados pelo otimizador, alpha confirmado nos arquivos; progresso CSS alterado após scroll; galeria expandida de 8 para 16 e acompanhada pelo observer, sem overflow horizontal. Lint dos arquivos alterados aprovado. Build remoto é condição de publicação.
 - Escopo somente visual; nenhuma alteração de dados, preços, estoque, pedidos ou autenticação. Referências e prompts em `VITRINE-DIRECAO-VISUAL.md` e `VITRINE-RECORTES-PROMPTS.md`.
+- Na galeria expandida, requisições do otimizador remoto excederam timeout local. Componente de imagem agora tenta o original direto e a miniatura existente antes de mostrar indisponibilidade; não deixa ícone de imagem quebrada. TypeScript e lint dos cinco módulos/configuração aprovados após esse ajuste.
 

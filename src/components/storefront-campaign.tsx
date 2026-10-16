@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { StorefrontDiscoveryImage } from "./storefront-discovery-image";
 import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 import type { PublicStorefrontProduct } from "@/lib/public-storefront-data";
@@ -43,9 +43,9 @@ export function StorefrontCampaign({ products, onOpen, onExplore, price }: Props
         event.currentTarget.style.setProperty("--pointer-y", "0");
       }}>
         <span className={styles.stageWord} aria-hidden="true">{fashion ? "MOVE" : "GO"}</span>
-        {supporting.map((p, i) => <button key={p.id} className={`${styles.sideShot} ${i ? styles.shotRight : styles.shotLeft}`} data-cutout={Boolean(discoveryCutout(p))} aria-label={`Conhecer ${p.name}`} onClick={() => onOpen(p)}>{discoveryImage(p) && <Image src={discoveryImage(p)!} alt={p.name} fill sizes="220px" />}<span><Plus size={18} /></span></button>)}
+        {supporting.map((p, i) => <button key={p.id} className={`${styles.sideShot} ${i ? styles.shotRight : styles.shotLeft}`} data-cutout={Boolean(discoveryCutout(p))} aria-label={`Conhecer ${p.name}`} onClick={() => onOpen(p)}>{discoveryImage(p) && <StorefrontDiscoveryImage src={discoveryImage(p)!} fallback={p.image_url} alt={p.name} fill sizes="220px" />}<span><Plus size={18} /></span></button>)}
         {selected && <button key={selected.id} className={styles.mainShot} onClick={() => onOpen(selected)} aria-label={`Conhecer ${selected.name}`}>
-          {discoveryImage(selected) && <Image data-cutout={Boolean(discoveryCutout(selected))} src={discoveryImage(selected)!} alt={selected.name} fill sizes="(max-width: 650px) 85vw, 520px" priority />}
+          {discoveryImage(selected) && <StorefrontDiscoveryImage data-cutout={Boolean(discoveryCutout(selected))} src={discoveryImage(selected)!} fallback={selected.image_url} alt={selected.name} fill sizes="(max-width: 650px) 85vw, 520px" priority />}
           <span className={styles.quickLook}>Olhe de perto <Plus size={17} /></span>
         </button>}
         {selected && <div className={styles.productTicket} aria-live="polite"><span><i /> Disponível agora</span><strong>{selected.name}</strong><span>{price(selected)}</span></div>}
