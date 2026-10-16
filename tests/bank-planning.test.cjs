@@ -9,6 +9,23 @@ const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions
 const compiled = new Module(file, module);
 compiled._compile(code, file);
 const { calculateBankPlan, parsePlanBudget } = compiled.exports;
+const { installmentSchedule, firstInstallmentMonth } = compiled.exports;
+test('installments distribute cents exactly and cross year boundaries', () => {
+  const rows = installmentSchedule(1000, 10, '2026-11');
+  assert.equal(rows.length, 10);
+  assert.ok(rows.every(row => row.amount === 100));
+  assert.equal(rows[2].month, '2027-01-01');
+  assert.deepEqual(installmentSchedule(10, 3, '2026-10').map(row => row.amount), [3.34, 3.33, 3.33]);
+  assert.deepEqual(installmentSchedule(10, 0, '2026-10'), []);
+});
+test('closing and due days determine first invoice, not a universal cutoff', () => {
+  assert.equal(firstInstallmentMonth('2026-10-06', 7, 15), '2026-10');
+  assert.equal(firstInstallmentMonth('2026-10-08', 7, 15), '2026-11');
+  assert.equal(firstInstallmentMonth('2026-10-25', 25, 5), '2026-11');
+  assert.equal(firstInstallmentMonth('2026-12-26', 25, 5), '2027-02');
+  assert.equal(firstInstallmentMonth('2026-02-30', 7, 15), null);
+  assert.equal(firstInstallmentMonth('2026-10-06', null, 15), null);
+});
 const reserve = { id: 'reserve', month: '2026-11-01', amount: 2900, outsideBalances: true };
 const base = { month: '2026-10-01', currentMonth: '2026-10-01', balance: 1099.65, reserves: [reserve], incomes: [], commitments: [2031.58] };
 

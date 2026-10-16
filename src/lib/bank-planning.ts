@@ -2,6 +2,27 @@ export type PlanningIncome = { id: string; title: string; amount: number; state:
 export type PlanningReserve = { id: string; month: string; amount: number; outsideBalances: boolean };
 export const cents = (value: number) => Math.round((Number.isFinite(value) ? value : 0) * 100);
 
+export function installmentSchedule(total: number, count: number, firstMonth: string) {
+  if (!Number.isFinite(total) || total < 0 || !Number.isInteger(count) || count < 1 || count > 60 || !/^\d{4}-(0[1-9]|1[0-2])$/.test(firstMonth)) return [];
+  const amount = cents(total);
+  const [year, month] = firstMonth.split("-").map(Number);
+  return Array.from({ length: count }, (_, index) => ({
+    month: new Date(Date.UTC(year, month - 1 + index, 1)).toISOString().slice(0, 10),
+    amount: (Math.floor(amount / count) + (index < amount % count ? 1 : 0)) / 100,
+  }));
+}
+
+/** Closing day is inclusive here; issuers may differ, so the UI permits an override. */
+export function firstInstallmentMonth(purchase: string, closing: number | null | undefined, due: number | null | undefined): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(purchase) || !closing || !due || closing < 1 || closing > 31 || due < 1 || due > 31) return null;
+  const [year, month, day] = purchase.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.toISOString().slice(0, 10) !== purchase) return null;
+  const closingDay = Math.min(closing, new Date(Date.UTC(year, month, 0)).getUTCDate());
+  const offset = (day > closingDay ? 1 : 0) + (due <= closing ? 1 : 0);
+  return new Date(Date.UTC(year, month - 1 + offset, 1)).toISOString().slice(0, 7);
+}
+
 /** No carry-forward: each month needs its own confirmed opening resources. */
 export function calculateBankPlan(input: { month: string; currentMonth: string; balance: number; reserves: PlanningReserve[]; incomes: PlanningIncome[]; commitments: number[]; budget?: number }) {
   const unique = Array.from(new Map(input.reserves.map(row => [row.id, row])).values());

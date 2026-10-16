@@ -19,6 +19,12 @@ Direção preservada: tema escuro existente, cores por banco, logos fornecidas, 
 
 ## Conferência do usuário
 
+### Ampliação solicitada: simulação parcelada
+
+Total, 1–60 parcelas, cartão/titular, data da compra e primeiro mês ajustável. Datas cadastradas do cartão sugerem o início; compra no fechamento exige conferência. Centavos distribuídos sem perder o total. Nenhum lançamento é gravado.
+
+Limite explícito: o carregador atual dispõe de dados completos apenas do mês atual e próximo; meses posteriores exibem parcela e aviso de orçamento incompleto, não saldo zero nem aprovação de capacidade financeira. Ampliar o horizonte financeiro continua pendente. Testar 1.000 em 10x100, compra antes/depois do fechamento, ajuste manual, virada de ano e valores inválidos. Onze testes automatizados passaram nesta ampliação; validação visual do componente ainda pendente.
+
 1. `/bank/planejamento`: mês atual/próximo; reserva somente no mês correto; previsão ainda “a conferir”.
 2. Cartões: arrastar, setas, teclado; titulares Sicoob separados; seleção filtra só a lista, não o resumo.
 3. Simulador: valor válido e inválido; nenhuma despesa criada.
