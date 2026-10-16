@@ -57,3 +57,11 @@ Clientes, produtos, vendas, pós-venda, compras, fornecedores, parceiros, rotas 
 1. Homologar consignação real desejada (envio → acerto/devolução → venda), mantendo consulta antiga para comparação.
 2. Conferir filtros/paginação de movimentações, inteligência, PDF e Nexus na sessão do ERP; gerar materiais somente quando desejado pelo responsável.
 3. Auditar conversões Fitness, todos os retornos da ficha de estoque Suplementos, ações profundas dos parceiros e Central. Não aposentar as telas antigas antes disso.
+
+### Verificação da publicação
+
+- Código publicado em produção: `433d595`; acabamento dos atalhos: `af8ce17`. Ambos com build Vercel READY e alias oficial. Sem alterações de dados para teste.
+- 14 testes Node aprovados, TypeScript e lint dos arquivos alterados sem erros. Testes de acerto usam RPC simulada, não comprovam uma mutação real no banco.
+- Sessão autenticada no domínio oficial: lista vazia de consignações e formulário de nova prova carregaram; inteligência Fitness carregou indicadores reais; histórico Fitness e filtro de conversões mantiveram Company; histórico Suplementos filtrado por ajustes e reconciliação carregaram; hábitos do Nexus carregou dados; cesta Fitness mostrou quatro sugestões reais sem aceitar nenhuma.
+- Área de ferramentas inspecionada em desktop e viewport móvel solicitado de 390px (área útil 375px por scrollbar). Largura de conteúdo igual à visível, sem overflow horizontal. Corrigido encaixe do texto nos atalhos após inspeção. Viewport restaurado.
+- Ações reais de envio/acerto/cancelamento, geração de PDF/campanha e todos os fluxos profundos continuam pendentes de homologação; não foram marcados como aprovados no mapa.
