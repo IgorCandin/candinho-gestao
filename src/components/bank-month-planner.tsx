@@ -1,23 +1,31 @@
 "use client";
 
-import { useRef, useState, type CSSProperties } from "react";
+import { useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BankMobileAgenda } from "@/components/bank-mobile-agenda";
 import { BankPlannerLogo } from "@/components/bank-planner-logo";
+import { bankCardBrand } from "@/lib/bank-card-brand";
 import { calculateBankPlan, parsePlanBudget } from "@/lib/bank-planning";
 import type { BankPlanningData } from "@/lib/bank-planning-data";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import "./bank-month-planner.css";
 
-function bankColor(institution: string) {
-  const name = institution.toLowerCase();
-  if (name.includes("sicoob")) return "#008b83";
-  if (name.includes("nubank")) return "#8a36cf";
-  if (name.includes("brasil")) return "#b69c08";
-  if (name.includes("caixa") || name.includes("brb")) return "#1675b9";
-  if (name.includes("shopee")) return "#d74b29";
-  return "#168e9e";
+function moveBankCard(event: ReactPointerEvent<HTMLButtonElement>) {
+  if (event.pointerType !== "mouse" || event.buttons || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const card = event.currentTarget;
+  const rect = card.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const y = event.clientY - rect.top;
+  card.style.setProperty("--card-rx", `${((.5 - y / rect.height) * 7).toFixed(2)}deg`);
+  card.style.setProperty("--card-ry", `${((x / rect.width - .5) * 8).toFixed(2)}deg`);
+  card.style.setProperty("--pointer-x", `${x.toFixed(0)}px`);
+  card.style.setProperty("--pointer-y", `${y.toFixed(0)}px`);
+}
+
+function resetBankCard(event: ReactPointerEvent<HTMLButtonElement>) {
+  event.currentTarget.style.setProperty("--card-rx", "0deg");
+  event.currentTarget.style.setProperty("--card-ry", "0deg");
 }
 
 export function BankMonthPlanner({ data, initialMonth }: { data: BankPlanningData; initialMonth?: string }) {
@@ -78,7 +86,7 @@ export function BankMonthPlanner({ data, initialMonth }: { data: BankPlanningDat
       onPointerLeave={event => { if (!drag.current.moved) drag.current.pointer = -1; if (!event.buttons) { drag.current.pointer = -1; delete event.currentTarget.dataset.dragging; } }}
       onClickCapture={event => { if (skipClick.current && event.detail !== 0) { event.preventDefault(); event.stopPropagation(); skipClick.current = false; } }}
       onDragStart={event => event.preventDefault()}>
-      {[{ id: "all", name: "Todas as contas", institution: "Visão geral", holder: "Todos os titulares" }, ...data.cards, { id: "other", name: "Demais compromissos", institution: "Sem cartão vinculado", holder: "Recorrências, empréstimos e cobranças" }].map(card => <button key={card.id} style={{ "--bank-color": bankColor(card.institution) } as CSSProperties} aria-pressed={cardId === card.id} onClick={() => setCardId(card.id)}><BankPlannerLogo institution={card.institution}/><span>{card.institution}</span><strong>{card.name}</strong><small>Titular: {card.holder}</small><b>{formatCurrency(month.rows.filter(row => card.id === "all" || (card.id === "other" ? !row.cardId : row.cardId === card.id)).reduce((sum, row) => sum + row.amount, 0))}</b></button>)}
+      {[{ id: "all", name: "Todas as contas", institution: "Visão geral", holder: "Todos os titulares" }, ...data.cards, { id: "other", name: "Demais compromissos", institution: "Sem cartão vinculado", holder: "Recorrências, empréstimos e cobranças" }].map(card => <button key={card.id} onPointerMove={moveBankCard} onPointerLeave={resetBankCard} onPointerDown={resetBankCard} style={{ "--bank-color": bankCardBrand(card.institution).color, "--bank-background": bankCardBrand(card.institution).background } as CSSProperties} aria-pressed={cardId === card.id} onClick={() => setCardId(card.id)}><BankPlannerLogo institution={card.institution}/><span>{card.institution}</span><strong>{card.name}</strong><small>Titular: {card.holder}</small><b>{formatCurrency(month.rows.filter(row => card.id === "all" || (card.id === "other" ? !row.cardId : row.cardId === card.id)).reduce((sum, row) => sum + row.amount, 0))}</b></button>)}
     </div>
     <p className="bank-planner-filter-note">O cartão filtra somente a lista abaixo. O resumo e o simulador continuam considerando o mês inteiro.</p>
     <BankMobileAgenda key={`${month.referenceMonth}:${cardId}`} showSummary={false} months={[{ label: cardId === "all" ? month.label : `${month.label} · ${cardId === "other" ? "Demais compromissos" : data.cards.find(card => card.id === cardId)?.name}`, referenceMonth: month.referenceMonth, rows, openingBalance: 0, receivable: 0 }]}/>

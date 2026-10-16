@@ -37,6 +37,9 @@
 
 ### Conferência e refinamento após login
 
+- Logos enviadas pelo responsável: BB, BRB, Caixa (anexo duplicado usado uma vez), Mercado Pago, Neon, Nubank e Sicoob copiadas sem modificar para public/bank-*-user.png. Shopee segue com iniciais porque não foi enviada logo correspondente. Paleta secundária em bank-card-brand.ts, em fundos escuros para manter legibilidade.
+- Efeito dos cartões inspirado diretamente em CompanyActionGrid e company-v2.css: expansão 1.035, inclinação por posição do mouse, brilho radial e arco expansível. Não atua durante arraste/toque; prefers-reduced-motion desativa transformações/transições. Nenhuma alteração de cálculo ou banco nesta etapa.
+
 - Prévia 7156a2c navegada com autenticação: outubro/novembro, simulador 500, filtros Sicoob CPF/CNPJ/Giulia, Todos, setas e detalhes/fechar/Escape conferidos. Dimensões 390x844 e 1366x768 sem overflow horizontal da página; nenhum erro de console observado. Sem testar pagamentos/adiamentos mutantes.
 - Totais efetivos: outubro 2.231,58 e novembro 7.819,41. Diferença de 200/400 em relação à tabela corresponde às semanas da psicóloga já cadastradas, preservadas.
 - Refinamento solicitado: Planejamento substitui Nexus no cabeçalho/rodapé Bank; rota Nexus continua existente. Cards com arraste por mouse (limiar de movimento evita selecionar após arrastar), toque nativo e setas por largura de cartão. Logos em moldura uniforme, sem distorção e sem arraste da imagem. Estas mudanças ficam no mesmo PR, não em produção.
