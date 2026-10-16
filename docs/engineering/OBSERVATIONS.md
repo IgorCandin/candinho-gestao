@@ -95,3 +95,14 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - regra verificada em `BUSINESS_RULES.md`;
 - teste automatizado ou roteiro de regressão.
 
+### OBS-010 — Compra cancelada não pode alimentar o pós-venda
+
+- Data: 16/10/2026.
+- Contexto: auditoria global após Adriana receber contexto com dois wheys, um deles de venda cancelada.
+- Evidência: 16 vendas canceladas de Suplementos, em 12 clientes; 11 agrupamentos de pós-venda de 10 clientes continham vendas canceladas. A view agregadora e a seleção de compras atuais do Nexus não filtravam `general_status`. As fichas de cliente usavam o histórico geral sem esse filtro. A lista classificava `cancelled` pela data, fazendo-o aparecer como atraso.
+- Correção: excluir canceladas dos totais/contexto de pós-venda e das compras efetivas das fichas (incluindo caminho paginado e legado); manter registros e vínculos para auditoria; tratar cancelados como estado terminal na fila. Rascunhos pendentes são arquivados no log e invalidados no próximo cancelamento. Compras válidas do mesmo agrupamento permanecem.
+- Banco: migration `20261016124148` aplicada em produção. Comparação global de contagem/valor/contexto aprovada. Adriana: 1 compra / R$ 190; Gabriel: 2 / R$ 164,80. Hashes de vendas, itens, Fitness e movimentos de estoque iguais antes/depois, 130 vínculos preservados. Pós-venda Fitness e curva de giro já excluíam canceladas.
+- Testes: três testes de classificação; regressão SQL em todos os agrupamentos; teste de cancelamento parcial/total com invalidação e auditoria do rascunho, integralmente desfeito com ROLLBACK. Advisors sem ERROR; alertas existentes fora do escopo permanecem.
+- Status: banco corrigido; código preparado para publicação. Verificar o deployment e as telas antes de anunciar a correção visual em produção. Build local Turbopack limitado pelo junction de dependências; conferir build remoto.
+- Referências: `supabase/tests/cancelled_purchase_history.sql`, `supabase/tests/cancelled_post_sale_draft_rollback.sql`, `tests/post-sale-state.test.cjs`.
+
