@@ -17,16 +17,16 @@ export function CompanyStockHub({ fitness, categoryRows, canUpdateCategories, in
   const cards = operation === "supplements" ? [
     ["Estoque", "Área completa: saldos, locais, reservas, sabores, lotes e histórico.", "/company/estoque/suplementos", PackageSearch],
     ["Categorias com Nexus", "Revise o giro e atualize a curva A/B/C/Z.", "#categorias-nexus", Sparkles],
-    ["Contagem física", "Confirme o que existe de verdade em cada local.", "/estoque/reconciliacao/contagem", ClipboardCheck],
+    ["Contagem física", "Confirme o que existe de verdade em cada local.", "/company/estoque/reconciliacao/contagem", ClipboardCheck],
     ["Transferir", "Leve um ou vários produtos entre locais.", "/company/produtos/transferencias?operacao=supplements", ArrowRightLeft],
     ["Correção", "Ajuste o saldo com motivo e mantenha o histórico.", "/company/estoque/suplementos", Settings2],
-    ["Reconciliação", "Revise divergências sem apagar auditoria.", "/estoque/reconciliacao", RefreshCcw],
+    ["Reconciliação", "Revise divergências sem apagar auditoria.", "/company/estoque/reconciliacao", RefreshCcw],
     ["Despesa / baixa", "Amostra, avaria, uso interno ou ação comercial.", "/company/estoque/despesa?operacao=supplements", PackageMinus],
   ] as const : [
     ["Estoque", "Peças, tamanhos, cores e disponibilidade dentro da Company.", "/company/produtos?operacao=Fitness", PackageSearch],
-    ["Contagem física", "Conferência por variação; registra as diferenças.", "/fitness/estoque/conferencia", ClipboardCheck],
+    ["Contagem física", "Conferência por variação; registra as diferenças.", "/company/estoque/fitness/conferencia", ClipboardCheck],
     ["Correção", "Ajuste individual de uma peça com motivo auditável.", "#ajuste-fitness", Settings2],
-    ["Reconciliação", "A conferência física é a reconciliação oficial do Fitness.", "/fitness/estoque/conferencia", RefreshCcw],
+    ["Reconciliação", "A conferência física é a reconciliação oficial do Fitness.", "/company/estoque/fitness/conferencia", RefreshCcw],
     ["Despesa / baixa", "Avaria ou uso interno sem gerar uma venda.", "/company/estoque/despesa?operacao=fitness", PackageMinus],
   ] as const;
   return <div className="company-workspace-v2 company-stock-hub">

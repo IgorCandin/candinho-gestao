@@ -45,7 +45,7 @@ export default async function PartnerDetailsPage<T extends {
 
   const [details, swipe, legacyHistory] = await Promise.all([
     getPartnerDetails(id),
-    getEntitySwipeNavigation("partner", id),
+    getEntitySwipeNavigation("partner", id, companyMode),
     getPartnerLegacyHistory(id),
   ]);
 

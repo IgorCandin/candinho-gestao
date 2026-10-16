@@ -27,7 +27,8 @@ import {
   UserRound,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { companyDestination } from "@/lib/company-destination";
 import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
@@ -430,6 +431,7 @@ function EventDialog({ event, today, canWrite, actionMode, setActionMode, loadin
   onRun: (name: string, args: Record<string, unknown>) => Promise<void>;
 }) {
   const [date, setDate] = useState(event.due_date);
+  const companyMode = usePathname().startsWith("/company/");
   const [time, setTime] = useState(eventTime(event) ?? "12:00");
   const [notes, setNotes] = useState("");
   const [outcome, setOutcome] = useState("");
@@ -471,7 +473,7 @@ function EventDialog({ event, today, canWrite, actionMode, setActionMode, loadin
 
     <div className="agenda-event-quick-actions">
       {whatsapp && <a className="button whatsapp" href={whatsapp} target="_blank" rel="noreferrer"><MessageCircle size={16} />WhatsApp</a>}
-      <Link className="button ghost" href={event.href}><ExternalLink size={16} />Abrir registro</Link>
+      <Link className="button ghost" href={companyMode ? companyDestination(event.href) : event.href}><ExternalLink size={16} />Abrir registro</Link>
       {canWrite && event.status === "planned" && <button className="button ghost" type="button" onClick={() => setActionMode(actionMode === "reschedule" ? null : "reschedule")}><CalendarClock size={16} />Reagendar</button>}
       {canWrite && <button className="button ghost" type="button" onClick={() => setActionMode(actionMode === "note" ? null : "note")}><NotebookPen size={16} />Observação</button>}
       {canWrite && canComplete && <button className="button gold" type="button" onClick={() => void openCompletion()}><CheckCircle2 size={16} />{event.source_type === "sale_delivery" ? "Entregar" : "Concluir"}</button>}
