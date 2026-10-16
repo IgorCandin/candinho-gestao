@@ -25,9 +25,10 @@ import {
   UsersRound,
   Wallet,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { useState, type CSSProperties } from "react";
+import { useRouter } from "next/navigation";
 import { BRAND_ASSETS } from "@/lib/brand-assets";
+import styles from "./operation-action-filter.module.css";
 
 type GatewayOperation =
   | "company"
@@ -116,6 +117,7 @@ const CONFIG = {
     rgb: "70, 195, 123",
     items: [
       { href: "/bank", label: "Home", note: "Caixa e compromissos", icon: ChartNoAxesCombined },
+      { href: "/bank/planejamento", label: "Planejar o mês", note: "Reservas, compromissos e simulação", icon: CalendarDays },
       { href: "/bank/atualizar", label: "Atualizar", note: "Saldos e posições reais", icon: RefreshCcw },
       { href: "/bank/entradas", label: "Entradas", note: "Receitas e a receber", icon: CircleDollarSign },
       { href: "/bank/faturas", label: "Faturas", note: "Cartões e vencimentos", icon: FileText },
@@ -154,18 +156,20 @@ export function OperationEntryGatewayV4522({ operation }: { operation: GatewayOp
   const router = useRouter();
   const [leaving, setLeaving] = useState(false);
   const [target, setTarget] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const config = CONFIG[operation];
-
+  const direct = operation === "bank" || operation === "physique";
   function enter(href: string) {
     if (leaving) return;
-    setTarget(href);
-    setLeaving(true);
-    window.setTimeout(() => router.push(href), 520);
+    setTarget(href); setLeaving(true);
+    window.setTimeout(() => router.push(href), window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : 520);
   }
+  const normalized = query.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+  const items = config.items.filter(item => `${item.label} ${item.note}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(normalized));
 
   return (
     <section
-      className={`v4521-supplements-entry v4522-operation-entry tone-${operation} ${leaving ? "is-leaving" : ""}`}
+      className={`v4521-supplements-entry v4522-operation-entry tone-${operation} ${direct ? styles.direct : ""} ${leaving ? "is-leaving" : ""}`}
       style={{
         "--entry-rgb": config.rgb,
         "--entry-columns": String(Math.min(8, config.items.length)),
@@ -192,20 +196,26 @@ export function OperationEntryGatewayV4522({ operation }: { operation: GatewayOp
         <p>{config.slogan}</p>
       </div>
 
-      <nav className="v4521-entry-menu" aria-label={`Entrar em ${config.label}`}>
-        {config.items.map(({ href, label, note, icon: Icon }, index) => (
-          <button
-            type="button"
+      {(operation === "bank" || operation === "physique") && <div className={styles.filter}>
+        <label htmlFor={`entry-search-${operation}`}>Ir direto ao que preciso</label>
+        <div><input id={`entry-search-${operation}`} type="search" placeholder={operation === "bank" ? "Ex.: planejar, faturas, contas…" : "Ex.: atleta, fichas, treinos…"} value={query} onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === "Escape") setQuery(""); }} />{query && <button onClick={() => setQuery("")}>Limpar</button>}</div>
+        <span aria-live="polite">{query ? `${items.length} caminhos encontrados` : "Acesse uma ação sem percorrer os menus."}</span>
+      </div>}
+      <nav className={`v4521-entry-menu ${styles.links}`} aria-label={`Entrar em ${config.label}`}>
+        {items.map(({ href, label, note, icon: Icon }, index) => (
+          direct ? <Link
+            href={href}
             key={href}
-            onClick={() => enter(href)}
-            className={[target === href ? "is-target" : "", index === 0 ? "is-primary" : ""].filter(Boolean).join(" ")}
+            className={index === 0 ? "is-primary" : ""}
             style={{ "--entry-index": index } as CSSProperties}
           >
             <Icon size={20} />
             <span><strong>{label}</strong><small>{note}</small></span>
-          </button>
+          </Link>
+          : <button type="button" key={href} onClick={() => enter(href)} className={[target === href ? "is-target" : "", index === 0 ? "is-primary" : ""].filter(Boolean).join(" ")} style={{ "--entry-index": index } as CSSProperties}><Icon size={20} /><span><strong>{label}</strong><small>{note}</small></span></button>
         ))}
       </nav>
+      {items.length === 0 && <p className={styles.empty}>Nenhum caminho encontrado. Limpe a busca para ver todas as ações.</p>}
 
       <div className="v4521-entry-line" />
     </section>
