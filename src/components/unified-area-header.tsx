@@ -38,7 +38,7 @@ export function UnifiedAreaHeader({ area, access }: { area: "bank" | "physique";
   const right = area === "bank" ? bankRight : physiqueRight;
   const brand = area === "bank" ? BRAND_ASSETS.bank.complete : BRAND_ASSETS.physique.complete;
   const root = area === "bank" ? "/bank/inicio" : "/atletas/inicio";
-  const isActive = (href: string) => (href === "/bank/planejamento" && pathname === "/bank/mobile") || pathname === href || (href !== root && !href.startsWith("/company") && pathname.startsWith(`${href}/`));
+  const isActive = (href: string) => (href === "/bank/planejamento" && pathname === "/bank/mobile") || pathname === href || (href !== "/bank" && href !== "/atletas" && href !== root && !href.startsWith("/company") && pathname.startsWith(`${href}/`));
   const renderNav = (items: typeof left) => items.map(({ href, label, icon: Icon }) => <Link key={href} href={href} className={isActive(href) ? "active" : ""} aria-label={label} title={label}><span className="company-nav-icon"><Icon size={19}/></span><span className="company-nav-label">{label}</span></Link>);
 
   return <>

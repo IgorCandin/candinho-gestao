@@ -4,7 +4,7 @@ import { getBankMonthHomeDataV2 } from "@/lib/bank-home-data-v2";
 import type { BankMonthCommitment } from "@/lib/bank-home-data";
 import type { PlanningIncome, PlanningReserve } from "@/lib/bank-planning";
 
-export type PlanningCard = { id: string; name: string; institution: string; holder: string };
+export type PlanningCard = { id: string; name: string; institution: string; holder: string; closingDay?: number | null; dueDay?: number | null };
 export type PlanningMonth = { referenceMonth: string; label: string; rows: BankMonthCommitment[]; incomes: PlanningIncome[] };
 export type BankPlanningData = { currentMonth: string; balance: number; balanceDate: string | null; reserves: PlanningReserve[]; months: PlanningMonth[]; cards: PlanningCard[]; warnings: string[] };
 
@@ -27,7 +27,7 @@ export async function getBankPlanningData(): Promise<BankPlanningData> {
     db.from("bank_income_sources").select("id,name,amount,frequency,starts_on,ends_on,include_in_projection").eq("is_active", true),
     db.from("bank_income_source_receipts").select("source_id,reference_month,amount").in("reference_month", [current.referenceMonth, next]),
     db.from("bank_receivables").select("id,title,amount,received_amount,status,due_date,source_id,category").gte("due_date", current.referenceMonth).lt("due_date", new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10)),
-    db.from("bank_cards").select("id,name,institution,holder_name").eq("is_active", true).order("display_order"),
+    db.from("bank_cards").select("id,name,institution,holder_name,closing_day,due_day").eq("is_active", true).order("display_order"),
     db.from("bank_card_invoice_overview").select("id,card_id").in("reference_month", [current.referenceMonth, next]),
     db.from("bank_charges_overview").select("id,card_invoice_id").gte("due_date", current.referenceMonth).lt("due_date", new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10)),
     db.from("bank_subscriptions").select("id,card_id"),
@@ -74,5 +74,5 @@ export async function getBankPlanningData(): Promise<BankPlanningData> {
     });
     return { referenceMonth: base.referenceMonth, label: base.monthLabel, rows, incomes };
   });
-  return { currentMonth: current.referenceMonth, balance: (accounts.data ?? []).reduce((sum, row) => sum + Number(row.balance), 0), balanceDate: (accounts.data ?? []).map(row => row.balance_date as string | null).filter((date): date is string => Boolean(date)).sort()[0] ?? null, reserves, months, cards: (cards.data ?? []).map(row => ({ id: String(row.id), name: String(row.name), institution: String(row.institution ?? "Banco"), holder: String(row.holder_name ?? "Titular não informado") })), warnings };
+  return { currentMonth: current.referenceMonth, balance: (accounts.data ?? []).reduce((sum, row) => sum + Number(row.balance), 0), balanceDate: (accounts.data ?? []).map(row => row.balance_date as string | null).filter((date): date is string => Boolean(date)).sort()[0] ?? null, reserves, months, cards: (cards.data ?? []).map(row => ({ id: String(row.id), name: String(row.name), institution: String(row.institution ?? "Banco"), holder: String(row.holder_name ?? "Titular não informado"), closingDay: row.closing_day ? Number(row.closing_day) : null, dueDay: row.due_day ? Number(row.due_day) : null })), warnings };
 }
