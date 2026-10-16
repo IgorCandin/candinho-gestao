@@ -142,3 +142,12 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Verificação: lint dos dois componentes e TypeScript aprovados; inspeção visual desktop e 390px, largura de documento sem overflow; diálogo Fitness confirmou preço e tamanho/cor reais. Movimento reduzido preservado. Build remoto exigido antes da publicação.
 - Sem alteração de banco, estoque, preços, autenticação ou regras de compra. Avaliação visual do responsável pendente.
 
+### OBS-013 — Recortes e movimento na Vitrine aprovada
+
+- Data: 16/10/2026. Responsável aprovou a direção visual do PR #34 (produção READY, commit `1a18ab4`) e pediu imagens nítidas/transparentes e movimento ligado à rolagem.
+- Duas imagens editoriais com alpha, 1254px, derivadas das fotos públicas originais: Creatina Candinho e Abduzido. Associação por produto + foto fonte impede recorte antigo após troca de foto. Os detalhes mantêm os originais. Foto Fitness preservada após recusa do recorte pela ferramenta; não apresentar integração de fundo como alpha real.
+- Rolagem move camadas da abertura, coleções e faixa tipográfica; fotos da galeria revelam-se conforme entram na tela. Ponteiro inclina o destaque em desktop. Sem nova biblioteca, autoplay ou bloqueio da rolagem; movimento reduzido preserva conteúdo estático.
+- Conferência local em desktop e 390px: fontes maiores, recortes carregados pelo otimizador, alpha confirmado nos arquivos; progresso CSS alterado após scroll; galeria expandida de 8 para 16 e acompanhada pelo observer, sem overflow horizontal. Lint dos arquivos alterados aprovado. Build remoto é condição de publicação.
+- Escopo somente visual; nenhuma alteração de dados, preços, estoque, pedidos ou autenticação. Referências e prompts em `VITRINE-DIRECAO-VISUAL.md` e `VITRINE-RECORTES-PROMPTS.md`.
+- Na galeria expandida, requisições do otimizador remoto excederam timeout local. Componente de imagem agora tenta o original direto e a miniatura existente antes de mostrar indisponibilidade; não deixa ícone de imagem quebrada. TypeScript e lint dos cinco módulos/configuração aprovados após esse ajuste.
+

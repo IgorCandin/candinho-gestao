@@ -25,6 +25,13 @@ const supplementRouteRoots = [
 ] as const;
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [{
+      protocol: "https",
+      hostname: "ilboydbakpcfoaexpnhw.supabase.co",
+      pathname: "/storage/v1/object/public/**",
+    }],
+  },
   experimental: {
     cpus: 1,
   },
