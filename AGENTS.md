@@ -27,6 +27,7 @@ Não diga que algo foi publicado, corrigido ou testado sem registrar a evidênci
 - Nunca exponha chaves secretas no navegador, logs, documentação ou resposta ao usuário.
 - Não instale memória externa, roteador de modelos ou integração de segurança sem justificar acessos, custo e privacidade.
 - Prefira mudanças pequenas, reversíveis e verificáveis.
+- Antecipe ajustes óbvios de acabamento dentro do escopo: o responsável prefere padrões visuais consistentes. Antes de enviar uma prévia, confira enquadramento, margens internas e tamanho óptico de logos/imagens lado a lado; caixas iguais não garantem marcas visualmente iguais. Preserve proporções e identidade, sem exigir que o responsável aponte cada diferença. Isso não autoriza ampliar regras de negócio ou publicar em produção.
 
 ## Validação mínima
 

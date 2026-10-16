@@ -203,5 +203,5 @@ export async function markBankCommitmentAsPaid(
   }
 
   revalidateBank();
-  redirect(returnTo === "/bank/mobile" ? "/bank/mobile?salvo=pago" : "/bank?salvo=pago");
+  redirect(returnTo === "/bank/mobile" ? `/bank/mobile?salvo=pago&mes=${encodeURIComponent(referenceMonth)}` : "/bank?salvo=pago");
 }

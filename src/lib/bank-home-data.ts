@@ -2,6 +2,7 @@ import { createClient } from "./supabase/server";
 import { getWeeklyOccurrenceDates } from "./bank-weekly-subscriptions";
 
 export type BankMonthCommitment = {
+  cardId?: string | null;
   id: string;
   kind: "charge" | "invoice" | "subscription" | "weekly_subscription" | "debt";
   title: string;
