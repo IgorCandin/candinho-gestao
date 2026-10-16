@@ -122,5 +122,12 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Operação: filtro textual de ações na Company e nos portais Bank/Atletas; Bank inclui planejamento mensal. Links nativos nesses dois portais eliminam a espera artificial e permitem abrir em outra aba. As demais entradas preservam seu comportamento. Movimento reduzido é respeitado nos cartões da Company.
 - Evidência: navegação local com produtos reais conferiu filtros, favorito, detalhes, tamanhos/cores de Fitness, expansão progressiva e layout de 390px sem overflow. Corrigido conflito de tamanho de botões imposto pelo CSS público antigo. Testes de ações usaram montagem local temporária removida antes de publicar, sem contornar autenticação ou alterar registros.
 - Verificações gerais: lint completo revelou 92 erros/28 avisos em arquivos anteriores; lint dos arquivos desta alteração é conferido separadamente. Auditoria das dependências existentes apontou Next.js crítico, sharp e source-map-js altos; nenhuma dependência foi adicionada ou atualizada nesta mudança. Atualização de segurança merece trabalho próprio.
-- Status: implementação concluída; verificação final de compilação e publicação em andamento. Validação do responsável ainda pendente.
+- Status: publicada pelo PR #32, commit `628bfb0`; produção READY. Responsável rejeitou a direção visual da Vitrine; revisão registrada abaixo.
+
+### OBS-012 — Revisão da direção visual da Vitrine experimental
+
+- Data: 16/10/2026. Escopo: somente `/catalogo/descobrir`; Vitrine original preservada.
+- Mudança: campanha com cenas selecionáveis, fotos reais sobrepostas, tipografia local Barlow Condensed/Manrope (licenças OFL), coleções assimétricas e galeria com destaque maior. Referências e critérios em `VITRINE-DIRECAO-VISUAL.md`.
+- Verificação: lint dos dois componentes e TypeScript aprovados; inspeção visual desktop e 390px, largura de documento sem overflow; diálogo Fitness confirmou preço e tamanho/cor reais. Movimento reduzido preservado. Build remoto exigido antes da publicação.
+- Sem alteração de banco, estoque, preços, autenticação ou regras de compra. Avaliação visual do responsável pendente.
 
