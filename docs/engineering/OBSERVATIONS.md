@@ -114,6 +114,17 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Extensão da auditoria: a ficha de parceiros também lia canceladas e mostrava somente pagamento/entrega; filtrar as compras efetivas nessa consulta, mantendo as operações canceladas disponíveis nos orçamentos/vendas para auditoria. Fitness já apresenta a situação correta e exclui canceladas dos totais e do pós-venda.
 - Referências: `supabase/tests/cancelled_purchase_history.sql`, `supabase/tests/cancelled_post_sale_draft_rollback.sql`, `tests/post-sale-state.test.cjs`.
 
+### OBS-011 — Contatos, conversão e falta de estoque devem atravessar as filas
+
+- Data: 16/10/2026.
+- Contexto: Gestão mostrava 0/12 apesar dos contatos registrados; Vender sugeria recompra de quem acabara de ser chamado. Conversões iniciadas pelo atalho da Company não preservavam o lead original. Venda sem estoque tinha reserva pendente, mas nenhum compromisso urgente de compra.
+- Evidência: a meta consultava apenas commercial_contact_attempts. Gestão/Company registravam também feedbacks e customer_interactions. O atalho enviava `lead` na URL, porém NewSalePage ignorava o parâmetro. Elaine e Guilherme tinham um lead original pendente e outro gerado pelo orçamento confirmado.
+- Correção: views com security_invoker consolidam contatos por cliente e dia de São Paulo, preservando datas explícitas de retorno; ambas as RPCs da fila usam a mesma meta e pausa. Vender filtra todas as recompras/retornos pela pausa consolidada e atualiza ao retornar à aba. Conversão usa a ação existente que prepara orçamento vinculado; URLs anteriores preservam o lead ao salvar. Confirmação encerra os retornos específicos do lead. Reparação de órfãos limitada a correspondência única no mesmo dia, com produtos/quantidades cobertos pela venda e auditoria.
+- Estoque: triggers em reservas e situação da venda mantêm um card urgente por venda com a falta efetiva. Reposição/reserva cobre a pendência; cancelamento a cancela. Não alteram estoque, pagamento ou criam compra de fornecedor. Backfill criou cards das duas vendas atuais sem whey.
+- Banco: migrations 20261016183046 e 20261016183328 aplicadas. Contagem consolidada de 55 pessoas em 16/10; Willians pausado até 22/10; somente os dois órfãos identificados reconciliados. CLI indisponível; arquivos usam as versões exatas registradas pelo Supabase.
+- Testes: integração transacional com ROLLBACK verifica deduplicação de fontes, retorno explícito, conversão via RPC, encerramento do lead, criação/idempotência da urgência, cobertura e cancelamento. Advisors comparados antes/depois: nenhum ERROR final e mesmos alertas preexistentes; funções internas novas sem EXECUTE para anon/authenticated.
+- Status: banco validado; publicação e verificação visual da interface pendentes nesta etapa.
+
 ### OBS-011 — Vitrine de descoberta e acesso direto às ações
 
 - Data: 16/10/2026.

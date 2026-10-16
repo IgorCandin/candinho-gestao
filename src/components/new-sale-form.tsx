@@ -30,6 +30,7 @@ import {
 } from "@/components/payment-installment-editor";
 import { formatCurrency } from "@/lib/format";
 import { DELIVERY_FINALIZATION_INTENT_KEY } from "@/lib/delivery-finalization-intent";
+import { notifyCompanyWorkflowUpdated } from "@/components/company-workflow-sync";
 import type {
   CustomerOption,
   LocationOption,
@@ -105,6 +106,7 @@ export function NewSaleForm({
   initialQuote = null,
   initialCustomerId,
   initialProductId,
+  initialLeadId,
   today,
   companyMode = false,
 }: {
@@ -117,6 +119,7 @@ export function NewSaleForm({
   initialQuote?: QuoteDraft | null;
   initialCustomerId?: string;
   initialProductId?: string;
+  initialLeadId?: string;
   today: string;
   companyMode?: boolean;
 }) {
@@ -804,6 +807,14 @@ export function NewSaleForm({
 
       const supabase = createClient();
 
+      let existingQuoteId = initialQuote?.id ?? null;
+      if (!existingQuoteId && initialLeadId) {
+        const { data, error } = await supabase.rpc("prepare_lead_conversion_v1", { p_lead_id: initialLeadId });
+        if (error) throw error;
+        existingQuoteId = String(data ?? "");
+        if (!existingQuoteId) throw new Error("Não foi possível vincular o lead ao orçamento.");
+      }
+
       const quoteArgs = {
           p_customer_id: customerId,
           p_location_id: locationId,
@@ -854,7 +865,7 @@ export function NewSaleForm({
             ? partnerId
             : null,
           p_existing_quote_id:
-            initialQuote?.id ?? null,
+            existingQuoteId,
           p_payment_installments:
             paymentMode === "split"
               ? paymentInstallments.map((row) => ({
@@ -914,6 +925,7 @@ export function NewSaleForm({
 
       setChoiceOpen(false);
       setQuoteFinalizeOpen(false);
+      notifyCompanyWorkflowUpdated();
 
       setSavedBudgetPrompt({
         quoteId,

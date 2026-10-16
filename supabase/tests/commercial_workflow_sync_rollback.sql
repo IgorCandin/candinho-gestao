@@ -1,0 +1,50 @@
+-- Exercise the real RPCs and triggers; all fixture data is rolled back.
+begin;
+select set_config('request.jwt.claim.sub',(select id::text from public.profiles where role='admin' and active limit 1),true);
+do $test$
+declare c uuid; p uuid; f uuid; l uuid; q uuid; s uuid; r uuid; n integer; before_count integer; after_count integer;
+begin
+  insert into public.customers(name,city) values('ROLLBACK_ONLY_COMMERCIAL_SYNC','Caparaó') returning id into c;
+  select id into p from public.products where active and name='Whey 100% HD 900g | Black Skull';
+  select id into f from public.product_flavors where product_id=p and active order by id limit 1;
+  if p is null or f is null then raise exception 'Fixture requires a catalog whey with flavor'; end if;
+  select count(*) into before_count from public.commercial_contact_days_v1 where contacted_on=(now() at time zone 'America/Sao_Paulo')::date;
+  perform public.record_sales_opportunity_feedback_v1(c,p,'recompra',null,'contacted','ROLLBACK_ONLY_TEST',(now() at time zone 'America/Sao_Paulo')::date+6);
+  perform public.record_sales_opportunity_feedback_v1(c,p,'produto_complementar',null,'contacted','ROLLBACK_ONLY_TEST',(now() at time zone 'America/Sao_Paulo')::date+6);
+  insert into public.customer_interactions(customer_id,interaction_type,status,occurred_at,completed_at)
+    values(c,'post_sale','completed',now(),now());
+  select count(*) into after_count from public.commercial_contact_days_v1 where contacted_on=(now() at time zone 'America/Sao_Paulo')::date;
+  if after_count<>before_count+1 then raise exception 'Daily goal must count a person once across sources'; end if;
+  if not exists(select 1 from public.customer_commercial_contact_state_v1 where customer_id=c and pause_until=(now() at time zone 'America/Sao_Paulo')::date+6) then raise exception 'Explicit return was not respected'; end if;
+  l:=public.create_lead_v2(c,p,f,'Cotação','ROLLBACK_ONLY_TEST',null);
+  perform public.configure_lead_agenda_v1(l,(now() at time zone 'America/Sao_Paulo')::date+2);
+  q:=public.prepare_lead_conversion_v1(l);
+  update public.sales_quotes set delivered=false,schedule_post_sale=false where id=q;
+  s:=public.confirm_budget_quote_v4(q);
+  if not exists(select 1 from public.sales where id=l and lead_status='Convertido' and general_status='finalized') then raise exception 'Original lead was not converted'; end if;
+  if exists(select 1 from public.leads_history where id=l) then raise exception 'Converted lead still in active lead history'; end if;
+  if exists(select 1 from public.customer_interactions where status='planned' and notes like '[Lead:'||l::text||']%') then raise exception 'Converted lead left a planned contact'; end if;
+  select id into r from public.stock_reservations where sale_id=s limit 1;
+  if r is null then raise exception 'Test sale has no reservation'; end if;
+  update public.stock_reservations set status='awaiting_stock',quantity_reserved=0 where id=r;
+  select count(*) into n from public.operational_tasks where sale_id=s and notes like '[Venda sem estoque]%' and status='planned' and priority='urgent';
+  if n<>1 then raise exception 'Missing-stock sale must create one urgent purchase card'; end if;
+  update public.stock_reservations set quantity_requested=quantity_requested+1 where id=r;
+  select count(*) into n from public.operational_tasks where sale_id=s and notes like '[Venda sem estoque]%';
+  if n<>1 then raise exception 'Stock changes duplicated the purchase card'; end if;
+  update public.stock_reservations set quantity_reserved=quantity_requested,status='reserved' where id=r;
+  if exists(select 1 from public.operational_tasks where sale_id=s and notes like '[Venda sem estoque]%' and status='planned') then raise exception 'Covered shortage did not close purchase card'; end if;
+  update public.stock_reservations set quantity_reserved=0,status='awaiting_stock' where id=r;
+  update public.sales set general_status='cancelled',cancelled_at=now(),cancellation_reason='ROLLBACK_ONLY_TEST' where id=s;
+  if exists(select 1 from public.operational_tasks where sale_id=s and notes like '[Venda sem estoque]%' and status='planned') then raise exception 'Cancelled sale left purchasing urgency'; end if;
+  if exists(select 1 from jsonb_array_elements(public.commercial_contact_queue_people_v1(100)->'items') x where x->>'customer_id'=c::text) then raise exception 'Recently contacted person is still eligible'; end if;
+  if exists(select 1 from public.customer_sales_opportunities_actionable_v2 where customer_id=c) then raise exception 'Recently contacted person in actionable opportunities'; end if;
+end;
+$test$;
+set local role authenticated;
+select count(*) as visible_contact_days from public.commercial_contact_days_v1;
+select count(*) as visible_contact_states from public.customer_commercial_contact_state_v1;
+select count(*) as visible_opportunities from public.customer_sales_opportunities_actionable_v2;
+reset role;
+rollback;
+select 'contact deduplication, return date, conversion, urgent stock card, coverage and cancellation passed; rolled back' as result;
