@@ -381,6 +381,7 @@ export async function getCustomerSales(
     await supabase
       .from("sales_history")
       .select("*")
+      .neq("general_status", "cancelled")
       .eq(
         "customer_id",
         customerId,

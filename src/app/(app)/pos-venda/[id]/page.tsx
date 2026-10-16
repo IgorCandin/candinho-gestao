@@ -118,6 +118,8 @@ export default async function PostSaleDetailPage<T extends {
           "id,quoted_at,delivered_at,total_amount,notes,sale_items(quantity,unit_price,products(name,category))",
         )
         .in("id", ids)
+        .eq("record_type", "sale")
+        .neq("general_status", "cancelled")
         .order("quoted_at", {
           ascending: false,
         })

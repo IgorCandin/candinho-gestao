@@ -1157,7 +1157,7 @@ export async function getCustomerInteractions(customerId: string): Promise<Custo
     sale_product_summary: typeof row.sale_product_summary === "string" ? row.sale_product_summary : null,
   }));
 }
-export async function getCustomerSales(customerId: string): Promise<SaleRow[]> { return (await getSalesHistory()).filter((sale) => sale.customer_id === customerId); }
+export async function getCustomerSales(customerId: string): Promise<SaleRow[]> { return (await getSalesHistory()).filter((sale) => sale.customer_id === customerId && sale.general_status !== "cancelled"); }
 export async function getCustomerLeads(customerId: string): Promise<LeadRow[]> { return (await getLeadsHistory()).filter((lead) => lead.customer_id === customerId); }
 export async function getCustomerPendingOrders(customerId: string): Promise<PendingOrderRow[]> { return (await getPendingOrders()).filter((order) => order.customer_id === customerId); }
 
