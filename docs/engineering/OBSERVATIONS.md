@@ -73,6 +73,14 @@ Referências:
 - Status: migration 20261006162033 aplicada online. Teste com papel authenticated e administrador ativo leu, inseriu e atualizou dentro de transação com ROLLBACK; zero registros fictícios restantes. Advisors sem ERROR; alertas anteriores permanecem. CLI não disponível: arquivo usa a versão exata registrada pelo Supabase, não timestamp inventado.
 - Próximo: confirmar janela do mapa e persistência visual quando houver navegação disponível. React 418 continua independente e aberto.
 
+### OBS-008 — Previsão não é saldo confirmado
+
+- Data: 16/10/2026.
+- Contexto: planejamento do Bank aprovado pelo responsável.
+- Evidência: /bank/mobile transportava a diferença projetada atual como abertura do próximo mês. Reconciliação audit_events 3373 registra reserva externa de novembro e salários já adiantados.
+- Mudança: novo planejamento separa saldo, reserva por mês, recebimentos informativos e previsões a conferir. Reserva entra uma vez, sem transporte automático; simulação não grava dados. Usa compromissos existentes, sem reimportação.
+- Status: implementação e nove testes aprovados na branch codex/bank-month-planner; PR #26 em rascunho, preview READY, produção não alterada. Validação visual e ações mutantes reais não homologadas. Ver BANK-PLANEJAMENTO-2026-10-16.md.
+
 Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis para:
 
 - regra em `AGENTS.md`;

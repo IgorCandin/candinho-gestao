@@ -29,7 +29,9 @@
 
 - Nove testes automatizados de cálculo e montagem aprovados (`node --test tests/bank-planning*.test.cjs`). Incluem isolamento de reservas, adiantamentos, transferência pendente, pureza, identidade dos cartões, permissão e erro de banco.
 - Não testar pagar/adiar com dados reais: conferir telas sem salvar; mutações reais ficam para homologação autorizada em caso identificado.
-- Build, tipos, lint e prévia: registrar resultado final no PR. Build local sem variáveis Supabase pode parar no prerender de /catalogo; não usar credencial privilegiada para contornar.
+- TypeScript e lint direcionado aprovados. Build local compilou e terminou TypeScript, depois parou no prerender de /catalogo por falta da configuração Supabase neste ambiente. Nenhuma credencial privilegiada foi utilizada.
+- Branch codex/bank-month-planner, commit de implementação 6976f80. PR #26 aberto como rascunho: https://github.com/IgorCandin/candinho-gestao/pull/26 . Preview READY confirmado para esse commit: https://candinho-gestao-h9p6xx3u4-candinho.vercel.app/bank/mobile . Produção não alterada.
+- Homologação visual/mobile/desktop bloqueada: o navegador de teste não conseguiu anexar a aba da prévia em duas tentativas. Não confundir build READY com navegação real validada. Pagamento/adiamento real não executado.
 
 ## Roteiro de homologação
 
