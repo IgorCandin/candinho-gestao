@@ -1,5 +1,15 @@
 # Escritório de operações — primeira versão
 
+## Redesenho aprovado — 16/10/2026
+
+Responsável aprovou amostra contínua inspirada no Habblaude: planta única, corredor, móveis e personagens clicáveis. Implementação em CompanyOfficeScene substitui os antigos blocos. Entrada principal: Company → Gestão → Escritório de operações; atalho inicial permanece.
+
+Consultas e permissões anteriores preservadas. Painel mostra somente indicadores pendentes ou indisponíveis. Zero deixa de aparecer como tarefa, mas permanece representado pelo estado da sala; não exclui histórico no banco. Balões contam tipos de aviso, não soma de pessoas entre cadastros. Atualização explícita consulta o servidor novamente. No telefone, navegar por uma sala de cada vez, com painel abaixo. Não há botão de resolução fictícia da amostra nem números de exemplo na implementação real.
+
+Falta homologar layout no desktop/iPhone e comparar os contadores; notas compartilhadas, reposição e listas detalhadas continuam pendentes. Esta mudança não resolve a auditoria de links Suplementos/Fitness nem a simplificação do mapa, que são pautas separadas e ainda abertas.
+
+Validação automatizada: quatro testes passaram (renderização, zero/indisponível, ausência de salas, troca de sala/fechar/reabrir/Escape/atualizar com hooks simulados). Lint direcionado passou. Não equivale a teste no iPhone físico nem aprovação dos contadores pelo responsável.
+
 Rota: `/company/escritorio`; atalho no início da Company. Referência visual indicada pelo responsável: https://habblaude.com/pt/. Artes próprias construídas em CSS; nenhum código/arte do Habblaude copiado e nenhuma dependência/serviço novo.
 
 Direção: planta de salas, fundo #151f29, paredes #35434c, texto #eef3f8, avisos #f0cd90; tipografia existente. Salas em duas colunas no desktop e uma no telefone. Personagens imóveis, sem ruído ou animação automática. Links e títulos continuam sendo a informação principal, acessível por teclado.

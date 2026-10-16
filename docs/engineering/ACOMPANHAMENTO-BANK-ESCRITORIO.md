@@ -14,6 +14,8 @@ O responsável autorizou publicação direta em 16/10. Os pacotes #30 e #31 agor
 
 ## Testes do responsável — ainda não aprovados
 
+- [ ] Escritório redesenhado conforme amostra aprovada: Company → Gestão → Escritório de operações. Clicar personagens, trocar salas, fechar/reabrir painel, atualizar consulta; testar telefone. Sem botão de resolução simulada; resolver na origem. Reaproveita as consultas e permissões anteriores. Três testes automatizados de renderização passaram, não substituem a conferência visual.
+
 - [ ] PR #30, `/bank/planejamento`: cada cartão mostra “Fecha” e “Vence” separados; conferir dias reais de cada banco/titular. Datas vazias devem pedir cadastro, nunca inventar dia.
 - [ ] PR #30: alterar “Se eu comprar em…” para antes, no dia e depois do fechamento; conferir primeiro mês sugerido e alerta do próprio dia. Sicoob e Nubank devem respeitar seus próprios cadastros, sem regra universal de dia 1 ou 11.
 - [ ] Produção/PR #30, simulador: R$ 1.000 em 10x R$ 100; escolher cartão e data; ajustar início manualmente; verificar parcelas e virada de ano. Não grava despesa.

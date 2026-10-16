@@ -264,6 +264,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     return <div className="company-workspace-v2 company-global-agenda"><CompanyWorkflowSync/>
       <header className="company-workspace-heading"><span>COMPANY · GESTÃO</span><h1>Visão da empresa</h1><p>Confira os números, organize a agenda e abra cadastros administrativos sem procurar por várias operações.</p></header>
       <section className="company-management-links">
+        <Link href="/company/escritorio"><GitBranch/><div><strong>Escritório de operações</strong><span>Salas, personagens e pendências reais por área</span></div><b>→</b></Link>
         <Link href="/company/central"><BarChart3/><div><strong>Sala do Dono</strong><span>Valores, resultados e atalhos executivos</span></div><b>→</b></Link>
         <Link href="/company/resultados"><BarChart3/><div><strong>Resultados</strong><span>Company, Suplementos e Fitness desde a primeira venda</span></div><b>→</b></Link>
         <Link href="/company/rotas"><MapPinned/><div><strong>Rotas</strong><span>Planejamento, clientes e entregas por cidade</span></div><b>→</b></Link>
