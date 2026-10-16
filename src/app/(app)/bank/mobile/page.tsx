@@ -5,5 +5,6 @@ export const dynamic = "force-dynamic";
 
 export default async function BankMobilePage({ searchParams }: { searchParams: Promise<{ mes?: string }> }) {
   const [data, params] = await Promise.all([getBankPlanningData(), searchParams]);
-  return <BankMonthPlanner data={data} initialMonth={params.mes} />;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  return <BankMonthPlanner data={data} initialMonth={params.mes} today={today} />;
 }

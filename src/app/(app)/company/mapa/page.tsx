@@ -54,6 +54,10 @@ const blocks: Block[] = [
   ]},
 ];
 
+blocks.push({ title: "Escritório visual · proposta", scope: "Localizar pendências por área sem substituir as filas existentes", steps: [
+  { label: "Cômodos Company, Suplementos, Fitness e Bank", state: "todo", detail: "Referência provável: Star Office UI. Proposta em docs/engineering/ESCRITORIO-VISUAL.md. Falta protótipo e conexão às filas reais; personagens não significam IA executando tarefas." },
+] });
+
 const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
 const allSteps = blocks.flatMap((block) => block.steps);
 
