@@ -8,6 +8,6 @@ export function bankCardBrand(institution: string) {
   if (name.includes("caixa")) return { logo: "/bank-caixa-user.png", color: "#ff8422", background: "#083882" };
   if (name.includes("mercado pago")) return { logo: "/bank-mercadopago-user.png", color: "#ffe600", background: "#063b66" };
   if (name.includes("neon")) return { logo: "/bank-neon-user.png", color: "#00dfd3", background: "#064458" };
-  if (name.includes("shopee")) return { logo: null, color: "#ff925e", background: "#49251d" };
+  if (name.includes("shopee")) return { logo: "/bank-shopee-user.png", color: "#ff925e", background: "#49251d" };
   return { logo: null, color: "#64c7cf", background: "#152a35" };
 }

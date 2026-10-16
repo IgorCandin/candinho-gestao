@@ -10,6 +10,8 @@ export function BankPlannerLogo({ institution }: { institution: string }) {
   const name = institution.toLocaleLowerCase("pt-BR");
   const framing = name.includes("nubank")
     ? { "--logo-scale": "2", "--logo-y": "0px", "--logo-bg": "#8a05be" }
+    : name.includes("shopee")
+      ? { "--logo-scale": "1.4", "--logo-y": "0px", "--logo-bg": "#f44e2b" }
     : name.includes("sicoob")
       ? { "--logo-scale": "1.4", "--logo-y": "0px", "--logo-bg": "#07373d" }
       : name.includes("brasil")
