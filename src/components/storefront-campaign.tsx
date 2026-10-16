@@ -4,6 +4,7 @@ import Image from "next/image";
 import { ArrowDown, ArrowUpRight, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { useState } from "react";
 import type { PublicStorefrontProduct } from "@/lib/public-storefront-data";
+import { discoveryCutout, discoveryImage } from "@/lib/storefront-discovery-images";
 import styles from "./storefront-discovery.module.css";
 
 type Props = {
@@ -22,21 +23,29 @@ export function StorefrontCampaign({ products, onOpen, onExplore, price }: Props
   ].filter((p): p is PublicStorefrontProduct => Boolean(p));
   const selected = picks[scene % Math.max(picks.length, 1)] ?? products[0];
   const fashion = selected?.operation === "fitness";
-  const supporting = products.filter(p => p.image_url && p.operation === selected?.operation && p.id !== selected?.id).slice(fashion ? 1 : 0, fashion ? 3 : 2);
+  const supporting = products.filter(p => p.image_url && p.operation === selected?.operation && p.id !== selected?.id && (fashion || discoveryCutout(p))).slice(0, 2);
   const change = (delta: number) => setScene(v => (v + delta + picks.length) % Math.max(picks.length, 1));
 
-  return <section className={`${styles.hero} ${fashion ? styles.fashionScene : ""}`} aria-label="Descubra a Vitrine Candinho">
+  return <section data-scroll-scene className={`${styles.hero} ${fashion ? styles.fashionScene : ""}`} aria-label="Descubra a Vitrine Candinho">
     <div className={styles.heroTop}><span><i /> Suplementos & Fitness</span><span>Uma escolha muda o ritmo.</span></div>
     <div className={styles.heroComposition}>
       <div className={styles.heroCopy}>
         <h1 key={fashion ? "fashion-title" : "training-title"}>{fashion ? <>SEU ESTILO.<br />EM <em>MOVIMENTO.</em></> : <>SEU TREINO.<br />OUTRA <em>ENERGIA.</em></>}</h1>
         <div className={styles.heroBottomCopy}><p>{fashion ? "Peças que acompanham o seu ritmo. Encontre seu próximo look de treino." : "O que você veste. O que faz parte da rotina. Descubra seus próximos favoritos."}</p><button className={styles.roundCta} onClick={() => onExplore(selected?.operation ?? "all")} aria-label={fashion ? "Explorar peças Fitness" : "Explorar suplementos"}><ArrowUpRight size={28} /></button></div>
       </div>
-      <div className={styles.stage}>
+      <div className={styles.stage} onPointerMove={event => {
+        if (event.pointerType !== "mouse" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        event.currentTarget.style.setProperty("--pointer-x", String((event.clientX - rect.left) / rect.width - .5));
+        event.currentTarget.style.setProperty("--pointer-y", String((event.clientY - rect.top) / rect.height - .5));
+      }} onPointerLeave={event => {
+        event.currentTarget.style.setProperty("--pointer-x", "0");
+        event.currentTarget.style.setProperty("--pointer-y", "0");
+      }}>
         <span className={styles.stageWord} aria-hidden="true">{fashion ? "MOVE" : "GO"}</span>
-        {supporting.map((p, i) => <button key={p.id} className={`${styles.sideShot} ${i ? styles.shotRight : styles.shotLeft}`} aria-label={`Conhecer ${p.name}`} onClick={() => onOpen(p)}>{p.image_url && <Image src={p.image_url} alt={p.name} fill sizes="220px" unoptimized />}<span><Plus size={18} /></span></button>)}
+        {supporting.map((p, i) => <button key={p.id} className={`${styles.sideShot} ${i ? styles.shotRight : styles.shotLeft}`} data-cutout={Boolean(discoveryCutout(p))} aria-label={`Conhecer ${p.name}`} onClick={() => onOpen(p)}>{discoveryImage(p) && <Image src={discoveryImage(p)!} alt={p.name} fill sizes="220px" />}<span><Plus size={18} /></span></button>)}
         {selected && <button key={selected.id} className={styles.mainShot} onClick={() => onOpen(selected)} aria-label={`Conhecer ${selected.name}`}>
-          {selected.image_url && <Image src={selected.image_url} alt={selected.name} fill sizes="(max-width: 650px) 65vw, 400px" priority unoptimized />}
+          {discoveryImage(selected) && <Image data-cutout={Boolean(discoveryCutout(selected))} src={discoveryImage(selected)!} alt={selected.name} fill sizes="(max-width: 650px) 85vw, 520px" priority />}
           <span className={styles.quickLook}>Olhe de perto <Plus size={17} /></span>
         </button>}
         {selected && <div className={styles.productTicket} aria-live="polite"><span><i /> Disponível agora</span><strong>{selected.name}</strong><span>{price(selected)}</span></div>}

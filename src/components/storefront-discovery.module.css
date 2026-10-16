@@ -19,3 +19,42 @@
 .page .collections>.fitnessCollection{background:#d7bfc8}
 .page .fashionScene{background:#ede2e7;transition:background-color .35s}
 @media(prefers-reduced-motion:reduce){.page .fashionScene{transition:none}}
+/* Product cutouts and scroll choreography share the approved art direction. */
+.readingProgress{position:fixed;inset:0 0 auto;height:3px;background:var(--gold);z-index:30;transform:scaleX(var(--page-progress,0));transform-origin:left;pointer-events:none}
+.page .stage{perspective:1000px}
+.page .mainShot{inset:15px 15px 65px 5px;background:transparent;border-radius:0;box-shadow:none;overflow:visible;animation:none;transform:rotate(-5deg)}
+.page .mainShot img{padding:0 12px 30px;mix-blend-mode:multiply;filter:drop-shadow(0 22px 14px #181b2020);transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.page .mainShot img[data-cutout=true],.page .sideShot[data-cutout=true] img{mix-blend-mode:normal}
+.page .mainShot:hover img{transform:scale(1.045) rotate(2deg)}
+.page .quickLook{bottom:0;left:22%;right:22%;padding:10px 0;border-top:1px solid #181b2030}
+.page .sideShot{background:transparent;box-shadow:none;overflow:visible;border-radius:0;width:40%;height:250px}
+.page .sideShot img{filter:drop-shadow(0 16px 12px #181b2020);padding:0 0 20px}
+.page .sideShot>span{bottom:0;right:25%}
+.page .shotLeft{left:-60px;top:115px}
+.page .shotRight{right:-30px;top:155px!important}
+.page .productTicket{bottom:0;right:0}
+.page .stageCaption{bottom:-25px}
+.page .stageWord{color:#d5dbe0;opacity:.75;inset:80px -40px auto -5px}
+.page .fashionScene .mainShot img{padding:25px 10px 35px;filter:none}
+.page .fashionScene .sideShot{width:34%;opacity:.7}
+.page .supplementCollection>img{mix-blend-mode:normal;padding:145px 0 55px 35%;filter:drop-shadow(0 20px 12px #181b2025)}
+.motionBridge{padding:55px 0 40px;background:var(--ink);color:white;overflow:hidden;--scroll-position:.5}
+.page .motionBridge p{font:800 clamp(70px,12vw,180px)/.95 DiscoveryDisplay,Impact,sans-serif;white-space:nowrap;margin:0;width:max-content;padding-left:5%;letter-spacing:-1px}
+.motionBridge>span{display:block;font-size:12px;color:#aeb7c0;margin:25px 5% 0}
+.page[data-motion=active] .mainShot{transform:translate3d(calc(var(--pointer-x,0)*14px),calc((var(--scroll-position,.5) - .5)*-95px),0) rotate(calc(-5deg + (var(--scroll-position,.5) - .5)*16deg)) rotateY(calc(var(--pointer-x,0)*9deg)) rotateX(calc(var(--pointer-y,0)*-6deg))}
+.page[data-motion=active] .shotLeft{transform:translate3d(calc((var(--scroll-position,.5) - .5)*-95px),calc((var(--scroll-position,.5) - .5)*85px),0) rotate(calc(-18deg + (var(--scroll-position,.5) - .5)*-20deg))}
+.page[data-motion=active] .shotRight{transform:translate3d(calc((var(--scroll-position,.5) - .5)*95px),calc((var(--scroll-position,.5) - .5)*-60px),0) rotate(calc(13deg + (var(--scroll-position,.5) - .5)*20deg))}
+.page[data-motion=active] .heroCopy{transform:translateY(calc((var(--scroll-position,.5) - .5)*-45px))}
+.page[data-motion=active] .productTicket{transform:translateY(calc((var(--scroll-position,.5) - .5)*-35px)) rotate(3deg)}
+.page[data-motion=active] .stageWord{transform:translateX(calc((var(--scroll-position,.5) - .5)*-95px)) rotate(-8deg)}
+.page[data-motion=active] .collectionHeading h2{transform:translateX(calc((var(--scroll-position,.5) - .5)*-70px))}
+.page[data-motion=active] .supplementCollection>img{transform:translateY(calc((var(--scroll-position,.5) - .5)*-110px)) rotate(calc(10deg + (var(--scroll-position,.5) - .5)*-12deg))}
+.page[data-motion=active] .fitnessCollection>img{transform:translateY(calc((var(--scroll-position,.5) - .5)*55px)) scale(1.04)}
+.page[data-motion=active] .collections>button:hover>img{scale:1.04}
+.page[data-motion=active] .motionBridge p{transform:translateX(calc((var(--scroll-position,.5) - .5)*-240px))}
+.page[data-motion=active] .productMedia .imageButton img{transform:translateY(calc((1 - var(--reveal,1))*25px)) scale(calc(1.07 - var(--reveal,1)*.07));transition:scale .35s;clip-path:inset(calc((1 - var(--reveal,1))*12%) 0 0)}
+.page[data-motion=active] .productMedia .imageButton:hover img{scale:1.06}
+@media(max-width:650px){.page .mainShot{inset:8px 18px 55px 18px}.page .mainShot img{padding:0 10px 25px}.page .sideShot{width:38%;height:180px}.page .shotLeft{left:-25px;top:85px}.page .shotRight{right:-20px;top:105px!important}.page .quickLook{bottom:0;left:20%;right:20%;padding:6px 0}.page .productTicket{bottom:-5px;right:0}.page .stage{height:375px;margin-top:15px;margin-bottom:12px}.page .fashionScene .mainShot img{padding:15px 0 30px}.page .supplementCollection>img{padding:90px 0 50px 28%}.motionBridge{padding:35px 0 30px}.motionBridge>span{font-size:10px;max-width:260px}.page[data-motion=active] .motionBridge p{transform:translateX(calc((var(--scroll-position,.5) - .5)*-100px))}.page[data-motion=active] .collectionHeading h2{transform:translateX(calc((var(--scroll-position,.5) - .5)*-25px))}}
+@media(prefers-reduced-motion:reduce){.readingProgress{display:none}.page .mainShot,.page .sideShot,.page .heroCopy,.page .stageWord,.page .productTicket,.page .collectionHeading h2,.page .collections>button>img,.page .motionBridge p,.page .imageButton img{transform:none!important;scale:1!important;clip-path:none!important}.page .mainShot{transform:rotate(-5deg)!important}.page .shotLeft{transform:rotate(-18deg)!important}.page .shotRight{transform:rotate(13deg)!important}.page .productTicket{transform:rotate(3deg)!important}}
+@media(max-width:650px){.page .collections>button{min-height:420px}.page .supplementCollection>img{padding:165px 0 55px 23%}}
+.page .fashionScene .mainShot,.page .fashionScene .sideShot{background:#ede2e7}
