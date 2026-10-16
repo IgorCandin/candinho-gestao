@@ -874,7 +874,7 @@ export default async function BankDashboardPage({
       <div className="bank-quick-actions">
         <Link href="/bank/mobile" className="bank-quick-card">
           <Smartphone size={20} />
-          <div><strong>Área Mobile</strong><span>Contas do mês atual e do próximo, organizadas por dia.</span></div>
+          <div><strong>Planejamento do mês</strong><span>Disponível, compromissos, cartões e simulador. Adaptado ao celular.</span></div>
           <ChevronRight size={17} />
         </Link>
         <Link href="/bank?saldo=1" scroll={false} className="bank-quick-card">
