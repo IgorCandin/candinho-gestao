@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test:company": "node --test tests/company-deep-migration.test.cjs tests/company-tools-migration.test.cjs tests/company-migration-cleanup.test.cjs tests/company-office-scene.test.cjs tests/migration-board-history.test.cjs",
+    "test:company": "node --test tests/company-deep-migration.test.cjs tests/company-tools-migration.test.cjs tests/company-migration-cleanup.test.cjs tests/company-office-scene.test.cjs tests/migration-board-history.test.cjs tests/company-lots-flavors.test.cjs tests/operational-pages.test.cjs",
+    "test": "node --test tests/*.test.cjs",
     "audit:duplicates": "node scripts/audit-source-duplicates.cjs"
   },
   "dependencies": {
