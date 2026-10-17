@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-export default async function CompanyCustomersPage() {
+export default async function CompanyCustomersPage({ searchParams }: { searchParams: Promise<{ pendencia?: string; operacao?: string }> }) {
+  const query = await searchParams;
+  if (query.pendencia === "telefone") redirect(`/company/clientes/telefones${query.operacao === "Fitness" ? "?operacao=Fitness" : query.operacao === "Suplementos" ? "?operacao=Suplementos" : ""}`);
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
   const [supplements, fitness] = await Promise.all([
