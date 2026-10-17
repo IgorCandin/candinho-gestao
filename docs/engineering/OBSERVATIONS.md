@@ -242,3 +242,12 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - 31 recortes novos, oito contornos refinados, mestres lossless e versões de exibição; detalhes em `SUPLEMENTOS-RECORTES.md`. Mapeamento protege contra foto fonte alterada. Seis testes de preferências/arquivos/vínculos aprovados. Sem regras de negócio, estoque, preços ou dependências novas da aplicação.
 - Verificação inicial local: quatro colunas em 1280px, sem overflow; fotos transparentes e deslocamento contínuo observados. Verificação final de hover, tamanhos e produção pendente até a publicação; build remoto obrigatório.
 
+
+### OBS-PHONE-20261017 — Resolver telefone na fila do escritório
+
+- Contexto: responsável quer preencher telefones ausentes sem abrir ficha individual.
+- Causa: os dois avisos apontavam para o CRM geral. O CRM deduplica/combina telefone de cadastros vinculados e diferencia operação por compra, enquanto o escritório conta o campo ausente de cada cadastro/operação. O atalho não oferecia edição direta.
+- Mudança: `/company/clientes/telefones?operacao=Suplementos|Fitness` consulta os mesmos campos/filtros do aviso, sem deduplicação ou exigência de compra. Suplementos inclui somente ativos; Fitness preserva o escopo do aviso existente. Até 50 registros por página com contagem exata. Links antigos com `pendencia=telefone` redirecionam à fila.
+- Gravação: PATCH específico valida operação, permissão de leitura/escrita e formato; usa cliente autenticado/RLS e altera apenas phone do cadastro escolhido. Condição atômica aceita só telefone ainda nulo/vazio, impedindo sobrescrita concorrente. Triggers existentes (incluindo sincronização core→Fitness) continuam valendo; nenhum novo vínculo, schema ou regra foi criado. Não preencher dados em nome do responsável.
+- UX: campo e Salvar em cada linha; sucesso remove pendência e atualiza dados; falha mantém campo e mensagem. Rascunhos de outras linhas permanecem.
+- Evidência: cinco testes novos de autorização, formato, escopo, atualização mínima e conflito/falha, mais cinco regressões do escritório aprovados. Navegador isolado desktop/390px confere salvar simulado, remoção, contagem e preservação de rascunho/erro sem overflow. Verificações finais e publicação são registradas no PR; nenhuma gravação real executada para teste.
