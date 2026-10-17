@@ -21,7 +21,7 @@ const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, 
 export function StorefrontDiscovery({ snapshot, links, availability }: Props) {
   const page = useRef<HTMLElement>(null);
   useStorefrontScroll(page);
-  const [operation, setOperation] = useState("all");
+  const [operation, setOperation] = useState("supplements");
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
@@ -34,12 +34,10 @@ export function StorefrontDiscovery({ snapshot, links, availability }: Props) {
     const { supplements, fitness } = snapshot.products;
     return Array.from({ length: Math.max(supplements.length, fitness.length) }, (_, i) => [supplements[i], fitness[i]]).flat().filter((p): p is PublicStorefrontProduct => Boolean(p));
   }, [snapshot]);
-  const categories = [...new Set(products.filter(p => operation === "all" || p.operation === operation).map(p => p.category).filter((c): c is string => Boolean(c)))].sort();
-  const filtered = products.filter(p => (operation === "all" || p.operation === operation) && (!category || p.category === category) && normalize(`${p.name} ${p.category ?? ""}`).includes(normalize(query)) && (!savedOnly || saved.includes(key(p))));
+  const categories = [...new Set(products.filter(p => savedOnly ? saved.includes(key(p)) : p.operation === operation).map(p => p.category).filter((c): c is string => Boolean(c)))].sort();
+  const filtered = products.filter(p => (savedOnly || p.operation === operation) && (!category || p.category === category) && normalize(`${p.name} ${p.category ?? ""}`).includes(normalize(query)) && (!savedOnly || saved.includes(key(p))));
   const available = filtered.filter(p => p.available);
   const unavailable = filtered.filter(p => !p.available);
-  const hero = products.find(p => p.available && p.operation === "supplements" && /creatina.*candinho/i.test(p.name)) ?? products.find(p => p.available && p.image_url);
-  const fitness = products.find(p => p.available && p.operation === "fitness" && /top.*short/i.test(p.name)) ?? products.find(p => p.available && p.operation === "fitness" && p.image_url);
   const isFiltering = Boolean(query || category || savedOnly);
 
   useEffect(() => {
@@ -49,8 +47,11 @@ export function StorefrontDiscovery({ snapshot, links, availability }: Props) {
   function toggleSave(p: PublicStorefrontProduct) {
     setSaved(previous => previous.includes(key(p)) ? previous.filter(id => id !== key(p)) : [...previous, key(p)]);
   }
-  function explore(value: string) {
+  function changeOperation(value: string) {
     setOperation(value); setCategory(""); setQuery(""); setSavedOnly(false); setLimit(8);
+  }
+  function explore(value: string) {
+    changeOperation(value);
     document.getElementById("discovery-products")?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
   }
   function href(p: PublicStorefrontProduct) {
@@ -82,13 +83,10 @@ export function StorefrontDiscovery({ snapshot, links, availability }: Props) {
 
   return <main ref={page} className={styles.page}>
     <div className={styles.readingProgress} aria-hidden="true" />
-    <header className={styles.header}><Link href="/catalogo" aria-label="Vitrine Candinho"><Image src="/candinho-company-logo.png" width={170} height={56} alt="Candinho Company" priority /></Link><nav aria-label="Vitrine"><a href="#discovery-collections">Coleções</a><a href="#discovery-products">Explorar</a><button onClick={() => { setSavedOnly(v => !v); setLimit(8); document.getElementById("discovery-products")?.scrollIntoView(); }} aria-pressed={savedOnly}><Heart size={16} /> Salvos ({saved.length})</button><Link href="/minha-conta" className={styles.account}>Minha conta <ArrowUpRight size={16} /></Link></nav></header>
-    <StorefrontCampaign products={products.filter(p => p.available)} price={price} onOpen={p => { setSelected(p); setPhoto(0); }} onExplore={explore} />
-    <div className={styles.brandStrip}><span>Feito para a sua rotina.</span><strong>Escolha seu próximo movimento.</strong><span><PackageCheck size={16} /> Estoque atualizado</span></div>
-    <section id="discovery-collections" className={styles.collectionIntro} data-scroll-scene aria-label="Coleções"><div className={styles.collectionHeading}><span>Dois universos. O seu ritmo.</span><h2>ESCOLHA<br />SEU LADO.</h2><p>Um detalhe no look.<br />Uma novidade na rotina.<br />Comece por onde der vontade.</p></div><div className={styles.collections}><button onClick={() => explore("supplements")} className={styles.supplementCollection}><div><span>Suplementos</span><strong>O PRÓXIMO<br />PASSO É SEU.</strong></div>{hero?.image_url && <StorefrontDiscoveryImage data-cutout={Boolean(discoveryCutout(hero))} src={discoveryImage(hero)!} fallback={hero.image_url} alt="" fill sizes="(max-width: 650px) 90vw, 55vw" />}<span className={styles.collectionCta}>Explorar suplementos <ArrowUpRight size={23} /></span><span className={styles.collectionGhost} aria-hidden="true">FORÇA</span></button><button onClick={() => explore("fitness")} className={styles.fitnessCollection}><div><span>Fitness</span><strong>VISTA<br />SUA ATITUDE.</strong></div>{fitness?.image_url && <StorefrontDiscoveryImage data-cutout={Boolean(discoveryCutout(fitness))} src={discoveryImage(fitness)!} fallback={fitness.image_url} alt="" fill sizes="(max-width: 650px) 90vw, 45vw" />}<span className={styles.collectionCta}>Encontrar meu look <ArrowUpRight size={23} /></span></button></div></section>
-    <div className={styles.motionBridge} data-scroll-scene><p>ENCONTRE SEU RITMO.</p><span>Continue. Seu próximo favorito pode estar aqui.</span></div>
-    <section id="discovery-products" className={styles.browse}><div className={styles.sectionHeading}><div><span className={styles.muted}>A próxima descoberta é sua.</span><h2>{savedOnly ? "SEUS FAVORITOS." : operation === "fitness" ? "VISTA O SEU RITMO." : operation === "supplements" ? "PARA SUA ROTINA." : "OLHOU. GOSTOU."}</h2></div><p>Explore com calma.<br />Toque para conhecer de perto.</p></div>
-      <div className={styles.filters}><div className={styles.tabs} role="group" aria-label="Tipo de produto">{[["all", "Tudo"], ["supplements", "Suplementos"], ["fitness", "Fitness"]].map(([value, label]) => <button key={value} aria-pressed={operation === value} onClick={() => { setOperation(value); setCategory(""); setLimit(8); }}>{label}</button>)}</div><label className={styles.search}><Search size={18} /><input aria-label="Buscar produto" placeholder="Já sabe o que procura?" value={query} onChange={e => { setQuery(e.target.value); setLimit(8); }} /></label><select aria-label="Categoria" value={category} onChange={e => { setCategory(e.target.value); setLimit(8); }}><option value="">Todas as categorias</option>{categories.map(c => <option key={c}>{c}</option>)}</select></div>
+    <header className={styles.header}><Link href="/catalogo" aria-label="Vitrine Candinho"><Image src="/candinho-company-logo.png" width={170} height={56} alt="Candinho Company" priority /></Link><nav aria-label="Vitrine"><a href="#discovery-products">Produtos</a><button onClick={() => { setSavedOnly(v => !v); setQuery(""); setCategory(""); setLimit(8); document.getElementById("discovery-products")?.scrollIntoView(); }} aria-pressed={savedOnly}><Heart size={16} /> Salvos ({saved.length})</button><Link href="/minha-conta" className={styles.account}>Minha conta <ArrowUpRight size={16} /></Link></nav></header>
+    <StorefrontCampaign operation={operation} onOperationChange={changeOperation} products={products.filter(p => p.available)} price={price} onOpen={p => { setSelected(p); setPhoto(0); }} onExplore={explore} />
+    <section id="discovery-products" className={styles.browse}><div className={styles.sectionHeading}><div><span className={styles.muted}>Disponíveis na Vitrine</span><h2>{savedOnly ? "SEUS FAVORITOS." : operation === "fitness" ? "FITNESS" : "SUPLEMENTOS"}</h2></div><p>Veja tamanhos, preços e detalhes de cada produto.</p></div>
+      <div className={styles.filters}>{!savedOnly && <div className={styles.tabs} role="group" aria-label="Tipo de produto">{[["supplements", "Suplementos"], ["fitness", "Fitness"]].map(([value, label]) => <button key={value} aria-pressed={operation === value} onClick={() => changeOperation(value)}>{label}</button>)}</div>}<label className={styles.search}><Search size={18} /><input aria-label="Buscar produto" placeholder="Já sabe o que procura?" value={query} onChange={e => { setQuery(e.target.value); setLimit(8); }} /></label><select aria-label="Categoria" value={category} onChange={e => { setCategory(e.target.value); setLimit(8); }}><option value="">Todas as categorias</option>{categories.map(c => <option key={c}>{c}</option>)}</select></div>
       {savedOnly && <div className={styles.savedHint}>Salvos durante esta visita. <button onClick={() => setSavedOnly(false)}>Voltar a todos os produtos</button></div>}
       <p className={styles.resultCount} aria-live="polite">{available.length} {available.length === 1 ? "produto disponível" : "produtos disponíveis"}{available.length > limit ? ` · mostrando ${limit} por enquanto` : ""}</p>
       {available.length ? <div className={styles.grid}>{available.slice(0, limit).map(card)}</div> : <div className={styles.empty}><h3>{savedOnly ? "Sua seleção começa aqui" : "Não encontramos opções disponíveis"}</h3><p>{savedOnly ? "Toque no coração de um produto para guardar enquanto explora." : "Experimente outra busca ou categoria."}</p>{isFiltering && <button onClick={() => { setQuery(""); setCategory(""); setSavedOnly(false); }}>Limpar filtros</button>}</div>}
