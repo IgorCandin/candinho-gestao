@@ -29,3 +29,9 @@ As lacunas acima são ausência de integração no escritório, não contagens d
 ## Resolução
 
 Os avisos abrem as filas existentes para executar a ação com as permissões e validações atuais. Depois de voltar, Atualizar pendências consulta novamente. Resolver dentro da casa permanece uma extensão futura: exige trazer o registro concreto e a ação autorizada, sem inventar sucesso por clique.
+
+## Validação registrada
+
+23 testes Company aprovados; tipos e lint dos módulos alterados aprovados. Teste isolado no navegador em 1440×900 e 390×900: quatro salas simultâneas, casa no enquadramento, sem overflow horizontal, clique/toque para fixar/fechar, rolagem e Escape, sem erros JavaScript. Dados de teste não entram no produto.
+
+Build local: compilação/tipos aprovados, prerender público de `/catalogo` bloqueado por variáveis Supabase ausentes. Publicação exige build remoto aprovado. O lint global apresenta falhas fora do escopo; auditoria das dependências existentes aponta Next/sharp, sem atualização de pacotes nesta revisão. Homologação do responsável e ações reais não executadas.

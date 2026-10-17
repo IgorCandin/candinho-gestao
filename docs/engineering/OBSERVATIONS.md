@@ -198,3 +198,11 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Mudança: todas as salas permanecem visíveis, avisos por hover/foco, toque/clique para fixar, Escape e rolagem interna. Cursor nativo nesta rota. Acrescentadas filas exatas de recebimentos/entregas/pós-venda usando as fontes de Concluir/Acompanhar e permissões existentes. Sem mutação ou alteração de schema.
 - Cobertura: lacunas detalhadas em ESCRITORIO-COBERTURA-2026-10-17.md e na própria página; desconhecido não vira zero, categorias não somam pessoas, futuros não são chamados de atrasados.
 - Evidência inicial: cinco testes Node aprovados, incluindo interação, estados vazios/indisponíveis, exclusão de canceladas e isolamento por operação. Verificações de tipos/lint/build e visual seguem pendentes até registro complementar. Nenhuma resolução real executada.
+
+### Verificação complementar da casa — 17/10/2026
+
+- 23 testes da Company aprovados, incluindo cinco do escritório. TypeScript e lint dos módulos TSX alterados aprovados.
+- Navegador local isolado, com dados de teste: 1440×900 e 390×900; quatro salas visíveis, casa no enquadramento, sem overflow horizontal, avisos fixam/fecham por toque/clique, rolagem interna (600px) e Escape aprovados, sem erros JavaScript. Artefatos de teste ficam fora do projeto.
+- Build local compilou e passou pelos tipos, mas interrompeu o prerender de `/catalogo` por ausência das variáveis Supabase neste checkout. Build remoto Vercel do primeiro commit aprovado; build do commit final é condição para publicação.
+- Lint global: 141 erros e 29 avisos em áreas amplas do repositório; não usar como sinal de aprovação global. Auditoria do lock npm importado: 1 vulnerabilidade crítica, 2 altas, 4 moderadas e 1 baixa nas dependências existentes Next/sharp. Nenhum pacote ou lock foi alterado nesta entrega.
+- Homologação do responsável e ações mutantes reais permanecem pendentes. Consulte PR #39 para resultado do build/publicação final.

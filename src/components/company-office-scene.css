@@ -130,3 +130,14 @@
 @media(prefers-reduced-motion:reduce){.company-office-live .co-notice{animation:none}.company-office-live .co-agent{transition:none}.company-office-live .co-agent:hover{transform:none}}
 .company-office-live .co-room:nth-child(-n+2) .co-notice{top:58px;bottom:auto;transform-origin:50% 0}
 /* Cursor nativo evita o loop de animação contínuo nesta visão operacional. */
+/* Mantém a casa no enquadramento e o personagem acessível ao lado do aviso. */
+.company-office-live .co-building{grid-template-rows:clamp(145px,calc((100svh - 400px)/2),300px) 40px clamp(145px,calc((100svh - 400px)/2),300px)}
+.company-office-live .co-notice{left:calc(50% + 52px);right:auto;width:clamp(280px,32vw,420px)}
+.company-office-live .co-room:nth-child(2) .co-notice,.company-office-live .co-room[data-kind=bank] .co-notice{left:auto;right:calc(50% + 20px)}
+@media(max-width:720px){.company-office-live .co-building{grid-template-rows:180px 36px 180px}.company-office-live .co-notice,.company-office-live .co-room:nth-child(2) .co-notice,.company-office-live .co-room[data-kind=bank] .co-notice{left:6px;right:6px;top:38px;bottom:auto;width:auto}.company-office-live .co-room:nth-child(-n+2) .co-notice{top:38px}}
+@media(max-width:720px){
+ .company-office-live .co-room:has(.co-notice:not([hidden])){position:relative}
+ .company-office-live .co-notice{width:calc(200% + 4px);left:0;right:auto;top:auto;bottom:70px}
+ .company-office-live .co-room:nth-child(-n+2) .co-notice{top:38px;bottom:auto}
+ .company-office-live .co-room:nth-child(2) .co-notice,.company-office-live .co-room[data-kind=bank] .co-notice{left:auto;right:0;width:calc(200% + 4px)}
+}

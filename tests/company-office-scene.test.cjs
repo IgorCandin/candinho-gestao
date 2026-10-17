@@ -39,15 +39,16 @@ test('hover, pin, switch, Escape, close/focus and refresh', () => {
   function nodes(node) { if (!node || typeof node !== 'object') return []; return [node, ...React.Children.toArray(node.props?.children).flatMap(nodes)]; }
   const agent = (view, name) => nodes(view).find(n => n.props.className === 'co-agent' && n.props['aria-label'].includes(name));
   const panel = (view, name) => nodes(view).find(n => n.props.id === `office-room-${name}`);
+  global.window = {matchMedia:()=>({matches:true})};
   let view = tree(); assert.equal(panel(view, 'fitness').props.hidden, true);
   agent(view, 'Bia').props.onMouseEnter(); view = tree(); assert.equal(panel(view, 'fitness').props.hidden, false);
   agent(view, 'Bia').props.onClick({currentTarget:{focus(){focused++;}}}); view = tree();
   agent(view, 'Davi').props.onMouseEnter(); view = tree(); assert.equal(panel(view, 'fitness').props.hidden, false);
   agent(view, 'Davi').props.onClick({currentTarget:{focus(){focused++;}}}); view = tree(); assert.equal(panel(view, 'bank').props.hidden, false);
   view.props.onKeyDown({key:'Escape', preventDefault(){}}); view = tree(); assert.equal(panel(view, 'bank').props.hidden, true);
-  agent(view, 'Bia').props.onFocus({currentTarget:{focus(){focused++;}}}); view = tree();
+  agent(view, 'Bia').props.onFocus({currentTarget:{matches:()=>true,focus(){focused++;}}}); view = tree();
   nodes(view).find(n => n.props['aria-label'] === 'Fechar painel de pendências').props.onClick(); view = tree(); assert.equal(panel(view, 'fitness').props.hidden, true);
-  nodes(view).find(n => n.props.className === 'co-refresh').props.onClick(); assert.equal(refreshed, 1); assert.equal(focused, 2);
+  nodes(view).find(n => n.props.className === 'co-refresh').props.onClick(); assert.equal(refreshed, 1); assert.equal(focused, 2); delete global.window;
 });
 
 test('page respects operation access and preserves failed counts', async () => {
