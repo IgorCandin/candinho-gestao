@@ -182,3 +182,11 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Fundos das camadas Fitness removidos; recortes sem mistura de cores com o fundo para preservar tecidos brancos. Coleção ajustada para acomodar o recorte sem cobrir seu título.
 - Evidência: 21 WebPs verificados com alpha 0–255; aproximadamente 4,2 MB. Inspeção dos recortes; abertura desktop e 390px sem overflow; lint dos módulos alterados e TypeScript aprovados. Build remoto é condição de publicação. Manifesto e prompts em `FITNESS-RECORTES.md`.
 
+### OBS-015 — Enquadramento, cursor e sequência da Vitrine
+
+- Data: 17/10/2026. Responsável relatou cursor desaparecendo ao clicar, impressão de zoom, excesso de seções e rótulos inconsistentes.
+- Causa do cursor: `CompanyCursor` escondia o ponteiro nativo no body, mas seu elemento decorativo fica abaixo do top layer dos dialogs. A rota `/catalogo/descobrir` agora usa cursor nativo durante toda a visita; demais áreas preservadas. Effect acompanha mudanças de pathname para limpar corretamente a classe global.
+- Direção visual preservada (prata/carvão, ocre/rosa, Barlow/Manrope e recortes). Abertura compacta, menos camadas e movimento discreto; controles redundantes removidos. Sequência reduzida a destaque e produtos, sem coleções repetidas ou faixas de frases entre elas. Seleção padronizada Suplementos/Fitness e sincronizada com a galeria. Padrão inicial Suplementos; favoritos reúnem ambas as operações.
+- Galeria de cartões uniformes em 4/3/2 colunas, sem primeiro produto gigante. Imagens com contain e medidas limitadas; campos e detalhes ajustados para celular. Nenhum zoom de navegador ou bloqueio de rolagem introduzido.
+- Evidência local: abertura inteira em 1280×720 (limite inferior ~587px) e 390×844 (~654px), sem overflow. Dialog da Creatina com cursor computado `pointer`, nenhum cursor decorativo, preço e compra visíveis. Fitness sincronizou os dois seletores; detalhes com tamanho/cor, favorito e fechamento por Escape conferidos. Favorito Fitness encontrado após navegar em Suplementos. Lint dos módulos e TypeScript aprovados após regenerar tipos locais antigos de rotas Next; build remoto exigido antes de publicar.
+
