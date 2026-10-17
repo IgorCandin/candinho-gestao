@@ -18,9 +18,8 @@ export function CompanyCursor() {
   const layerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const enabled = window.matchMedia("(pointer: fine)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const layer = layerRef.current;
-    if (!enabled || !layer || typeof layer.showPopover !== "function") return;
+    if (!layer || typeof layer.showPopover !== "function") return;
     // A manual, non-interactive top-layer surface also stays above native dialogs.
     function raiseCursor() {
       if (!layer?.isConnected) return;
@@ -48,12 +47,14 @@ export function CompanyCursor() {
 
     function onPointerMove(event: PointerEvent) {
       if (event.pointerType !== "mouse") return;
-      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { hide(); return; }
       document.body.classList.add("company-custom-cursor-active");
       targetX = event.clientX;
       targetY = event.clientY;
       if (ringRef.current?.classList.contains("is-hidden")) { ringX = targetX; ringY = targetY; }
-      if (!frame) frame = window.requestAnimationFrame(animateRing);
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        window.cancelAnimationFrame(frame); frame = 0; ringX = targetX; ringY = targetY;
+        ringRef.current?.style.setProperty("transform", `translate3d(${targetX}px, ${targetY}px, 0) translate(-50%, -50%)`);
+      } else if (!frame) frame = window.requestAnimationFrame(animateRing);
       dotRef.current?.style.setProperty("transform", `translate3d(${targetX}px, ${targetY}px, 0) translate(-50%, -50%)`);
       ringRef.current?.classList.remove("is-hidden");
       dotRef.current?.classList.remove("is-hidden");

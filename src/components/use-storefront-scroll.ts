@@ -2,11 +2,10 @@
 
 import { useEffect, type RefObject } from "react";
 
-export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
+export function useStorefrontScroll(root: RefObject<HTMLElement | null>, motion: boolean) {
   useEffect(() => {
     const page = root.current;
     if (!page) return;
-    const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const visible = new Set<HTMLElement>();
     const revealed = new WeakSet<Element>();
     const running = new Set<Animation>();
@@ -15,7 +14,7 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
 
     const update = () => {
       frame = 0;
-      if (preference.matches) return;
+      if (!motion) return;
       const height = window.innerHeight;
       // Read all geometry first, then write styles without React renders.
       const positions = [...visible].map(element => ({ element, rect: element.getBoundingClientRect() }));
@@ -28,12 +27,12 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
       }
       page.style.setProperty("--page-progress", String(clamp(-pageRect.top / Math.max(1, pageRect.height - height))));
     };
-    const schedule = () => { if (!frame && !preference.matches) frame = requestAnimationFrame(update); };
+    const schedule = () => { if (!frame && motion) frame = requestAnimationFrame(update); };
     const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
         if (entry.isIntersecting) {
           visible.add(entry.target as HTMLElement);
-          if (!preference.matches && !revealed.has(entry.target) && entry.target.matches("[data-product-reveal]")) {
+          if (motion && !revealed.has(entry.target) && entry.target.matches("[data-product-reveal]")) {
             revealed.add(entry.target);
             const animation = entry.target.animate([
               { clipPath: "inset(12% 0 0 0 round 14px)", opacity: .4 },
@@ -61,22 +60,20 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
     const mutations = new MutationObserver(discover);
     mutations.observe(page, { childList: true, subtree: true });
     const preferenceChanged = () => {
-      page.setAttribute("data-motion", preference.matches ? "reduced" : "active");
-      if (preference.matches) running.forEach(animation => animation.cancel());
+      page.setAttribute("data-motion", motion ? "active" : "reduced");
+      if (!motion) running.forEach(animation => animation.cancel());
       schedule();
     };
     preferenceChanged();
     discover();
     window.addEventListener("scroll", schedule, { passive: true });
     window.addEventListener("resize", schedule);
-    preference.addEventListener("change", preferenceChanged);
     return () => {
       cancelAnimationFrame(frame);
       running.forEach(animation => animation.cancel());
       observer.disconnect(); mutations.disconnect();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
-      preference.removeEventListener("change", preferenceChanged);
     };
-  }, [root]);
+  }, [root, motion]);
 }

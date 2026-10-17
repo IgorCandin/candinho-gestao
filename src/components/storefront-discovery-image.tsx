@@ -14,6 +14,6 @@ export function StorefrontDiscoveryImage({ src, fallback, alt, ...props }: Props
   // A slow remote optimizer must not leave the product blank: try the original
   // directly, then its existing catalog thumbnail. A different scene resets it.
   if (attempt >= 3) return <span role="img" aria-label={alt}>Foto indisponível</span>;
-  return <Image {...props} alt={alt} src={attempt >= 2 ? fallback || src : src} unoptimized={attempt > 0}
+  return <Image {...props} alt={alt} src={attempt >= 2 ? fallback || src : src} unoptimized={src.startsWith("/discovery-products/") || attempt > 0}
     onError={() => setFailure(previous => ({ src, attempt: previous.src === src ? previous.attempt + 1 : 1 }))} />;
 }

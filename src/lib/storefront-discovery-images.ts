@@ -1,4 +1,5 @@
 import type { PublicStorefrontProduct } from "./public-storefront-data";
+import supplementCutouts from "./storefront-supplement-cutouts.json";
 
 // Match the source as well as the product: a future catalog photo must not be
 // silently replaced by an older campaign cutout.
@@ -29,7 +30,8 @@ const cutouts = [
 ] as const;
 
 export function discoveryCutout(product: PublicStorefrontProduct): string | undefined {
-  return cutouts.find(([id, source]) => product.id === id && product.image_url?.endsWith(source))?.[2];
+  return cutouts.find(([id, source]) => product.id === id && product.image_url?.endsWith(source))?.[2]
+    ?? supplementCutouts.find(row => product.id === row.id && product.image_url?.endsWith(row.source))?.asset;
 }
 
 export function discoveryOriginal(url: string): string {
@@ -39,5 +41,7 @@ export function discoveryOriginal(url: string): string {
 }
 
 export function discoveryImage(product: PublicStorefrontProduct): string | null {
-  return discoveryCutout(product) ?? (product.image_url ? discoveryOriginal(product.image_url) : null);
+  const cutout = discoveryCutout(product);
+  return (cutout ? supplementCutouts.find(row => row.asset === cutout)?.display ?? cutout : null)
+    ?? (product.image_url ? discoveryOriginal(product.image_url) : null);
 }
