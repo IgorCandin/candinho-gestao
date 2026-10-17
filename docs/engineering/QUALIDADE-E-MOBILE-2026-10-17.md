@@ -30,6 +30,15 @@ Comandos de instalação de referência, **não executados**: `npx skills add ht
 
 ## Portões para finalizar mobile
 
+### Lote de tipos e testes sem API — 17/10
+
+- Causa confirmada no build webpack local: `companyMode` era prop de três páginas de rota e consignações também aceitava argumento `undefined`. O verificador gerado do Next.js rejeitava esses contratos.
+- Correção: componentes completos movidos para `src/components/operational-pages/`, sem alterar consultas, ações ou layout. Entradas legadas recebem apenas props de rota; entradas Company usam os mesmos componentes com contexto explícito. Não desativar verificação nem editar tipos gerados.
+- 44 testes Node aprovados; quatro novos cobrem registros/links nos dois contextos, leitura sem escrita, acesso negado antes da consulta, falha não disfarçada de lista vazia e busca/filtros/paginação.
+- `npm test` executa todas as regressões Node; `npm run test:company` inclui lotes/sabores e páginas compartilhadas. Nenhuma chamada a API de IA ou banco real.
+- Playwright isolado do runtime do ERP, versão fixada em `tests/browser/requirements.txt`. Executar `python tests/browser/readonly_smoke.py --base-url https://candinho.duckdns.org`. Perfil novo sem credenciais; bloqueia todos os métodos diferentes de GET/HEAD; seis rotas em dois tamanhos. Confere acesso ao login, não funcionalidade autenticada nem aprovação mobile. Evidência de execução deve ser registrada separadamente.
+- Permanecem: fluxos autenticados e ações reais em ambiente isolado, iPhone/Safari e lint/segurança preexistentes. Não marcar aprovação do responsável automaticamente.
+
 1. Operações: venda/orçamento, pagamento e entrega independentes, cancelamento, estoque por variação, conversão, consignação e parceiro. Teste real somente em uma operação desejada pelo responsável ou ambiente isolado.
 2. Navegação: links e retornos mantêm Company; destino sem substituto continua explicitamente pendente, sem esconder função.
 3. iPhone/Safari: retrato e paisagem, teclado aberto, rolar até o último botão, fechar/voltar nas janelas e focar campos sem cortes. Emulação desktop não substitui aparelho real.

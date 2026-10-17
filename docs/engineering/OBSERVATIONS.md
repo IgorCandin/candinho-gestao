@@ -16,6 +16,14 @@ Referências:
 
 ## Observações atuais
 
+### OBS-TIPOS-20261017 — Props de rota não são opções de componente
+
+- Contexto: build webpack local rejeitou três páginas compartilhadas na migração.
+- Evidência: tipos gerados do Next.js rejeitavam `companyMode` em estoque/[id], Fitness/movimentacoes e o argumento opcional de Fitness/consignacoes.
+- Mudança: componentes movidos sem alteração funcional; páginas legadas e Company compõem os mesmos componentes. Regra registrada em AGENTS.md e regressão de contratos/navegação adicionada.
+- Status: 44 testes Node aprovados. Build completo, navegador e publicação registrados no relato de entrega; não confundir com homologação de ações reais/mobile. Nenhum dado real alterado.
+- Referências: tests/operational-pages.test.cjs; QUALIDADE-E-MOBILE-2026-10-17.md.
+
 ### OBS-LOTES-20261017 — Lotes, sabores e aliases da Central
 
 - Contexto: continuar migração sem remover funções e testar sem API paga.
