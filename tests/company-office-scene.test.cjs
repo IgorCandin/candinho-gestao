@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports -- Node test harness compiles TSX as CommonJS. */
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -9,7 +10,7 @@ const { renderToStaticMarkup } = require('react-dom/server');
 const file = path.resolve(__dirname, '../src/components/company-office-scene.tsx');
 function load(hooks = React, refresh = () => {}) {
   const compiled = new Module(file, module);
-  compiled.require = id => id === 'react' ? hooks : id === './company-office-scene.css' ? {} : id === 'next/navigation' ? { useRouter: () => ({ refresh }) } : id === 'next/link' ? { __esModule: true, default: ({ children, href, prefetch, ...props }) => React.createElement('a', { href, ...props }, children) } : require(id);
+  compiled.require = id => id === 'react' ? hooks : id === './company-office-scene.css' ? {} : id === 'next/navigation' ? { useRouter: () => ({ refresh }) } : id === 'next/link' ? { __esModule: true, default: ({ children, href, ...props }) => { delete props.prefetch; return React.createElement('a', { href, ...props }, children); } } : require(id);
   compiled._compile(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText, file);
   return compiled.exports.CompanyOfficeScene;
 }
