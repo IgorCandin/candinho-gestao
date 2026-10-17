@@ -1379,3 +1379,12 @@ body.company-custom-cursor-active .install-help-overlay button{cursor:pointer!im
 /* Decorative top-layer cursor never intercepts input, including preference changes. */
 .company-cursor-layer{position:fixed;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none!important}
 .company-cursor-layer::backdrop{background:transparent;pointer-events:none}
+
+/* Real mouse input enables the cursor even on hybrid devices. Reduced motion
+   keeps the circle visible, with direct positioning instead of trailing. */
+.company-custom-cursor-active,.company-custom-cursor-active a,.company-custom-cursor-active button,.company-custom-cursor-active input,.company-custom-cursor-active select,.company-custom-cursor-active textarea,.company-custom-cursor-active summary,.company-custom-cursor-active dialog,.company-custom-cursor-active [role=button]{cursor:none!important}
+.company-cursor-ring,.company-cursor-dot{display:block;position:fixed;z-index:9999;top:0;left:0;border-radius:50%;pointer-events:none}
+.company-cursor-ring{width:34px;height:34px;border:1.5px solid var(--cursor-accent,#aeb6c2);box-shadow:0 0 18px var(--cursor-glow,rgba(174,182,194,.18));transition:width .2s,height .2s,opacity .2s,background .2s}
+.company-cursor-ring.is-interactive{width:49px;height:49px;background:var(--cursor-glow,rgba(174,182,194,.12))}.company-cursor-ring.is-hidden,.company-cursor-dot.is-hidden{opacity:0}
+.company-cursor-dot{width:5px;height:5px;background:var(--cursor-accent,#aeb6c2);box-shadow:0 0 10px var(--cursor-accent,#aeb6c2)}
+@media(prefers-reduced-motion:reduce){.company-cursor-ring,.company-cursor-dot{transition:none}}
