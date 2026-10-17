@@ -1,5 +1,7 @@
-import HistoricalFlavorPage from "../../../../produtos/sabores/historico/page";
+import HistoricalFlavorPage from "@/app/(app)/produtos/sabores/historico/page";
 
-export default function CompanyHistoricalFlavorPage(props: Parameters<typeof HistoricalFlavorPage>[0]) {
-  return <HistoricalFlavorPage {...props} companyMode />;
+export const dynamic = "force-dynamic";
+
+export default function Page({ searchParams }: { searchParams: Promise<{ produto?: string }> }) {
+  return <HistoricalFlavorPage searchParams={searchParams} companyMode />;
 }

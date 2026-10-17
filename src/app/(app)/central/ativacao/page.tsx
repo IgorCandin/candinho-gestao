@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function CentralActivationPausedPage() {
-  redirect("/central");
+  redirect("/company/gestao/central");
 }

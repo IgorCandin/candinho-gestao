@@ -16,6 +16,15 @@ Referências:
 
 ## Observações atuais
 
+### OBS-LOTES-20261017 — Lotes, sabores e aliases da Central
+
+- Contexto: continuar migração sem remover funções e testar sem API paga.
+- Evidência: links de lote/rastreio usavam Next Link direto; histórico de sabores não era reconhecido pelo conversor de destinos. A página Company de histórico já existia e foi reutilizada. Aliases pausados da Central devolviam ao legado.
+- Mudança: entradas de lotes/sabores no catálogo Company, links contextuais e aliases Central diretos. RPCs de classificação, rastreio e quarentena permanecem inalteradas; Inbox/Nexus pausados não são reativados.
+- Status: 40 testes Node aprovados, incluindo filtros/fragmentos e aliases. Tipos, lint e publicação devem ser conferidos separadamente. Ações reais e Safari/iPhone pendentes; não marcar aprovação automaticamente.
+- Testes sem custo de API: regressões determinísticas locais; nenhuma chave criada, serviço contratado ou ferramenta de IA instalada. Playwright não requer API de modelo. Ambiente de prévia não isola o banco real.
+- Referências: tests/company-lots-flavors.test.cjs; /company/mapa.
+
 ### OBS-MIG-20261017 — Links internos também precisam preservar contexto
 
 - Contexto: conversões Fitness, estoque, parceiros e Central, sem retirar funções.

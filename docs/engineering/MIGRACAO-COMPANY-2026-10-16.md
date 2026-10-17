@@ -68,7 +68,8 @@ Clientes, produtos, vendas, pós-venda, compras, fornecedores, parceiros, rotas 
 - Produção READY em `3396402`, seguida da correção de entrada `6369dbc`. Conversões, configuração de parceiros, portal administrativo e ficha detalhada de estoque carregaram em sessão autenticada. Venda específica e produto da ficha mantiveram URLs Company. Nenhuma mutação operacional executada.
 - A entrada completa da Central foi verificada dentro de `/company/gestao/central`, com links de documentos, prioridades, contatos, mídia, agenda e governança na Company. A busca do cabeçalho também foi ajustada para submissão direta no contexto Company.
 - Bateria completa: 38 testes Node aprovados; verificação de tipos aprovada e lint direcionado com zero erros/três avisos preexistentes. Logs recentes da publicação não mostraram erros, mas isso não equivale a homologação integral.
-- Permanecem pendentes: aliases da Central, todos os retornos de lotes/sabores, ações reais e Safari/iPhone. Não tratar estes resultados como aprovação do responsável.
+- Complemento de 17/10: lotes, detalhe/rastreabilidade, estoque por sabor e histórico expostos no catálogo Company. Links para lote, venda, pedido e histórico preservam contexto, parâmetros e fragmentos. Histórico Company já existia; reutilizado, sem duplicar classificação. Aliases pausados ativação/Inbox/Nexus e integração/governança agora retornam diretamente à Company. Nenhuma RPC alterada e nenhuma função pausada reativada.
+- Permanecem pendentes: redirecionamentos por falta de permissão, demais destinos dinâmicos da Central, ações reais de classificação/quarentena e Safari/iPhone. Testes Node não substituem homologação visual ou transação real. Não tratar estes resultados como aprovação do responsável.
 
 ### Próximo bloco efetivo
 

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { ArrowLeft, Tags } from "lucide-react";
 import { redirect } from "next/navigation";
 import { HistoricalFlavorClassifier } from "@/components/historical-flavor-classifier";

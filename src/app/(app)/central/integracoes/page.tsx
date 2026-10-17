@@ -5,8 +5,8 @@ export default async function CentralIntegrationsPausedPage() {
   const access = await getCurrentUserAccess();
 
   if (access.canManageUsers) {
-    redirect("/central/governanca");
+    redirect("/company/gestao/central/governanca");
   }
 
-  redirect("/central");
+  redirect("/company/gestao/central");
 }

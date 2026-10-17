@@ -66,7 +66,8 @@ blocks.push({title:"Qualidade e liberação mobile",scope:"Não confundir tela d
   {label:"Regressão de navegação e ações",state:"test",detail:"Regressões de componentes/cálculos/contexto com RPCs simuladas; ações reais e permissões precisam de conferência autenticada. Sem liberar agente para gravar em produção.",href:"/company/ferramentas"},
   {label:"Duplicidade de código",state:"doing",detail:"Auditoria local identificou 12 grupos candidatos de corpos de função repetidos; não são 12 bugs e não houve fusão automática. Revisar antes de refatorar."},
   {label:"Mobile final",state:"todo",detail:"Validar iPhone real: rolagem até o fim, teclado, menus/janelas, navegação de volta, fotos, foco e ações de pagamento/entrega/acerto. Registrar cada teste; não declarar concluído antecipadamente."},
-  {label:"Teste exploratório com IA externa",state:"todo",detail:"Avaliar TestSprite/Browser Use mediante link da ferramenta, custos e ambiente isolado com dados fictícios. Nada instalado e nenhum acesso externo concedido."},
+    {label:"Lotes, sabores e atalhos Central",state:"test",detail:"Entradas próprias, rastreabilidade até venda, histórico de sabores e aliases pausados preservam Company. Mesmas operações; classificação e quarentena reais aguardam homologação.",href:"/company/ferramentas"},
+    {label:"Testes sem API paga",state:"doing",detail:"Priorizar regressões determinísticas e Playwright sem IA. Nenhum serviço externo instalado ou custo de API autorizado. Testes de gravação exigem ambiente isolado; prévias usam banco real."},
 ]});
 const allSteps = blocks.flatMap((block) => block.steps);
 

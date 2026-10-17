@@ -4,6 +4,8 @@ export function companyDestination(href: string): string {
   if (!match) return href;
   const path = match[1].replace(/^\/suplementos(?=\/)/, "");
   const suffix = match[2];
+  const lot = path.match(/^\/estoque\/lotes(?:\/([0-9a-f-]{36}))?$/i);
+  if (lot) return `/company/estoque/lotes${lot[1] ? `/${lot[1]}` : ""}${suffix}`;
   // Central routes already have a Company rewrite, preserving their existing implementations.
   if (/^\/central(?:\/|$)/.test(match[1])) return match[1].replace(/^\/central/, "/company/gestao/central") + suffix;
   const inventory = path.match(/^\/estoque\/([0-9a-f-]{36})$/i);
@@ -11,6 +13,7 @@ export function companyDestination(href: string): string {
   const fitnessConsignment = path.match(/^\/fitness\/consignacoes(?:\/([0-9a-f-]{36}|nova))?$/i);
   if (fitnessConsignment) return `/company/fitness/consignacoes${fitnessConsignment[1] ? `/${fitnessConsignment[1]}` : ""}${suffix}`;
   const extra: Record<string, string> = {
+    "/produtos/sabores/historico": "/company/produtos/sabores/historico",
     "/parceiros/configuracao": "/company/parceiros/configuracao",
     "/parceiros/portal": "/company/parceiros/portal",
     "/estoque/sabores": "/company/estoque/sabores",

@@ -1,5 +1,8 @@
 /** Existing operations, exposed in Company without retiring legacy routes. */
 export const companyMigrationTools = [
+  {operation:"supplements", title:"Lotes e validades", description:"Rastreabilidade, FEFO, classificação do legado e quarentena.", href:"/company/estoque/lotes"},
+  {operation:"supplements", title:"Estoque por sabor", description:"Saldos por sabor e histórico sem sabor.", href:"/company/estoque/sabores"},
+  {operation:"supplements", title:"Classificar histórico de sabores", description:"Vendas antigas sem nova baixa de estoque.", href:"/company/produtos/sabores/historico"},
   {operation:"fitness", title:"Conversões de conjuntos", description:"Converter conjunto em peças avulsas com os movimentos existentes.", href:"/company/fitness/conversoes"},
   {operation:"supplements", title:"Configuração de parceiros", description:"Regras incompletas, investimento e materiais destinados.", href:"/company/parceiros/configuracao"},
   {operation:"supplements", title:"Central integrada", description:"Ferramentas existentes com navegação dentro da Company.", href:"/company/gestao/central"},
