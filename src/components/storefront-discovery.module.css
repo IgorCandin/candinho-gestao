@@ -86,3 +86,5 @@
 @media(max-height:700px) and (min-width:651px){.stage{height:350px}.journeyCopy{gap:12px}.page .journeyCopy h3{font-size:36px}.journeyPanel{gap:20px}}
 
 @media(max-height:700px) and (max-width:650px){.stage{height:250px}.page .heroCopy h1{font-size:clamp(40px,11vw,48px)}.heroCopy{padding-top:14px}.heroBottomCopy{margin-top:12px}.page .hero{padding-top:14px;padding-bottom:20px}}
+
+.page .mainShot{background:var(--surface)}
