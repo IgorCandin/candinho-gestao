@@ -63,6 +63,13 @@ Clientes, produtos, vendas, pós-venda, compras, fornecedores, parceiros, rotas 
 - Qualidade: `test:company` e `audit:duplicates`, sem dependências adicionais. Testes usam RPCs simuladas; auditoria só gera candidatos, nunca unifica regras ou cadastros.
 - Evidências e próximos portões: `QUALIDADE-E-MOBILE-2026-10-17.md`. Mapa atualizado sem gravar aprovações fictícias. Homologação de ações reais e Safari/iPhone continua pendente.
 
+### Conferência online · terceiro pacote
+
+- Produção READY em `3396402`, seguida da correção de entrada `6369dbc`. Conversões, configuração de parceiros, portal administrativo e ficha detalhada de estoque carregaram em sessão autenticada. Venda específica e produto da ficha mantiveram URLs Company. Nenhuma mutação operacional executada.
+- A entrada completa da Central foi verificada dentro de `/company/gestao/central`, com links de documentos, prioridades, contatos, mídia, agenda e governança na Company. A busca do cabeçalho também foi ajustada para submissão direta no contexto Company.
+- Bateria completa: 38 testes Node aprovados; verificação de tipos aprovada e lint direcionado com zero erros/três avisos preexistentes. Logs recentes da publicação não mostraram erros, mas isso não equivale a homologação integral.
+- Permanecem pendentes: aliases da Central, todos os retornos de lotes/sabores, ações reais e Safari/iPhone. Não tratar estes resultados como aprovação do responsável.
+
 ### Próximo bloco efetivo
 
 1. Homologar consignação real desejada (envio → acerto/devolução → venda), mantendo consulta antiga para comparação.

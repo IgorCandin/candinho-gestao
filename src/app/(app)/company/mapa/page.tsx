@@ -63,7 +63,7 @@ blocks.push({ title: "Escritório de operações", scope: "Visão complementar; 
   { label: "Anotações compartilhadas", state: "todo", detail: "Definir armazenamento auditável das notas. Reposição já usa os critérios existentes; não há agentes autônomos nem serviço de IA contratado." },
 ] });
 blocks.push({title:"Qualidade e liberação mobile",scope:"Não confundir tela disponível com fluxo homologado",steps:[
-  {label:"Regressão de navegação e ações",state:"test",detail:"21 testes de componentes/cálculos/contexto com RPCs simuladas; ações reais e permissões precisam de conferência autenticada. Sem liberar agente para gravar em produção.",href:"/company/ferramentas"},
+  {label:"Regressão de navegação e ações",state:"test",detail:"Regressões de componentes/cálculos/contexto com RPCs simuladas; ações reais e permissões precisam de conferência autenticada. Sem liberar agente para gravar em produção.",href:"/company/ferramentas"},
   {label:"Duplicidade de código",state:"doing",detail:"Auditoria local identificou 12 grupos candidatos de corpos de função repetidos; não são 12 bugs e não houve fusão automática. Revisar antes de refatorar."},
   {label:"Mobile final",state:"todo",detail:"Validar iPhone real: rolagem até o fim, teclado, menus/janelas, navegação de volta, fotos, foco e ações de pagamento/entrega/acerto. Registrar cada teste; não declarar concluído antecipadamente."},
   {label:"Teste exploratório com IA externa",state:"todo",detail:"Avaliar TestSprite/Browser Use mediante link da ferramenta, custos e ambiente isolado com dados fictícios. Nada instalado e nenhum acesso externo concedido."},

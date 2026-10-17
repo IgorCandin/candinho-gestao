@@ -1,4 +1,5 @@
 import Link from "@/components/company-context-link";
+import Form from "@/components/company-context-form";
 import { redirect } from "next/navigation";
 import {
   Bell,
@@ -78,7 +79,7 @@ export default async function CentralPage() {
 
   return (
     <>
-      <form
+      <Form
         className="central-home-search central-home-search-first"
         action="/central/busca"
         method="get"
@@ -94,7 +95,7 @@ export default async function CentralPage() {
         >
           Buscar
         </button>
-      </form>
+      </Form>
 
       <section className="stats-grid central-stats-grid">
         <StatCard
