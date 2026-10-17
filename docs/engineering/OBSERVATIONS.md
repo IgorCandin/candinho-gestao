@@ -190,3 +190,11 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Galeria de cartões uniformes em 4/3/2 colunas, sem primeiro produto gigante. Imagens com contain e medidas limitadas; campos e detalhes ajustados para celular. Nenhum zoom de navegador ou bloqueio de rolagem introduzido.
 - Evidência local: abertura inteira em 1280×720 (limite inferior ~587px) e 390×844 (~654px), sem overflow. Dialog da Creatina com cursor computado `pointer`, nenhum cursor decorativo, preço e compra visíveis. Fitness sincronizou os dois seletores; detalhes com tamanho/cor, favorito e fechamento por Escape conferidos. Favorito Fitness encontrado após navegar em Suplementos. Lint dos módulos e TypeScript aprovados após regenerar tipos locais antigos de rotas Next; build remoto exigido antes de publicar.
 
+
+### OBS-016 — Casa inteira e cobertura explícita do escritório
+
+- Data: 17/10/2026. Responsável rejeitou painel lateral e pediu visão periférica das pendências.
+- Causa: cena selecionava uma sala no celular; escritório consultava somente cadastro/Doctor/reposição/oportunidades/Bank do mês.
+- Mudança: todas as salas permanecem visíveis, avisos por hover/foco, toque/clique para fixar, Escape e rolagem interna. Cursor nativo nesta rota. Acrescentadas filas exatas de recebimentos/entregas/pós-venda usando as fontes de Concluir/Acompanhar e permissões existentes. Sem mutação ou alteração de schema.
+- Cobertura: lacunas detalhadas em ESCRITORIO-COBERTURA-2026-10-17.md e na própria página; desconhecido não vira zero, categorias não somam pessoas, futuros não são chamados de atrasados.
+- Evidência inicial: cinco testes Node aprovados, incluindo interação, estados vazios/indisponíveis, exclusão de canceladas e isolamento por operação. Verificações de tipos/lint/build e visual seguem pendentes até registro complementar. Nenhuma resolução real executada.

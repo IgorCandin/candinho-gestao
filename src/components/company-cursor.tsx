@@ -19,7 +19,7 @@ export function CompanyCursor() {
   useEffect(() => {
     // Native dialogs render above document-level cursor decorations. Keep the
     // native pointer throughout the public discovery storefront.
-    if (pathname === "/catalogo/descobrir") return;
+    if ((pathname === "/catalogo/descobrir" || pathname === "/company/escritorio")) return;
     const enabled = window.matchMedia("(pointer: fine)").matches && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (!enabled) return;
     document.body.classList.add("company-custom-cursor-active");
@@ -69,7 +69,7 @@ export function CompanyCursor() {
     };
   }, [palette.accent, palette.glow, pathname]);
 
-  if (pathname === "/catalogo/descobrir") return null;
+  if ((pathname === "/catalogo/descobrir" || pathname === "/company/escritorio")) return null;
 
   return (
     <>
@@ -78,3 +78,4 @@ export function CompanyCursor() {
     </>
   );
 }
+
