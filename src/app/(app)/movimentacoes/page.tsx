@@ -16,23 +16,26 @@ const TYPES = [
   ["opening", "Abertura"],
 ] as const;
 
-function hrefFor(type: string, search: string) {
+function hrefFor(type: string, search: string, base: string) {
   const params = new URLSearchParams();
   if (type) params.set("type", type);
   if (search) params.set("q", search);
   const query = params.toString();
-  return query ? `/movimentacoes?${query}` : "/movimentacoes";
+  return query ? `${base}?${query}` : base;
 }
 
 export default async function MovementsPage({
   searchParams,
+  companyMode = false,
 }: {
+  companyMode?: boolean;
   searchParams: Promise<{
     page?: string;
     q?: string;
     type?: string;
   }>;
 }) {
+  const base=companyMode?"/company/estoque/movimentacoes":"/movimentacoes";
   const params = await searchParams;
   const page = Number(params.page ?? 1);
   const q = params.q?.trim() ?? "";
@@ -53,10 +56,10 @@ export default async function MovementsPage({
         title="Movimentações"
         description="Toda entrada, saída, transferência, ajuste e estorno fica registrado. O histórico agora é carregado por página."
         action={
-          <button className="button gold">
+          <Link className="button gold" href={companyMode ? "/company/estoque/suplementos" : "/estoque"}>
             <Plus size={16} />
             Novo ajuste
-          </button>
+          </Link>
         }
       />
 
@@ -64,7 +67,7 @@ export default async function MovementsPage({
         {TYPES.map(([value, label]) => (
           <Link
             className={`period-tab ${type === value ? "active" : ""}`}
-            href={hrefFor(value, q)}
+            href={hrefFor(value, q, base)}
             key={value || "all"}
           >
             {label}
@@ -74,7 +77,7 @@ export default async function MovementsPage({
 
       <div className="commercial-scale-toolbar">
         <CommercialSearchForm
-          action="/movimentacoes"
+          action={base}
           defaultValue={q}
           hidden={{ type }}
           placeholder="Buscar produto, local ou observação..."
@@ -126,7 +129,7 @@ export default async function MovementsPage({
         </div>
 
         <CommercialPagination
-          pathname="/movimentacoes"
+          pathname={base}
           page={result.page}
           totalPages={result.totalPages}
           total={result.total}

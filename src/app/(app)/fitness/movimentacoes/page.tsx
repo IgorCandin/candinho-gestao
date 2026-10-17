@@ -13,25 +13,28 @@ const TYPES = [
   ["outflow", "Baixas operacionais"],
 ] as const;
 
-function hrefFor(type: string, search: string) {
+function hrefFor(type: string, search: string, base: string) {
   const params = new URLSearchParams();
   if (type) params.set("type", type);
   if (search) params.set("q", search);
   const query = params.toString();
   return query
-    ? `/fitness/movimentacoes?${query}`
-    : "/fitness/movimentacoes";
+    ? `${base}?${query}`
+    : base;
 }
 
 export default async function Page({
   searchParams,
+  companyMode = false,
 }: {
+  companyMode?: boolean;
   searchParams: Promise<{
     page?: string;
     q?: string;
     type?: string;
   }>;
 }) {
+  const base=companyMode?"/company/fitness/movimentacoes":"/fitness/movimentacoes";
   const params = await searchParams;
   const page = Number(params.page ?? 1);
   const q = params.q?.trim() ?? "";
@@ -56,7 +59,7 @@ export default async function Page({
         {TYPES.map(([value, label]) => (
           <Link
             className={`period-tab ${type === value ? "active" : ""}`}
-            href={hrefFor(value, q)}
+            href={hrefFor(value, q, base)}
             key={value || "all"}
           >
             {label}
@@ -66,7 +69,7 @@ export default async function Page({
 
       <div className="commercial-scale-toolbar">
         <CommercialSearchForm
-          action="/fitness/movimentacoes"
+          action={base}
           defaultValue={q}
           hidden={{ type }}
           placeholder="Buscar produto, SKU, tamanho, cor ou observação..."
@@ -113,7 +116,7 @@ export default async function Page({
         </div>
 
         <CommercialPagination
-          pathname="/fitness/movimentacoes"
+          pathname={base}
           page={result.page}
           totalPages={result.totalPages}
           total={result.total}

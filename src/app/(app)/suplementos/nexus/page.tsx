@@ -8,11 +8,11 @@ import { PageHeader } from "@/components/page-header";
 import { getCurrentUserAccess, getCustomerOptions } from "@/lib/data";
 import { getNexusBrief } from "@/lib/nexus-operating-context";
 
-export default async function SupplementsNexusPage() {
+export default async function SupplementsNexusPage({companyMode=false}:{companyMode?:boolean}={}) {
   const access = await getCurrentUserAccess();
 
   if (!(access.role === "admin" || access.canWriteSupplements)) {
-    redirect("/suplementos");
+    redirect(companyMode ? "/company/inicio" : "/suplementos");
   }
 
   const [customers, brief] = await Promise.all([
@@ -29,7 +29,7 @@ export default async function SupplementsNexusPage() {
         description="Uma camada operacional acima do ERP: cruza módulos, organiza prioridades, aprende a rotina e prepara ações seguras antes da execução."
         action={
           <div className="page-header-actions">
-            <Link className="button ghost" href="/suplementos/nexus/habitos">
+            <Link className="button ghost" href={companyMode ? "/company/suplementos/nexus/habitos" : "/suplementos/nexus/habitos"}>
               <Route size={14} /> Hábitos aprendidos
             </Link>
             <span className="badge green">
@@ -40,7 +40,7 @@ export default async function SupplementsNexusPage() {
       />
 
       <div className="nexus-operating-page">
-        <NexusCommandCenter initialBrief={brief} />
+        <NexusCommandCenter initialBrief={brief} companyMode={companyMode} />
 
         <div className="nexus-operating-divider">
           <span><Bot size={15} /> Pergunte ao Nexus</span>
@@ -50,7 +50,7 @@ export default async function SupplementsNexusPage() {
           </small>
         </div>
 
-        <NexusOperatingChat customers={customers} />
+        <NexusOperatingChat customers={customers} companyMode={companyMode} />
       </div>
     </>
   );

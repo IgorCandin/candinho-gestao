@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { companyDestination } from "@/lib/company-destination";
 import {
   AlertTriangle,
   ArrowRight,
@@ -193,8 +194,10 @@ function lastSaleLabel(row: FitnessInventoryIntelligenceRow) {
 
 export function FitnessInventoryIntelligenceDashboard({
   snapshot,
+  companyMode = false,
 }: {
   snapshot: FitnessInventoryIntelligenceSnapshot;
+  companyMode?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [actionFilter, setActionFilter] = useState("all");
@@ -289,7 +292,7 @@ export function FitnessInventoryIntelligenceDashboard({
               retorno ou acerto com o cliente.
             </span>
           </div>
-          <Link className="button ghost compact-button" href="/fitness/consignacoes">
+          <Link className="button ghost compact-button" href={companyMode ? companyDestination("/fitness/consignacoes") : "/fitness/consignacoes"}>
             Abrir consignações
           </Link>
         </article>
@@ -314,7 +317,7 @@ export function FitnessInventoryIntelligenceDashboard({
             return (
               <Link
                 className="inventory-attention-row"
-                href={meta.href}
+                href={companyMode ? companyDestination(meta.href) : meta.href}
                 key={row.variant_id}
               >
                 <TriangleAlert size={17} />
@@ -488,7 +491,7 @@ export function FitnessInventoryIntelligenceDashboard({
                     </td>
 
                     <td>
-                      <Link className="table-link" href={action.href}>
+                      <Link className="table-link" href={companyMode ? companyDestination(action.href) : action.href}>
                         <span className={`badge ${action.color}`}>
                           <span className="dot" />
                           {action.label}

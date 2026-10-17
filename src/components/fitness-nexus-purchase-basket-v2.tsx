@@ -16,7 +16,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 
 const TARGET_QUANTITY = 10;
@@ -84,44 +83,14 @@ function normalizeSuggestion(value: unknown): PurchaseSuggestion {
   };
 }
 
-export function FitnessNexusPurchaseBasketV2() {
-  const [host, setHost] = useState<HTMLElement | null>(null);
+export function FitnessNexusPurchaseBasketV2({companyMode=false}:{companyMode?:boolean}={}) {
   const [suggestions, setSuggestions] = useState<PurchaseSuggestion[]>([]);
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    const wrapper = document.querySelector<HTMLElement>(
-      ".fitness-nexus-lab-v2",
-    );
-    const center = wrapper?.firstElementChild as HTMLElement | null;
-
-    if (!center) return;
-
-    const oldPanel = Array.from(
-      center.querySelectorAll<HTMLElement>(":scope > section.panel"),
-    ).find(
-      (panel) =>
-        panel.querySelector(".panel-head h2")?.textContent?.trim() ===
-        "Sugestão da próxima compra",
-    );
-
-    if (!oldPanel) return;
-
-    const portalHost = document.createElement("div");
-    portalHost.className = "fitness-nexus-purchase-v2-host";
-    center.insertBefore(portalHost, oldPanel);
-    setHost(portalHost);
-
-    return () => {
-      portalHost.remove();
-      setHost(null);
-    };
-  }, []);
-
-  const loadBasket = useCallback(async () => {
+  const fetchBasket = useCallback(async () => {
     const supabase = createClient();
     const { data, error } = await supabase.rpc(
       "fitness_nexus_purchase_suggestions_v1",
@@ -134,6 +103,10 @@ export function FitnessNexusPurchaseBasketV2() {
       ? payload.suggestions.map(normalizeSuggestion)
       : [];
 
+    return rows;
+  }, []);
+
+  const applyBasket = useCallback((rows: PurchaseSuggestion[]) => {
     setSuggestions(rows);
     setQuantities((current) => {
       const next: Record<string, number> = {};
@@ -149,10 +122,13 @@ export function FitnessNexusPurchaseBasketV2() {
     });
   }, []);
 
+  const loadBasket = useCallback(async () => { applyBasket(await fetchBasket()); }, [applyBasket, fetchBasket]);
+
   useEffect(() => {
     let active = true;
 
-    void loadBasket()
+    void fetchBasket()
+      .then(rows => { if (active) applyBasket(rows); })
       .catch((error) => {
         if (!active) return;
         setMessage(
@@ -168,7 +144,7 @@ export function FitnessNexusPurchaseBasketV2() {
     return () => {
       active = false;
     };
-  }, [loadBasket]);
+  }, [applyBasket, fetchBasket]);
 
   const selectedQuantity = useMemo(
     () =>
@@ -452,7 +428,7 @@ export function FitnessNexusPurchaseBasketV2() {
             de fechar a cesta, use a lista para montar o pedido.
           </span>
           {selectedQuantity >= TARGET_QUANTITY && (
-            <Link className="button gold compact-button" href="/fitness/pedidos">
+            <Link className="button gold compact-button" href={companyMode ? "/company/compras?operacao=fitness" : "/fitness/pedidos"}>
               <ShoppingBag size={14} />
               Ir para pedidos
             </Link>
@@ -462,5 +438,5 @@ export function FitnessNexusPurchaseBasketV2() {
     </section>
   );
 
-  return host ? createPortal(content, host) : null;
+  return content;
 }

@@ -19,12 +19,14 @@ export function InventoryReconciliationActions({
   issueCode,
   currentStatus,
   currentNotes,
+  companyMode = false,
 }: {
   attentionType: string;
   entityId: string;
   issueCode: string;
   currentStatus: string;
   currentNotes?: string | null;
+  companyMode?: boolean;
 }) {
   const router = useRouter();
   const [notes, setNotes] = useState(currentNotes ?? "");
@@ -83,7 +85,7 @@ export function InventoryReconciliationActions({
         {attentionType === "location" ? (
           <Link
             className="button gold compact-button"
-            href={`/estoque/reconciliacao/contagem?local=${entityId}`}
+            href={`${companyMode ? "/company/estoque" : "/estoque"}/reconciliacao/contagem?local=${entityId}`}
           >
             <ClipboardCheck size={14} />
             Recontar agora
@@ -91,7 +93,7 @@ export function InventoryReconciliationActions({
         ) : (
           <Link
             className="button gold compact-button"
-            href={`/estoque/${entityId}`}
+            href={`${companyMode ? "/company/estoque" : "/estoque"}/${entityId}`}
           >
             <PackageSearch size={14} />
             Corrigir estoque

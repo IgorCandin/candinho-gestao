@@ -38,8 +38,10 @@ const QUICK = [
 
 export function FitnessNexusCenter({
   snapshot,
+  companyMode = false,
 }: {
   snapshot: FitnessNexusSnapshot;
+  companyMode?: boolean;
 }) {
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState<string | null>(null);
@@ -308,8 +310,8 @@ export function FitnessNexusCenter({
                       className="button ghost compact-button"
                       href={
                         product.signal_type === "reorder"
-                          ? "/fitness/pedidos"
-                          : `/fitness/produtos/${product.product_id}`
+                          ? (companyMode ? "/company/compras?operacao=fitness" : "/fitness/pedidos")
+                          : `${companyMode ? "/company/produtos/fitness" : "/fitness/produtos"}/${product.product_id}`
                       }
                     >
                       Abrir

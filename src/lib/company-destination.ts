@@ -4,6 +4,34 @@ export function companyDestination(href: string): string {
   if (!match) return href;
   const path = match[1].replace(/^\/suplementos(?=\/)/, "");
   const suffix = match[2];
+  const fitnessConsignment = path.match(/^\/fitness\/consignacoes(?:\/([0-9a-f-]{36}|nova))?$/i);
+  if (fitnessConsignment) return `/company/fitness/consignacoes${fitnessConsignment[1] ? `/${fitnessConsignment[1]}` : ""}${suffix}`;
+  const extra: Record<string, string> = {
+    "/fitness/estoque": "/company/estoque?operacao=fitness",
+    "/fitness/estoque/inteligencia": "/company/estoque/fitness/inteligencia",
+    "/fitness/movimentacoes": "/company/fitness/movimentacoes",
+    "/fitness/pdfs": "/company/fitness/pdfs",
+    "/fitness/nexus": "/company/fitness/nexus",
+    "/fitness/pedidos": "/company/compras?operacao=fitness",
+    "/fitness/pedidos/novo": "/company/compras/novo/fitness",
+    "/suplementos/nexus": "/company/suplementos/nexus",
+    "/suplementos/nexus/habitos": "/company/suplementos/nexus/habitos",
+    "/nexus": "/company/suplementos/nexus",
+    "/nexus/habitos": "/company/suplementos/nexus/habitos",
+    "/leads": "/company/vender",
+    "/agenda": "/company/gestao",
+    "/vendas/nova": "/company/vendas/nova/suplementos",
+    "/leads/novo": "/company/vendas/nova/suplementos",
+    "/clientes/radar": "/company/clientes/radar",
+    "/clientes/radar/produtos": "/company/clientes/radar/produtos",
+    "/movimentacoes": "/company/estoque/movimentacoes",
+    "/estoque/reconciliacao": "/company/estoque/reconciliacao",
+    "/estoque/reconciliacao/contagem": "/company/estoque/reconciliacao/contagem",
+    "/suplementos/saidas": "/company/estoque/despesa?operacao=supplements",
+    "/pedidos-fornecedor/proximo-pedido": "/company/compras",
+  };
+  const extraDestination = extra[match[1]] ?? extra[path];
+  if (extraDestination) return extraDestination + (extraDestination.includes("?") && suffix.startsWith("?") ? `&${suffix.slice(1)}` : suffix);
   const detail = path.match(/^\/(clientes|parceiros|produtos|vendas|pos-venda|pedidos-fornecedor)\/([0-9a-f-]{36})(\/editar)?$/i);
   if (detail) {
     const [, kind, id, edit = ""] = detail;

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { companyDestination } from "@/lib/company-destination";
 import {
   ArrowLeft,
   Shirt,
@@ -135,7 +136,8 @@ function normalizeRows(value: unknown): FitnessInventoryIntelligenceRow[] {
   });
 }
 
-export default async function FitnessInventoryIntelligencePage() {
+export default async function FitnessInventoryIntelligencePage({companyMode=false}:{companyMode?:boolean}={}) {
+  const destination=(href:string)=>companyMode?companyDestination(href):href;
   const supabase = await createClient();
 
   const { data, error } = await supabase.rpc(
@@ -164,17 +166,17 @@ export default async function FitnessInventoryIntelligencePage() {
         description="Curva ABC, variações zeradas, excesso, giro, peças em prova e capital parado por cor e tamanho."
         action={
           <div className="page-header-actions">
-            <Link className="button ghost" href="/fitness/estoque">
+            <Link className="button ghost" href={destination("/fitness/estoque")}>
               <ArrowLeft size={16} />
               Estoque
             </Link>
 
-            <Link className="button ghost" href="/fitness/consignacoes">
+            <Link className="button ghost" href={destination("/fitness/consignacoes")}>
               <Shirt size={16} />
               Consignações
             </Link>
 
-            <Link className="button ghost" href="/fitness/pedidos/novo">
+            <Link className="button ghost" href={destination("/fitness/pedidos/novo")}>
               <Truck size={16} />
               Novo pedido
             </Link>
@@ -182,7 +184,7 @@ export default async function FitnessInventoryIntelligencePage() {
         }
       />
 
-      <FitnessInventoryIntelligenceDashboard snapshot={snapshot} />
+      <FitnessInventoryIntelligenceDashboard snapshot={snapshot} companyMode={companyMode} />
     </>
   );
 }

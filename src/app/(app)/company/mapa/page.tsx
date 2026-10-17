@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CheckCircle2, CircleDot, Clock3, ExternalLink, ListChecks } from "lucide-react";
 import { MigrationAuditBoard, type MigrationAuditRow } from "@/components/migration-audit-board";
 import { createClient } from "@/lib/supabase/server";
+import { companyMigrationTools } from "@/lib/company-migration-tools";
 
 type Step = { label: string; state: "done" | "test" | "doing" | "todo"; detail: string; href?: string };
 type Block = { title: string; scope: string; steps: Step[] };
@@ -14,11 +15,12 @@ const blocks: Block[] = [
     { label: "Produtos, fotos, combos e promoções", state: "doing", detail: "Fotos por produto estão na Company; falta padronizar proporção e enquadramento dos banners já cadastrados, além de revisar CTs, combos e promoções.", href: "/company/produtos" },
     { label: "Estoque e transferências", state: "test", detail: "A ficha Company mostra o saldo por local; conferir os números com o estoque, transferências em lote e filtro por saldo da origem.", href: "/company/produtos/transferencias" },
     { label: "Compras e fornecedores", state: "doing", detail: "Estrutura unificada existe; falta conferir aba por aba e migrar movimentações restantes.", href: "/company/compras" },
+    { label: "Nexus, hábitos e movimentações", state: "test", detail: "Entradas Company disponíveis, preservando histórico, filtros, ações e confirmações. Conferir ferramentas e retornos antes de homologar.", href: "/company/ferramentas" },
     { label: "Desativar Suplementos", state: "todo", detail: "Só depois de conferir links, medir zero acessos necessários e preservar consulta histórica." },
   ]},
   { title: "2 · Fitness → Company", scope: "Repetir a auditoria depois de Suplementos", steps: [
     { label: "Clientes, vendas e orçamentos", state: "doing", detail: "Já aparecem nas filas Company; falta comparar todos os comportamentos com o Fitness antigo." },
-    { label: "Produtos, estoque e compras", state: "doing", detail: "Dados unificados parcialmente; faltam consignações, conversões, variações e movimentações." },
+    { label: "Produtos, estoque e compras", state: "test", detail: "Consignações/provas, inteligência, movimentações, PDFs e Nexus disponíveis na Company. Testar criação, acerto, devolução, cancelamento e venda gerada; comparar conversões e ações profundas.", href: "/company/ferramentas" },
     { label: "Fornecedores e pós-venda", state: "doing", detail: "Acesso Company existe; falta auditoria funcional completa." },
     { label: "Desativar Fitness", state: "todo", detail: "Depende de zerar os acessos operacionais restantes." },
   ]},
@@ -55,14 +57,10 @@ const blocks: Block[] = [
   ]},
 ];
 
-blocks.push({ title: "Escritório visual · proposta", scope: "Localizar pendências por área sem substituir as filas existentes", steps: [
-  { label: "Cômodos Company, Suplementos, Fitness e Bank", state: "todo", detail: "Referência provável: Star Office UI. Proposta em docs/engineering/ESCRITORIO-VISUAL.md. Falta protótipo e conexão às filas reais; personagens não significam IA executando tarefas." },
-] });
-
 const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
 blocks.push({ title: "Escritório de operações", scope: "Visão complementar; não substitui as filas nem executa ações", steps: [
-  { label: "Salas e indicadores reais", state: "test", detail: "Clientes sem telefone, vendas a entregar e compromissos Bank do mês, com permissões e erro distinto de zero. Conferir contadores, celular e links; ainda não homologado.", href: "/company/escritorio" },
-  { label: "Reposição e anotações compartilhadas", state: "todo", detail: "Conectar critérios existentes de reposição e definir armazenamento auditável das notas. Não há agentes autônomos nem serviço de IA contratado." },
+  { label: "Salas e indicadores reais", state: "test", detail: "Telefones pendentes com filtro, Doctor, atenção de estoque, oportunidades Fitness e compromissos Bank, com permissões e erro distinto de zero. Conferir contadores, celular e links; ainda não homologado.", href: "/company/escritorio" },
+  { label: "Anotações compartilhadas", state: "todo", detail: "Definir armazenamento auditável das notas. Reposição já usa os critérios existentes; não há agentes autônomos nem serviço de IA contratado." },
 ] });
 const allSteps = blocks.flatMap((block) => block.steps);
 
@@ -77,16 +75,28 @@ const auditRows: MigrationAuditRow[] = [
   { key: "supp-stock", operation: "supplements", area: "Estoque e transferências", description: "Saldos, origem disponível, múltiplos produtos, lotes e movimentações.", legacyHref: "/estoque", companyHref: "/company/estoque" },
   { key: "supp-buy", operation: "supplements", area: "Compras e fornecedores", description: "Pedidos, fornecedores, recebimento e custo.", legacyHref: "/compras", companyHref: "/company/compras" },
   { key: "supp-management", operation: "supplements", area: "Gestão e atalhos", description: "Relatórios, central dissolvida, atalhos Alt e configurações administrativas.", legacyHref: "/suplementos/painel", companyHref: "/company/gestao" },
-  { key: "fitness-home", operation: "fitness", area: "Fitness - ponto de partida", description: "A auditoria do Fitness abre quando Suplementos ficar totalmente em OK.", legacyHref: "/fitness", companyHref: "/company/produtos?operacao=Fitness" },
+  { key: "fitness-home", operation: "fitness", area: "Fitness - ponto de partida", description: "Auditoria pode avançar junto com Suplementos. Comparar ferramentas e ações sem retirar telas antigas.", legacyHref: "/fitness", companyHref: "/company/ferramentas" },
   { key: "fitness-sales", operation: "fitness", area: "Vendas e orçamentos", description: "Cliente, variações, orçamento simples/confirmado, pagamento e entrega independentes.", legacyHref: "/fitness", companyHref: "/company/vendas/nova/fitness" },
   { key: "fitness-completion", operation: "fitness", area: "Conclusão e recebimentos", description: "Receber, entregar, cancelar e pagar vendas juntas, inclusive no iPhone.", legacyHref: "/fitness", companyHref: "/company/concluir?operacao=Fitness" },
   { key: "fitness-products", operation: "fitness", area: "Produtos, variações e fotos", description: "Tamanhos, cores, imagens correspondentes, categorias e preços.", legacyHref: "/fitness", companyHref: "/company/produtos?operacao=Fitness" },
   { key: "fitness-stock", operation: "fitness", area: "Estoque e histórico", description: "Saldos por local, contagem, correção, baixa, estorno e transferências.", legacyHref: "/fitness", companyHref: "/company/estoque" },
   { key: "fitness-purchases", operation: "fitness", area: "Compras e fornecedores", description: "Cobertura por tamanho, pedido, entrada e cadastro rápido.", legacyHref: "/fitness", companyHref: "/company/compras" },
   { key: "fitness-crm", operation: "fitness", area: "Clientes e pós-venda", description: "Identidade única, contatos agrupados, cancelamento e histórico comercial.", legacyHref: "/fitness", companyHref: "/company/acompanhar" },
-  { key: "fitness-consignment", operation: "fitness", area: "Consignações e prova", description: "Comparar ações do antigo com a Company antes de declarar a migração concluída.", legacyHref: "/fitness", companyHref: "/company/produtos?operacao=Fitness" },
+  { key: "fitness-consignment", operation: "fitness", area: "Consignações e prova", description: "Disponível na Company. Testar envio, acerto parcial, devolução total, cancelamento e abertura da venda gerada; mesmas RPCs existentes.", legacyHref: "/fitness/consignacoes", companyHref: "/company/fitness/consignacoes" },
   { key: "fitness-results", operation: "fitness", area: "Promoções e resultados", description: "Validar ofertas, vendas entregues, lucro e evolução financeira.", legacyHref: "/fitness", companyHref: "/company/resultados?operacao=fitness" },
 ];
+
+const toolLegacy: Record<string,string> = {
+  "/company/estoque/movimentacoes":"/suplementos/movimentacoes",
+  "/company/estoque/reconciliacao":"/suplementos/estoque/reconciliacao",
+  "/company/estoque/fitness/inteligencia":"/fitness/estoque/inteligencia",
+  "/company/fitness/movimentacoes":"/fitness/movimentacoes",
+  "/company/fitness/pdfs":"/fitness/pdfs",
+  "/company/fitness/nexus":"/fitness/nexus",
+  "/company/suplementos/nexus":"/suplementos/nexus",
+  "/company/suplementos/nexus/habitos":"/suplementos/nexus/habitos",
+};
+auditRows.push(...companyMigrationTools.filter(tool=>toolLegacy[tool.href]).map(tool=>({key:`tool-${tool.href.replaceAll("/","-")}`,operation:tool.operation,area:tool.title,description:`${tool.description} Disponível para teste, sem aprovação automática.`,legacyHref:toolLegacy[tool.href],companyHref:tool.href})));
 
 export default async function CompanyMigrationMapPage() {
   const supabase = await createClient();
@@ -98,7 +108,7 @@ export default async function CompanyMigrationMapPage() {
   const count = (state: Step["state"]) => allSteps.filter((step) => step.state === state).length;
   return <div className="company-map-page company-migration-board">
     <header><span>COMPANY · CONTROLE DA MIGRAÇÃO</span><h1>O que falta resolver</h1><p>Cada linha aponta a tela, o estado real e a condição para aposentar o ERP antigo.</p></header>
-    <section className="panel"><h2>Próxima conferência · 16/10</h2><p>Testar os links do calendário e o swipe dos parceiros, a lista de telefones pendentes e os novos alertas do escritório. Nenhuma aprovação foi marcada automaticamente.</p><p>Restam comparar consignações, custos, inteligência e movimentações da Fitness; Nexus/hábitos de Suplementos; e retornos das ações de estoque, Central e parceiros. As funções antigas continuam disponíveis.</p><Link href="/company/escritorio">Conferir escritório</Link> · <Link href="/company/fitness/oportunidades">Conferir sugestões Fitness</Link></section>
+    <section className="panel"><h2>Próxima conferência · 16/10</h2><p>Pacote de ferramentas preparado: consignações, inteligência, movimentações, PDFs e Nexus Fitness; Nexus/hábitos, movimentações e reconciliação de Suplementos. Nenhuma aprovação foi marcada automaticamente.</p><p>Restam a homologação das ações reais, conversões, ações profundas de estoque, Central e parceiros. As funções antigas continuam disponíveis.</p><Link href="/company/ferramentas">Testar ferramentas migradas</Link> · <Link href="/company/escritorio">Conferir escritório</Link></section>
     <section className="migration-scoreboard" aria-label="Resumo da migração"><article><CheckCircle2/><strong>{count("done")}</strong><span>concluídos</span></article><article><ListChecks/><strong>{count("test")}</strong><span>para testar</span></article><article><Clock3/><strong>{count("doing")}</strong><span>em execução</span></article><article><CircleDot/><strong>{count("todo")}</strong><span>pendentes</span></article></section>
     <nav className="migration-jump" aria-label="Blocos da migração">{blocks.map((block, index) => <a key={block.title} href={`#bloco-${index + 1}`}>{index + 1}</a>)}</nav>
     {(["supplements", "fitness"] as const).map((operation) => <MigrationAuditBoard key={operation} rows={auditRows.filter((row) => row.operation === operation)} saved={(data ?? []) as Array<{ check_key: string; state: "pending" | "reviewing" | "approved" | "issue"; notes: string | null }>} />)}

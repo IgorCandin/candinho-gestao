@@ -16,6 +16,7 @@ export function CompanyStockHub({ fitness, categoryRows, canUpdateCategories, in
   }, [fitness, query]);
   const cards = operation === "supplements" ? [
     ["Estoque", "Área completa: saldos, locais, reservas, sabores, lotes e histórico.", "/company/estoque/suplementos", PackageSearch],
+    ["Movimentações", "Entradas, saídas, ajustes e estornos com busca e filtros.", "/company/estoque/movimentacoes", RefreshCcw],
     ["Categorias com Nexus", "Revise o giro e atualize a curva A/B/C/Z.", "#categorias-nexus", Sparkles],
     ["Contagem física", "Confirme o que existe de verdade em cada local.", "/company/estoque/reconciliacao/contagem", ClipboardCheck],
     ["Transferir", "Leve um ou vários produtos entre locais.", "/company/produtos/transferencias?operacao=supplements", ArrowRightLeft],
@@ -24,6 +25,9 @@ export function CompanyStockHub({ fitness, categoryRows, canUpdateCategories, in
     ["Despesa / baixa", "Amostra, avaria, uso interno ou ação comercial.", "/company/estoque/despesa?operacao=supplements", PackageMinus],
   ] as const : [
     ["Estoque", "Peças, tamanhos, cores e disponibilidade dentro da Company.", "/company/produtos?operacao=Fitness", PackageSearch],
+    ["Inteligência de estoque", "Giro, curva ABC, reposição e peças em prova.", "/company/estoque/fitness/inteligencia", Sparkles],
+    ["Consignações e provas", "Envio, acerto, devolução e cancelamento.", "/company/fitness/consignacoes", PackageSearch],
+    ["Movimentações", "Histórico por peça, tamanho e cor.", "/company/fitness/movimentacoes", RefreshCcw],
     ["Contagem física", "Conferência por variação; registra as diferenças.", "/company/estoque/fitness/conferencia", ClipboardCheck],
     ["Correção", "Ajuste individual de uma peça com motivo auditável.", "#ajuste-fitness", Settings2],
     ["Reconciliação", "A conferência física é a reconciliação oficial do Fitness.", "/company/estoque/fitness/conferencia", RefreshCcw],

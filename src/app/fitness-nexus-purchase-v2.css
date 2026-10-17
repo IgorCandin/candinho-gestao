@@ -2,11 +2,7 @@
    LAB · Fitness Nexus Purchase Basket V2
    ========================================================= */
 
-/* O bloco antigo continua no componente para não reescrever o Nexus inteiro,
-   mas fica escondido no laboratório. A cesta V2 entra exatamente no mesmo ponto. */
-.fitness-nexus-lab-v2 > div > section.panel:nth-of-type(2) {
-  display: none !important;
-}
+/* A cesta é renderizada diretamente pela página, sem ocultar painéis por posição. */
 
 .fitness-nexus-purchase-v2-host {
   min-width: 0;

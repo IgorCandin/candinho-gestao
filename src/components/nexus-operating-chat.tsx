@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { companyDestination } from "@/lib/company-destination";
 import {
   Bot,
   Copy,
@@ -43,7 +44,7 @@ function normalize(value: string) {
     .toLocaleLowerCase("pt-BR");
 }
 
-export function NexusOperatingChat({ customers }: { customers: CustomerOption[] }) {
+export function NexusOperatingChat({ customers, companyMode = false }: { customers: CustomerOption[]; companyMode?: boolean }) {
   const [customerId, setCustomerId] = useState("");
   const [customerSearch, setCustomerSearch] = useState("");
   const [input, setInput] = useState("");
@@ -185,7 +186,7 @@ export function NexusOperatingChat({ customers }: { customers: CustomerOption[] 
                       {item.actions.map((action, actionIndex) =>
                         action.href ? (
                           <Link
-                            href={action.href}
+                            href={companyMode ? companyDestination(action.href) : action.href}
                             className="button ghost compact-button"
                             key={`${action.label}-${actionIndex}`}
                             title={action.reason ?? undefined}
