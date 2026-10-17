@@ -39,7 +39,7 @@ export function StorefrontJourney({ products, saved, price, onOpen, onSave }: Pr
       const current = Math.round(position);
       // Focus/scrollIntoView must never replace a button under a pending click.
       // Product changes follow deliberate scrolling or the navigation controls.
-      if (current !== currentProduct.current && !scrollIntent.current) return;
+      if (current !== currentProduct.current && !scrollIntent.current && element.contains(document.activeElement)) return;
       currentProduct.current = current;
       element.style.setProperty("--journey-progress", String(progress));
       element.style.setProperty("--journey-position", String(current));
