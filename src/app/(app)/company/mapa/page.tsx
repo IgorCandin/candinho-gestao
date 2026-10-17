@@ -62,6 +62,12 @@ blocks.push({ title: "Escritório de operações", scope: "Visão complementar; 
   { label: "Salas e indicadores reais", state: "test", detail: "Telefones pendentes com filtro, Doctor, atenção de estoque, oportunidades Fitness e compromissos Bank, com permissões e erro distinto de zero. Conferir contadores, celular e links; ainda não homologado.", href: "/company/escritorio" },
   { label: "Anotações compartilhadas", state: "todo", detail: "Definir armazenamento auditável das notas. Reposição já usa os critérios existentes; não há agentes autônomos nem serviço de IA contratado." },
 ] });
+blocks.push({title:"Qualidade e liberação mobile",scope:"Não confundir tela disponível com fluxo homologado",steps:[
+  {label:"Regressão de navegação e ações",state:"test",detail:"21 testes de componentes/cálculos/contexto com RPCs simuladas; ações reais e permissões precisam de conferência autenticada. Sem liberar agente para gravar em produção.",href:"/company/ferramentas"},
+  {label:"Duplicidade de código",state:"doing",detail:"Auditoria local identificou 12 grupos candidatos de corpos de função repetidos; não são 12 bugs e não houve fusão automática. Revisar antes de refatorar."},
+  {label:"Mobile final",state:"todo",detail:"Validar iPhone real: rolagem até o fim, teclado, menus/janelas, navegação de volta, fotos, foco e ações de pagamento/entrega/acerto. Registrar cada teste; não declarar concluído antecipadamente."},
+  {label:"Teste exploratório com IA externa",state:"todo",detail:"Avaliar TestSprite/Browser Use mediante link da ferramenta, custos e ambiente isolado com dados fictícios. Nada instalado e nenhum acesso externo concedido."},
+]});
 const allSteps = blocks.flatMap((block) => block.steps);
 
 const auditRows: MigrationAuditRow[] = [
@@ -87,6 +93,9 @@ const auditRows: MigrationAuditRow[] = [
 ];
 
 const toolLegacy: Record<string,string> = {
+  "/company/fitness/conversoes":"/fitness/estoque",
+  "/company/parceiros/configuracao":"/suplementos/parceiros/configuracao",
+  "/company/gestao/central":"/central",
   "/company/estoque/movimentacoes":"/suplementos/movimentacoes",
   "/company/estoque/reconciliacao":"/suplementos/estoque/reconciliacao",
   "/company/estoque/fitness/inteligencia":"/fitness/estoque/inteligencia",
@@ -108,7 +117,7 @@ export default async function CompanyMigrationMapPage() {
   const count = (state: Step["state"]) => allSteps.filter((step) => step.state === state).length;
   return <div className="company-map-page company-migration-board">
     <header><span>COMPANY · CONTROLE DA MIGRAÇÃO</span><h1>O que falta resolver</h1><p>Cada linha aponta a tela, o estado real e a condição para aposentar o ERP antigo.</p></header>
-    <section className="panel"><h2>Próxima conferência · 16/10</h2><p>Pacote de ferramentas preparado: consignações, inteligência, movimentações, PDFs e Nexus Fitness; Nexus/hábitos, movimentações e reconciliação de Suplementos. Nenhuma aprovação foi marcada automaticamente.</p><p>Restam a homologação das ações reais, conversões, ações profundas de estoque, Central e parceiros. As funções antigas continuam disponíveis.</p><Link href="/company/ferramentas">Testar ferramentas migradas</Link> · <Link href="/company/escritorio">Conferir escritório</Link></section>
+    <section className="panel"><h2>Próxima conferência · 17/10</h2><p>Novas entradas: conversões de conjuntos, ficha completa de estoque, configuração e portal de parceiros; navegação e retornos das ferramentas Central preservam Company. As funções antigas continuam disponíveis.</p><p>Restam homologar as ações reais e revisar mobile, permissões, cortes, rolagem e duplicidades. Uma função disponível não é uma função já homologada; nenhuma aprovação foi marcada automaticamente.</p><Link href="/company/ferramentas">Testar ferramentas migradas</Link> · <Link href="/company/parceiros/portal">Portal de parceiros (admin)</Link></section>
     <section className="migration-scoreboard" aria-label="Resumo da migração"><article><CheckCircle2/><strong>{count("done")}</strong><span>concluídos</span></article><article><ListChecks/><strong>{count("test")}</strong><span>para testar</span></article><article><Clock3/><strong>{count("doing")}</strong><span>em execução</span></article><article><CircleDot/><strong>{count("todo")}</strong><span>pendentes</span></article></section>
     <nav className="migration-jump" aria-label="Blocos da migração">{blocks.map((block, index) => <a key={block.title} href={`#bloco-${index + 1}`}>{index + 1}</a>)}</nav>
     {(["supplements", "fitness"] as const).map((operation) => <MigrationAuditBoard key={operation} rows={auditRows.filter((row) => row.operation === operation)} saved={(data ?? []) as Array<{ check_key: string; state: "pending" | "reviewing" | "approved" | "issue"; notes: string | null }>} />)}

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { redirect } from "next/navigation";
 import { Bell, CheckCircle2, CircleAlert, Info, ShieldAlert, TriangleAlert } from "lucide-react";
 import { PageHeader } from "@/components/page-header";

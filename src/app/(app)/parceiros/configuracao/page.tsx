@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { ArrowLeft, CheckCircle2, CircleDashed, Handshake } from "lucide-react";
 import { PageHeader } from "@/components/page-header";
 import { formatCurrency } from "@/lib/format";

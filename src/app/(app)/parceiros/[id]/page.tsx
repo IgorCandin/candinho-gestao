@@ -387,7 +387,7 @@ export default async function PartnerDetailsPage<T extends {
                         <td>
                           <Link
                             className="table-link"
-                    href={companyMode ? "/company/concluir" : `/vendas/${sale.id}`}
+                    href={companyMode ? `/company/concluir/${sale.id}` : `/vendas/${sale.id}`}
                           >
                             <strong>{sale.customer_name}</strong>
                           </Link>

@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateCentralPath as revalidatePath } from "@/lib/central-revalidation";
+import { companyDestination } from "@/lib/company-destination";
 import { redirect } from "next/navigation";
 import { getCurrentUserAccess } from "@/lib/data";
 import { createClient } from "@/lib/supabase/server";
@@ -76,7 +77,7 @@ export async function createPromotion(formData: FormData) {
 
   if (error) throw new Error(`Não foi possível criar a promoção: ${error.message}`);
 
-  redirect(`/central/promocoes/${data.id}`);
+  redirect(formData.get("company_context")==="1" ? companyDestination(`/central/promocoes/${data.id}`) : `/central/promocoes/${data.id}`);
 }
 
 export async function createPromotionFromSuggestion(formData: FormData) {
@@ -133,7 +134,7 @@ export async function createPromotionFromSuggestion(formData: FormData) {
     throw new Error(`Não foi possível adicionar o item sugerido: ${itemError.message}`);
   }
 
-  redirect(`/central/promocoes/${promotion.id}`);
+  redirect(formData.get("company_context")==="1" ? companyDestination(`/central/promocoes/${promotion.id}`) : `/central/promocoes/${promotion.id}`);
 }
 
 export async function updatePromotionBasics(formData: FormData) {

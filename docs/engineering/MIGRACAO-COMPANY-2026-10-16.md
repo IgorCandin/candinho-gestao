@@ -52,6 +52,16 @@ Clientes, produtos, vendas, pós-venda, compras, fornecedores, parceiros, rotas 
 - Mapa ganhou linhas específicas para o pacote, sem marcar aprovações nem apagar notas; proposta antiga do escritório consolidada na implementação atual, sem duplicação de pauta.
 - Supabase: leitura confirmou as sete RPCs já utilizadas. Não foram criadas funções ou ampliadas permissões.
 
+## Terceiro pacote · 17/10/2026
+
+- Conversões: `/company/fitness/conversoes`, usando `FitnessConversionForm` e a RPC `convert_fitness_stock` sem alterar quantidade, regras ou custo; atalho no estoque e histórico filtrado. Botão de remover destino ganhou nome acessível e resultado assíncrono anunciável.
+- Estoque: ficha detalhada reutilizada pelo rewrite existente, com produtos, vendas e pedidos a caminho permanecendo na Company. Não criar `[id]` nativo genérico neste nível sem tratar todas as rotas estáticas legadas: ele poderia capturar `sabores`, `lotes` ou `inteligencia` antes do fallback. Saldo, sabores, movimentos, reservas e formulário de ajuste preservados.
+- Parceiros: configuração acessível em Company; vínculos antigos e vendas do gerencial abrem o detalhe específico, não só a fila. Portal administrativo em `/company/parceiros/portal`, com guarda de administrador e o mesmo gerenciador de convites/pausa existente. Nenhum convite, alteração de permissão, recompensa ou acerto foi executado para testar.
+- Central: links conhecidos de páginas/componentes, cartões de indicadores, pesquisa e paginação preservam o contexto usando um componente compartilhado. Retorno de promoção criada e saída das ações de Inbox/mídia também respeitam Company. Revalidação atualiza as duas URLs; payloads e verificações de autorização existentes preservados.
+- Limites da Central: aliases antigos como integrações/início e redirecionamentos de falta de permissão ainda exigem revisão. Destinos dinâmicos desconhecidos não são reescritos. Portal CSS legado de atalhos não foi refeito. Não declarar aposentadoria da Central.
+- Qualidade: `test:company` e `audit:duplicates`, sem dependências adicionais. Testes usam RPCs simuladas; auditoria só gera candidatos, nunca unifica regras ou cadastros.
+- Evidências e próximos portões: `QUALIDADE-E-MOBILE-2026-10-17.md`. Mapa atualizado sem gravar aprovações fictícias. Homologação de ações reais e Safari/iPhone continua pendente.
+
 ### Próximo bloco efetivo
 
 1. Homologar consignação real desejada (envio → acerto/devolução → venda), mantendo consulta antiga para comparação.

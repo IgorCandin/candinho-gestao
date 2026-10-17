@@ -5,7 +5,8 @@ import {
   Trash2,
 } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { companyDestination } from "@/lib/company-destination";
 import { createClient } from "@/lib/supabase/client";
 
 async function edgeErrorMessage(
@@ -57,6 +58,7 @@ export function CentralMediaDeleteButton({
   filename: string;
 }) {
   const router = useRouter();
+  const companyMode=usePathname().startsWith("/company/");
   const [loading, setLoading] =
     useState(false);
   const [feedback, setFeedback] =
@@ -104,7 +106,7 @@ export function CentralMediaDeleteButton({
       }
 
       router.push(
-        "/central/midia",
+        companyMode ? companyDestination("/central/midia") : "/central/midia",
       );
       router.refresh();
     } catch (error) {

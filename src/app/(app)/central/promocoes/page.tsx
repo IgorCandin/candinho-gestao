@@ -1,4 +1,5 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
+import Form from "@/components/company-context-form";
 import { redirect } from "next/navigation";
 import {
   BadgePercent,
@@ -115,7 +116,7 @@ export default async function CentralPromotionsPage({
           <Plus size={18} />
         </summary>
 
-        <form action={createPromotion} className="promotion-form promotion-ux-create-form">
+        <Form action={createPromotion} className="promotion-form promotion-ux-create-form">
           <label className="field promotion-ux-wide">
             <span>Nome da promoção</span>
             <input className="input" name="name" placeholder="Ex.: Semana do Whey" required />
@@ -194,7 +195,7 @@ export default async function CentralPromotionsPage({
           <button className="button gold" type="submit">
             Criar rascunho e escolher produtos
           </button>
-        </form>
+        </Form>
       </details>
 
       <section className="promotion-ux-section-head">
@@ -308,7 +309,7 @@ export default async function CentralPromotionsPage({
                   </span>
                 </div>
 
-                <form action={createPromotionFromSuggestion}>
+                <Form action={createPromotionFromSuggestion}>
                   <input type="hidden" name="operation_scope" value={suggestion.operation_scope} />
                   <input type="hidden" name="entity_id" value={suggestion.entity_id} />
                   <input type="hidden" name="entity_label" value={suggestion.entity_label} />
@@ -317,7 +318,7 @@ export default async function CentralPromotionsPage({
                   <button className="button ghost dashboard-full-button" type="submit">
                     Criar rascunho com esta sugestão
                   </button>
-                </form>
+                </Form>
               </article>
             ))}
           </div>

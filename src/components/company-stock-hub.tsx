@@ -25,6 +25,7 @@ export function CompanyStockHub({ fitness, categoryRows, canUpdateCategories, in
     ["Despesa / baixa", "Amostra, avaria, uso interno ou ação comercial.", "/company/estoque/despesa?operacao=supplements", PackageMinus],
   ] as const : [
     ["Estoque", "Peças, tamanhos, cores e disponibilidade dentro da Company.", "/company/produtos?operacao=Fitness", PackageSearch],
+    ["Converter conjuntos", "Saída do conjunto e entrada das peças, com histórico.", "/company/fitness/conversoes", RefreshCcw],
     ["Inteligência de estoque", "Giro, curva ABC, reposição e peças em prova.", "/company/estoque/fitness/inteligencia", Sparkles],
     ["Consignações e provas", "Envio, acerto, devolução e cancelamento.", "/company/fitness/consignacoes", PackageSearch],
     ["Movimentações", "Histórico por peça, tamanho e cor.", "/company/fitness/movimentacoes", RefreshCcw],

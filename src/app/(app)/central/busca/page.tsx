@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { redirect } from "next/navigation";
 import { Bot, Boxes, CalendarDays, ContactRound, FileSearch, ImageIcon, MessageCircle, PackageSearch, Search, Store } from "lucide-react";
 import { PageHeader } from "@/components/page-header";

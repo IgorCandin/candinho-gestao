@@ -18,7 +18,9 @@ test('new tools have real Company page files; legacy URLs remain available',()=>
   const {companyMigrationTools}=load('../src/lib/company-migration-tools.ts');
   for(const tool of companyMigrationTools){
     const target=tool.href.split('?')[0];
-    assert.ok(fs.existsSync(path.resolve(__dirname,'../src/app/(app)',target.slice(1),'page.tsx')),target);
+    const native=fs.existsSync(path.resolve(__dirname,'../src/app/(app)',target.slice(1),'page.tsx'));
+    const centralRewrite=target==='/company/gestao/central' && fs.existsSync(path.resolve(__dirname,'../src/app/(app)/central/page.tsx')) && fs.readFileSync(path.resolve(__dirname,'../next.config.ts'),'utf8').includes('source: "/company/gestao/central/:path*"');
+    assert.ok(native||centralRewrite,target);
   }
   assert.ok(fs.existsSync(path.resolve(__dirname,'../src/app/(app)/fitness/consignacoes/[id]/page.tsx')));
   assert.equal(companyDestination(`/fitness/consignacoes/${id}?origem=teste#pecas`),`/company/fitness/consignacoes/${id}?origem=teste#pecas`);

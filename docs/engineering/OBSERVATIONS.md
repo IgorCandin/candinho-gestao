@@ -16,6 +16,13 @@ Referências:
 
 ## Observações atuais
 
+### OBS-MIG-20261017 — Links internos também precisam preservar contexto
+
+- Contexto: conversões Fitness, estoque, parceiros e Central, sem retirar funções.
+- Evidência: detalhe de estoque enviava vendas/compras para rotas legadas; parceiros usavam fila geral mesmo com ID conhecido; links, buscas, paginação e retornos de promoções Central perdiam Company.
+- Mudança: destinos compartilhados de navegação/formulários, invalidação das duas URLs e entradas Company que compõem funções existentes. Indicador de contexto só escolhe retorno e nunca autoriza a ação. Auditar corpos repetidos sem fundir automaticamente funções ou cadastros.
+- Status: 21 regressões locais passaram com RPC simulada; tipos/lint direcionado são conferidos antes da publicação. Ações reais, aliases restantes e mobile ainda não homologados. Referências: `company-deep-migration.test.cjs`, `QUALIDADE-E-MOBILE-2026-10-17.md`.
+
 ### OBS-MIG-20261016 — Migrar retorno de ação, não somente o link de entrada
 
 - Contexto: continuar Suplementos/Fitness na Company sem retirar funções.

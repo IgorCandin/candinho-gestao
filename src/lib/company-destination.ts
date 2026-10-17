@@ -4,9 +4,19 @@ export function companyDestination(href: string): string {
   if (!match) return href;
   const path = match[1].replace(/^\/suplementos(?=\/)/, "");
   const suffix = match[2];
+  // Central routes already have a Company rewrite, preserving their existing implementations.
+  if (/^\/central(?:\/|$)/.test(match[1])) return match[1].replace(/^\/central/, "/company/gestao/central") + suffix;
+  const inventory = path.match(/^\/estoque\/([0-9a-f-]{36})$/i);
+  if (inventory) return `/company/estoque/${inventory[1]}${suffix}`;
   const fitnessConsignment = path.match(/^\/fitness\/consignacoes(?:\/([0-9a-f-]{36}|nova))?$/i);
   if (fitnessConsignment) return `/company/fitness/consignacoes${fitnessConsignment[1] ? `/${fitnessConsignment[1]}` : ""}${suffix}`;
   const extra: Record<string, string> = {
+    "/parceiros/configuracao": "/company/parceiros/configuracao",
+    "/parceiros/portal": "/company/parceiros/portal",
+    "/estoque/sabores": "/company/estoque/sabores",
+    "/parceiros/gerencial": "/company/parceiros/gerencial",
+    "/parceiros/novo": "/company/parceiros/novo",
+    "/fitness/conversoes": "/company/fitness/conversoes",
     "/fitness/estoque": "/company/estoque?operacao=fitness",
     "/fitness/estoque/inteligencia": "/company/estoque/fitness/inteligencia",
     "/fitness/movimentacoes": "/company/fitness/movimentacoes",

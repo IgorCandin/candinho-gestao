@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:company": "node --test tests/company-deep-migration.test.cjs tests/company-tools-migration.test.cjs tests/company-migration-cleanup.test.cjs tests/company-office-scene.test.cjs tests/migration-board-history.test.cjs",
+    "audit:duplicates": "node scripts/audit-source-duplicates.cjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.1",

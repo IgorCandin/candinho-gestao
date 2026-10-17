@@ -1,4 +1,5 @@
 import { Search } from "lucide-react";
+import Form from "@/components/company-context-form";
 
 export function CommercialSearchForm({
   action,
@@ -12,7 +13,7 @@ export function CommercialSearchForm({
   placeholder?: string;
 }) {
   return (
-    <form className="commercial-search-form" action={action} method="get">
+    <Form className="commercial-search-form" action={action} method="get">
       {Object.entries(hidden).map(([key, value]) =>
         value ? <input key={key} type="hidden" name={key} value={value} /> : null,
       )}
@@ -30,6 +31,6 @@ export function CommercialSearchForm({
       <button className="button ghost compact-button" type="submit">
         Buscar
       </button>
-    </form>
+    </Form>
   );
 }

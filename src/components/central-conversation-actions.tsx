@@ -1,12 +1,14 @@
 "use client";
 
 import { CheckCheck, CircleCheckBig, Clock3, LoaderCircle, RotateCcw, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { companyDestination } from "@/lib/company-destination";
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export function CentralConversationActions({ conversationId, status }: { conversationId: string; status: string }) {
   const router = useRouter();
+  const companyMode=usePathname().startsWith("/company/");
   const [loading, setLoading] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -55,7 +57,7 @@ export function CentralConversationActions({ conversationId, status }: { convers
         throw new Error(data?.error || "Não foi possível excluir a conversa do Inbox.");
       }
 
-      router.push("/central/inbox");
+      router.push(companyMode ? companyDestination("/central/inbox") : "/central/inbox");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível excluir a conversa do Inbox.");

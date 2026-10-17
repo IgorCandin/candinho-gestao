@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { notFound, redirect } from "next/navigation";
 import {
   ArrowLeft,

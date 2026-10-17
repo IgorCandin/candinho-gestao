@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { CalendarClock, ContactRound, UserRound } from "lucide-react";
 import { CentralTaskStatusActions } from "@/components/central-task-status-actions";
 import { formatDateTime } from "@/lib/format";

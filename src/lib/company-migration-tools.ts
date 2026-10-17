@@ -1,5 +1,8 @@
 /** Existing operations, exposed in Company without retiring legacy routes. */
 export const companyMigrationTools = [
+  {operation:"fitness", title:"Conversões de conjuntos", description:"Converter conjunto em peças avulsas com os movimentos existentes.", href:"/company/fitness/conversoes"},
+  {operation:"supplements", title:"Configuração de parceiros", description:"Regras incompletas, investimento e materiais destinados.", href:"/company/parceiros/configuracao"},
+  {operation:"supplements", title:"Central integrada", description:"Ferramentas existentes com navegação dentro da Company.", href:"/company/gestao/central"},
   {operation:"supplements", title:"Movimentações de Suplementos", description:"Entradas, saídas, ajustes e estornos com busca e paginação.", href:"/company/estoque/movimentacoes"},
   {operation:"supplements", title:"Reconciliação de estoque", description:"Pendências, contagem e histórico de resoluções existentes.", href:"/company/estoque/reconciliacao"},
   {operation:"fitness", title:"Consignações e provas", description:"Enviar peças, acertar as escolhidas, devolver e cancelar.", href:"/company/fitness/consignacoes"},

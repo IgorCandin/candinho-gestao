@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRightLeft, Boxes, Clock3, ImageIcon, PackageCheck, PackageOpen, ShoppingBag, Tags } from "lucide-react";
 import { DemoBanner } from "@/components/demo-banner";
@@ -20,7 +20,7 @@ const MOVEMENT_LABELS: Record<string, string> = {
   adjustment: "Ajuste",
 };
 
-export default async function InventoryProductPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function InventoryProductPage({ params, companyMode=false }: { params: Promise<{ id: string }>; companyMode?:boolean }) {
   const { id } = await params;
   const supabase = await createClient();
 
@@ -77,7 +77,7 @@ export default async function InventoryProductPage({ params }: { params: Promise
       description="Saldo total por depósito, composição por sabor, reservas de clientes e histórico de movimentações."
       action={
         <div className="page-header-action-group">
-          <Link className="button ghost" href="/estoque"><ArrowLeft size={16}/>Voltar</Link>
+          <Link className="button ghost" href={companyMode ? "/company/estoque/suplementos" : "/estoque"}><ArrowLeft size={16}/>Voltar</Link>
           <InventoryActions products={products} locations={locations} locationRows={locationRows} initialProductId={id}/>
         </div>
       }
@@ -90,7 +90,7 @@ export default async function InventoryProductPage({ params }: { params: Promise
       <div className="inventory-product-hero-copy">
         <span>{[overview.category, overview.brand].filter(Boolean).join(" · ")}</span>
         <strong>{overview.product_name}</strong>
-        <Link className="inline-link" href={`/produtos/${id}`}>Abrir ficha comercial do produto</Link>
+        <Link className="inline-link" href={`${companyMode ? "/company/produtos" : "/produtos"}/${id}`}>Abrir ficha comercial do produto</Link>
       </div>
       <div className="inventory-product-hero-numbers">
         <div><span>Físico total</span><strong>{overview.physical_quantity}</strong></div>
@@ -179,7 +179,7 @@ export default async function InventoryProductPage({ params }: { params: Promise
                       {movement.notes && <p>{movement.notes}</p>}
                     </div>
                     <time>{formatDate(movement.occurred_at)}</time>
-                    {movement.sale_id && <Link className="button ghost compact-button" href={`/vendas/${movement.sale_id}`}>Venda</Link>}
+                    {movement.sale_id && <Link className="button ghost compact-button" href={`${companyMode ? "/company/concluir" : "/vendas"}/${movement.sale_id}`}>Venda</Link>}
                   </div>
                 );
               })}
@@ -212,7 +212,7 @@ export default async function InventoryProductPage({ params }: { params: Promise
                 return (
                   <div className="inventory-reservation-card" key={reservation.id}>
                     <div>
-                      <Link className="table-link" href={`/vendas/${reservation.sale_id}`}>{reservation.customer_name}</Link>
+                      <Link className="table-link" href={`${companyMode ? "/company/concluir" : "/vendas"}/${reservation.sale_id}`}>{reservation.customer_name}</Link>
                       <span>{formatDateOnly(reservation.sale_date)} · {reservation.location_code}{flavorName ? ` · ${flavorName}` : ""}</span>
                     </div>
                     <strong>{reservation.quantity_reserved}/{reservation.quantity_requested}</strong>
@@ -230,7 +230,7 @@ export default async function InventoryProductPage({ params }: { params: Promise
         {overview.incoming_quantity > 0 && (
           <article className="panel inventory-incoming-card">
             <Clock3 size={20}/>
-            <div><span>Produtos a caminho</span><strong>{overview.incoming_quantity} unidade(s)</strong><Link className="inline-link" href="/pedidos-fornecedor">Abrir pedidos de fornecedor</Link></div>
+            <div><span>Produtos a caminho</span><strong>{overview.incoming_quantity} unidade(s)</strong><Link className="inline-link" href={companyMode ? "/company/compras" : "/pedidos-fornecedor"}>Abrir pedidos de fornecedor</Link></div>
           </article>
         )}
 

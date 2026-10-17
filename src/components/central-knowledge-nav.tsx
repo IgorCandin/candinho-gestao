@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import { FileBadge2, Presentation } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -9,7 +9,8 @@ export function CentralKnowledgeNav({
 }: {
   canManageUsers: boolean;
 }) {
-  const pathname = usePathname();
+  const currentPath = usePathname();
+  const pathname = currentPath.replace(/^\/company\/gestao\/central(?=\/|$)/, "/central");
 
   if (
     !pathname.startsWith("/central") ||

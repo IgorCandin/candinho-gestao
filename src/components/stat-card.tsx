@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/components/company-context-link";
 import type { LucideIcon } from "lucide-react";
 
 export function StatCard({ label, value, note, icon: Icon, href }: { label: string; value: string; note: string; icon: LucideIcon; href?: string }) {

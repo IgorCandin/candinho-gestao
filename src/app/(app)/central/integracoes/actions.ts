@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidateCentralPath as revalidatePath } from "@/lib/central-revalidation";
+import { companyDestination } from "@/lib/company-destination";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
@@ -42,5 +43,5 @@ export async function registerCentralIntegration(formData: FormData) {
 
   revalidatePath("/central");
   revalidatePath("/central/integracoes");
-  redirect(`/central/integracoes?salvo=${encodeURIComponent(provider)}`);
+  redirect(formData.get("company_context")==="1" ? companyDestination(`/central/integracoes?salvo=${encodeURIComponent(provider)}`) : `/central/integracoes?salvo=${encodeURIComponent(provider)}`);
 }
