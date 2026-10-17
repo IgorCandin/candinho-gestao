@@ -43,7 +43,7 @@ export function CompanyCursor() {
       ringX += (targetX - ringX) * .16;
       ringY += (targetY - ringY) * .16;
       ringRef.current?.style.setProperty("transform", `translate3d(${ringX}px, ${ringY}px, 0) translate(-50%, -50%)`);
-      frame = window.requestAnimationFrame(animateRing);
+      frame = Math.abs(targetX - ringX) + Math.abs(targetY - ringY) > .1 ? window.requestAnimationFrame(animateRing) : 0;
     }
 
     function onPointerMove(event: PointerEvent) {
@@ -52,6 +52,8 @@ export function CompanyCursor() {
       document.body.classList.add("company-custom-cursor-active");
       targetX = event.clientX;
       targetY = event.clientY;
+      if (ringRef.current?.classList.contains("is-hidden")) { ringX = targetX; ringY = targetY; }
+      if (!frame) frame = window.requestAnimationFrame(animateRing);
       dotRef.current?.style.setProperty("transform", `translate3d(${targetX}px, ${targetY}px, 0) translate(-50%, -50%)`);
       ringRef.current?.classList.remove("is-hidden");
       dotRef.current?.classList.remove("is-hidden");
@@ -68,12 +70,13 @@ export function CompanyCursor() {
       dotRef.current?.style.setProperty("--cursor-glow", glow);
     }
     function hide() {
+      window.cancelAnimationFrame(frame);
+      frame = 0;
       document.body.classList.remove("company-custom-cursor-active");
       ringRef.current?.classList.add("is-hidden");
       dotRef.current?.classList.add("is-hidden");
     }
 
-    frame = window.requestAnimationFrame(animateRing);
     window.addEventListener("pointermove", onPointerMove, { passive: true });
     document.documentElement.addEventListener("mouseleave", hide);
     return () => {
