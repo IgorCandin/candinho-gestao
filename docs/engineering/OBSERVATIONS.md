@@ -159,3 +159,10 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Escopo somente visual; nenhuma alteração de dados, preços, estoque, pedidos ou autenticação. Referências e prompts em `VITRINE-DIRECAO-VISUAL.md` e `VITRINE-RECORTES-PROMPTS.md`.
 - Na galeria expandida, requisições do otimizador remoto excederam timeout local. Componente de imagem agora tenta o original direto e a miniatura existente antes de mostrar indisponibilidade; não deixa ícone de imagem quebrada. TypeScript e lint dos cinco módulos/configuração aprovados após esse ajuste.
 
+### OBS-014 — Uniformização dos recortes Fitness
+
+- Data: 17/10/2026. Responsável pediu transparência também no Fitness e autorizou processamento técnico nas fotos recusadas pela ferramenta de imagem.
+- 21 fotos principais da seleção disponível recebem recortes com alpha: 15 por imagegen integrada, 6 por processamento técnico preservando a foto. Associação por produto/fonte impede recortes antigos após troca de foto. Campanha, coleções e galeria usam o mesmo mapeamento; originais e variantes preservados nos detalhes.
+- Fundos das camadas Fitness removidos; recortes sem mistura de cores com o fundo para preservar tecidos brancos. Coleção ajustada para acomodar o recorte sem cobrir seu título.
+- Evidência: 21 WebPs verificados com alpha 0–255; aproximadamente 4,2 MB. Inspeção dos recortes; abertura desktop e 390px sem overflow; lint dos módulos alterados e TypeScript aprovados. Build remoto é condição de publicação. Manifesto e prompts em `FITNESS-RECORTES.md`.
+
