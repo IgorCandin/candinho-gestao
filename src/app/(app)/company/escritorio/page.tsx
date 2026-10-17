@@ -49,8 +49,8 @@ export default async function CompanyOfficePage() {
   ]);
   const rooms: OfficeRoom[] = [];
   rooms.push({ name: "Company · Clientes", color: "#d5b27b", signals: [
-    ...(supplements ? [{ label: "Cadastros Suplementos ativos sem telefone", count: missingSupplementPhone, href: "/company/clientes?pendencia=telefone" }] : []),
-    ...(fitness ? [{ label: "Cadastros Fitness sem telefone", count: missingFitnessPhone, href: "/company/clientes?pendencia=telefone" }] : []),
+    ...(supplements ? [{ label: "Cadastros Suplementos ativos sem telefone", count: missingSupplementPhone, href: "/company/clientes/telefones?operacao=Suplementos", description: "Preencha o telefone diretamente na fila, sem abrir a ficha." }] : []),
+    ...(fitness ? [{ label: "Cadastros Fitness sem telefone", count: missingFitnessPhone, href: "/company/clientes/telefones?operacao=Fitness", description: "Preencha o telefone diretamente na fila, sem abrir a ficha." }] : []),
     { label: "Doctor · sinais automáticos ativos", count: typeof doctor?.auto_active === "number" ? doctor.auto_active : null, href: "/company/qualidade" },
     { label: "Doctor · relatos manuais pendentes", count: typeof doctor?.manual_pending === "number" ? doctor.manual_pending : null, href: "/company/qualidade" },
   ], unmonitored: ["Retornos combinados no CRM", "Leads e orçamentos aguardando decisão", "Agenda operacional e tarefas manuais"] });
