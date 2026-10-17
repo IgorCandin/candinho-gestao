@@ -8,6 +8,8 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
     if (!page) return;
     const preference = window.matchMedia("(prefers-reduced-motion: reduce)");
     const visible = new Set<HTMLElement>();
+    const revealed = new WeakSet<Element>();
+    const running = new Set<Animation>();
     let frame = 0;
     const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
@@ -29,11 +31,22 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
     const schedule = () => { if (!frame && !preference.matches) frame = requestAnimationFrame(update); };
     const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
-        if (entry.isIntersecting) visible.add(entry.target as HTMLElement);
+        if (entry.isIntersecting) {
+          visible.add(entry.target as HTMLElement);
+          if (!preference.matches && !revealed.has(entry.target) && entry.target.matches("[data-product-reveal]")) {
+            revealed.add(entry.target);
+            const animation = entry.target.animate([
+              { clipPath: "inset(12% 0 0 0 round 14px)", opacity: .4 },
+              { clipPath: "inset(0 0 0 0 round 14px)", opacity: 1 },
+            ], { duration: 760, delay: Number((entry.target as HTMLElement).dataset.revealOrder ?? 0) % 4 * 55, easing: "cubic-bezier(.16,1,.3,1)" });
+            running.add(animation);
+            animation.finished.then(() => running.delete(animation)).catch(() => running.delete(animation));
+          }
+        }
         else visible.delete(entry.target as HTMLElement);
       }
       schedule();
-    }, { rootMargin: "100px" });
+    }, { rootMargin: "20px", threshold: .05 });
     const observed = new Set<Element>();
     const discover = () => {
       page.querySelectorAll<HTMLElement>("[data-scroll-scene]").forEach(element => {
@@ -49,6 +62,7 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
     mutations.observe(page, { childList: true, subtree: true });
     const preferenceChanged = () => {
       page.setAttribute("data-motion", preference.matches ? "reduced" : "active");
+      if (preference.matches) running.forEach(animation => animation.cancel());
       schedule();
     };
     preferenceChanged();
@@ -58,6 +72,7 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>) {
     preference.addEventListener("change", preferenceChanged);
     return () => {
       cancelAnimationFrame(frame);
+      running.forEach(animation => animation.cancel());
       observer.disconnect(); mutations.disconnect();
       window.removeEventListener("scroll", schedule);
       window.removeEventListener("resize", schedule);
