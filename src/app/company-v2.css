@@ -286,6 +286,7 @@
   .company-shell-v2 textarea,
   .company-shell-v2 summary { cursor: none; }
   .company-custom-cursor-active,
+  .company-custom-cursor-active dialog,
   .company-custom-cursor-active a,
   .company-custom-cursor-active button,
   .company-custom-cursor-active input,
@@ -1374,3 +1375,7 @@ body.company-custom-cursor-active .install-help-overlay button{cursor:pointer!im
     padding-bottom:max(12px,env(safe-area-inset-bottom));
   }
 }
+
+/* Decorative top-layer cursor never intercepts input, including preference changes. */
+.company-cursor-layer{position:fixed;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;background:transparent;overflow:visible;pointer-events:none!important}
+.company-cursor-layer::backdrop{background:transparent;pointer-events:none}
