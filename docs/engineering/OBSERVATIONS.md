@@ -16,6 +16,14 @@ Referências:
 
 ## Observações atuais
 
+### OBS-TIPOS-20261017 — Props de rota não são opções de componente
+
+- Contexto: build webpack local rejeitou três páginas compartilhadas na migração.
+- Evidência: tipos gerados do Next.js rejeitavam `companyMode` em estoque/[id], Fitness/movimentacoes e o argumento opcional de Fitness/consignacoes.
+- Mudança: componentes movidos sem alteração funcional; páginas legadas e Company compõem os mesmos componentes. Regra registrada em AGENTS.md e regressão de contratos/navegação adicionada.
+- Status: 44 testes Node, lint direcionado e tipos aprovados; build remoto completo READY em produção (`e051c94`). 12 verificações Playwright de acesso ao login aprovadas, com gravações bloqueadas. Build local passou pelos tipos e parou depois por configuração Supabase ausente no prerender do catálogo. Não confundir com homologação de ações reais/mobile; nenhum dado real alterado.
+- Referências: tests/operational-pages.test.cjs; QUALIDADE-E-MOBILE-2026-10-17.md.
+
 ### OBS-LOTES-20261017 — Lotes, sabores e aliases da Central
 
 - Contexto: continuar migração sem remover funções e testar sem API paga.
@@ -191,7 +199,7 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Evidência local: abertura inteira em 1280×720 (limite inferior ~587px) e 390×844 (~654px), sem overflow. Dialog da Creatina com cursor computado `pointer`, nenhum cursor decorativo, preço e compra visíveis. Fitness sincronizou os dois seletores; detalhes com tamanho/cor, favorito e fechamento por Escape conferidos. Favorito Fitness encontrado após navegar em Suplementos. Lint dos módulos e TypeScript aprovados após regenerar tipos locais antigos de rotas Next; build remoto exigido antes de publicar.
 
 
-### OBS-016 — Casa inteira e cobertura explícita do escritório
+### OBS-017 — Casa inteira e cobertura explícita do escritório
 
 - Data: 17/10/2026. Responsável rejeitou painel lateral e pediu visão periférica das pendências.
 - Causa: cena selecionava uma sala no celular; escritório consultava somente cadastro/Doctor/reposição/oportunidades/Bank do mês.
@@ -206,3 +214,11 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Build local compilou e passou pelos tipos, mas interrompeu o prerender de `/catalogo` por ausência das variáveis Supabase neste checkout. Build remoto Vercel do primeiro commit aprovado; build do commit final é condição para publicação.
 - Lint global: 141 erros e 29 avisos em áreas amplas do repositório; não usar como sinal de aprovação global. Auditoria do lock npm importado: 1 vulnerabilidade crítica, 2 altas, 4 moderadas e 1 baixa nas dependências existentes Next/sharp. Nenhum pacote ou lock foi alterado nesta entrega.
 - Homologação do responsável e ações mutantes reais permanecem pendentes. Consulte PR #39 para resultado do build/publicação final.
+### OBS-016 — Fluidez e hierarquia da Vitrine
+
+- Data: 17/10/2026. Responsável considerou a revisão anterior seca, desproporcional e repetitiva. Escopo permanece `/catalogo/descobrir`.
+- Plano visual: preservar prata/carvão, Barlow/Manrope e recortes; concentrar a categoria em um seletor Suplementos/Fitness no cabeçalho fixo. Uma foto de destaque, texto e preço alinhados substituem foto secundária repetida e etiqueta flutuante. Galeria mantém cartões uniformes e tons discretos alternados.
+- Referências públicas revisitadas: Skiper UI e Cult UI para transições, revelação de fotos e resposta dos controles. A página de demonstração Image Reveal do Skiper não carregou suas fotos; não houve cópia de código ou importação de componentes pagos. MotionSites também exibiu prévias sem carregar. Implementação própria, sem dependências novas.
+- Movimento: entrada escalonada das linhas do título e da foto ao trocar categoria; profundidade do destaque ligada à rolagem/ponteiro; revelação das fotos por IntersectionObserver e Web Animations, uma vez por montagem. Favoritos e detalhes respondem à ação. Rolagem nativa, cursor nativo e preferência de movimento reduzido preservados; conteúdo permanece visível sem animações.
+- Crítica e verificação local: abertura equilibrada no desktop e 390×844; uma seleção de categoria, sem overflow horizontal. Fitness exibiu 21 opções e recortes; favoritos, tamanho/cor, abertura e Escape dos detalhes conferidos. Cursor computado pointer, classe de cursor customizado ausente; progresso das fotos varia com rolagem. Build remoto é condição de publicação. Dados, preços, estoque e compra preservados.
+

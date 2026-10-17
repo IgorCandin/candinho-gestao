@@ -32,3 +32,43 @@
 @media(prefers-reduced-motion:reduce){.page *,.page *::before,.page *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.readingProgress{display:none}.page .mainShot,.page .sideShot,.page .imageButton img{transform:none!important;scale:1!important}.page .mainShot{transform:rotate(-3deg)!important}.page .sideShot{transform:rotate(-12deg)!important}}
 @media(max-width:650px){.search{flex-basis:100%;max-width:none}.filters select{max-width:none;width:100%;padding-left:0}}
 @media(max-height:600px) and (min-width:651px){.header{padding-block:8px}.heroComposition{min-height:245px}.stage{height:230px}.page .heroCopy h1{font-size:50px}.heroCopy{padding-block:15px}.heroControls{padding-block:8px}}
+
+/* One navigation rhythm, with motion attached to products and user actions. */
+.header{position:sticky;top:0;z-index:20;background:#e9ecefeF;backdrop-filter:blur(14px)}
+.operationSwitch{position:relative;isolation:isolate;display:flex;width:248px;padding:4px;border:1px solid #181b2014;border-radius:30px;background:#ffffff80;flex-shrink:0}
+.operationSwitch::before{content:"";position:absolute;inset:4px auto 4px 4px;width:calc(50% - 4px);border-radius:24px;background:var(--ink);z-index:-1;transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.operationSwitch[data-operation=fitness]::before{transform:translateX(100%)}
+.operationSwitch button{width:50%;min-height:38px;padding:6px 12px;border:0;background:transparent;color:var(--muted);font-size:12px;transition:color .3s}
+.operationSwitch button[aria-pressed=true]{color:white}
+.page .hero{padding-top:24px;padding-bottom:28px;transition:background-color .5s}
+.page .fashionScene{background:#e9ecef;--scene:#dd9bbd}
+.heroComposition{min-height:410px;gap:48px;grid-template-columns:1fr 1fr}
+.heroCopy{padding:28px 0}.page .heroCopy h1{font-size:clamp(64px,6.7vw,86px);line-height:.91}
+.heroCopy h1 span{display:block;animation:titleArrive .7s cubic-bezier(.16,1,.3,1) both}
+.heroCopy h1 span:nth-child(2){animation-delay:70ms}.heroCopy h1 span:last-child{color:#797f85;animation-delay:140ms}
+.heroBottomCopy{flex-direction:row;align-items:center;gap:24px;margin-top:25px}.heroBottomCopy p{max-width:220px}
+.roundCta svg,.cardLook svg{transition:transform .3s}.roundCta:hover svg,.roundCta:focus-visible svg{transform:translate(3px,-3px)}
+.stage{height:390px;display:grid;grid-template-rows:minmax(0,1fr) auto;gap:14px;margin:0}
+.stage::before{content:"";position:absolute;inset:45px 12% 70px;background:radial-gradient(ellipse,var(--scene),transparent 68%);opacity:.25;filter:blur(22px);z-index:-1;transition:background .5s}
+.page .mainShot{position:relative;inset:auto;width:100%;height:100%;transform:none;border-radius:20px}
+.mainShot img{padding:8px 40px 30px;animation:productArrive .95s cubic-bezier(.16,1,.3,1) both;filter:drop-shadow(0 20px 14px #181b2020)}
+.quickLook{left:auto;right:12px;bottom:2px;gap:20px;border:0;border-radius:25px;padding:10px 13px;background:#ffffffa6;color:var(--ink)}
+.productTicket{position:relative;inset:auto;min-width:0;max-width:none;padding:15px 0 0;background:transparent;color:var(--ink);box-shadow:none;border-top:1px solid var(--line);grid-template-columns:1fr auto;gap:6px 18px}
+.productTicket>span:first-child{grid-column:1/-1;color:var(--muted);font-size:10px}.productTicket i{background:#3e7659}.productTicket strong{font-size:13px;max-width:290px}.productTicket>span:last-child{font-size:14px;white-space:nowrap;align-self:center}
+.browse{border-radius:24px 24px 0 0;scroll-margin-top:95px;animation:resultsArrive .35s ease-out}.search{margin-left:0;margin-right:auto;max-width:360px}
+.productMedia{border-radius:14px;transition:box-shadow .35s,translate .35s;background:#e8ebed}.product:nth-child(4n+2) .productMedia{background:#eeeae5}.page[data-operation=fitness] .product:nth-child(4n+2) .productMedia{background:#eee4e9}
+.productMedia:hover{translate:0 -4px;box-shadow:0 12px 25px #181b2010}.productMedia:focus-within{box-shadow:0 0 0 2px #181b2040}
+.cardLook svg{transform:rotate(-90deg)}.productMedia:hover .cardLook svg{transform:rotate(0)}
+.favorite{transition:background .25s,color .25s,scale .25s}.favorite:hover{scale:1.08}.favorite[aria-pressed=true] svg{animation:heartPop .35s ease-out}
+.page[data-motion=active] .mainShot{transform:translate3d(calc(var(--pointer-x,0)*10px),calc((var(--scroll-position,.5) - .5)*-50px),0) rotate(calc((var(--scroll-position,.5) - .5)*7deg)) rotateY(calc(var(--pointer-x,0)*5deg))}
+.page[data-motion=active] .productMedia .imageButton img{transform:translateY(calc((1 - var(--reveal,1))*24px));transition:scale .35s}
+.dialog::backdrop{animation:backdropArrive .25s ease-out}
+@keyframes titleArrive{from{opacity:0;transform:translateY(24px);clip-path:inset(0 0 100%)}to{opacity:1;transform:translateY(0);clip-path:inset(0)}}
+@keyframes productArrive{from{opacity:0;transform:translateY(28px) rotate(7deg) scale(.94)}to{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+@keyframes resultsArrive{from{opacity:.6}to{opacity:1}}
+@keyframes heartPop{50%{transform:scale(1.25)}to{transform:scale(1)}}
+@keyframes backdropArrive{from{opacity:0}to{opacity:1}}
+@media(max-width:1000px){.header{gap:14px}.header nav{gap:14px}.operationSwitch{width:220px}.heroComposition{gap:25px}.heroBottomCopy{flex-direction:column;align-items:flex-start;gap:14px}.stage{height:365px}.page .mainShot{inset:auto}.productTicket{gap:6px 10px}}
+@media(max-width:650px){.header{display:grid;grid-template-columns:1fr auto;padding:8px 5%;gap:5px 12px}.header nav{gap:16px}.operationSwitch{grid-column:1/-1;grid-row:2;width:100%}.operationSwitch button{min-height:34px}.page .hero{padding:18px 5% 25px}.heroTop>span:last-child{display:flex}.heroComposition{grid-template-columns:1fr;min-height:0;gap:0}.heroCopy{padding:20px 0 8px}.page .heroCopy h1{font-size:clamp(44px,12vw,60px);line-height:.91}.heroBottomCopy{flex-direction:row;align-items:center;gap:12px;margin-top:17px}.heroBottomCopy p{max-width:200px}.stage{height:280px;gap:5px;margin-top:8px}.page .mainShot{inset:auto}.mainShot img{padding:4px 35px 25px}.quickLook{right:0;font-size:9px;padding:8px 10px;gap:12px}.productTicket{padding-top:11px;gap:5px 10px}.productTicket strong{font-size:11px;max-width:220px}.productTicket>span:last-child{font-size:12px}.browse{scroll-margin-top:125px}.sectionHeading{display:block}.sectionHeading>p{max-width:none;margin-top:12px}.search{max-width:none}.productMedia:hover{translate:0 0}}
+@media(max-height:700px) and (min-width:651px){.heroComposition{min-height:330px}.stage{height:310px}.page .heroCopy h1{font-size:64px}.heroBottomCopy{margin-top:18px}}
+@media(prefers-reduced-motion:reduce){.page *,.page *::before,.page *::after{animation:none!important;transition:none!important}.page .mainShot{transform:none!important}.productMedia:hover{translate:none}}
