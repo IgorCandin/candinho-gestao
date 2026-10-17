@@ -219,12 +219,6 @@ const nextConfig: NextConfig = {
         destination: "/company/gestao/central/:path*",
         permanent: false,
       },
-      {
-        source: "/company/gestao/central",
-        destination: "/company/gestao",
-        permanent: false,
-      },
-
       ...supplementRouteRoots.flatMap(
         (route) => [
           {

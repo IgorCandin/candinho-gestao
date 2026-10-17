@@ -12,6 +12,11 @@ function load(relative,mocks={}){
   return compiled.exports;
 }
 const {companyDestination}=load('../src/lib/company-destination.ts');
+test('Company Central entry is not redirected away before its existing rewrite',()=>{
+  const config=fs.readFileSync(path.resolve(__dirname,'../next.config.ts'),'utf8');
+  assert.ok(config.includes('source: "/company/gestao/central/:path*"'));
+  assert.doesNotMatch(config,/source:\s*"\/company\/gestao\/central",\s*destination:\s*"\/company\/gestao"/);
+});
 function nodes(node){return !node||typeof node!=='object'?[]:[node,...React.Children.toArray(node.props?.children).flatMap(nodes)];}
 test('context links preserve queries, fragments and legacy behavior',()=>{
   let pathname='/company/gestao/central';
