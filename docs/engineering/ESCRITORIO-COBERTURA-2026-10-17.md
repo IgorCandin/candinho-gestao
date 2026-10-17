@@ -2,7 +2,7 @@
 
 ## Implementado nesta revisão
 
-Casa com todas as salas autorizadas simultâneas, avisos junto aos personagens por hover/foco, clique/toque para fixar, Escape/fechamento com retorno do foco e rolagem interna. Sem painel lateral, dados de exemplo ou resolução simulada. Cursor nativo nesta rota elimina o loop contínuo do cursor decorativo.
+Casa com todas as salas autorizadas simultâneas, avisos junto aos personagens por hover/foco, clique/toque para fixar, Escape/fechamento com retorno do foco e rolagem interna. Sem painel lateral, dados de exemplo ou resolução simulada. Conforme pedido posterior de padronização global (OBS-017), o cursor decorativo também permanece nesta rota; sua animação agora encerra ao alcançar o ponteiro e reinicia somente com movimento, eliminando o loop contínuo em repouso.
 
 Indicadores novos, somente leitura, com contagem exata e sem limite de amostra:
 - Suplementos: recebimentos e entregas de `pending_orders`, canceladas excluídas, estados `receivable` / `to_deliver`.
