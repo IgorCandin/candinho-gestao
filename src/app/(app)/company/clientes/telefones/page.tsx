@@ -20,6 +20,7 @@ export default async function MissingPhonesPage({ searchParams }: { searchParams
   let pending = db.from(operation === "Fitness" ? "fitness_customers" : "customers").select("id,name,city", { count: "exact" }).or("phone.is.null,phone.eq.");
   if (operation === "Suplementos") pending = pending.eq("active", true);
   const { data, count, error } = await pending.order("name").order("id").range((page - 1) * pageSize, page * pageSize - 1);
-  if (error) throw new Error("Não foi possível consultar os telefones pendentes. Tente atualizar a página.");
-  return <CompanyMissingPhones key={`${operation}:${page}`} customers={data ?? []} operation={operation as PhoneOperation} total={count ?? 0} page={page} pageSize={pageSize} canWrite={operation === "Fitness" ? access.canWriteFitness : access.canWriteSupplements} allowedOperations={allowedOperations}/>;
+  if (page > 1 && (error?.code === "PGRST103" || (!error && !data?.length))) redirect(`/company/clientes/telefones?operacao=${operation}`);
+  if (error || count === null) throw new Error("Não foi possível consultar os telefones pendentes. Tente atualizar a página.");
+  return <CompanyMissingPhones key={`${operation}:${page}`} customers={data ?? []} operation={operation as PhoneOperation} total={count} page={page} pageSize={pageSize} canWrite={operation === "Fitness" ? access.canWriteFitness : access.canWriteSupplements} allowedOperations={allowedOperations}/>;
 }
