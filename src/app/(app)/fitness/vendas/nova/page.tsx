@@ -14,8 +14,9 @@ import {
 
 export default async function Page<T extends object>(props: T) {
   const companyMode = Boolean((props as T & { companyMode?: boolean }).companyMode);
-  const searchParams = (props as T & { searchParams?: Promise<{ interest?: string }> }).searchParams;
-  const interestId = (await searchParams)?.interest;
+  const searchParams = (props as T & { searchParams?: Promise<{ interest?: string; cliente?: string; variante?: string }> }).searchParams;
+  const query = await searchParams;
+  const interestId = query?.interest;
   const access = await getCurrentUserAccess();
 
   if (!access.canWriteFitness) {
@@ -48,7 +49,7 @@ export default async function Page<T extends object>(props: T) {
   const matchedCustomer = interest
     ? customers.find((customer) => customer.id === interest.customer_id)
       ?? customers.find((customer) => interestPhone && customer.phone?.replace(/\D/g, "") === interestPhone)
-    : null;
+    : customers.find(customer => customer.id === query?.cliente || customer.fitness_customer_id === query?.cliente || customer.core_customer_id === query?.cliente) ?? null;
   const initialNotes = interest
     ? ["Origem: interesse da Vitrine Fitness", interest.context_summary].filter(Boolean).join("\n")
     : "";
@@ -68,6 +69,7 @@ export default async function Page<T extends object>(props: T) {
         companyMode={companyMode}
         waitingByVariant={waitingByVariant}
         initialCustomerId={matchedCustomer?.id}
+        initialVariantId={stock.some(row => row.variant_id === query?.variante) ? query?.variante : undefined}
         initialNotes={initialNotes}
       />
     </>

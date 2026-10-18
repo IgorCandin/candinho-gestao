@@ -1,5 +1,14 @@
 # Observações de desenvolvimento
 
+### Fluxo operacional — 17/10/2026
+
+- Consignação aceitava zero vendido como finalização e registrava devolução total. Venda agora exige quantidades explícitas e pelo menos uma peça; devolução tem ação separada. Histórico real não foi reescrito.
+- Teste SQL sintético executado com ROLLBACK: venda vinculada, baixa somente da peça vendida e devolução sem duplicar estoque. Consulta posterior confirmou zero fixtures restantes.
+- Escritório encaminha recebimento, entrega e pós-venda por operação/fila; estoque destaca demanda sem disponível; menus por tarefa no Início/Ferramentas; Planejamento permite corrigir recebidos.
+- Mapa ganha conferência persistida para o planejamento, preservando aprovados e histórico. Migration 20261017220900 aplicada; RLS e grants preservados; teste autenticado revertido.
+- 418 reproduzido em venda Suplementos. Auxiliar de orçamento passa a aguardar hidratação do formulário antes de mutar DOM; reconferir após publicação. Bank abriu sem erro nesta visita; 441 e Load failed antigos continuam em investigação no mapa.
+- TypeScript aprovado; 53 testes passaram antes de acrescentar regressão de quantidades vazias/zero. Rotina e limites documentados em ROTINA-TESTES-ERP.md. Build remoto e verificação oficial são condição de publicação.
+
 Use este arquivo como fila leve de correções, não como lista automática de mudanças.
 
 ## Formato

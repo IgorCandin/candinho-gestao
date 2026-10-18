@@ -32,9 +32,9 @@ export default async function CompanyOfficePage() {
       count(db.from(postSale).select("id", { count: "exact", head: true }).eq("status", "planned")),
     ]);
     return [
-      { label: "Vendas com recebimento pendente", count: payments, href: "/company/concluir", description: `Vendas de ${operation}. Recebimento e entrega são independentes; confira a operação na fila.` },
-      { label: "Vendas com entrega pendente", count: deliveries, href: "/company/concluir", description: "Pode incluir venda também pendente de recebimento. As contagens não devem ser somadas." },
-      { label: "Pós-vendas planejados", count: care, href: "/company/acompanhar", description: "Inclui contatos futuros. Consulte a data antes de entrar em contato." },
+      { label: "Vendas com recebimento pendente", count: payments, href: `/company/concluir?operacao=${operation}&fila=receive`, description: `Vendas de ${operation}. Recebimento e entrega são independentes; confira a operação na fila.` },
+      { label: "Vendas com entrega pendente", count: deliveries, href: `/company/concluir?operacao=${operation}&fila=deliver`, description: "Pode incluir venda também pendente de recebimento. As contagens não devem ser somadas." },
+      { label: "Pós-vendas planejados", count: care, href: `/company/acompanhar?operacao=${operation}&fila=post_sale`, description: "Inclui contatos futuros. Consulte a data antes de entrar em contato." },
     ];
   };
   const [missingSupplementPhone, missingFitnessPhone, stockAttention, fitnessIdeas, bankMonth, doctor, supplementOperations, fitnessOperations] = await Promise.all([
@@ -57,9 +57,9 @@ export default async function CompanyOfficePage() {
   if (supplements) rooms.push({ name: "Suplementos", color: "#79c8b4", signals: [...supplementOperations, { label: "Produtos com demanda sem estoque ou reposição a conferir", count: stockAttention, href: "/company/estoque/atencao", description: "Demanda sem estoque e reposição. Não equivale à fila de entregas pendentes." }], unmonitored: ["Compras de fornecedor aguardando recebimento", "Lotes, validade e quarentena", "Acertos com parceiros"] });
   if (fitness) rooms.push({ name: "Fitness", color: "#bda2e8", signals: [...fitnessOperations, { label: "Possibilidades de venda por tamanho observado · amostra recente", count: fitnessIdeas, href: "/company/fitness/oportunidades", kind: "opportunity", description: "Preferência provável, não certeza. Confirme tamanho e interesse com a cliente." }], unmonitored: ["Consignações e acertos", "Compras e recebimentos", "Estoque por variante e reservas sem cobertura"] });
   if (bank) rooms.push({ name: "Bank", color: "#8abde3", signals: [
-    { label: "Compromissos vencidos do mês consultado", count: bankMonth?.overdue.length ?? null, href: "/bank/planejamento" },
-    { label: "Compromissos com vencimento hoje", count: bankMonth?.dueToday.length ?? null, href: "/bank/planejamento" },
-    { label: "Próximos compromissos do mês", count: bankMonth?.upcoming.length ?? null, href: "/bank/planejamento", kind: "agenda", description: "Agenda do mês atual; não representa toda a dívida nem confirma saldo para pagamento." },
+    { label: "Compromissos vencidos do mês consultado", count: bankMonth?.overdue.length ?? null, href: "/bank/planejamento?fila=overdue#compromissos" },
+    { label: "Compromissos com vencimento hoje", count: bankMonth?.dueToday.length ?? null, href: "/bank/planejamento?fila=today#compromissos" },
+    { label: "Próximos compromissos do mês", count: bankMonth?.upcoming.length ?? null, href: "/bank/planejamento?fila=upcoming#compromissos", kind: "agenda", description: "Agenda do mês atual; não representa toda a dívida nem confirma saldo para pagamento." },
   ], unmonitored: ["Compromissos de outros meses", "Conciliação e entradas a confirmar", "Reservas e previsões financeiras"] });
   const consulted = new Intl.DateTimeFormat("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" }).format(new Date());
   return <CompanyOfficeScene rooms={rooms} consulted={consulted}/>;

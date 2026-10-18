@@ -23,6 +23,10 @@ def main():
         '/company/produtos/sabores/historico',
         '/company/fitness/consignacoes', '/company/fitness/movimentacoes',
         '/company/gestao/central',
+        '/company/escritorio', '/company/mapa', '/company/acompanhar?fila=post_sale',
+        '/company/concluir?fila=receive', '/company/clientes/telefones?operacao=Fitness',
+        '/company/estoque/atencao', '/company/fitness/oportunidades',
+        '/bank/planejamento',
     ]
     count = 0
     with sync_playwright() as p:
