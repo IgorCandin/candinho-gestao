@@ -7,6 +7,13 @@
 - Correção: hook local nas janelas de conclusão, recebimento conjunto, fotos e painel Bank; CSS de altura dinâmica, área rolável, margens seguras e controles alcançáveis. Ações e payloads originais preservados.
 - Verificação: 72 testes Node, lint direcionado e 20 verificações Chromium isoladas em cinco dimensões. Testes não autenticam nem gravam no banco real; integrações e Safari físico seguem pendentes. Evidências e limites em MOBILE-JANELAS-2026-10-18.md. Publicação condicionada ao build remoto.
 
+### Acompanhar por operação e próximo passo — 18/10/2026
+
+- Mesmo padrão de filtros de Concluir: operação visível, contagens por contato/operação, busca e limpeza. CSS compartilhado por uma classe comum; Concluir preserva seu comportamento.
+- Uma pessoa com assuntos nas duas operações aparece em cards separados. Cada assunto mostra orientação, data ou ausência de data e ação específica para pós-venda, retorno ou contato. Telefone ausente aponta para a fila da operação.
+- Resultado da conversa fica antes do histórico, inclusive na ordem de teclado. Reagendamentos existentes de 30 dias ficam explícitos nos rótulos. Preparar venda não conclui contato nem registra feedback prematuramente; RPCs mantidas.
+- TypeScript/lint aprovados; testes de agrupamento, orientação e preparação sem gravação. Fixture real do componente testada em 1071px, 390px e 320px com filtros, busca, limpeza, teclado, orientação, histórico recolhido, alvos de 44px e sem overflow. Nenhuma operação real gravada. Build e abertura oficial são condições de publicação.
+
 ### Filtros de Concluir — 18/10/2026
 
 - Seletor nativo de operação substituído por botões visíveis com contagens e estado aria-pressed. Operação, pendência e busca têm rótulos e agrupamentos próprios; busca pode ser limpa e filtros podem ser restaurados.
