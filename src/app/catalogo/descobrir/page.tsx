@@ -3,13 +3,18 @@ import { getPublicStorefrontSnapshot } from "@/lib/public-storefront-data";
 import { getCachedPublicStorefrontSlugMap } from "@/lib/public-storefront-slug-map-v45-36";
 import { getPublicFitnessAvailabilityMap } from "@/lib/public-fitness-availability-data";
 import { getPublicSupplementBackorders } from "@/lib/public-backorder-data";
+import { createClient } from "@/lib/supabase/server";
+import type { StorefrontTestimonial } from "@/components/storefront-testimonials";
 
 export const revalidate = 10;
 export const metadata = { title: "Descobrir | Vitrine Candinho", robots: { index: false, follow: true } };
 
 export default async function DiscoveryPage() {
-  const [snapshot, links, availability, backorders] = await Promise.all([
+  const supabase = await createClient();
+  const [snapshot, links, availability, backorders, testimonialResult, campaignResult] = await Promise.all([
     getPublicStorefrontSnapshot(), getCachedPublicStorefrontSlugMap(), getPublicFitnessAvailabilityMap(), getPublicSupplementBackorders(),
+    supabase.from("storefront_testimonials").select("id,customer_name,comment,profession,photo_url").eq("active", true).order("display_order").order("created_at"),
+    supabase.rpc("get_storefront_campaign_summary_v1"),
   ]);
   const existing = new Set(snapshot.products.supplements.map(p => p.id));
   const supplements = [...snapshot.products.supplements, ...backorders.filter(p => !existing.has(p.product_id) && p.available_quantity <= 0).map(p => ({
@@ -17,5 +22,6 @@ export default async function DiscoveryPage() {
     image_url: p.image_url, price_from: p.sale_price, price_to: p.sale_price, cash_price: p.sale_price,
     installment_price: null, installments_max: null, installment_value: null, available: false, notes: null, images: [],
   }))];
-  return <StorefrontDiscovery snapshot={{ ...snapshot, products: { ...snapshot.products, supplements } }} links={links} availability={availability} />;
+  const summary = Array.isArray(campaignResult.data) ? campaignResult.data[0] : campaignResult.data;
+  return <StorefrontDiscovery snapshot={{ ...snapshot, products: { ...snapshot.products, supplements } }} links={links} availability={availability} testimonials={(testimonialResult.data || []) as StorefrontTestimonial[]} remaining={summary ? Number(summary.remaining) : null} />;
 }
