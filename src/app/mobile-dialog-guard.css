@@ -1,0 +1,16 @@
+/* Bound the actual dialog scrollers, not the operational page behind them. */
+.company-completion-dialog,.company-photo-dialog,.bank-dashboard-dialog{min-width:0;box-sizing:border-box;overflow-wrap:anywhere}
+.company-completion-dialog>header,.company-completion-dialog>footer,.bank-dashboard-dialog-top{flex-shrink:0;min-width:0}
+.company-completion-dialog>header>div,.company-photo-dialog>header>div,.bank-dashboard-dialog-top>strong{min-width:0}
+.company-completion-dialog-body{min-height:0;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.company-photo-dialog{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.company-completion-dialog :focus-visible,.company-photo-dialog :focus-visible,.bank-dashboard-dialog :focus-visible{outline:3px solid #86d5ff;outline-offset:3px;scroll-margin-block:16px}
+@media(max-width:700px),(max-height:520px){
+  .company-completion-backdrop,.company-photo-backdrop,.bank-dashboard-dialog-backdrop{padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));overflow-y:auto;overscroll-behavior:contain}
+  .company-completion-dialog,.company-completion-dialog.company-grouped-receipt,.company-photo-dialog,.bank-dashboard-dialog{max-height:calc(100dvh - max(12px,env(safe-area-inset-top)) - max(12px,env(safe-area-inset-bottom)))}
+  .company-completion-dialog>header,.company-completion-dialog>footer{padding:12px 14px;gap:10px}
+  .company-completion-dialog>header h2,.company-photo-dialog h2{font-size:20px}
+  .company-completion-dialog>footer{flex-wrap:wrap}
+  .company-completion-dialog .icon-button,.company-photo-icon,.bank-dashboard-dialog-top .icon-link{min-width:44px;min-height:44px;flex-shrink:0}
+  .company-completion-dialog input,.company-completion-dialog select,.company-completion-dialog textarea,.company-photo-dialog input,.company-photo-dialog select,.bank-dashboard-dialog input,.bank-dashboard-dialog select,.bank-dashboard-dialog textarea{font-size:16px}
+}

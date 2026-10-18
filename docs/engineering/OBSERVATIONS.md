@@ -1,5 +1,12 @@
 # Observações de desenvolvimento
 
+### Mobile: foco e rolagem das janelas — 18/10/2026
+
+- Contexto: avançar o mapa enquanto o responsável confere Bank no iPhone, sem perda de funções ou dados reais.
+- Evidência anterior: quatro janelas mantinham foco no acionador atrás do diálogo. Causa: sem ciclo completo de foco/Tab/restauração; role=dialog não implementa esses comportamentos.
+- Correção: hook local nas janelas de conclusão, recebimento conjunto, fotos e painel Bank; CSS de altura dinâmica, área rolável, margens seguras e controles alcançáveis. Ações e payloads originais preservados.
+- Verificação: 72 testes Node, lint direcionado e 20 verificações Chromium isoladas em cinco dimensões. Testes não autenticam nem gravam no banco real; integrações e Safari físico seguem pendentes. Evidências e limites em MOBILE-JANELAS-2026-10-18.md. Publicação condicionada ao build remoto.
+
 ### Filtros de Concluir — 18/10/2026
 
 - Seletor nativo de operação substituído por botões visíveis com contagens e estado aria-pressed. Operação, pendência e busca têm rótulos e agrupamentos próprios; busca pode ser limpa e filtros podem ser restaurados.

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { formatCurrency } from "@/lib/format";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
+import { useModalFocus } from "@/components/use-modal-focus";
 
 type DifferenceMode = "exact" | "partial" | "discount" | "interest";
 const methods = ["Pix", "Dinheiro", "Cartão", "Link de Pagamento", "Pagamento fracionado"];
@@ -23,6 +24,7 @@ export function CompanyGroupedReceipt({ orders, onClose }: { orders: CompletionO
   const [mode, setMode] = useState<DifferenceMode>("exact");
   const [notes, setNotes] = useState("");
   const [working, setWorking] = useState(false);
+  const modal = useModalFocus(true, onClose);
   const [error, setError] = useState<string | null>(null);
   const [batchId] = useState(() => crypto.randomUUID());
   const chosen = useMemo(() => orders.filter((row) => selected.includes(orderKey(row))), [orders, selected]);
@@ -64,7 +66,7 @@ export function CompanyGroupedReceipt({ orders, onClose }: { orders: CompletionO
   }
 
   return <div className="company-completion-backdrop company-grouped-receipt-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className="company-completion-dialog company-grouped-receipt" role="dialog" aria-modal="true" aria-labelledby="grouped-receipt-title">
+    <section ref={modal} tabIndex={-1} className="company-completion-dialog company-grouped-receipt" role="dialog" aria-modal="true" aria-labelledby="grouped-receipt-title">
       <header><div><small>COMPANY · RECEBIMENTO CONJUNTO</small><h2 id="grouped-receipt-title">{orders[0]?.customer_name}</h2><p>Um pagamento, distribuído entre vendas do mesmo cliente.</p></div><button type="button" className="icon-button" aria-label="Fechar" onClick={onClose}>×</button></header>
       <form onSubmit={save} className="company-grouped-receipt-form">
         <fieldset><legend>Vendas incluídas</legend>{orders.map((row) => <label key={orderKey(row)} className="company-grouped-receipt-sale"><input type="checkbox" checked={selected.includes(orderKey(row))} onChange={(event) => { setSelected(event.target.checked ? [...selected, orderKey(row)] : selected.filter((id) => id !== orderKey(row))); setMode("exact"); }}/><span><strong>{row.product_summary || "Venda"}</strong><small>{row.operation ?? "Suplementos"} · {row.location_name}</small></span><b>{formatCurrency(outstanding(row))}</b></label>)}</fieldset>

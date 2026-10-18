@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import { Camera, Download, Images, RefreshCw, UploadCloud, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { CompanyPhotoSlot } from "@/lib/company-product-photos";
+import { useModalFocus } from "@/components/use-modal-focus";
 
 type Props = {
   module: "supplements" | "fitness";
@@ -18,6 +19,7 @@ export function CompanyProductPhotoPanel({ module, productId, productName, initi
   const router = useRouter();
   const input = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
+  const modal = useModalFocus(open, () => setOpen(false));
   const [slots, setSlots] = useState(initialSlots);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -105,7 +107,7 @@ export function CompanyProductPhotoPanel({ module, productId, productName, initi
   return <>
     <button className="button ghost" type="button" onClick={() => { setOpen(true); setNotice(""); }}><Images size={16}/> Fotos</button>
     {open ? <div className="company-photo-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <section className="company-photo-dialog" role="dialog" aria-modal="true" aria-label={`Fotos de ${productName}`} onKeyDown={(event) => { if (event.key === "Escape") setOpen(false); }}>
+      <section ref={modal} tabIndex={-1} className="company-photo-dialog" role="dialog" aria-modal="true" aria-label={`Fotos de ${productName}`}>
         <header><div><span>COMPANY · {module === "supplements" ? "SUPLEMENTOS" : "FITNESS"}</span><h2>Fotos de {productName}</h2><p>Veja, altere ou baixe sem sair da ficha do produto.</p></div><button type="button" className="company-photo-icon" aria-label="Fechar fotos" onClick={() => setOpen(false)}><X size={20}/></button></header>
         <div className="company-photo-toolbar"><button type="button" className="button ghost" disabled={busy} onClick={refreshPhotos}><RefreshCw size={16}/>Atualizar agora</button><small>{module === "fitness" ? "Uma foto por cor, compartilhada pelos tamanhos." : "Foto do produto, banner e nutrição."}</small></div>
         {selected ? <div className="company-photo-viewer">
