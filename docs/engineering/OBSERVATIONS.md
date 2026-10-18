@@ -7,6 +7,12 @@
 - Evidência: 67 testes Node e lint direcionado aprovados; Chromium isolado com dados fictícios em 1366×768, 390×844, 320×740 e 844×390, incluindo filas, arrastar, teclado, detalhes e simulador. Vercel `0ea8023` READY: TypeScript 5,4 s, compilação 3,0 s, 36/36 páginas estáticas. Commit final deve passar pelo mesmo gate antes de produção.
 - Limite: tipos locais esgotaram heap de 1 GB com prioridade baixa; nenhum processo de outro trabalho encerrado. Nenhuma migration ou gravação em dados reais. Safari/iPhone e ações reais desejadas ainda precisam da conferência do responsável. Registro completo em BANK-INTERFACE-2026-10-18.md; mapa mantém estado Testar.
 
+### Orçamento da própria consignação — 18/10/2026
+
+- Correção de interpretação: o botão genérico para a lista de orçamentos não atendia ao pedido. Cada consignação agora abre seu próprio PDF, a partir das peças, quantidades enviadas e preços registrados no envio. Disponível na linha e nos detalhes.
+- Documento somente de leitura, sem criar orçamento duplicado, venda, recebimento ou movimento de estoque. Não usa saldo pendente zerado após finalização nem expõe custos internos/notas. API verifica acesso Fitness, identificador, inexistência e erro dos itens; cache privado/no-store.
+- Oito testes operacionais/API/PDF aprovados; TypeScript aprovado. PDF sintético renderizado e conferido visualmente, inclusive logomarca e total R$ 94,80; paginação com nomes longos e 35 itens testada. Build remoto é condição de publicação.
+
 ### Atalhos da consignação — 18/10/2026
 
 - Lista Company/Fitness ganhou Orçamentos no cabeçalho e Abrir venda por registro com sale_id. Sem venda vinculada, a ação abre acerto ou histórico; devolução não aparece como venda finalizada.
