@@ -28,7 +28,7 @@ Skills utilizadas: brainstorming (escopo aprovado em conversa), frontend-design,
 
 - Preservados `initialQueue`, filtros Todos/Vencidos/Hoje/Próximos e o atalho `#compromissos` presentes em main; a soma do filtro passa a refletir a combinação das filas, sem alterar o resumo mensal.
 - Preservadas a correção de valor/data de entradas já recebidas, a data preenchida e a possibilidade de salvar outra correção. Nenhum formulário/ação foi substituído pelo código antigo.
-- Suíte da cópia de entrega sobre main: **67 testes aprovados**, incluindo quatro desta interface (filas por data e correção de recebidos também cobertas); é conjunto diferente dos 60 da cópia antiga com setup local. Não somar esses números. Lint direcionado e diff-check aprovados.
+- Suíte da cópia de entrega: 67 aprovados antes da atualização de main; **70 testes aprovados após integrar o PR #47**, incluindo quatro desta interface (filas por data e correção de recebidos também cobertas). É conjunto diferente dos 60 da cópia antiga com setup local. Não somar esses números. Lint direcionado e diff-check aprovados.
 - Tipos locais executados com heap limitado a 1 GB e prioridade BelowNormal, em checkout separado: exit 134 por heap esgotado, sem diagnóstico de código. Aumentar o heap local foi evitado para não disputar memória com os outros trabalhos.
 - Vercel, commit `0ea8023`, deployment `dpl_NhJNSPvGdLeo5tt4UNLGUb35fpux` READY: compilação em 3,0 s, TypeScript concluído em 5,4 s, 36/36 páginas estáticas geradas. Este resultado supera a limitação local para esse commit; exigir também estado READY do commit final antes de produção. PR #48 mantém a trilha de integração.
 
