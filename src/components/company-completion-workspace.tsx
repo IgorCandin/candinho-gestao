@@ -68,7 +68,7 @@ export function CompanyCompletionWorkspace({ orders, itemMedia, initialFilter = 
     return group.length > 1 && group.some((order) => order.operation !== "Fitness");
   };
 
-  return <div className="company-workspace-v2 company-completion-workspace">
+  return <div className="company-workspace-v2 company-completion-workspace company-queue-workspace">
     <header className="company-workspace-head"><div><span>COMPANY · OPERAÇÃO</span><h1>Concluir vendas</h1><p>Pagamento e entrega juntos, para nenhuma venda ficar pela metade.</p></div><Link className="button company-blue" href="/company/vendas/nova"><Plus size={16}/>Nova venda</Link></header>
     <section className="company-workspace-metrics" aria-label={`Resumo: ${operation === "all" ? "todas as operações" : operation}`}>
       <article><CircleDollarSign/><span>A receber</span><strong>{formatCurrency(metrics.value)}</strong></article>
