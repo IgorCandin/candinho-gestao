@@ -1,5 +1,10 @@
 # Observações de desenvolvimento
 
+### Atalhos da consignação — 18/10/2026
+
+- Lista Company/Fitness ganhou Orçamentos no cabeçalho e Abrir venda por registro com sale_id. Sem venda vinculada, a ação abre acerto ou histórico; devolução não aparece como venda finalizada.
+- Alteração somente de navegação e rótulos. Nenhuma criação de orçamento, venda ou movimento de estoque. Cinco testes operacionais aprovados, incluindo destinos Company/legado e acesso somente de leitura. Build remoto é condição de publicação.
+
 ### Fluxo operacional — 17/10/2026
 
 - Consignação aceitava zero vendido como finalização e registrava devolução total. Venda agora exige quantidades explícitas e pelo menos uma peça; devolução tem ação separada. Histórico real não foi reescrito.
