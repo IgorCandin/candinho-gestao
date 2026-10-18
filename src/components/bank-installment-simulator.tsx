@@ -17,7 +17,7 @@ export function BankInstallmentSimulator({ data }: { data: BankPlanningData }) {
   const firstMonth = override || suggested || "";
   const parsed = parsePlanBudget(budget);
   const schedule = parsed !== null && budget.trim() ? installmentSchedule(parsed, Number(count), firstMonth) : [];
-  return <section className="bank-planner-simulator" aria-label="Simulador parcelado">
+  return <section className="bank-planner-simulator" id="bank-simulator" aria-label="Simulador parcelado">
     <div><h2>Cabe um plano parcelado?</h2><p>Veja o impacto em cada mês. Esta simulação não cria despesas nem altera faturas.</p></div>
     <label>Nome do plano<input name="plan-title" value={title} onChange={event => setTitle(event.target.value)} /></label>
     <label>Valor total (R$)<input name="plan-total" inputMode="decimal" placeholder="1.000,00" value={budget} aria-invalid={parsed === null} onChange={event => setBudget(event.target.value)} /></label>

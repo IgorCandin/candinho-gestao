@@ -20,10 +20,10 @@ function IncomeConfirmation({ row, month }: { row: PlanningIncome; month: string
 }
 
 export function BankPlanningIncomes({ incomes, month, canWrite }: { incomes: PlanningIncome[]; month: string; canWrite: boolean }) {
-  return <section className="bank-planner-incomes" aria-label="Entradas do mês"><h2>Entradas: previstas e conferidas</h2>
+  return <section className="bank-planner-incomes" id="bank-incomes" aria-label="Entradas do mês"><h2>Entradas: previstas e conferidas</h2>
     <p>Previsões não são saldo disponível. Recebidos não são somados novamente ao saldo. Confira as contas após movimentações.</p>
     {!incomes.length ? <p>Nenhuma entrada com valor definido foi carregada para este mês.</p> : null}
-    {incomes.map(row => <article className="bank-planning-income-row" key={row.id}><strong>{row.title}</strong><p>{formatCurrency(row.amount)} · {row.state === "received" ? "Recebido / conferido" : "Previsto / a conferir"}{row.kind === "transfer" ? " · transferência, não renda" : ""}</p>
+    {incomes.map(row => <article className="bank-planning-income-row" key={row.id}><div className="bank-planning-income-heading"><strong>{row.title}</strong><span className="bank-planning-income-state" data-state={row.state}>{row.state === "received" ? "Recebido / conferido" : "Previsto / a conferir"}</span></div><p className="bank-planning-income-amount">{formatCurrency(row.amount)}{row.kind === "transfer" ? <small>Transferência, não renda</small> : null}</p>
       {canWrite ? row.sourceId ? <IncomeConfirmation key={`${month}:${row.id}`} row={row} month={month}/> : <Link href={row.href ?? "/company/concluir"}>Conferir e receber na origem</Link> : null}
     </article>)}
     <Link href="/bank/entradas">Gerenciar todas as entradas</Link>
