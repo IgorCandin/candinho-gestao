@@ -1,3 +1,11 @@
+## 18/10/2026 — Comprar e repor por operação e etapa
+
+- Contexto: sugestões, configuração e pedidos estavam misturados; Suplementos carregava só os primeiros 20 pedidos.
+- Correção: filtros acessíveis Suplementos/Fitness e Comprar/A caminho/Falta receber/Tudo; pedidos sem recebimento separados dos parciais, com quantidades pedidas, recebidas e faltantes e acesso direto à conferência por item. “A caminho” representa pedido aberto; não há confirmação de transportadora no status atual. Cancelados e concluídos não entram na fila.
+- Permissões: consultas por operação autorizada e ações de escrita conforme acesso; configuração de reposição recolhida abaixo das filas. Critérios de sugestão preservados. Seleção de pedido inclui somente sugestões visíveis.
+- Evidência: TypeScript e lint dos arquivos alterados sem erros; 76 testes Node aprovados. Fixture com dados fictícios: filtros, links Company, quantidades parciais, busca, ausência de overflow e erros JS em 1071/390/320 px. Paginação testada com 205 pedidos e falhas explícitas. Nenhum pedido/estoque real alterado nos testes.
+- Status: implementação validada localmente; publicação acompanhada pelo PR desta alteração. Teste do responsável pendente.
+
 # Observações de desenvolvimento
 
 ### Mobile: foco e rolagem das janelas — 18/10/2026
