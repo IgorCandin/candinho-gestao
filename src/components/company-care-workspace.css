@@ -1,0 +1,32 @@
+.company-care-workspace .completion-status .completion-segments{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+.company-care-workspace .completion-status button{min-width:0;white-space:normal}
+.company-care-workspace .company-care-grid{align-items:start}
+.company-care-workspace .company-care-person-head h2{font-size:18px;line-height:1.3;overflow-wrap:anywhere}
+.company-care-workspace .care-operation-label{display:block;margin:3px 0 6px;color:#91d3fc;font-size:11px;font-weight:650}
+.company-care-workspace .company-care-person-head small{display:block;overflow-wrap:anywhere}
+.company-care-workspace .company-care-person-head a{min-height:44px;font-size:12px}
+.company-care-workspace .company-care-person-head .care-missing-phone{color:#f0c88d;border-color:#80613a;background:#251d12}
+.company-care-workspace .company-care-copy>strong{font-size:14px;line-height:1.4}
+.company-care-workspace .company-care-copy>p{font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.company-care-workspace .company-care-copy>small{font-size:11px;color:#acbecb}
+.company-care-workspace .company-care-copy .care-next-action{display:block;margin-top:14px;padding:12px;border-left:2px solid #61c6ff;border-radius:0 8px 8px 0;background:#10202c}
+.company-care-workspace .care-next-action>span{display:block;padding:0;background:none;color:#cde9fa;font-size:11px;font-weight:650;text-transform:none}
+.company-care-workspace .care-next-action>p{margin:6px 0 0;color:#d1e0eb;font-size:13px;line-height:1.6}
+.company-care-workspace .company-care-actions button{min-height:44px;padding:10px 14px;border-color:#4e9ac4;background:#173749;color:#f4faff;font-size:13px}
+.company-care-workspace .company-care-console{display:flex;flex-direction:column;gap:18px;padding:16px 0 0}
+.company-care-workspace .company-care-resolution{width:100%;min-width:0;padding:0;border:0}
+.company-care-workspace .company-care-resolution>strong{font-size:14px}
+.company-care-workspace .company-care-resolution>p{margin:0;color:#a6bac9;font-size:12px;line-height:1.6}
+.company-care-workspace .company-care-inline-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:stretch}
+.company-care-workspace .company-care-inline-actions button{min-width:0;min-height:44px;padding:11px;text-align:left;justify-content:flex-start;font-size:12px;line-height:1.5}
+.company-care-workspace .company-care-inline-actions button>svg{flex-shrink:0}
+.company-care-workspace .company-care-resolution>a{min-height:44px;display:flex;align-items:center;color:#abdafa;font-size:12px}
+.company-care-workspace .care-history{width:100%;min-width:0;border-top:1px solid #293d4b;padding-top:10px}
+.company-care-workspace .care-history>summary{display:flex;align-items:center;gap:8px;min-height:44px;cursor:pointer;color:#abc5d6;font-size:12px}
+.company-care-workspace .company-care-context{grid-template-columns:minmax(0,1fr);min-width:0}
+.company-care-workspace .company-care-nexus,.company-care-workspace .company-care-timeline{min-width:0}
+.company-care-workspace .company-care-nexus span{overflow-wrap:anywhere;line-height:1.6}
+.company-care-workspace :is(button,a,summary):focus-visible{outline:2px solid #a1dcff;outline-offset:3px}
+@media(max-width:700px){.company-care-workspace .completion-status .completion-segments{grid-template-columns:repeat(3,minmax(0,1fr))}.company-care-workspace .completion-status button{min-height:64px}.company-care-workspace .company-care-person-head{flex-wrap:wrap}.company-care-workspace .company-care-person-head a{margin-left:0}.company-care-workspace .completion-filter-result{align-items:flex-start}.company-care-workspace .completion-filter-result .company-workspace-count{line-height:1.6}.company-care-workspace .company-care-person{padding:12px}.company-care-workspace .company-care-person .company-care-card{padding:10px}.company-care-workspace .company-care-inline-actions{grid-template-columns:minmax(0,1fr)}}
+@media(prefers-reduced-motion:reduce){.company-care-workspace .company-care-card{transition:none}}
+@media(max-width:380px){.company-care-workspace .completion-status .completion-segments{grid-template-columns:repeat(2,minmax(0,1fr))}.company-care-workspace .completion-status button:last-child{grid-column:1/-1}}
