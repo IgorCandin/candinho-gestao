@@ -55,9 +55,7 @@ const blocks: Block[] = [
     { label: "iPhone, tablet e paisagem", state: "todo", detail: "Revisar cabeçalhos, menus, formulários, pop-ups e rodapés sem cortes." },
     { label: "Links e nomes finais", state: "todo", detail: "Auditar rotas e confirmar zero dependência operacional do ERP antigo." },
   ]},
-  { title: "Última etapa · Menus, cabeçalhos e zoom", scope: "Executar depois das demais entregas do mapa, preservando desktop e celular", steps: [
-    { label: "Adaptar navegação ao zoom e à largura disponível", state: "todo", detail: "Revisar menus e cabeçalhos em 80%, 100%, 125%, 150% e 200%, incluindo janelas estreitas e mobile. Reorganizar itens sem sobreposição, corte ou perda de acesso; evitar travar a tela em 100%.", href: "/company/inicio" },
-  ]},
+
 ];
 
 blocks.push({ title: "Escritório de operações", scope: "Visão complementar; não substitui as filas nem executa ações", steps: [
@@ -84,6 +82,10 @@ blocks.push({ title: "Fluxo diário · solicitações de 17/10", scope: "Conferi
  {label:"Rotina de teste do ERP",state:"doing",detail:"Playwright já disponível; smoke atual sem login testa só barreira de acesso. Ampliar leitura autenticada e desktop/celular. Escrita deve usar dados simulados ou transação com rollback; prévia aponta ao banco real.",href:"/company/mapa"},
  {label:"Resolução totalmente embutida de compra e Doctor",state:"todo",detail:"Pedidos ainda exigem fornecedor/condições no formulário e Doctor exige diagnóstico. Manter fluxo específico; não simular resolução por retirar um card.",href:"/company/ferramentas"},
 ]});
+
+blocks.push({ title: "Última etapa · Menus, cabeçalhos e zoom", scope: "Executar depois das demais entregas do mapa, preservando desktop e celular", steps: [
+    { label: "Adaptar navegação ao zoom e à largura disponível", state: "todo", detail: "Revisar menus e cabeçalhos em 80%, 100%, 125%, 150% e 200%, incluindo janelas estreitas e mobile. Reorganizar itens sem sobreposição, corte ou perda de acesso; evitar travar a tela em 100%.", href: "/company/inicio" },
+  ]});
 
 const auditRows: MigrationAuditRow[] = [
   { key: "supp-home", operation: "supplements", area: "Home e indicadores", description: "Início, avisos, metas e atalhos de trabalho diário.", legacyHref: "/suplementos/hoje", companyHref: "/company/inicio" },
