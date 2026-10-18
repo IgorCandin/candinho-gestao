@@ -1,5 +1,11 @@
 # Observações de desenvolvimento
 
+### Filtros de Concluir — 18/10/2026
+
+- Seletor nativo de operação substituído por botões visíveis com contagens e estado aria-pressed. Operação, pendência e busca têm rótulos e agrupamentos próprios; busca pode ser limpa e filtros podem ser restaurados.
+- Indicadores do topo e contagens de pendência acompanham a operação/produto selecionados; recebimento, entrega e pagamentos agrupados mantêm suas ações existentes.
+- TypeScript/lint aprovados. Fixture local do componente real conferida em 1071px, 390px e 320px: mudança de operação, métricas, pendência, busca, limpeza, teclado, alvos de 44px e ausência de overflow. Sem mutação de dados reais. Build remoto e abertura oficial são condições de publicação.
+
 ### Planejamento Bank: acabamento e gate de publicação — 18/10/2026
 
 - Contexto: melhorar leitura e navegação desktop/celular, preservando funções; publicar somente após tipos/build aprovados, sem disputar recursos com outros trabalhos.

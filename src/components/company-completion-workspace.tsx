@@ -10,6 +10,7 @@ import { SalePaymentPanel } from "@/components/sale-payment-panel";
 import { SaleStatusActions } from "@/components/sale-status-actions";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
 import type { PendingOrderRow } from "@/lib/types";
+import "./company-completion-filters.css";
 
 export type CompletionOrder = PendingOrderRow & { outstanding_amount?: number | null; payment_state?: string | null; next_payment_due_at?: string | null; operation?: "Suplementos" | "Fitness"; details_href?: string; customer_key?: string; incoming_order_id?: string | null };
 type Filter = "all" | "receive" | "deliver" | "late";
@@ -31,25 +32,29 @@ export function CompanyCompletionWorkspace({ orders, itemMedia, initialFilter = 
   const [selected, setSelected] = useState<CompletionOrder | null>(null);
   const [groupCustomerKey, setGroupCustomerKey] = useState<string | null>(null);
   const today = new Date().toISOString().slice(0, 10);
+  const productOrders = useMemo(() => orders.filter(order => !initialProductId || (itemMedia[order.id] ?? []).some(item => item.productId === initialProductId)), [orders, initialProductId, itemMedia]);
+  const operationOrders = useMemo(() => productOrders.filter(order => operation === "all" || (order.operation ?? "Suplementos") === operation), [productOrders, operation]);
   const metrics = useMemo(() => ({
-    value: orders.reduce((sum, order) => sum + amount(order), 0),
-    receive: orders.filter((order) => amount(order) > .005).length,
-    deliver: orders.filter(needsDelivery).length,
-    both: orders.filter((order) => amount(order) > .005 && needsDelivery(order)).length,
-  }), [orders]);
+    all: operationOrders.length,
+    value: operationOrders.reduce((sum, order) => sum + amount(order), 0),
+    receive: operationOrders.filter((order) => amount(order) > .005).length,
+    deliver: operationOrders.filter(needsDelivery).length,
+    both: operationOrders.filter((order) => amount(order) > .005 && needsDelivery(order)).length,
+    late: operationOrders.filter(order => { const due = order.next_payment_due_at ?? order.payment_due_at; return amount(order) > .005 && !!due && due.slice(0, 10) < today; }).length,
+  }), [operationOrders, today]);
   const visible = useMemo(() => {
-    const filtered = orders.filter((order) => {
+    const filtered = operationOrders.filter((order) => {
     const receive = amount(order) > .005;
     const deliver = needsDelivery(order);
     const due = order.next_payment_due_at ?? order.payment_due_at;
     const matchesFilter = filter === "all" || (filter === "receive" && receive) || (filter === "deliver" && deliver) || (filter === "late" && receive && !!due && due.slice(0, 10) < today);
     const needle = query.trim().toLocaleLowerCase("pt-BR");
-      return (!initialProductId || (itemMedia[order.id] ?? []).some(item => item.productId === initialProductId)) && (operation === "all" || (order.operation ?? "Suplementos") === operation) && matchesFilter && (!needle || `${order.customer_name} ${order.product_summary ?? ""} ${order.location_name}`.toLocaleLowerCase("pt-BR").includes(needle));
+      return matchesFilter && (!needle || `${order.customer_name} ${order.product_summary ?? ""} ${order.location_name}`.toLocaleLowerCase("pt-BR").includes(needle));
     });
     const firstPosition = new Map<string, number>();
     filtered.forEach((order, index) => { if (!firstPosition.has(order.customer_key ?? order.customer_name)) firstPosition.set(order.customer_key ?? order.customer_name, index); });
     return filtered.map((order, index) => ({ order, index })).sort((a, b) => (firstPosition.get(a.order.customer_key ?? a.order.customer_name) ?? a.index) - (firstPosition.get(b.order.customer_key ?? b.order.customer_name) ?? b.index) || a.index - b.index).map(({ order }) => order);
-  }, [filter, orders, query, today, operation, initialProductId, itemMedia]);
+  }, [filter, operationOrders, query, today]);
   const payableByCustomer = useMemo(() => {
     const groups = new Map<string, CompletionOrder[]>();
     for (const order of orders) {
@@ -63,17 +68,22 @@ export function CompanyCompletionWorkspace({ orders, itemMedia, initialFilter = 
     return group.length > 1 && group.some((order) => order.operation !== "Fitness");
   };
 
-  return <div className="company-workspace-v2">
+  return <div className="company-workspace-v2 company-completion-workspace">
     <header className="company-workspace-head"><div><span>COMPANY · OPERAÇÃO</span><h1>Concluir vendas</h1><p>Pagamento e entrega juntos, para nenhuma venda ficar pela metade.</p></div><Link className="button company-blue" href="/company/vendas/nova"><Plus size={16}/>Nova venda</Link></header>
-    <section className="company-workspace-metrics">
+    <section className="company-workspace-metrics" aria-label={`Resumo: ${operation === "all" ? "todas as operações" : operation}`}>
       <article><CircleDollarSign/><span>A receber</span><strong>{formatCurrency(metrics.value)}</strong></article>
       <article><Clock3/><span>Pagamentos</span><strong>{metrics.receive}</strong></article>
       <article><Truck/><span>Entregas</span><strong>{metrics.deliver}</strong></article>
       <article><PackageCheck/><span>As duas etapas</span><strong>{metrics.both}</strong></article>
     </section>
     <section className="company-workspace-panel">
-      <div className="company-workspace-toolbar"><label>Operação<select value={operation} onChange={event => setOperation(event.target.value as typeof operation)}><option value="all">Todas</option><option>Suplementos</option><option>Fitness</option></select></label><div>{FILTERS.map((item) => <button key={item.id} className={filter === item.id ? "active" : ""} onClick={() => setFilter(item.id)}>{item.label}</button>)}</div><label><Search size={17}/><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar cliente ou produto"/></label></div>
-      {initialProductId && <p>Fila limitada ao produto escolhido em Estoque · atenção. <Link href={`/company/concluir?operacao=${operation}&fila=${filter}`}>Ver todos os produtos</Link></p>}<p className="company-workspace-count">{visible.length} venda(s) nesta fila</p>
+      <div className="completion-filters">
+        <fieldset className="completion-operation"><legend>Operação</legend><div className="completion-segments">{(["all", "Suplementos", "Fitness"] as const).map(value => <button type="button" key={value} aria-pressed={operation === value} onClick={() => setOperation(value)}><span>{value === "all" ? "Todas" : value}</span><span className="completion-filter-count">{value === "all" ? productOrders.length : productOrders.filter(order => (order.operation ?? "Suplementos") === value).length}</span></button>)}</div></fieldset>
+        <label className="completion-search"><span>Buscar na fila</span><div><Search size={18} aria-hidden="true"/><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Cliente ou produto"/>{query && <button type="button" aria-label="Limpar busca" onClick={() => setQuery("")}><X size={17}/></button>}</div></label>
+        <fieldset className="completion-status"><legend>O que precisa concluir?</legend><div className="completion-segments">{FILTERS.map(item => <button type="button" key={item.id} aria-pressed={filter === item.id} onClick={() => setFilter(item.id)}><span>{item.label}</span><span className="completion-filter-count">{metrics[item.id]}</span></button>)}</div></fieldset>
+      </div>
+      {initialProductId && <p>Fila limitada ao produto escolhido em Estoque · atenção. <Link href={`/company/concluir?operacao=${operation}&fila=${filter}`}>Ver todos os produtos</Link></p>}
+      <div className="completion-filter-result"><p className="company-workspace-count" role="status" aria-live="polite">{visible.length} {visible.length === 1 ? "venda encontrada" : "vendas encontradas"} · {operation === "all" ? "Todas as operações" : operation}</p>{(operation !== "all" || filter !== "all" || query) && <button type="button" onClick={() => { setOperation("all"); setFilter("all"); setQuery(""); }}>Limpar filtros</button>}</div>
       <div className="company-completion-grid">{visible.map((order) => {
         const receive = amount(order) > .005; const deliver = needsDelivery(order); const due = order.next_payment_due_at ?? order.payment_due_at;
         return <article className="company-completion-card" key={`${order.operation ?? "Suplementos"}-${order.id}`}>
