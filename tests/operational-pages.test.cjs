@@ -46,6 +46,18 @@ test('consignações negam acesso antes da consulta e não escondem falha como l
   const html=renderToStaticMarkup(await readOnly.Page({companyMode:true}));
   assert.ok(!html.includes('/nova'));assert.ok(html.includes('Nenhuma consignação'));
 });
+
+test('consignações oferecem orçamento e abrem somente a venda vinculada em cada contexto',async()=>{
+  const baseRow={id:'closed',customer_name:'Teste',started_on:'2026-10-18',units_outstanding:0,outstanding_value:0,status:'closed',sale_id:'sale-linked'};
+  for(const companyMode of [true,false]){
+    const h=consignments({canAccessFitness:true,canWriteFitness:false},[baseRow,{...baseRow,id:'returned',sale_id:null}]);
+    const html=renderToStaticMarkup(await h.Page({companyMode}));
+    assert.ok(html.includes(companyMode?'/company/orcamentos':'/fitness/orcamentos'));
+    assert.ok(html.includes(`${companyMode?'/company/concluir/fitness':'/fitness/vendas'}/sale-linked`));
+    assert.ok(html.includes('Abrir venda'));assert.ok(html.includes('Devolvida sem venda'));
+    assert.ok(!html.includes('/null'));assert.ok(!html.includes('/nova'));
+  }
+});
 test('movimentações preservam filtros, consulta, busca e paginação Company/legado',async()=>{
   for(const companyMode of [false,true]){
     const calls=[],components=[];
