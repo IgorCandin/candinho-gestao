@@ -30,14 +30,21 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>, motion:
     const schedule = () => { if (!frame && motion) frame = requestAnimationFrame(update); };
     const observer = new IntersectionObserver(entries => {
       for (const entry of entries) {
+        (entry.target as HTMLElement).dataset.inView = String(entry.isIntersecting);
         if (entry.isIntersecting) {
           visible.add(entry.target as HTMLElement);
-          if (motion && !revealed.has(entry.target) && entry.target.matches("[data-product-reveal]")) {
+          if (motion && !revealed.has(entry.target) && entry.target.matches("[data-product-reveal], [data-section-reveal]")) {
             revealed.add(entry.target);
-            const animation = entry.target.animate([
-              { clipPath: "inset(12% 0 0 0 round 14px)", opacity: .4 },
-              { clipPath: "inset(0 0 0 0 round 14px)", opacity: 1 },
-            ], { duration: 760, delay: Number((entry.target as HTMLElement).dataset.revealOrder ?? 0) % 4 * 55, easing: "cubic-bezier(.16,1,.3,1)" });
+            const product = entry.target.matches("[data-product-reveal]");
+            const order = Number((entry.target as HTMLElement).dataset.revealOrder ?? 0);
+            const animation = entry.target.animate(product ? [
+              { transform: `translate3d(${order % 2 ? 16 : -16}px,55px,0) rotate(${order % 2 ? 3 : -3}deg) scale(.93)`, opacity: .12 },
+              { transform: "translate3d(0,-4px,0) rotate(0) scale(1)", opacity: 1, offset: .8 },
+              { transform: "translate3d(0,0,0) rotate(0) scale(1)", opacity: 1 },
+            ] : [
+              { transform: "translate3d(-28px,24px,0)", opacity: .15 },
+              { transform: "translate3d(0,0,0)", opacity: 1 },
+            ], { duration: product ? 1050 : 850, delay: product ? order % 6 * 85 : 0, easing: "cubic-bezier(.16,1,.3,1)", fill: "backwards" });
             running.add(animation);
             animation.finished.then(() => running.delete(animation)).catch(() => running.delete(animation));
           }
@@ -45,7 +52,7 @@ export function useStorefrontScroll(root: RefObject<HTMLElement | null>, motion:
         else visible.delete(entry.target as HTMLElement);
       }
       schedule();
-    }, { rootMargin: "20px", threshold: .05 });
+    }, { rootMargin: "0px 0px -24px", threshold: .08 });
     const observed = new Set<Element>();
     const discover = () => {
       page.querySelectorAll<HTMLElement>("[data-scroll-scene]").forEach(element => {

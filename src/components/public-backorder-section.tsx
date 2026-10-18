@@ -281,7 +281,7 @@ function KnownDemandForm({
   );
 }
 
-function CustomDemandForm() {
+export function CustomDemandForm() {
   const [productName, setProductName] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");

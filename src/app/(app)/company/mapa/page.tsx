@@ -55,6 +55,9 @@ const blocks: Block[] = [
     { label: "iPhone, tablet e paisagem", state: "todo", detail: "Revisar cabeçalhos, menus, formulários, pop-ups e rodapés sem cortes." },
     { label: "Links e nomes finais", state: "todo", detail: "Auditar rotas e confirmar zero dependência operacional do ERP antigo." },
   ]},
+  { title: "Última etapa · Menus, cabeçalhos e zoom", scope: "Executar depois das demais entregas do mapa, preservando desktop e celular", steps: [
+    { label: "Adaptar navegação ao zoom e à largura disponível", state: "todo", detail: "Revisar menus e cabeçalhos em 80%, 100%, 125%, 150% e 200%, incluindo janelas estreitas e mobile. Reorganizar itens sem sobreposição, corte ou perda de acesso; evitar travar a tela em 100%.", href: "/company/inicio" },
+  ]},
 ];
 
 const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
