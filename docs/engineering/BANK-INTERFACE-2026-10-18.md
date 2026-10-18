@@ -24,20 +24,19 @@ Skills utilizadas: brainstorming (escopo aprovado em conversa), frontend-design,
 - Screenshots do resumo, simulador, detalhes e cartões inspecionadas. Movimento reduzido ativado nessa rodada. Cores/status textuais, nomes/titulares, botões e campos mantidos legíveis nas amostras.
 - Ensaio isolado fora do checkout em `../bank-planner-review`: `node build.cjs` e `../browser-tests-venv/Scripts/python.exe check.py`. Builder usa componentes React reais e CSS globais referenciados pelo layout, mas substitui Next Link/router, ícones e server actions. Todas as requisições são interceptadas localmente; imports de banco são proibidos e ações de escrita lançam erro. Saídas `results.json` e screenshots nessa pasta. Não é nova rota pública nem bypass de autenticação.
 
-## Limites e o que testar depois
-
 ## Integração com os trabalhos mais recentes
 
 - Preservados `initialQueue`, filtros Todos/Vencidos/Hoje/Próximos e o atalho `#compromissos` presentes em main; a soma do filtro passa a refletir a combinação das filas, sem alterar o resumo mensal.
 - Preservadas a correção de valor/data de entradas já recebidas, a data preenchida e a possibilidade de salvar outra correção. Nenhum formulário/ação foi substituído pelo código antigo.
-- Suíte da cópia de entrega sobre main: **65 testes aprovados**, incluindo os dois novos desta interface; é conjunto diferente dos 60 da cópia antiga com setup local. Não somar esses números.
-- Tipos locais executados com heap limitado a 1 GB e prioridade BelowNormal, em checkout separado. Build remoto da branch é gate obrigatório antes de integrar em main; seu resultado deve ser registrado após conclusão. Não iniciar outro build pesado no checkout dos demais trabalhos.
+- Suíte da cópia de entrega sobre main: **67 testes aprovados**, incluindo quatro desta interface (filas por data e correção de recebidos também cobertas); é conjunto diferente dos 60 da cópia antiga com setup local. Não somar esses números. Lint direcionado e diff-check aprovados.
+- Tipos locais executados com heap limitado a 1 GB e prioridade BelowNormal, em checkout separado: exit 134 por heap esgotado, sem diagnóstico de código. Aumentar o heap local foi evitado para não disputar memória com os outros trabalhos.
+- Vercel, commit `0ea8023`, deployment `dpl_NhJNSPvGdLeo5tt4UNLGUb35fpux` READY: compilação em 3,0 s, TypeScript concluído em 5,4 s, 36/36 páginas estáticas geradas. Este resultado supera a limitação local para esse commit; exigir também estado READY do commit final antes de produção. PR #48 mantém a trilha de integração.
 
 ## Homologação ainda necessária
 
 Não foram executados pagamento, adiar, edição ou confirmação real de entrada. Códigos dessas ações, cálculos, loaders, autenticação e migrations não foram alterados. Seus links/controles permanecem, mas isso não comprova integração autenticada em produção.
 
-TypeScript completo (`--noEmit --incremental false`) não terminou sob forte contenção: aproximadamente 159 MB livres de 8 GB, com outro compilador em tarefa distinta. Apenas o compilador identificado desta tarefa foi encerrado. Resultado inconclusivo, não aprovado e sem erro de código comprovado. Build completo não repetido sob a mesma limitação; publicação depende de tipos/build aprovados. Lint global e alertas de dependências anteriores não foram zerados nesta revisão visual.
+A tentativa anterior de TypeScript no checkout original foi interrompida por contenção; a nova tentativa isolada esgotou o heap de 1 GB. Não foram encerrados processos de outra tarefa. Resultado local não aprovado; a validação de tipos/build é feita também no pipeline remoto existente, sem relaxar configuração ou ignorar tipos. Lint global e alertas de dependências anteriores não foram zerados nesta revisão visual.
 
 Faltam: layout autenticado completo (cabeçalho/bridges/Next real), navegação real para edição/adiamento, Safari/iPhone com teclado e toque físico, mais cenários financeiros e nomes longos reais. Validar antes de homologar mobile ou publicar. Zero dados reais lidos ou modificados pelo ensaio.
 

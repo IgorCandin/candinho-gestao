@@ -1,5 +1,12 @@
 # Observações de desenvolvimento
 
+### Planejamento Bank: acabamento e gate de publicação — 18/10/2026
+
+- Contexto: melhorar leitura e navegação desktop/celular, preservando funções; publicar somente após tipos/build aprovados, sem disputar recursos com outros trabalhos.
+- Alteração: hierarquia financeira, atalhos, estados das entradas, filtro de cartão com contagem/valor/restauração e encaixe responsivo. Preservados filtros de vencimento, edição de recebimentos, cálculo e ações do main mais recente.
+- Evidência: 67 testes Node e lint direcionado aprovados; Chromium isolado com dados fictícios em 1366×768, 390×844, 320×740 e 844×390, incluindo filas, arrastar, teclado, detalhes e simulador. Vercel `0ea8023` READY: TypeScript 5,4 s, compilação 3,0 s, 36/36 páginas estáticas. Commit final deve passar pelo mesmo gate antes de produção.
+- Limite: tipos locais esgotaram heap de 1 GB com prioridade baixa; nenhum processo de outro trabalho encerrado. Nenhuma migration ou gravação em dados reais. Safari/iPhone e ações reais desejadas ainda precisam da conferência do responsável. Registro completo em BANK-INTERFACE-2026-10-18.md; mapa mantém estado Testar.
+
 ### Atalhos da consignação — 18/10/2026
 
 - Lista Company/Fitness ganhou Orçamentos no cabeçalho e Abrir venda por registro com sale_id. Sem venda vinculada, a ação abre acerto ou histórico; devolução não aparece como venda finalizada.

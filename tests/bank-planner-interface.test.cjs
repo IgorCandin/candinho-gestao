@@ -42,3 +42,21 @@ test('income presentation retains state text and does not expose confirmation to
   assert.doesNotMatch(html, /Confirmar recebimento real|<form/);
   assert.ok(html.includes('href="/bank/entradas"'));
 });
+test('existing due-date queues and their anchor remain available without changing monthly totals', () => {
+  const rows = ['2026-10-17', '2026-10-18', '2026-10-19'].map((dueDate, index) => ({id:`fixture-${index}`,amount:10,title:'Fixture',dueDate,dueMode:'fixed_day'}));
+  for (const initialQueue of ['overdue','today','upcoming']) {
+    const html=renderToStaticMarkup(React.createElement(BankMonthPlanner,{data:{...data,months:[{...data.months[0],rows}]},today:'2026-10-18',initialQueue}));
+    assert.match(html,/1 compromisso\(s\) em aberto/);
+    assert.ok(html.includes('id="compromissos"'));
+    assert.ok(html.includes('Vencidos') && html.includes('Próximos'));
+    assert.match(html,/70,00/); // Monthly balance still deducts all three commitments.
+  }
+});
+test('received incomes retain correction controls and prefilled date without doubling the confirmed value', () => {
+  const html=renderToStaticMarkup(React.createElement(BankPlanningIncomes,{month:'2026-10-01',canWrite:true,incomes:[{id:'r',sourceId:'fixture',title:'Fixture',amount:100,confirmedAmount:100,receivedOn:'2026-10-15',state:'received',kind:'income'}]}));
+  assert.match(html,/Corrigir valor ou data do recebimento/);
+  assert.match(html,/Salvar correção do recebimento/);
+  assert.ok(html.includes('value="2026-10-15"'));
+  assert.ok(html.includes('value="100,00"'));
+  assert.ok(!html.includes('value="200,00"'));
+});
