@@ -6,6 +6,13 @@
 - Indicadores do topo e contagens de pendência acompanham a operação/produto selecionados; recebimento, entrega e pagamentos agrupados mantêm suas ações existentes.
 - TypeScript/lint aprovados. Fixture local do componente real conferida em 1071px, 390px e 320px: mudança de operação, métricas, pendência, busca, limpeza, teclado, alvos de 44px e ausência de overflow. Sem mutação de dados reais. Build remoto e abertura oficial são condições de publicação.
 
+### Planejamento Bank: acabamento e gate de publicação — 18/10/2026
+
+- Contexto: melhorar leitura e navegação desktop/celular, preservando funções; publicar somente após tipos/build aprovados, sem disputar recursos com outros trabalhos.
+- Alteração: hierarquia financeira, atalhos, estados das entradas, filtro de cartão com contagem/valor/restauração e encaixe responsivo. Preservados filtros de vencimento, edição de recebimentos, cálculo e ações do main mais recente.
+- Evidência: 67 testes Node e lint direcionado aprovados; Chromium isolado com dados fictícios em 1366×768, 390×844, 320×740 e 844×390, incluindo filas, arrastar, teclado, detalhes e simulador. Vercel `0ea8023` READY: TypeScript 5,4 s, compilação 3,0 s, 36/36 páginas estáticas. Commit final deve passar pelo mesmo gate antes de produção.
+- Limite: tipos locais esgotaram heap de 1 GB com prioridade baixa; nenhum processo de outro trabalho encerrado. Nenhuma migration ou gravação em dados reais. Safari/iPhone e ações reais desejadas ainda precisam da conferência do responsável. Registro completo em BANK-INTERFACE-2026-10-18.md; mapa mantém estado Testar.
+
 ### Orçamento da própria consignação — 18/10/2026
 
 - Correção de interpretação: o botão genérico para a lista de orçamentos não atendia ao pedido. Cada consignação agora abre seu próprio PDF, a partir das peças, quantidades enviadas e preços registrados no envio. Disponível na linha e nos detalhes.
