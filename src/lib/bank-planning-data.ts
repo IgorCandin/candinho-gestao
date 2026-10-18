@@ -25,7 +25,7 @@ export async function getBankPlanningData(): Promise<BankPlanningData> {
     db.from("bank_account_current_balances").select("balance,balance_date").eq("is_active", true),
     db.from("bank_financial_goals").select("id,title,due_date,reserved_amount").eq("goal_type", "reserve").eq("status", "active"),
     db.from("bank_income_sources").select("id,name,amount,frequency,starts_on,ends_on,include_in_projection").eq("is_active", true),
-    db.from("bank_income_source_receipts").select("source_id,reference_month,amount").in("reference_month", [current.referenceMonth, next]),
+    db.from("bank_income_source_receipts").select("source_id,reference_month,amount,received_on").in("reference_month", [current.referenceMonth, next]),
     db.from("bank_receivables").select("id,title,amount,received_amount,status,due_date,source_id,category").gte("due_date", current.referenceMonth).lt("due_date", new Date(Date.UTC(year, month + 1, 1)).toISOString().slice(0, 10)),
     db.from("bank_cards").select("id,name,institution,holder_name,closing_day,due_day").eq("is_active", true).order("display_order"),
     db.from("bank_card_invoice_overview").select("id,card_id").in("reference_month", [current.referenceMonth, next]),
@@ -49,7 +49,7 @@ export async function getBankPlanningData(): Promise<BankPlanningData> {
     for (const source of eligible) {
       const received = (receipts.data ?? []).filter(row => row.source_id === source.id && row.reference_month === base.referenceMonth).reduce((sum, row) => sum + Number(row.amount), 0);
       const advance = base.referenceMonth === "2026-11-01" ? advances.get(String(source.id)) ?? 0 : 0;
-      if (received > 0) incomes.push({ id: `receipt:${source.id}`, title: `${source.name} · recebimento registrado (confira o saldo)`, amount: received, state: "received", kind: "income" });
+      if (received > 0) incomes.push({ id: `receipt:${source.id}`, title: `${source.name} · recebimento registrado (confira o saldo)`, amount: received, state: "received", kind: "income", sourceId: String(source.id), confirmedAmount: received, receivedOn: (receipts.data ?? []).find(row => row.source_id === source.id && row.reference_month === base.referenceMonth)?.received_on });
       const outstanding = Math.max(0, Number(source.amount) - received - advance);
       if (outstanding > 0) incomes.push({ id: `source:${source.id}`, title: String(source.name), amount: outstanding, state: "pending", kind: "income", sourceId: String(source.id), confirmedAmount: received });
     }

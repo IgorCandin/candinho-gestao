@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CheckCircle2, CircleDot, Clock3, ExternalLink, ListChecks } from "lucide-react";
+import { CheckCircle2, CircleDot, Clock3, ListChecks } from "lucide-react";
 import { MigrationAuditBoard, type MigrationAuditRow } from "@/components/migration-audit-board";
 import { createClient } from "@/lib/supabase/server";
 import { companyMigrationTools } from "@/lib/company-migration-tools";
@@ -57,7 +57,6 @@ const blocks: Block[] = [
   ]},
 ];
 
-const labels = { done: "Concluído", test: "Testar", doing: "Em execução", todo: "Pendente" } as const;
 blocks.push({ title: "Escritório de operações", scope: "Visão complementar; não substitui as filas nem executa ações", steps: [
   { label: "Salas e indicadores reais", state: "test", detail: "Telefones pendentes com filtro, Doctor, atenção de estoque, oportunidades Fitness e compromissos Bank, com permissões e erro distinto de zero. Conferir contadores, celular e links; ainda não homologado.", href: "/company/escritorio" },
   { label: "Anotações compartilhadas", state: "todo", detail: "Definir armazenamento auditável das notas. Reposição já usa os critérios existentes; não há agentes autônomos nem serviço de IA contratado." },
@@ -70,7 +69,18 @@ blocks.push({title:"Qualidade e liberação mobile",scope:"Não confundir tela d
     {label:"Testes sem API paga",state:"test",detail:"44/44 regressões Node e 12/12 verificações Playwright de acesso ao login em desktop/celular, com gravações bloqueadas. Nenhuma API paga. Fluxos autenticados e escrita aguardam ambiente isolado; prévias usam banco real."},
     {label:"Tipos das páginas compartilhadas",state:"test",detail:"Estoque detalhado, consignações e movimentações Fitness separados em componentes compartilhados; entradas de rota não recebem companyMode. Preservados consultas, permissões, filtros e links. Conferir build e homologação nas telas.",href:"/company/fitness/movimentacoes"},
 ]});
-const allSteps = blocks.flatMap((block) => block.steps);
+blocks.push({ title: "Fluxo diário · solicitações de 17/10", scope: "Conferir ações reais e manter as pendências rastreáveis", steps: [
+ {label:"Consignação: venda e devolução distintas",state:"test",detail:"Ação de venda exige peças escolhidas; devolução total explícita. Conferir geração, baixa e histórico vinculado.",href:"/company/fitness/consignacoes"},
+ {label:"Histórico de consignações encerradas sem venda",state:"todo",detail:"Há encerramento como devolução total e cancelamento de Francyelle em 17/10. Confirmar o que foi vendido antes de corrigir registros. Não recriar venda nem estoque por suposição.",href:"/company/fitness/consignacoes"},
+ {label:"Filas diretas do escritório",state:"test",detail:"Receber/entregar e pós-venda abrem por operação e tipo; resolução usa ações da fila. Montar compra mantém escolha real de fornecedor/quantidade.",href:"/company/escritorio"},
+ {label:"Áreas do dia a dia",state:"test",detail:"Menus por tarefa no Início e Ferramentas. Refinar pela utilização; referências de microuniverso podem orientar uma próxima revisão visual.",href:"/company/ferramentas"},
+ {label:"Dimensões e fluxo Fitness",state:"test",detail:"Superfície Company com espaços, fontes e formulários consistentes; oportunidades preenchem cliente e peça. Homologar demais telas/importações no celular.",href:"/company/fitness/oportunidades"},
+ {label:"Entradas editáveis no Planejamento",state:"test",detail:"Conferir pendentes e corrigir recebidos na própria lista; preservar total mensal e não duplicar saldo. Conferência real depende dos valores e datas do responsável.",href:"/bank/planejamento"},
+ {label:"Prioridade do estoque e atendimento",state:"test",detail:"Demanda sem disponível primeiro, atalhos por produto; Acompanhar filtra operação e prepara venda sem encerrar contato antes da confirmação.",href:"/company/estoque/atencao"},
+ {label:"Doctor: React 418 atual e histórico do Bank",state:"doing",detail:"418 reproduzido em nova venda em 17/10 nesta rodada. Investigar hidratação e verificar depois da correção. 441/Load failed não são encerrados apenas por serem antigos; conferir logs/rota e nova ocorrência.",href:"/company/qualidade"},
+ {label:"Rotina de teste do ERP",state:"doing",detail:"Playwright já disponível; smoke atual sem login testa só barreira de acesso. Ampliar leitura autenticada e desktop/celular. Escrita deve usar dados simulados ou transação com rollback; prévia aponta ao banco real.",href:"/company/mapa"},
+ {label:"Resolução totalmente embutida de compra e Doctor",state:"todo",detail:"Pedidos ainda exigem fornecedor/condições no formulário e Doctor exige diagnóstico. Manter fluxo específico; não simular resolução por retirar um card.",href:"/company/ferramentas"},
+]});
 
 const auditRows: MigrationAuditRow[] = [
   { key: "supp-home", operation: "supplements", area: "Home e indicadores", description: "Início, avisos, metas e atalhos de trabalho diário.", legacyHref: "/suplementos/hoje", companyHref: "/company/inicio" },
@@ -109,21 +119,34 @@ const toolLegacy: Record<string,string> = {
 };
 auditRows.push(...companyMigrationTools.filter(tool=>toolLegacy[tool.href]).map(tool=>({key:`tool-${tool.href.replaceAll("/","-")}`,operation:tool.operation,area:tool.title,description:`${tool.description} Disponível para teste, sem aprovação automática.`,legacyHref:toolLegacy[tool.href],companyHref:tool.href})));
 
+const relatedPlans: Record<string,string[]> = {
+ "0:0":["supp-crm"],"0:1":["supp-sales"],"0:2":["supp-delivery"],"0:3":["supp-products"],"0:4":["supp-stock"],"0:5":["supp-buy"],
+ "0:6":["tool--company-suplementos-nexus","tool--company-suplementos-nexus-habitos","tool--company-estoque-movimentacoes"],
+ "1:0":["fitness-crm","fitness-sales","fitness-completion"],"1:1":["fitness-products","fitness-stock","fitness-purchases","fitness-consignment"],"1:2":["fitness-crm","fitness-purchases"],
+};
+const roadmapRows: MigrationAuditRow[] = blocks.flatMap((block,blockIndex)=>block.steps.flatMap((step,stepIndex)=>step.state === "done" ? [] : [{
+ key:`plan-${block.title}-${step.label}`.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"-").slice(0,180),
+ operation:"company" as const,area:`${block.title} · ${step.label}`,description:step.detail,
+ legacyHref:step.href ?? "/company/mapa",companyHref:step.href ?? "/company/mapa",relatedKeys:relatedPlans[`${blockIndex}:${stepIndex}`],
+}]));
+
 export default async function CompanyMigrationMapPage() {
   const supabase = await createClient();
-  const { data, error } = await supabase.from("migration_audit_checks").select("check_key,state,notes").in("check_key", auditRows.map((row) => row.key));
+  const { data, error } = await supabase.from("migration_audit_checks").select("check_key,state,notes").in("check_key", [...auditRows,...roadmapRows].map((row) => row.key));
   // O mapa é uma ferramenta de trabalho: uma indisponibilidade temporária do
   // histórico de conferências não pode derrubar a página inteira. Neste caso,
   // ele abre sem estados salvos e a pessoa ainda consegue consultar o roteiro.
   if (error) console.error("Não foi possível carregar o histórico do mapa de migração:", error.message);
-  const count = (state: Step["state"]) => allSteps.filter((step) => step.state === state).length;
+  const saved = (data ?? []) as Array<{check_key:string;state:"pending"|"reviewing"|"approved"|"issue";notes:string|null}>;
+  const savedByKey = new Map(saved.map(row=>[row.check_key,row.state]));
+  const stateOf = (row:MigrationAuditRow)=>savedByKey.get(row.key) ?? (row.relatedKeys?.length && row.relatedKeys.every(key=>savedByKey.get(key)==="approved") ? "approved" : "pending");
+  const count = (state:string)=>[...auditRows,...roadmapRows].filter(row=>stateOf(row)===state).length;
   return <div className="company-map-page company-migration-board">
     <header><span>COMPANY · CONTROLE DA MIGRAÇÃO</span><h1>O que falta resolver</h1><p>Cada linha aponta a tela, o estado real e a condição para aposentar o ERP antigo.</p></header>
     <section className="panel"><h2>Próxima conferência · 17/10</h2><p>Novas entradas: conversões de conjuntos, ficha completa de estoque, configuração e portal de parceiros; navegação e retornos das ferramentas Central preservam Company. As funções antigas continuam disponíveis.</p><p>Restam homologar as ações reais e revisar mobile, permissões, cortes, rolagem e duplicidades. Uma função disponível não é uma função já homologada; nenhuma aprovação foi marcada automaticamente.</p><Link href="/company/ferramentas">Testar ferramentas migradas</Link> · <Link href="/company/parceiros/portal">Portal de parceiros (admin)</Link></section>
-    <section className="migration-scoreboard" aria-label="Resumo da migração"><article><CheckCircle2/><strong>{count("done")}</strong><span>concluídos</span></article><article><ListChecks/><strong>{count("test")}</strong><span>para testar</span></article><article><Clock3/><strong>{count("doing")}</strong><span>em execução</span></article><article><CircleDot/><strong>{count("todo")}</strong><span>pendentes</span></article></section>
-    <nav className="migration-jump" aria-label="Blocos da migração">{blocks.map((block, index) => <a key={block.title} href={`#bloco-${index + 1}`}>{index + 1}</a>)}</nav>
+    <section className="migration-scoreboard" aria-label="Resumo da migração"><article><CheckCircle2/><strong>{count("approved")}</strong><span>conferidos em OK</span></article><article><ListChecks/><strong>{count("reviewing")}</strong><span>em conferência</span></article><article><Clock3/><strong>{count("issue")}</strong><span>com falta registrada</span></article><article><CircleDot/><strong>{count("pending")}</strong><span>pendentes</span></article></section>
     {(["supplements", "fitness"] as const).map((operation) => <MigrationAuditBoard key={operation} rows={auditRows.filter((row) => row.operation === operation)} saved={(data ?? []) as Array<{ check_key: string; state: "pending" | "reviewing" | "approved" | "issue"; notes: string | null }>} />)}
-    <details><summary>Planejamento por área · somente pendências</summary><section className="migration-blocks">{blocks.map((block, index) => <article className="migration-block" id={`bloco-${index + 1}`} key={block.title}><header><span>BLOCO {index + 1}</span><h2>{block.title}</h2><p>{block.scope}</p></header><div>{block.steps.filter(step => step.state !== "done").map((step) => { const content = <><i className={`migration-state ${step.state}`}>{labels[step.state]}</i><span><strong>{step.label}</strong><small>{step.detail}</small></span>{step.href ? <ExternalLink size={16}/> : null}</>; return step.href ? <Link key={step.label} href={step.href}>{content}</Link> : <div key={step.label}>{content}</div>; })}</div></article>)}</section></details>
+    <details><summary>Planejamento por área · conferir e marcar</summary><MigrationAuditBoard rows={roadmapRows} saved={saved} title="Planejamento por área" description="Marque cada etapa como Conferir, OK ou Falta. Aprovadas somem da lista diária; histórico e links permanecem disponíveis. Aprovar uma etapa não exclui dados ou desativa operações automaticamente."/></details>
     <details><summary>Histórico das etapas concluídas</summary>{blocks.flatMap(block => block.steps.filter(step => step.state === "done").map(step => <p key={`${block.title}:${step.label}`}><strong>{step.label}</strong> · {step.detail}</p>))}</details>
     <section className="company-dna"><div><span>REGRA DE SAÍDA</span><h2>Uma tela antiga só some quando a substituta estiver completa</h2></div><p>Função migrada, dados iguais, teste real aprovado, endereço corrigido e nenhum acesso necessário registrado no ERP antigo.</p></section>
   </div>;

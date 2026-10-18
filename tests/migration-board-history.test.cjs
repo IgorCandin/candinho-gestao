@@ -19,3 +19,13 @@ test('approved rows remain stored but are hidden by default; pending is visible'
   assert.match(html, /Mostrar histórico de resolvidos/);
   assert.equal(saved[0].notes, 'Preservado');
 });
+
+test('a grouped plan inherits approval only when every related user check is approved',()=>{
+  const rows=[{key:'plan',operation:'company',area:'Grouped plan',description:'',legacyHref:'/company/mapa',companyHref:'/company/mapa',relatedKeys:['a','b']}];
+  const render=saved=>renderToStaticMarkup(React.createElement(compiled.exports.MigrationAuditBoard,{rows,saved}));
+  assert.match(render([{check_key:'a',state:'approved'}]),/<h3>Grouped plan<\/h3>/);
+  const saved=[{check_key:'a',state:'approved'},{check_key:'b',state:'approved'}];
+  assert.doesNotMatch(render(saved),/<h3>Grouped plan<\/h3>/);
+  assert.match(render([...saved,{check_key:'plan',state:'issue',notes:'Regression'}]),/<h3>Grouped plan<\/h3>/);
+  assert.equal(saved.length,2);
+});

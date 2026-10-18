@@ -31,7 +31,8 @@ function resetBankCard(event: ReactPointerEvent<HTMLButtonElement>) {
   event.currentTarget.style.setProperty("--card-ry", "0deg");
 }
 
-export function BankMonthPlanner({ data, initialMonth, today = "" }: { data: BankPlanningData; initialMonth?: string; today?: string }) {
+export function BankMonthPlanner({ data, initialMonth, today = "", initialQueue = "all" }: { data: BankPlanningData; initialMonth?: string; today?: string; initialQueue?: "all" | "overdue" | "today" | "upcoming" }) {
+  const [queue, setQueue] = useState(initialQueue);
   const [cycleDate, setCycleDate] = useState(today);
   const [monthKey, setMonthKey] = useState(data.months.some(month => month.referenceMonth === initialMonth) ? initialMonth! : data.currentMonth);
   const [cardId, setCardId] = useState("all");
@@ -47,7 +48,7 @@ export function BankMonthPlanner({ data, initialMonth, today = "" }: { data: Ban
   }
   const month = data.months.find(row => row.referenceMonth === monthKey) ?? data.months[0];
   const plan = calculateBankPlan({ month: month.referenceMonth, currentMonth: data.currentMonth, balance: data.balance, reserves: data.reserves, incomes: month.incomes, commitments: month.rows.map(row => row.amount) });
-  const rows = month.rows.filter(row => cardId === "all" || (cardId === "other" ? !row.cardId : row.cardId === cardId)).sort((a, b) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999") || a.title.localeCompare(b.title));
+  const rows = month.rows.filter(row => queue === "all" || (row.dueMode === "fixed_day" && row.dueDate && (queue === "overdue" ? row.dueDate < today : queue === "today" ? row.dueDate === today : row.dueDate > today))).filter(row => cardId === "all" || (cardId === "other" ? !row.cardId : row.cardId === cardId)).sort((a, b) => (a.dueDate ?? "9999").localeCompare(b.dueDate ?? "9999") || a.title.localeCompare(b.title));
   return <section className="bank-planner">
     <header className="bank-planner-head"><div><span>CANDINHO BANK · PLANEJAMENTO</span><h1>Seu mês, com clareza.</h1><p>O que está disponível, o que falta pagar e o que cabe nos seus planos.</p></div><Link className="button ghost" href="/bank">Visão completa e edição</Link></header>
     <nav className="bank-planner-months" aria-label="Selecionar mês">{data.months.map(item => <button key={item.referenceMonth} aria-pressed={month.referenceMonth === item.referenceMonth} onClick={() => { setMonthKey(item.referenceMonth); setCardId("all"); }}>{item.label}</button>)}</nav>
@@ -101,6 +102,7 @@ export function BankMonthPlanner({ data, initialMonth, today = "" }: { data: Ban
       {[{ id: "all", name: "Todas as contas", institution: "Visão geral", holder: "Todos os titulares" }, ...data.cards, { id: "other", name: "Demais compromissos", institution: "Sem cartão vinculado", holder: "Recorrências, empréstimos e cobranças" }].map(card => <button key={card.id} onPointerMove={moveBankCard} onPointerLeave={resetBankCard} onPointerDown={resetBankCard} style={{ "--bank-color": bankCardBrand(card.institution).color, "--bank-background": bankCardBrand(card.institution).background } as CSSProperties} aria-pressed={cardId === card.id} onClick={() => setCardId(card.id)}><BankPlannerLogo institution={card.institution}/><span>{card.institution}</span><strong>{card.name}</strong><small>Titular: {card.holder}</small>{card.id !== "all" && card.id !== "other" ? <BankCardCycle card={card} date={cycleDate}/> : null}<b>{formatCurrency(month.rows.filter(row => card.id === "all" || (card.id === "other" ? !row.cardId : row.cardId === card.id)).reduce((sum, row) => sum + row.amount, 0))}</b></button>)}
     </div>
     <p className="bank-planner-filter-note">O cartão filtra somente a lista abaixo. O resumo e o simulador continuam considerando o mês inteiro.</p>
+    <nav id="compromissos" className="bank-planner-months" aria-label="Fila dos compromissos">{([ ["all","Todos"],["overdue","Vencidos"],["today","Hoje"],["upcoming","Próximos"] ] as const).map(([value,label])=><button key={value} aria-pressed={queue===value} onClick={()=>setQueue(value)}>{label}</button>)}</nav>
     <BankMobileAgenda key={`${month.referenceMonth}:${cardId}`} showSummary={false} months={[{ label: cardId === "all" ? month.label : `${month.label} · ${cardId === "other" ? "Demais compromissos" : data.cards.find(card => card.id === cardId)?.name}`, referenceMonth: month.referenceMonth, rows, openingBalance: 0, receivable: 0 }]}/>
     <aside className="bank-planner-notes"><h2>O que precisa de conferência</h2>{data.warnings.map(note => <p key={note}>{note}</p>)}<Link href="/bank/objetivos">Conferir reservas e objetivos</Link></aside>
   </section>;
