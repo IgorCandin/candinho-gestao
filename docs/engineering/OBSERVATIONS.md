@@ -4,7 +4,7 @@
 
 - Seletor nativo de operação substituído por botões visíveis com contagens e estado aria-pressed. Operação, pendência e busca têm rótulos e agrupamentos próprios; busca pode ser limpa e filtros podem ser restaurados.
 - Indicadores do topo e contagens de pendência acompanham a operação/produto selecionados; recebimento, entrega e pagamentos agrupados mantêm suas ações existentes.
-- TypeScript/lint aprovados. Fixture local do componente real conferida em 1071px e 390px: mudança de operação, métricas, pendência, busca, limpeza, teclado, alvos de 44px e ausência de overflow. Sem mutação de dados reais. Build remoto e abertura oficial são condições de publicação.
+- TypeScript/lint aprovados. Fixture local do componente real conferida em 1071px, 390px e 320px: mudança de operação, métricas, pendência, busca, limpeza, teclado, alvos de 44px e ausência de overflow. Sem mutação de dados reais. Build remoto e abertura oficial são condições de publicação.
 
 ### Orçamento da própria consignação — 18/10/2026
 
