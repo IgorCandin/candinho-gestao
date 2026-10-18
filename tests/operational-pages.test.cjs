@@ -52,7 +52,9 @@ test('consignações oferecem orçamento e abrem somente a venda vinculada em ca
   for(const companyMode of [true,false]){
     const h=consignments({canAccessFitness:true,canWriteFitness:false},[baseRow,{...baseRow,id:'returned',sale_id:null}]);
     const html=renderToStaticMarkup(await h.Page({companyMode}));
-    assert.ok(html.includes(companyMode?'/company/orcamentos':'/fitness/orcamentos'));
+    assert.ok(html.includes('/api/fitness/consignacoes/closed/orcamento'));
+    assert.ok(html.includes('Orçamento desta consignação'));
+    assert.ok(!html.includes('href="/company/orcamentos'));
     assert.ok(html.includes(`${companyMode?'/company/concluir/fitness':'/fitness/vendas'}/sale-linked`));
     assert.ok(html.includes('Abrir venda'));assert.ok(html.includes('Devolvida sem venda'));
     assert.ok(!html.includes('/null'));assert.ok(!html.includes('/nova'));
