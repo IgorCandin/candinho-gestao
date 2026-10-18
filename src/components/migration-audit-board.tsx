@@ -6,7 +6,7 @@ import { useMemo, useState, useSyncExternalStore } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 type AuditState = "pending" | "reviewing" | "approved" | "issue";
-export type MigrationAuditRow = { key: string; operation: "supplements" | "fitness"; area: string; description: string; legacyHref: string; companyHref: string };
+export type MigrationAuditRow = { key: string; operation: "supplements" | "fitness" | "company"; relatedKeys?: string[]; area: string; description: string; legacyHref: string; companyHref: string };
 export type SavedAudit = { check_key: string; state: AuditState; notes: string | null };
 
 const stateCopy: Record<AuditState, string> = { pending: "A conferir", reviewing: "Em conferência", approved: "OK", issue: "Falta migrar" };
@@ -34,17 +34,23 @@ function writeLocal(entries: SavedAudit[]) {
   window.dispatchEvent(new Event(localStateEvent));
 }
 
-export function MigrationAuditBoard({ rows, saved }: { rows: MigrationAuditRow[]; saved: SavedAudit[] }) {
+export function MigrationAuditBoard({ rows, saved, title, description }: { rows: MigrationAuditRow[]; saved: SavedAudit[]; title?: string; description?: string }) {
   const [remoteValues, setValues] = useState(() => new Map(saved.map((item) => [item.check_key, item])));
   const snapshot = useSyncExternalStore(subscribeLocal, localSnapshot, () => "[]");
   const values = useMemo(() => new Map([...remoteValues, ...parseLocal(snapshot).map((item) => [item.check_key, item] as const)]), [remoteValues, snapshot]);
   const [saving, setSaving] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showApproved, setShowApproved] = useState(false);
-  const operationLabel = rows[0]?.operation === "fitness" ? "Fitness" : "Suplementos";
+  const operationLabel = rows[0]?.operation === "company" ? "Company · planejamento" : rows[0]?.operation === "fitness" ? "Fitness" : "Suplementos";
+  function currentValue(row: MigrationAuditRow) {
+    const own = values.get(row.key);
+    if (own) return own;
+    if (row.relatedKeys?.length && row.relatedKeys.every(key => values.get(key)?.state === "approved")) return {check_key:row.key,state:"approved" as const,notes:null};
+    return undefined;
+  }
   const supplements = rows;
-  const summary = useMemo(() => ({ approved: supplements.filter((row) => values.get(row.key)?.state === "approved").length, issue: supplements.filter((row) => values.get(row.key)?.state === "issue").length, total: supplements.length }), [supplements, values]);
-  const next = supplements.find((row) => values.get(row.key)?.state !== "approved") ?? null;
+  const summary = { approved: supplements.filter(row => currentValue(row)?.state === "approved").length, issue: supplements.filter(row => currentValue(row)?.state === "issue").length, total: supplements.length };
+  const next = supplements.find((row) => currentValue(row)?.state !== "approved") ?? null;
 
   function saveLocal(nextValue: SavedAudit) {
     // Read the latest shared cache, not this board's stale React state.
@@ -57,7 +63,7 @@ export function MigrationAuditBoard({ rows, saved }: { rows: MigrationAuditRow[]
   async function save(row: MigrationAuditRow, state: AuditState) {
     setSaving(row.key);
     setFeedback(null);
-    const existing = values.get(row.key);
+    const existing = currentValue(row);
     const optimistic = { check_key: row.key, state, notes: existing?.notes ?? null };
     setValues((current) => new Map(current).set(row.key, optimistic));
     let error: unknown;
@@ -79,10 +85,10 @@ export function MigrationAuditBoard({ rows, saved }: { rows: MigrationAuditRow[]
   }
 
   return <section className="migration-audit-board">
-    <header><span>ROTEIRO GUIADO · {operationLabel.toUpperCase()}</span><h2>Auditar aba por aba até não sobrar nada no ERP antigo</h2><p>Abra a área antiga, compare com a substituta Company e marque o resultado. O próximo bloco é calculado automaticamente.</p></header>
+    <header><span>ROTEIRO GUIADO · {operationLabel.toUpperCase()}</span><h2>{title ?? "Auditar aba por aba até não sobrar nada no ERP antigo"}</h2><p>{description ?? "Abra a área antiga, compare com a substituta Company e marque o resultado. As aprovadas saem da lista e continuam no histórico."}</p></header>
     <div className="migration-audit-summary"><strong>{summary.approved}/{summary.total} em OK</strong><span>{summary.total - summary.approved} área(s) para conferir{summary.issue ? ` · ${summary.issue} com falta registrada` : ""}</span>{next ? <Link href={`#${next.key}`}><PlayCircle size={16}/> Próximo: {next.area}</Link> : <span className="migration-audit-finished"><CheckCircle2 size={16}/> {operationLabel}: conferências OK; falta homologação final</span>}</div>
     {feedback ? <p className="company-care-feedback" role="status">{feedback}</p> : null}
     <button type="button" className="button ghost" aria-pressed={showApproved} onClick={() => setShowApproved(value => !value)}>{showApproved ? "Ocultar resolvidos" : `Mostrar histórico de resolvidos (${summary.approved})`}</button>
-    <div className="migration-audit-list">{rows.filter(row => showApproved || values.get(row.key)?.state !== "approved").map((row) => { const current = values.get(row.key); const state = current?.state ?? "pending"; return <article id={row.key} key={row.key} className={`migration-audit-row ${state}`}><div><span className="migration-audit-operation">{row.operation === "supplements" ? "SUPLEMENTOS" : "FITNESS"}</span><h3>{row.area}</h3><p>{row.description}</p></div><div className="migration-audit-links"><Link href={row.legacyHref} target="_blank"><ExternalLink size={15}/> ERP antigo</Link><Link href={row.companyHref} target="_blank"><ExternalLink size={15}/> Company</Link></div><div className="migration-audit-actions"><span>{stateCopy[state]}</span><button type="button" disabled={saving === row.key} onClick={() => save(row, "reviewing")}>Conferir</button><button type="button" disabled={saving === row.key} onClick={() => save(row, "approved")}>{saving === row.key ? <LoaderCircle className="spin" size={15}/> : <CheckCircle2 size={15}/>} OK</button><button type="button" disabled={saving === row.key} onClick={() => save(row, "issue")}><CircleAlert size={15}/> Falta</button></div></article>; })}</div>
+    <div className="migration-audit-list">{rows.filter(row => showApproved || currentValue(row)?.state !== "approved").map((row) => { const current = currentValue(row); const state = current?.state ?? "pending"; return <article id={row.key} key={row.key} className={`migration-audit-row ${state}`}><div><span className="migration-audit-operation">{row.operation === "company" ? "COMPANY" : row.operation === "supplements" ? "SUPLEMENTOS" : "FITNESS"}</span><h3>{row.area}</h3><p>{row.description}</p></div><div className="migration-audit-links">{row.legacyHref !== row.companyHref && <Link href={row.legacyHref} target="_blank"><ExternalLink size={15}/> ERP antigo</Link>}<Link href={row.companyHref} target="_blank"><ExternalLink size={15}/> Company</Link></div><div className="migration-audit-actions"><span>{stateCopy[state]}</span><button type="button" disabled={saving === row.key} onClick={() => save(row, "reviewing")}>Conferir</button><button type="button" disabled={saving === row.key} onClick={() => save(row, "approved")}>{saving === row.key ? <LoaderCircle className="spin" size={15}/> : <CheckCircle2 size={15}/>} OK</button><button type="button" disabled={saving === row.key} onClick={() => save(row, "issue")}><CircleAlert size={15}/> Falta</button></div></article>; })}</div>
   </section>;
 }

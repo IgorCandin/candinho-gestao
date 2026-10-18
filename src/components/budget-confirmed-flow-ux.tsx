@@ -280,6 +280,10 @@ export function BudgetConfirmedFlowUX() {
       cancelAnimationFrame(frame);
 
       frame = requestAnimationFrame(() => {
+        // Streamed forms may be present before React hydrates them.
+        // Wait for the form's own ready event before modifying its DOM.
+        const form = document.querySelector<HTMLFormElement>("form.new-sale-layout");
+        if (!form || form.dataset.saleFormHydrated !== "true") return;
         const side =
           document.querySelector<HTMLElement>(
             ".new-sale-side",
@@ -415,6 +419,8 @@ export function BudgetConfirmedFlowUX() {
 
     classify();
 
+    window.addEventListener("candinho:sale-form-ready", classify);
+
     document.addEventListener(
       "click",
       onClickCapture,
@@ -438,6 +444,7 @@ export function BudgetConfirmedFlowUX() {
     return () => {
       cancelAnimationFrame(frame);
       observer.disconnect();
+      window.removeEventListener("candinho:sale-form-ready", classify);
 
       document.removeEventListener(
         "click",

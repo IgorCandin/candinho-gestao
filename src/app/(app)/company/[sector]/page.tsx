@@ -52,7 +52,7 @@ function agendaDayDiff(date: string, today: string) {
   return Math.round((new Date(`${date}T12:00:00-03:00`).getTime() - new Date(`${today}T12:00:00-03:00`).getTime()) / 86_400_000);
 }
 
-export default async function CompanySectorPage({ params, searchParams }: { params: Promise<{ sector: string }>; searchParams: Promise<{ operacao?: string; visualizacao?: string }> }) {
+export default async function CompanySectorPage({ params, searchParams }: { params: Promise<{ sector: string }>; searchParams: Promise<{ operacao?: string; fila?: string; produto?: string; visualizacao?: string }> }) {
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
   const { sector } = await params;
@@ -179,7 +179,10 @@ export default async function CompanySectorPage({ params, searchParams }: { para
         (itemMedia[row.sale_id] ??= []).push({ id: row.sale_id, productId: variant?.product_id ?? row.sale_id, name: product?.name ?? "Produto Fitness", imageUrl: variant?.image_url || product?.image_url || null, quantity: Number(row.quantity), deliveredQuantity: 0 });
       }
     }
-    return <CompanyCompletionWorkspace orders={orders} itemMedia={itemMedia} />;
+    const query = await searchParams;
+    const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
+    const initialFilter = query.fila === "receive" || query.fila === "deliver" || query.fila === "late" ? query.fila : "all";
+    return <CompanyCompletionWorkspace key={`${initialOperation}:${initialFilter}`} orders={orders} itemMedia={itemMedia} initialOperation={initialOperation} initialFilter={initialFilter} initialProductId={query.produto}/>;
   }
 
   if (sector === "acompanhar") {
@@ -200,7 +203,10 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     for (const row of crm.data ?? []) if (Number(row.pending_followup_count ?? 0) > 0 && row.next_followup_at && row.next_followup_id) items.push({ id: `follow-${row.next_followup_id}`, sourceId: row.next_followup_id, customerId: row.id, customerName: row.name, phone: row.phone, city: row.city, operation: "Suplementos", kind: "follow_up", dueOn: row.next_followup_at, title: row.next_action_label ?? "Retorno combinado", note: row.next_followup_notes ?? row.last_contact_outcome ?? "Retorno registrado no CRM", href: `/company/clientes/${row.id}` });
     const seenWaiting = new Set<string>();
     for (const row of feedback.data ?? []) { if (seenWaiting.has(row.customer_id)) continue; seenWaiting.add(row.customer_id); if (row.feedback_status !== "contacted") continue; const customer = crmById.get(row.customer_id); if (customer) items.push({ id: `waiting-${row.customer_id}`, sourceId: row.customer_id, customerId: row.customer_id, customerName: customer.name, phone: customer.phone, city: customer.city, operation: "Suplementos", kind: "waiting", dueOn: row.next_action_on, title: "Aguardando resposta", note: "Contato iniciado pela fila Vender agora", href: `/company/clientes/${row.customer_id}`, recommendedProductId: row.recommended_product_id, opportunityGroup: row.opportunity_group, opportunitySubtype: row.opportunity_subtype }); }
-    return <><CompanyWorkflowSync/><CompanyCareWorkspace items={items} /></>;
+    const query = await searchParams;
+    const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
+    const initialFilter = query.fila === "post_sale" || query.fila === "follow_up" || query.fila === "waiting" || query.fila === "all" ? query.fila : "today";
+    return <><CompanyWorkflowSync/><CompanyCareWorkspace key={`${initialOperation}:${initialFilter}`} items={items} initialOperation={initialOperation} initialFilter={initialFilter}/></>;
   }
 
   if (sector === "produtos") {

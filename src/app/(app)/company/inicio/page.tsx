@@ -1,3 +1,4 @@
+import { CompanyDailyHub } from "@/components/company-daily-hub";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentUserAccess, getDashboard } from "@/lib/data";
@@ -27,7 +28,9 @@ export default async function CompanyEntryPage() {
     </header>
     <CompanyPriorityPreview receive={dashboard.pendingPaymentCount} deliver={dashboard.pendingDeliveryCount} incoming={dashboard.operational.incoming_units} />
     <CompanyActionGrid />
+    {(access.role === "admin" || access.canAccessBank) && <Link className="button ghost" href="/bank/planejamento">Planejamento do Bank · abrir direto</Link>}
     <Link className="button ghost" href="/company/escritorio">Escritório · visão das pendências</Link>
-    <footer className="company-v2-footer"><span>Escolha uma direção. Execute sem se perder.</span><div><Link className="company-legacy-link" href="/company/vitrine">Gerenciar vitrine</Link><Link className="company-legacy-link" href="/dashboard">Voltar às operações do ERP 1.0</Link></div></footer>
+    <CompanyDailyHub supplements={access.role === "admin" || access.canAccessSupplements} fitness={access.role === "admin" || access.canAccessFitness} bank={access.role === "admin" || access.canAccessBank}/>
+    <footer className="company-v2-footer"><span>Escolha uma direção. Execute sem se perder.</span><div><Link className="company-legacy-link" href="/company/vitrine">Gerenciar vitrine</Link><Link className="company-legacy-link" href="/company/mapa">Histórico e conferências da migração</Link></div></footer>
   </main>;
 }

@@ -50,23 +50,36 @@ test('consignment settlement preserves sale/devolution payload and opens Company
   assert.deepEqual(h.pushes,[`/company/concluir/fitness/${id}`]);
 });
 test('all-return settlement and cancellation remain in Company; legacy context preserved',async()=>{
-  const h=settlementHarness(null);await h.view().props.onSubmit({preventDefault(){}});
-  assert.deepEqual(h.pushes,['/company/fitness/consignacoes?acerto=1']);
   global.confirm=()=>true;
   try{
+    const h=settlementHarness(null);
+    await nodes(h.view()).find(n=>n.type==='button'&&n.props.onClick?.name==='returnAll').props.onClick();
+    assert.deepEqual(h.calls[0].params.p_items,[{item_id:'item',quantity_sold:0}]);
+    assert.deepEqual(h.pushes,['/company/fitness/consignacoes?devolvida=1']);
     const cancel=settlementHarness(null);
-    await nodes(cancel.view()).find(n=>n.type==='button'&&n.props.type==='button').props.onClick();
+    await nodes(cancel.view()).find(n=>n.type==='button'&&n.props.onClick?.name==='cancel').props.onClick();
     assert.equal(cancel.calls[0].name,'cancel_fitness_consignment');
     assert.deepEqual(cancel.pushes,['/company/fitness/consignacoes?cancelada=1']);
   }finally{delete global.confirm;}
-  const legacy=settlementHarness(id,null,false);await legacy.view().props.onSubmit({preventDefault(){}});
+  const legacy=settlementHarness(id,null,false);nodes(legacy.view()).find(n=>n.type==='input'&&n.props.type==='number').props.onChange({target:{value:'2'}});await legacy.view().props.onSubmit({preventDefault(){}});
   assert.deepEqual(legacy.pushes,[`/fitness/vendas/${id}`]);
 });
 test('failed settlement does not navigate away or claim success',async()=>{
   const h=settlementHarness(null,new Error('Saldo mudou'));
+  nodes(h.view()).find(n=>n.type==='input'&&n.props.type==='number').props.onChange({target:{value:'1'}});
   await h.view().props.onSubmit({preventDefault(){}});
   assert.deepEqual(h.pushes,[]);
   assert.ok(nodes(h.view()).some(n=>n.type==='p'&&n.props.children==='Saldo mudou'));
+});
+
+test('blank or all-zero quantities never silently close a consignment as a sale',async()=>{
+  const h=settlementHarness(null);
+  await h.view().props.onSubmit({preventDefault(){}});
+  assert.equal(h.calls.length,0);
+  nodes(h.view()).find(n=>n.type==='input'&&n.props.type==='number').props.onChange({target:{value:'0'}});
+  await h.view().props.onSubmit({preventDefault(){}});
+  assert.equal(h.calls.length,0);
+  assert.deepEqual(h.pushes,[]);
 });
 test('Fitness basket renders directly without depending on a missing legacy DOM panel',()=>{
   const {FitnessNexusPurchaseBasketV2:Basket}=load('../src/components/fitness-nexus-purchase-basket-v2.tsx',{

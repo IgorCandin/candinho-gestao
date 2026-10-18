@@ -58,6 +58,7 @@ export function FitnessSaleForm({
   companyMode = false,
   waitingByVariant = {},
   initialCustomerId,
+  initialVariantId,
   initialNotes = "",
 }: {
   stock: FitnessStockRow[];
@@ -66,6 +67,7 @@ export function FitnessSaleForm({
   companyMode?: boolean;
   waitingByVariant?: Record<string, number>;
   initialCustomerId?: string;
+  initialVariantId?: string;
   initialNotes?: string;
 }) {
   const router = useRouter();
@@ -113,10 +115,10 @@ export function FitnessSaleForm({
   >([
     {
       key: "initial-fitness-item",
-      productId: "",
-      variantId: "",
+      productId: options.find(row => row.variant_id === initialVariantId)?.product_id ?? "",
+      variantId: initialVariantId ?? "",
       quantity: "1",
-      unitPrice: "",
+      unitPrice: initialVariantId ? String(options.find(row => row.variant_id === initialVariantId)?.sale_price ?? "") : "",
     },
   ]);
 
