@@ -39,7 +39,7 @@ export function LeadConvertButton({ leadId, companyMode = false }: { leadId: str
     <div style={{ display: "grid", gap: 5 }}>
       <button className="button gold" type="button" onClick={convert} disabled={loading}>
         {loading ? <LoaderCircle className="spin" size={16} /> : <ShoppingBag size={16} />}
-        {loading ? "Abrindo venda..." : "Converter em venda"}
+        {loading ? "Abrindo venda..." : companyMode ? "Preparar venda do lead" : "Converter em venda"}
       </button>
       {message && <small style={{ color: "var(--danger, #ef6b6b)" }}>{message}</small>}
     </div>
