@@ -12,6 +12,8 @@ Instalador nativo `skill-installer`, somente diretórios selecionados, commits f
 
 O verificador inspeciona fontes fixadas, frontmatter, nomes e links portáteis. Não certifica confiança, execução ou integridade criptográfica de todo o conteúdo. Nenhum script externo da skill foi executado. O instalador nativo foi inspecionado antes do uso; cópia não executa os arquivos baixados.
 
+`.agents/**` fica fora da compilação TypeScript do ERP: contém exemplos de projetos externos, não módulos da aplicação. Os arquivos reais do ERP continuam incluídos e os erros de build não são ignorados. Licenças preservadas em `.agents/licenses/`.
+
 ## Reutilizadas / avaliadas
 
 | Solicitação | Resultado |

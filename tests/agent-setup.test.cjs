@@ -5,6 +5,12 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { verifySetup } = require('../scripts/verify-agent-setup.cjs');
+test('instruction examples are not ERP runtime TypeScript inputs',()=>{
+  const config=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../tsconfig.json'),'utf8'));
+  assert.ok(config.exclude.includes('.agents/**'));
+  assert.ok(config.include.includes('**/*.tsx'));
+  assert.notEqual(config.compilerOptions.ignoreBuildErrors,true);
+});
 function fixture(t, amend = value => value, text = '---\nname: sample\ndescription: Local fixture\n---\n') {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'candinho-skill-test-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
