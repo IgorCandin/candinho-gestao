@@ -337,3 +337,10 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Botão abre wa.me no atendimento confirmado, com mensagem codificada para revisão/envio pelo próprio visitante. Nenhuma mensagem real deve ser enviada para teste. Estética prateada/carvão/ocre e tipografia preservadas; painel de seleção com duas colunas no computador e uma no celular.
 - Validações e publicação serão registradas no PR/entrega; sem mudanças de schema ou regras da campanha.
 - Verificação complementar: navegador desktop e 390×844 conferiu seleção mista, filtro que oculta um favorito sem removê-lo da mensagem, destino exato do WhatsApp, links canônicos, cupom opcional e bloqueio de código malformado. Inspeção do href decodificado, sem clicar em enviar no WhatsApp. Cupom BEMVINDO-EXEMPLO digitado somente na interface; nenhuma emissão real. Testes do cadastro usam RPC simulada para sucesso/falha, compartilhando somente o código retornado. Lint dos seis módulos aprovado; build/TypeScript da prévia 72122fb READY.
+
+### OBS-021 — Quantidade e variante nos Salvos
+
+- Data: 19/10/2026. Pedido: escolher quantidade e, em Fitness, tamanho e cor antes de abrir o WhatsApp.
+- Escolhas controladas na Vitrine permanecem ao alternar Produtos/Salvos e filtros durante a visita. Painel lista todos os favoritos para revisar inclusive itens ocultos pelos filtros. Quantidade inteira positiva; roupas usam somente combinacoes com saldo positivo da consulta publica existente, com cor dependente do tamanho e limite por combinacao. Sem opcoes publicas, mensagem indica consulta ao atendimento sem inventar variante.
+- Mensagem leva quantidade e variante escolhida, links e cupom opcional. Nenhuma reserva, pedido, baixa de estoque ou uso de cupom automatico. Testes nao enviam mensagem real.
+- Evidencia local: 15 testes Node de mensagem, validacao, cupom, tamanhos, colecoes e movimento aprovados. Conferencia visual e build registrados no PR antes da publicacao.
