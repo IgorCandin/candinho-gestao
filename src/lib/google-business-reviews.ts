@@ -65,7 +65,7 @@ export async function getGoogleBusinessReviews(): Promise<GoogleReviewsResult> {
     });
     if (!response.ok) return { status: "unavailable", items: [], mapsUrl };
     const data: ReviewResponse = await response.json();
-    if (!data || typeof data !== "object" || !Number.isSafeInteger(data.totalReviewCount) || data.totalReviewCount! < 0 || (data.reviews !== undefined && !Array.isArray(data.reviews))) return { status: "unavailable", items: [], mapsUrl };
+    if (!data || typeof data !== "object" || Array.isArray(data) || (data.totalReviewCount !== undefined && (!Number.isSafeInteger(data.totalReviewCount) || data.totalReviewCount < 0)) || (data.reviews !== undefined && !Array.isArray(data.reviews))) return { status: "unavailable", items: [], mapsUrl };
     return {
       status: "connected", mapsUrl, items: googleReviewItems(data, mapsUrl),
       rating: typeof data.averageRating === "number" && data.averageRating >= 1 && data.averageRating <= 5 ? data.averageRating : undefined,
