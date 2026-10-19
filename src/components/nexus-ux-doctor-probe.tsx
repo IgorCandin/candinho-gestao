@@ -22,6 +22,15 @@ function selectorHint(element: Element) {
   return `${tag}${id}${classes}`.slice(0, 120);
 }
 
+function layoutViewport() {
+  // Safari may report the zoomed visual width as innerWidth. Pinch zoom
+  // crops a correctly sized document; it must not masquerade as CSS overflow.
+  return {
+    width: document.documentElement.clientWidth || window.innerWidth,
+    height: document.documentElement.clientHeight || window.innerHeight,
+  };
+}
+
 function sessionSeen(key: string) {
   try {
     return window.sessionStorage.getItem(key) === "1";
@@ -128,8 +137,7 @@ function hasScrollableAncestor(element: Element) {
 }
 
 function inspectFixedClipping(pathname: string) {
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
+  const { width: viewportWidth, height: viewportHeight } = layoutViewport();
 
   const elements = Array.from(document.body.querySelectorAll("*"))
     .filter((element) => {
@@ -209,7 +217,7 @@ function inspectFixedClipping(pathname: string) {
 function inspectLayout(pathname: string, confirmHealthy = false) {
   const root = document.documentElement;
   const body = document.body;
-  const viewportWidth = window.innerWidth;
+  const { width: viewportWidth } = layoutViewport();
   const docWidth = Math.max(
     root.scrollWidth,
     root.offsetWidth,

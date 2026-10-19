@@ -16,6 +16,14 @@
 
 # Observações de desenvolvimento
 
+### Doctor: zoom da Vitrine e compatibilidade semanal Bank — 19/10/2026
+
+- Contexto: investigar corte de Vitrine e erros React sem apagar registros ou mexer nos dados reais.
+- Evidência: payload de zoom 1,454x comparava documento 414 px à área visual 285 px; teste reproduziu falso positivo. Bank registrou Tipo de compromisso não suportado um segundo antes do React 441; tela enviava weekly_subscription à RPC mensal que não aceita esse tipo (catálogo de produção consultado somente por SELECT).
+- Correção: Doctor compara layout com layout, preservando detecção de overflow real e zoom livre. Detalhe semanal mantém pagamento e abre editor/ocorrências existentes, sem novo cálculo ou ajuste financeiro; ação antiga também protege a compatibilidade após autorização. Mensais preservados.
+- Verificação: regressões isoladas, Vitrine SSR em seis larguras e dois estados, Bank em quatro dimensões. Hidratação real dos componentes de venda não reproduziu 418 em três cenários fictícios; causa continua em investigação, assim como Load failed.
+- Status: corrigidos os dois mecanismos reproduzidos; teste iPhone do responsável e gate de publicação separados. Evidências e limites em DOCTOR-VITRINE-REACT-2026-10-19.md. Não encerrar alertas pela idade ou por um teste isolado passar.
+
 ### Mobile: foco e rolagem das janelas — 18/10/2026
 
 - Contexto: avançar o mapa enquanto o responsável confere Bank no iPhone, sem perda de funções ou dados reais.

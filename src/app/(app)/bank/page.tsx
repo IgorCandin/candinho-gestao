@@ -428,9 +428,9 @@ export default async function BankDashboardPage({
                 Detalhes da pendência
               </h2>
               <p>
-                Ajuste somente o valor deste
-                mês. O valor padrão dos meses
-                futuros continua igual.
+                {selectedCommitment.kind === "weekly_subscription"
+                  ? "Compromisso semanal: confira cada ocorrência na mensalidade de origem."
+                  : "Ajuste somente o valor deste mês. O valor padrão dos meses futuros continua igual."}
               </p>
             </div>
             <Link
@@ -458,7 +458,7 @@ export default async function BankDashboardPage({
               </strong>
             </div>
             <div>
-              <span>Valor atual no mês</span>
+              <span>{selectedCommitment.kind === "weekly_subscription" ? "Valor da semana" : "Valor atual no mês"}</span>
               <strong>
                 {formatCurrency(
                   selectedCommitment.amount,
@@ -467,7 +467,13 @@ export default async function BankDashboardPage({
             </div>
           </div>
 
-          <form
+          {selectedCommitment.kind === "weekly_subscription" ? <div className="panel-body">
+            <p>Este valor corresponde a uma semana, não ao total do mês. Paguei e Não aconteceu continuam disponíveis na origem; editar o valor padrão pode afetar as próximas semanas.</p>
+            <div className="bank-balance-update-actions">
+              <BankPaidForm commitmentKey={selectedCommitment.id} referenceMonth={month.referenceMonth} />
+              <Link className="button gold" href={`/bank/mensalidades?editar=${encodeURIComponent(selectedCommitment.id.split(":")[1] ?? "")}`}>Abrir mensalidade e semanas</Link>
+            </div>
+          </div> : <form
             action={
               adjustBankMonthCommitment
             }
@@ -532,7 +538,7 @@ export default async function BankDashboardPage({
                 Salvar valor deste mês
               </button>
             </div>
-          </form>
+          </form>}
         </article>
       </BankDashboardDialog>}
 
