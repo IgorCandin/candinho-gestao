@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 const DISMISSIBLE_SELECTOR =
-  'details[data-dismissible-menu="true"][open]';
+  'details[data-dismissible-menu="true"][open], details.company-account-menu[open]';
 
 export function DismissibleMenuGuard() {
   useEffect(() => {
@@ -54,12 +54,16 @@ export function DismissibleMenuGuard() {
     }
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") return;
-      if (openMenus().length === 0) return;
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      const menus = openMenus();
+      if (menus.length === 0) return;
+
+      const focusedMenu = menus.find((menu) => menu.contains(document.activeElement));
 
       event.preventDefault();
       event.stopPropagation();
       closeMenus();
+      focusedMenu?.querySelector<HTMLElement>("summary")?.focus();
     }
 
     document.addEventListener(
