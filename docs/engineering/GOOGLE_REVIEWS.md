@@ -4,6 +4,27 @@
 
 Integração preparada; ativação depende do projeto Google aprovado e da autorização OAuth do administrador. Link informado pelo responsável: https://maps.app.goo.gl/jBwJKoXhCydht8Vd8. A confirmação de acesso de administrador não substitui a autorização técnica OAuth. Não afirmar que está sincronizando antes de validar uma resposta real.
 
+Pedido de acesso enviado pelo responsável em 19/10/2026: protocolo `7-3896000042034`, projeto **My Maps Project**, ID `stable-glass-489311-m7`, número `923790320974`. O Google informou 7–10 dias úteis; não abrir pedidos duplicados. O projeto anterior `trans-opus-425801-b7` pertencia à conta incorreta e não deve ser usado. Data de verificação do perfil informada pelo responsável: 2 de março; não foi comprovada por API.
+
+## Preparação do cliente OAuth e conexão assistida
+
+Esta preparação pode ser feita antes da resposta da análise; a consulta real das avaliações continua dependendo da liberação do Google.
+
+1. No projeto **stable-glass-489311-m7**, abrir Google Auth Platform e configurar nome do aplicativo (Candinho — avaliações da Vitrine), contato do responsável e audiência adequada à conta administradora. Solicitar somente `https://www.googleapis.com/auth/business.manage`, exigido pelo Google mesmo para ler avaliações. A implementação não escreve no perfil. Conferir os requisitos de publicação/verificação que o Google apresentar. Modo externo **Testing** pode expirar o refresh token em sete dias para esse escopo: não considerar uma conexão de teste como solução permanente.
+2. Criar cliente OAuth do tipo **Aplicativo para computador** para o assistente local e baixar o JSON em uma pasta privada fora do repositório. O assistente rejeita cliente de outro projeto ou tipo web; não cadastrar um redirect de produção para esse cliente. JSON e refresh token nunca vão para o chat. Arquivos padrão `client_secret*.json` e `.env*` também estão ignorados no Git.
+3. Após a aprovação, habilitar **Google My Business API**, **My Business Account Management API** e **My Business Business Information API**. As duas últimas permitem descobrir contas/unidades sem copiar IDs manualmente. Nenhum novo formulário de aprovação é enviado pelo assistente.
+4. Na raiz do projeto, executar:
+
+   ```powershell
+   node scripts/connect-google-business.mjs --credentials "C:/caminho-privado/client_secret_google.json"
+   ```
+
+5. Abrir o endereço exibido no navegador e revisar/conceder a autorização no Google. O responsável executa esse consentimento. O retorno usa loopback `127.0.0.1` em porta aleatória, state descartável e PKCE S256; o código retorna direto ao assistente, não por mensagem. O fluxo expira após cinco minutos.
+6. Escolher explicitamente o perfil da Candinho na lista; comparar nome/conta com o Maps e confirmar digitando `CONECTAR`. Não há escolha automática do primeiro perfil. O assistente consulta as avaliações desse recurso para validar o acesso antes de salvar qualquer token.
+7. O resultado fica em `.env.google-business.local`, apenas no computador e ignorado pelo Git. Nunca sobrescreve arquivo anterior. Transferir as cinco variáveis pelo canal seguro de configuração do servidor da Vitrine; cliente/segredo/refresh token como variáveis sensíveis, sem exibir valores em logs ou no chat. O arquivo não é carregado automaticamente pelo Next.js e não ativa o site sozinho. Publicar o ambiente configurado e validar `/company/vitrine` e ambas as vitrines. Esse último passo de hospedagem é técnico, não exige copiar tokens em uma conversa.
+
+Se houver recusa, API não habilitada, cota ou perfil incorreto, nada é salvo e os depoimentos atuais permanecem. Desconectar pelo controle de aplicativos autorizados da conta Google, remover o refresh token da hospedagem e republicar. Manter o JSON/arquivo de configuração em pasta de acesso restrito ao responsável; a opção `mode: 0600` do assistente não substitui as permissões ACL do Windows.
+
 ## Ativação
 
 1. No Google Cloud, usar um projeto da Candinho aprovado para as Business Profile APIs e habilitar a Google My Business API. Aprovação do Google pode ser necessária; não contornar com scraping.
@@ -30,3 +51,5 @@ Integração preparada; ativação depende do projeto Google aprovado e da autor
 ## Validação
 
 Testar OAuth indisponível/revogado, timeout, resposta vazia/malformada, nomes e texto escapados pelo React, estrelas baixas preservadas, ausência de duplicatas manuais, configuração ausente sem chamadas externas e proteção das credenciais. Fixtures são simuladas e não devem aparecer em produção.
+
+Testes do assistente cobrem PKCE/state, projeto/tipo do cliente, paginação de contas/unidades, seleção pelo recurso completo, recusa 403, ciclo de paginação e serialização sem injetar variáveis. `--help` funciona sem abrir OAuth, chamar APIs ou criar arquivos.

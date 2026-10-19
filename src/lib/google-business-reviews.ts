@@ -11,6 +11,7 @@ type GoogleReview = {
 type ReviewResponse = { reviews?: GoogleReview[]; averageRating?: number; totalReviewCount?: number };
 export type GoogleReviewsResult = {
   status: "not_configured" | "unavailable" | "connected";
+  reason?: "configuration" | "authorization" | "permission" | "quota" | "response" | "network";
   items: StorefrontTestimonial[];
   mapsUrl?: string;
   rating?: number;
@@ -51,21 +52,21 @@ export async function getGoogleBusinessReviews(): Promise<GoogleReviewsResult> {
   const refreshToken = process.env.GOOGLE_BUSINESS_REFRESH_TOKEN;
   const location = process.env.GOOGLE_BUSINESS_LOCATION;
   const mapsUrl = googleMapsUrl(process.env.GOOGLE_BUSINESS_MAPS_URL ?? "https://maps.app.goo.gl/jBwJKoXhCydht8Vd8");
-  if (!clientId || !clientSecret || !refreshToken || !location || !/^accounts\/\d+\/locations\/\d+$/.test(location) || !mapsUrl) return { status: "not_configured", items: [] };
+  if (!clientId || !clientSecret || !refreshToken || !location || !/^accounts\/\d+\/locations\/\d+$/.test(location) || !mapsUrl) return { status: "not_configured", reason: "configuration", items: [] };
   try {
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST", cache: "no-store", signal: AbortSignal.timeout(5000),
       body: new URLSearchParams({ client_id: clientId, client_secret: clientSecret, refresh_token: refreshToken, grant_type: "refresh_token" }),
     });
-    if (!tokenResponse.ok) return { status: "unavailable", items: [], mapsUrl };
+    if (!tokenResponse.ok) return { status: "unavailable", reason: "authorization", items: [], mapsUrl };
     const token: { access_token?: string } = await tokenResponse.json();
-    if (!token.access_token) return { status: "unavailable", items: [], mapsUrl };
+    if (!token.access_token) return { status: "unavailable", reason: "authorization", items: [], mapsUrl };
     const response = await fetch(`https://mybusiness.googleapis.com/v4/${location}/reviews?pageSize=50&orderBy=updateTime%20desc`, {
       headers: { Authorization: `Bearer ${token.access_token}` }, cache: "no-store", signal: AbortSignal.timeout(5000),
     });
-    if (!response.ok) return { status: "unavailable", items: [], mapsUrl };
+    if (!response.ok) return { status: "unavailable", reason: response.status === 401 ? "authorization" : response.status === 403 ? "permission" : response.status === 429 ? "quota" : "response", items: [], mapsUrl };
     const data: ReviewResponse = await response.json();
-    if (!data || typeof data !== "object" || Array.isArray(data) || (data.totalReviewCount !== undefined && (!Number.isSafeInteger(data.totalReviewCount) || data.totalReviewCount < 0)) || (data.reviews !== undefined && !Array.isArray(data.reviews))) return { status: "unavailable", items: [], mapsUrl };
+    if (!data || typeof data !== "object" || Array.isArray(data) || (data.totalReviewCount !== undefined && (!Number.isSafeInteger(data.totalReviewCount) || data.totalReviewCount < 0)) || (data.reviews !== undefined && !Array.isArray(data.reviews))) return { status: "unavailable", reason: "response", items: [], mapsUrl };
     return {
       status: "connected", mapsUrl, items: googleReviewItems(data, mapsUrl),
       rating: typeof data.averageRating === "number" && data.averageRating >= 1 && data.averageRating <= 5 ? data.averageRating : undefined,
@@ -73,6 +74,6 @@ export async function getGoogleBusinessReviews(): Promise<GoogleReviewsResult> {
     };
   } catch {
     // Do not log OAuth responses, credentials or public reviewers' personal information.
-    return { status: "unavailable", items: [], mapsUrl };
+    return { status: "unavailable", reason: "network", items: [], mapsUrl };
   }
 }
