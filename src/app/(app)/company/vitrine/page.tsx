@@ -19,8 +19,7 @@ async function revokeMarketingConsent(formData:FormData){"use server";const db=a
 
 export default async function CompanyStorefrontManagementPage(){
   const db=await managerClient();
-  const googleReviews = await getGoogleBusinessReviews();
-  const[{data:testimonials},{data:coupons},{data:campaigns}]=await Promise.all([db.from("storefront_testimonials").select("*").order("created_at",{ascending:false}),db.from("storefront_coupon_signups").select("*").order("created_at",{ascending:false}),db.from("storefront_coupon_campaigns").select("*").order("starts_at",{ascending:false})]);
+  const [googleReviews, [{data:testimonials},{data:coupons},{data:campaigns}]]=await Promise.all([getGoogleBusinessReviews(), Promise.all([db.from("storefront_testimonials").select("*").order("created_at",{ascending:false}),db.from("storefront_coupon_signups").select("*").order("created_at",{ascending:false}),db.from("storefront_coupon_campaigns").select("*").order("starts_at",{ascending:false})])]);
   const campaign=campaigns?.[0]??null;const active=(coupons??[]).filter(x=>x.status==="active").length;const used=(coupons??[]).filter(x=>x.status==="used").length;const authorized=(coupons??[]).filter(x=>x.consent_email||x.consent_whatsapp||x.consent_sms).length;
   return <div className="company-workspace-v2">
     <header className="company-workspace-head"><div><span>VITRINE · GESTÃO</span><h1>Clientes, depoimentos e cupons</h1><p>Controle a campanha pública e os consentimentos sem misturar esses cadastros com o CRM.</p></div><div className="page-header-actions"><Link className="button gold" href="/catalogo/descobrir"><ExternalLink size={16}/>Experimentar nova vitrine</Link><Link className="button ghost" href="/catalogo"><ExternalLink size={16}/>Abrir vitrine original</Link></div></header>
