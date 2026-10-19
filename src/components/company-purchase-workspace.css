@@ -1,0 +1,38 @@
+.company-purchase-workspace .purchase-count-help{color:#9fb5c7;font-size:12px;line-height:1.6;margin:0 0 24px}
+.company-purchase-workspace .purchase-order-stage{margin-top:26px;min-width:0}
+.company-purchase-workspace .purchase-order-stage>header{margin-bottom:18px}
+.company-purchase-workspace .purchase-order-stage h2{margin:0 0 8px;font-size:22px}
+.company-purchase-workspace .purchase-order-stage>header p{color:#a9bfce;line-height:1.6;margin:0}
+.company-purchase-workspace .purchase-workflow-orders{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.company-purchase-workspace .purchase-workflow-order{padding:22px;border:1px solid #2b3d4a;border-radius:18px;background:#0d161e;min-width:0;overflow-wrap:anywhere}
+.company-purchase-workspace .purchase-workflow-order>header{display:flex;justify-content:space-between;gap:16px;align-items:start}
+.company-purchase-workspace .purchase-workflow-order h3{font-size:19px;margin:8px 0 0}
+.company-purchase-workspace .purchase-workflow-order>header>strong{white-space:nowrap;font-size:17px}
+.company-purchase-workspace .purchase-operation-tag{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#87d1ff}
+.company-purchase-workspace .purchase-workflow-order>p{color:#bacbd7;font-size:13px;line-height:1.7}
+.company-purchase-workspace .purchase-order-dates{display:flex;flex-wrap:wrap;gap:8px 18px;color:#9eb6c7;font-size:12px;line-height:1.6}
+.company-purchase-workspace .purchase-order-dates .purchase-overdue{color:#ffce8d}
+.company-purchase-workspace .purchase-receipt-numbers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:22px 0 12px}
+.company-purchase-workspace .purchase-receipt-numbers div{min-width:0;padding:10px;background:#14212b;border-radius:8px}
+.company-purchase-workspace .purchase-receipt-numbers dt{font-size:11px;color:#a5bdce}
+.company-purchase-workspace .purchase-receipt-numbers dd{margin:6px 0 0;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.company-purchase-workspace .purchase-receipt-numbers div:last-child dd{color:#91d7ff}
+.company-purchase-workspace progress{width:100%;height:8px;accent-color:#68caff;border:0;border-radius:9px;overflow:hidden}
+.company-purchase-workspace progress::-webkit-progress-bar{background:#253744}
+.company-purchase-workspace progress::-webkit-progress-value{background:#68caff}
+.company-purchase-workspace .purchase-next-action{border-top:1px solid #293c49;margin-top:18px;padding-top:18px}
+.company-purchase-workspace .purchase-next-action>span{font-size:12px;font-weight:700;color:#d5eaf8}
+.company-purchase-workspace .purchase-next-action p{color:#b2c8d7;font-size:13px;line-height:1.6}
+.company-purchase-workspace .purchase-next-action a{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;border:1px solid #4296c1;border-radius:10px;color:#d9f2ff;background:#153246;font-size:13px;font-weight:600}
+.company-purchase-workspace .purchase-other-actions summary,.company-purchase-workspace .purchase-inventory-tools>summary{cursor:pointer;min-height:44px;padding:14px 0;color:#a8c1d2;font-size:12px;line-height:1.6}
+.company-purchase-workspace .purchase-inventory-tools{border:1px solid #293c49;border-radius:14px;padding:4px 20px;margin-top:20px;min-width:0}
+.company-purchase-workspace .company-purchase-checklist{min-width:0;margin-top:12px}
+.company-purchase-workspace .company-purchase-checklist-row{min-width:0;overflow-wrap:anywhere}
+.company-purchase-workspace .company-purchase-checklist-row>div{min-width:0}
+.company-purchase-workspace a:focus-visible,.company-purchase-workspace summary:focus-visible{outline:2px solid #a1dcff;outline-offset:3px}
+@media(max-width:850px){.company-purchase-workspace .purchase-workflow-orders{grid-template-columns:1fr}}
+@media(max-width:500px){.company-purchase-workspace .purchase-workflow-order{padding:16px}.company-purchase-workspace .purchase-workflow-order>header{flex-wrap:wrap}.company-purchase-workspace .purchase-receipt-numbers div{padding:8px}.company-purchase-workspace .purchase-next-action a{display:flex;justify-content:center}.company-purchase-workspace .completion-status .completion-segments{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.company-purchase-workspace .company-purchase-actions a{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:600;text-decoration:none;line-height:1.5;overflow-wrap:anywhere}
+.company-purchase-workspace .company-purchase-checklist>button{min-height:44px}
+.company-purchase-workspace .company-purchase-checklist>button:focus-visible{outline:2px solid #a1dcff;outline-offset:3px}

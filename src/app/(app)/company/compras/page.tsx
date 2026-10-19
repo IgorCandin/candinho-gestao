@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ArrowRight, Boxes, Plus, Truck } from "lucide-react";
+import { Plus } from "lucide-react";
 import { CompanyReplenishmentGroups, type CompanyReplenishmentGroup, type CompanyReplenishmentProduct } from "@/components/company-replenishment-groups";
-import { CompanyPurchaseSuggestions, type CompanyPurchaseSuggestion } from "@/components/company-purchase-suggestions";
-import { PurchaseOrderCancelAction } from "@/components/purchase-order-cancel-action";
+import { type CompanyPurchaseSuggestion } from "@/components/company-purchase-suggestions";
+import { CompanyPurchaseWorkspace } from "@/components/company-purchase-workspace";
+import { loadOpenPurchasePages, type CompanyWorkflowOrder, type PurchaseOperation } from "@/lib/company-purchase-workflow";
+import type { SupplierOrderSummary } from "@/lib/types";
 import { getCurrentUserAccess, getFitnessPurchaseOrders, getFitnessStock, getProductCatalog } from "@/lib/data";
-import { formatCurrency, formatDateOnly } from "@/lib/format";
-import { getSupplierOrdersScaleSnapshot } from "@/lib/supplier-orders-scale-data";
 import { createClient } from "@/lib/supabase/server";
 
 async function setInventoryPolicyMode(formData: FormData) {
@@ -36,16 +36,22 @@ export default async function CompanyPurchasesPage() {
   const access = await getCurrentUserAccess();
   if (!access.active || access.role === "partner") redirect("/dashboard");
 
+  const canSupplements = access.role === "admin" || access.canAccessSupplements;
+  const canFitness = access.role === "admin" || access.canAccessFitness;
+  if (!canSupplements && !canFitness) redirect("/dashboard");
+  const canWriteSupplements = canSupplements && (access.role === "admin" || access.canWriteSupplements);
+  const canWriteFitness = canFitness && (access.role === "admin" || access.canWriteFitness);
+  const allowedOperations: PurchaseOperation[] = [...(canSupplements ? ["Suplementos" as const] : []), ...(canFitness ? ["Fitness" as const] : [])];
   const supabase = await createClient();
   const [groupsResult, productsResult, replenishmentResult, policyResult, productCatalog, orders, fitnessOrders, fitnessStock] = await Promise.all([
-    supabase.from("replenishment_groups").select("id,name,minimum_stock,ideal_stock,preferred_product_id,members:replenishment_group_products(product_id)").eq("active", true).order("name"),
-    supabase.from("products").select("id,name,brand,category,min_stock,ideal_stock,sales_category,restricted").eq("active", true).order("name"),
-    supabase.from("replenishment_overview").select("product_id,available_quantity,incoming_quantity"),
-    supabase.from("inventory_policy_settings").select("mode").eq("id", "company").maybeSingle(),
-    getProductCatalog(),
-    getSupplierOrdersScaleSnapshot({ tab: "pending", sort: "date", page: 1, pageSize: 20 }),
-    access.role === "admin" || access.canAccessFitness ? getFitnessPurchaseOrders() : Promise.resolve([]),
-    access.role === "admin" || access.canAccessFitness ? getFitnessStock() : Promise.resolve([]),
+    canSupplements ? supabase.from("replenishment_groups").select("id,name,minimum_stock,ideal_stock,preferred_product_id,members:replenishment_group_products(product_id)").eq("active", true).order("name") : Promise.resolve({ data: [], error: null }),
+    canSupplements ? supabase.from("products").select("id,name,brand,category,min_stock,ideal_stock,sales_category,restricted").eq("active", true).order("name") : Promise.resolve({ data: [], error: null }),
+    canSupplements ? supabase.from("replenishment_overview").select("product_id,available_quantity,incoming_quantity") : Promise.resolve({ data: [], error: null }),
+    canSupplements ? supabase.from("inventory_policy_settings").select("mode").eq("id", "company").maybeSingle() : Promise.resolve({ data: null, error: null }),
+    canSupplements ? getProductCatalog() : Promise.resolve([]),
+    canSupplements ? loadOpenPurchasePages<SupplierOrderSummary>((from, to) => supabase.from("supplier_order_summary").select("*").in("status", ["pending", "partial"]).order("ordered_on", { ascending: false }).order("id", { ascending: false }).range(from, to)) : Promise.resolve([]),
+    canFitness ? getFitnessPurchaseOrders() : Promise.resolve([]),
+    canFitness ? getFitnessStock() : Promise.resolve([]),
   ]);
 
   if (groupsResult.error) throw groupsResult.error;
@@ -122,30 +128,12 @@ export default async function CompanyPurchasesPage() {
     .filter((product) => product.quantity > 0);
   const suggestions = [...supplementSuggestions, ...standaloneSuggestions, ...fitnessSuggestions];
 
-  return (
-    <div className="company-v2-page">
-      <header className="company-v2-page-head"><div><span>Company · Comprar e repor</span><h1>Comprar somente o que faz falta</h1><p>Produtos equivalentes trabalham juntos. Pedidos cancelados deixam de contar como mercadoria a caminho.</p></div><div className="page-header-actions"><form action={setInventoryPolicyMode}><input type="hidden" name="mode" value={leanMode ? "standard" : "lean"}/><button className={leanMode ? "button company-blue" : "button ghost"} type="submit">{leanMode ? "Caixa enxuto ativo" : "Estoque padrão ativo"}</button></form><Link className="button company-blue" href="/company/compras/novo"><Plus size={16} />Novo pedido</Link></div></header>
-      <CompanyReplenishmentGroups groups={groups} products={products} leanMode={leanMode} />
-      <CompanyPurchaseSuggestions suggestions={suggestions} leanMode={leanMode} />
-      <section className="company-orders-section">
-        <div className="company-section-heading"><div><span>Acompanhamento</span><h2>Pedidos em aberto</h2><p>{orders.pendingUnits} unidades a caminho em {orders.pendingCount} pedidos.</p></div></div>
-        <div className="company-order-list">
-          {orders.orders.map((order) => (
-            <article className="panel company-order-row" key={order.id}>
-              <span className="company-order-icon"><Truck size={20} /></span>
-              <div className="company-order-main"><strong>{order.supplier_name}</strong><span>{order.product_summary ?? "Sem resumo"}</span><small>{formatDateOnly(order.ordered_on)} · {order.pending_units} unidades pendentes</small></div>
-              <strong>{formatCurrency(order.order_total)}</strong>
-              <PurchaseOrderCancelAction orderId={order.id} status={order.status} />
-              <Link className="icon-button" href={`/company/compras/suplementos/${order.id}`} aria-label="Abrir pedido"><ArrowRight size={17} /></Link>
-            </article>
-          ))}
-          {orders.orders.length === 0 && <div className="company-empty-state"><Boxes size={24} /><strong>Nenhum pedido em aberto</strong><span>Os próximos pedidos aparecerão aqui.</span></div>}
-        </div>
-      </section>
-      <section className="company-orders-section">
-        <div className="company-section-heading"><div><span>Fitness</span><h2>Pedidos e recebimentos Fitness</h2><p>{fitnessOrders.filter((order) => order.pending_units > 0).reduce((sum, order) => sum + order.pending_units, 0)} unidades ainda a receber.</p></div></div>
-        <div className="company-order-list">{fitnessOrders.filter((order) => order.pending_units > 0 && order.status !== "cancelled").map((order) => <article className="panel company-order-row" key={`fitness-${order.id}`}><span className="company-order-icon"><Truck size={20}/></span><div className="company-order-main"><strong>{order.supplier_name}</strong><span>{order.product_summary || "Produtos Fitness"}</span><small>{formatDateOnly(order.ordered_on)} · {order.received_units}/{order.ordered_units} recebidas</small></div><strong>{formatCurrency(order.grand_total)}</strong><span className="company-status danger">{order.pending_units} pendentes</span><Link className="icon-button" href={`/company/compras/fitness/${order.id}`} aria-label="Abrir pedido Fitness"><ArrowRight size={17}/></Link></article>)}{fitnessOrders.filter((order) => order.pending_units > 0 && order.status !== "cancelled").length === 0 ? <div className="company-empty-state"><Boxes/><strong>Fitness sem recebimentos pendentes</strong><span>Novos pedidos aparecerão aqui.</span></div> : null}</div>
-      </section>
-    </div>
-  );
+  const workflowOrders: CompanyWorkflowOrder[] = [
+    ...orders.map(order => ({ id: order.id, operation: "Suplementos" as const, supplierName: order.supplier_name, summary: order.product_summary ?? "", orderedOn: order.ordered_on, expectedOn: null, orderedUnits: Number(order.ordered_units), receivedUnits: Number(order.received_units), pendingUnits: Number(order.pending_units), total: Number(order.order_total), status: order.status, waitingSales: Number(order.waiting_sales_count), href: `/company/compras/suplementos/${order.id}` })),
+    ...fitnessOrders.map(order => ({ id: order.id, operation: "Fitness" as const, supplierName: order.supplier_name, summary: order.product_summary ?? "", orderedOn: order.ordered_on, expectedOn: order.expected_on, orderedUnits: Number(order.ordered_units), receivedUnits: Number(order.received_units), pendingUnits: Number(order.pending_units), total: Number(order.grand_total), status: order.status, waitingSales: 0, href: `/company/compras/fitness/${order.id}` })),
+  ];
+  return <div className="company-v2-page">
+    <header className="company-v2-page-head"><div><span>Company · Comprar e repor</span><h1>Comprar e repor</h1><p>Veja o que comprar, acompanhe os pedidos e confira o que ainda falta receber em cada operação.</p></div><div className="page-header-actions">{access.role === "admin" && canSupplements && <form action={setInventoryPolicyMode}><input type="hidden" name="mode" value={leanMode ? "standard" : "lean"}/><button className={leanMode ? "button company-blue" : "button ghost"} type="submit">{leanMode ? "Caixa enxuto ativo" : "Estoque padrão ativo"}</button></form>}{(canWriteSupplements || canWriteFitness) && <Link className="button company-blue" href="/company/compras/novo"><Plus size={16}/>Novo pedido</Link>}</div></header>
+    <CompanyPurchaseWorkspace suggestions={suggestions} orders={workflowOrders} leanMode={leanMode} allowedOperations={allowedOperations} canWriteSupplements={canWriteSupplements} canWriteFitness={canWriteFitness} today={new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" })} inventoryTools={canWriteSupplements ? <CompanyReplenishmentGroups groups={groups} products={products} leanMode={leanMode}/> : undefined}/>
+  </div>;
 }
