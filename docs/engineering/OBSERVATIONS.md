@@ -1,3 +1,9 @@
+### 19/10/2026 — Preço das possibilidades Fitness
+
+- Conferência oficial da integração em Vender agora encontrou Short M Preto com preço de cadastro R$49,90 na oportunidade e promoção vigente R$34,90 na preparação da venda.
+- O helper compartilhado das possibilidades agora reaproveita applyFitnessStockPromotions, exatamente como a venda, antes de montar as combinações. Disponibilidade, critérios de tamanho, amostra e quantidade permanecem iguais; nenhuma promoção ou preço cadastrado foi alterado.
+- Regressão verifica preço promocional, saldo e ausência de mutação dos dados de origem. Correção depende de build/testes e nova conferência oficial.
+
 ## 19/10/2026 — Vender agora integra possibilidades Fitness
 
 - Contexto: operação Fitness era uma aba de reativação por inatividade, enquanto as combinações de tamanho e estoque ficavam isoladas em outra área. A preparação da venda era pouco explícita.
