@@ -41,6 +41,7 @@ import "./v38-nutrition-ai.css";
 import "./v45-39-erp-pending-fixes.css";
 import "./company-v2.css";
 import "./mobile-dialog-guard.css";
+import "./menu-viewport-guard.css";
 
 const FAVICON_VERSION = "45.55.0";
 
