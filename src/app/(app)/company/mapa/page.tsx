@@ -137,6 +137,15 @@ const roadmapRows: MigrationAuditRow[] = blocks.flatMap((block,blockIndex)=>bloc
  legacyHref:step.href ?? "/company/mapa",companyHref:step.href ?? "/company/mapa",relatedKeys:relatedPlans[`${blockIndex}:${stepIndex}`],
 }]));
 
+// Reuse the exact persisted keys: the focused view must not create another
+// checklist or discard approvals/notes already recorded in the full roadmap.
+const mobileAuditKeys = new Set(["supp-sales", "fitness-sales", "supp-delivery", "fitness-completion", "supp-stock", "fitness-consignment"]);
+const mobilePlanLabels = ["Acabamento e navegação Bank", "Janelas operacionais: foco e rolagem", "Adaptar navegação ao zoom e à largura disponível", "Bank: detalhe semanal sem erro React 441"];
+const mobileRows = [
+  ...auditRows.filter(row => mobileAuditKeys.has(row.key)),
+  ...roadmapRows.filter(row => mobilePlanLabels.some(label => row.area.endsWith(` · ${label}`))),
+];
+
 export default async function CompanyMigrationMapPage() {
   const supabase = await createClient();
   const { data, error } = await supabase.from("migration_audit_checks").select("check_key,state,notes").in("check_key", [...auditRows,...roadmapRows].map((row) => row.key));
@@ -149,12 +158,28 @@ export default async function CompanyMigrationMapPage() {
   const stateOf = (row:MigrationAuditRow)=>savedByKey.get(row.key) ?? (row.relatedKeys?.length && row.relatedKeys.every(key=>savedByKey.get(key)==="approved") ? "approved" : "pending");
   const count = (state:string)=>[...auditRows,...roadmapRows].filter(row=>stateOf(row)===state).length;
   return <div className="company-map-page company-migration-board">
-    <header><span>COMPANY · CONTROLE DA MIGRAÇÃO</span><h1>O que falta resolver</h1><p>Cada linha aponta a tela, o estado real e a condição para aposentar o ERP antigo.</p></header>
-    <section className="panel"><h2>Próxima conferência · 17/10</h2><p>Novas entradas: conversões de conjuntos, ficha completa de estoque, configuração e portal de parceiros; navegação e retornos das ferramentas Central preservam Company. As funções antigas continuam disponíveis.</p><p>Restam homologar as ações reais e revisar mobile, permissões, cortes, rolagem e duplicidades. Uma função disponível não é uma função já homologada; nenhuma aprovação foi marcada automaticamente.</p><Link href="/company/ferramentas">Testar ferramentas migradas</Link> · <Link href="/company/parceiros/portal">Portal de parceiros (admin)</Link></section>
+    <header><span>COMPANY · FECHAMENTO MOBILE</span><h1>Fechar o mobile sem perder o roteiro</h1><p>Conferência de 19/10. O fechamento mobile está separado das melhorias futuras e da aposentadoria do ERP antigo.</p></header>
+    <section className="panel"><h2>Cinco grupos de teste, sem recomeçar do zero</h2>
+      <ol>
+        <li><strong>Menus e janelas:</strong> abrir, rolar até o último item, fechar, voltar e ampliar sem cortes.</li>
+        <li><strong>Nova venda:</strong> Suplementos e Fitness; buscar cliente/produto e conferir variações e opções ao salvar.</li>
+        <li><strong>Concluir:</strong> pagamento, entrega, fotos e recebimento conjunto, inclusive entre operações.</li>
+        <li><strong>Estoque e consignações:</strong> abrir saldos, lotes/sabores, histórico e acerto/devolução.</li>
+        <li><strong>Bank:</strong> entradas, simulador, cartões e detalhe de compromisso semanal.</li>
+      </ol>
+      <p>As dez conferências abaixo reutilizam as mesmas marcações do roteiro. As aprovadas saem da lista e permanecem no histórico. Não é preciso repetir o que já foi aprovado sem uma regressão.</p>
+      <p>Sem transação real desejada, confira apenas abertura, campos, rolagem e fechamento. Não salve uma venda, pagamento ou ajuste fictício no banco real. Testes automáticos de escrita usam dados simulados e não substituem Safari físico.</p>
+    </section>
+    {error ? <p role="alert">Não foi possível carregar as conferências salvas. A lista pode mostrar itens já aprovados; isso não significa que o progresso foi perdido.</p> : null}
+    <MigrationAuditBoard rows={mobileRows} saved={saved} title="Conferências finais do mobile" description="Marque OK somente após conferir. Se algo falhar, informe tela, ação e o corte/erro observado. Nenhuma aprovação é automática."/>
+    <section className="panel"><h2>Investigação separada · Doctor</h2><p>React 418 e Load failed antigos não foram reproduzidos na leitura autenticada de 19/10. A coleta ganhou contexto técnico; os alertas não foram apagados nem considerados corrigidos. Uma nova ocorrência precisa ser investigada. O erro semanal do Bank recebeu correção específica e está na lista de conferência.</p><Link href="/company/qualidade">Abrir Doctor</Link></section>
+    <details><summary>Roteiro completo e migração · não é a contagem de pendências mobile</summary>
+    <p>Atletas, integrações, metas futuras, refatoração de duplicidades e desativação de Suplementos/Fitness continuam aqui. Não bloqueiam por si só o acabamento mobile. A correção histórica da consignação de Francyelle depende de confirmar quais peças foram vendidas; nenhum registro será alterado por suposição.</p>
     <section className="migration-scoreboard" aria-label="Resumo da migração"><article><CheckCircle2/><strong>{count("approved")}</strong><span>conferidos em OK</span></article><article><ListChecks/><strong>{count("reviewing")}</strong><span>em conferência</span></article><article><Clock3/><strong>{count("issue")}</strong><span>com falta registrada</span></article><article><CircleDot/><strong>{count("pending")}</strong><span>pendentes</span></article></section>
     {(["supplements", "fitness"] as const).map((operation) => <MigrationAuditBoard key={operation} rows={auditRows.filter((row) => row.operation === operation)} saved={(data ?? []) as Array<{ check_key: string; state: "pending" | "reviewing" | "approved" | "issue"; notes: string | null }>} />)}
     <details><summary>Planejamento por área · conferir e marcar</summary><MigrationAuditBoard rows={roadmapRows} saved={saved} title="Planejamento por área" description="Marque cada etapa como Conferir, OK ou Falta. Aprovadas somem da lista diária; histórico e links permanecem disponíveis. Aprovar uma etapa não exclui dados ou desativa operações automaticamente."/></details>
     <details><summary>Histórico das etapas concluídas</summary>{blocks.flatMap(block => block.steps.filter(step => step.state === "done").map(step => <p key={`${block.title}:${step.label}`}><strong>{step.label}</strong> · {step.detail}</p>))}</details>
+    </details>
     <section className="company-dna"><div><span>REGRA DE SAÍDA</span><h2>Uma tela antiga só some quando a substituta estiver completa</h2></div><p>Função migrada, dados iguais, teste real aprovado, endereço corrigido e nenhum acesso necessário registrado no ERP antigo.</p></section>
   </div>;
 }
