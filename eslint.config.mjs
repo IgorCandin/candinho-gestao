@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored agent instructions/examples are not ERP application code.
+    ".agents/**",
   ]),
 ]);
 

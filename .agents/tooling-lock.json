@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "skills": [
+    {"directory":"systematic-debugging","name":"systematic-debugging","repo":"obra/superpowers","revision":"bb92a77741419a4ab5f06e711a283343f1ada0c3","sourcePath":"skills/systematic-debugging","license":"MIT"},
+    {"directory":"verification-before-completion","name":"verification-before-completion","repo":"obra/superpowers","revision":"bb92a77741419a4ab5f06e711a283343f1ada0c3","sourcePath":"skills/verification-before-completion","license":"MIT"},
+    {"directory":"ponytail","name":"ponytail","repo":"DietrichGebert/ponytail","revision":"09c434ab73ca43761c5d8b0c5d341926c2fba710","sourcePath":"skills/ponytail","license":"MIT"},
+    {"directory":"code-simplification","name":"code-simplification","repo":"addyosmani/agent-skills","revision":"aeac41d4d005999432bb7312f7ff06383a91d59d","sourcePath":"skills/code-simplification","license":"MIT"}
+  ]
+}
