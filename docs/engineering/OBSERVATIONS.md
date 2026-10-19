@@ -1,3 +1,12 @@
+## 19/10/2026 — Fechamento mobile com limite e skills compartilhadas
+
+- Contexto: mapa misturava homologação mobile, migração, investigações e melhorias futuras, dando impressão de trabalho sem fim.
+- Mudança: dez conferências existentes em primeiro plano, cinco grupos; mesmas chaves/notas/aprovações. Roteiro completo recolhido, histórico preservado e falha de carregamento explícita. Doctor intermitente separado, sem apagar ou declarar resolvido. Consignação histórica depende de fatos do responsável.
+- Menus de conta incluídos no guard compartilhado: toque externo não atravessa; Escape restaura foco e respeita evento já tratado. Sem mudar links/logout/regras.
+- Skills: quatro diretórios selecionados versionados e fontes fixadas; reutilizadas capacidades existentes, sem dependências de runtime, hooks ou serviços. Diagnóstico/limites em docs/setup.md. Checkout anterior e suas alterações intactos.
+- Evidência local: 119 testes Node na suíte, seis testes adicionais do verificador, quatro skills verificadas; fixture real do mapa/guard com dados fictícios em 320x568, 390x844, 844x390 e 1366x600, sem overflow recolhido/expandido, Escape/foco/toque externo e zero erros JS. Não é homologação Safari físico. Lint/build e publicação exigem evidência específica antes de afirmar conclusão.
+- Próximo: responsável confere os cinco grupos no iPhone sem repetir aprovações existentes; só efetua transação real desejada. Futuras melhorias não são automaticamente novos bloqueadores mobile.
+
 ### 19/10/2026 — Preço das possibilidades Fitness
 
 - Conferência oficial da integração em Vender agora encontrou Short M Preto com preço de cadastro R$49,90 na oportunidade e promoção vigente R$34,90 na preparação da venda.
