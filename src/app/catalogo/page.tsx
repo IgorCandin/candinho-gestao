@@ -7,7 +7,8 @@ import {
 import { BRAND_ASSETS } from "@/lib/brand-assets";
 import { PublicBackorderSection } from "@/components/public-backorder-section";
 import { StorefrontCouponSignup } from "@/components/storefront-coupon-signup";
-import { StorefrontTestimonials, type StorefrontTestimonial } from "@/components/storefront-testimonials";
+import { StorefrontTestimonials } from "@/components/storefront-testimonials";
+import { getStorefrontTestimonials } from "@/lib/storefront-testimonial-data";
 import { createClient } from "@/lib/supabase/server";
 import { PublicCatalogCardLinks } from "@/components/public-catalog-card-links";
 import { PublicCatalogGuide } from "@/components/public-catalog-guide";
@@ -29,8 +30,8 @@ export const revalidate = 10;
 
 export default async function PublicCatalogPage() {
   const supabase = await createClient();
-  const [{ data: testimonials }, { data: campaignSummary }, { data: authData }] = await Promise.all([
-    supabase.from("storefront_testimonials").select("id,customer_name,comment,profession,photo_url").eq("active", true).order("display_order").order("created_at"),
+  const [testimonials, { data: campaignSummary }, { data: authData }] = await Promise.all([
+    getStorefrontTestimonials(),
     supabase.rpc("get_storefront_campaign_summary_v1"),
     supabase.auth.getUser(),
   ]);
@@ -134,7 +135,7 @@ export default async function PublicCatalogPage() {
         topSellers={topSellers}
       />
 
-      <StorefrontTestimonials items={(testimonials || []) as StorefrontTestimonial[]} />
+      <StorefrontTestimonials items={testimonials} />
       <StorefrontCouponSignup initialRemaining={remaining} />
 
       <section
