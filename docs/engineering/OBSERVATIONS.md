@@ -1,3 +1,18 @@
+### 19/10/2026 — Preço das possibilidades Fitness
+
+- Conferência oficial da integração em Vender agora encontrou Short M Preto com preço de cadastro R$49,90 na oportunidade e promoção vigente R$34,90 na preparação da venda.
+- O helper compartilhado das possibilidades agora reaproveita applyFitnessStockPromotions, exatamente como a venda, antes de montar as combinações. Disponibilidade, critérios de tamanho, amostra e quantidade permanecem iguais; nenhuma promoção ou preço cadastrado foi alterado.
+- Regressão verifica preço promocional, saldo e ausência de mutação dos dados de origem. Correção depende de build/testes e nova conferência oficial.
+
+## 19/10/2026 — Vender agora integra possibilidades Fitness
+
+- Contexto: operação Fitness era uma aba de reativação por inatividade, enquanto as combinações de tamanho e estoque ficavam isoladas em outra área. A preparação da venda era pouco explícita.
+- Correção: operação separada do tipo de oportunidade; Fitness abre Tamanho + estoque e mantém Reativar clientes como fila distinta. Reutiliza exatamente getFitnessSizeOpportunities (até 500 vendas válidas, mesma categoria/tamanho e disponibilidade positiva, exclusões e limite por combinação preservados). Mostra evidência, data, peças, cor, tamanho, preço e disponibilidade, com confirmação do tamanho/interesse antes da oferta. Preparar venda leva cliente+variante à rota Company existente. Reativação mantém regra de cliente ativo, compra anterior e 45 dias.
+- Suplementos: mantém seleção de até dez pessoas com sinal concreto e bloqueios/retornos existentes; estimativas de recompra/complementares continuam em consulta. Ação direta prepara cliente+produto; registro do contato fica em disclosure separado. Lead conserva conversão existente e passa a rotular Preparar venda do lead. Nenhuma mutação foi acrescentada ao abrir filtros ou links.
+- Permissões: consultas Suplementos e dados Fitness condicionados ao acesso; ações de preparação/feedback conforme escrita. Busca, contagens da fila e limpeza aplicadas ao contexto atual. Rota antiga das possibilidades Fitness preservada.
+- Evidência: TypeScript e lint direcionado sem erros; 108 testes Node aprovados, com novos testes de seleção exata, filas, bloqueios, reativação, leitura e busca. Componente real com dados fictícios em 1071/390/320 px: links, contato, preparação, operação, tamanho/cor, busca e leitura sem ações de escrita, sem overflow/erros JS. Nenhuma mensagem enviada nem venda/contato/estoque real alterado.
+- Status: validação local concluída; build remoto e conferência oficial condicionam publicação. Teste do responsável pendente.
+
 ## 19/10/2026 — Gestão por tarefa e cabeçalho no zoom
 
 - Contexto: Gestão apresentava atalhos sem agrupamento; cabeçalho de desktop com zoom caía em regras conflitantes abaixo de 1100 px. A regra display:contents nos dois menus removia as suas colunas, comprimindo setores diferentes.
@@ -23,6 +38,22 @@
 - Status: implementação validada localmente; publicação acompanhada pelo PR desta alteração. Teste do responsável pendente.
 
 # Observações de desenvolvimento
+
+### Doctor: sessão autenticada e falhas de carregamento — 19/10/2026
+
+- Contexto: continuar 418/Load failed em Company/Bank sem gravar operações reais ou remover funções.
+- Evidência: sessão real abriu/recarregou nova venda e Bank, inclusive largura móvel; nova venda pelo seletor e botão local de produto funcionaram sem erros capturados. Retorno móvel à fila e recuperação da aba tiveram limites da automação, causa não confirmada. Assets antigos/atuais responderam 200 agora. Nenhuma prova de resolução dos erros originais.
+- Lacuna: error listener não capturava recurso não-bubbling e registros genéricos careciam de contexto. Adicionado contexto técnico limitado e captura de JS/CSS Next da mesma origem com caminho sem query/hash, preservando mensagens, dedupe e propagação.
+- Verificação: ciclo/privacidade em Node e quatro eventos em Chromium com fetch simulado; nenhuma falha injetada no ERP. Sem formulário, pagamento, cadastro ou limpeza de histórico. Telemetria normal da navegação real preservada.
+- Status: investigação em andamento; instrumentação precisa do gate de build/publicação e nova ocorrência real para orientar a correção. Evidências em DOCTOR-AUTENTICADO-2026-10-19.md; iPhone físico permanece com o responsável.
+
+### Doctor: zoom da Vitrine e compatibilidade semanal Bank — 19/10/2026
+
+- Contexto: investigar corte de Vitrine e erros React sem apagar registros ou mexer nos dados reais.
+- Evidência: payload de zoom 1,454x comparava documento 414 px à área visual 285 px; teste reproduziu falso positivo. Bank registrou Tipo de compromisso não suportado um segundo antes do React 441; tela enviava weekly_subscription à RPC mensal que não aceita esse tipo (catálogo de produção consultado somente por SELECT).
+- Correção: Doctor compara layout com layout, preservando detecção de overflow real e zoom livre. Detalhe semanal mantém pagamento e abre editor/ocorrências existentes, sem novo cálculo ou ajuste financeiro; ação antiga também protege a compatibilidade após autorização. Mensais preservados.
+- Verificação: regressões isoladas, Vitrine SSR em seis larguras e dois estados, Bank em quatro dimensões. Hidratação real dos componentes de venda não reproduziu 418 em três cenários fictícios; causa continua em investigação, assim como Load failed.
+- Status: corrigidos os dois mecanismos reproduzidos; teste iPhone do responsável e gate de publicação separados. Evidências e limites em DOCTOR-VITRINE-REACT-2026-10-19.md. Não encerrar alertas pela idade ou por um teste isolado passar.
 
 ### Mobile: foco e rolagem das janelas — 18/10/2026
 

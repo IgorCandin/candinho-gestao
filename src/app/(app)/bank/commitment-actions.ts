@@ -57,6 +57,12 @@ export async function adjustBankMonthCommitment(formData: FormData) {
     );
   }
 
+  // Weekly commitments have occurrence controls, not a monthly override.
+  // Preserve their existing editor instead of sending an unsupported RPC kind.
+  if (commitmentKey.startsWith("weekly_subscription:")) {
+    redirect(`/bank/mensalidades?editar=${encodeURIComponent(commitmentKey.split(":")[1] ?? "")}`);
+  }
+
   const { error } = await supabase.rpc(
     "bank_adjust_month_commitment",
     {
