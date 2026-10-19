@@ -5,7 +5,7 @@ const guidance=load('../src/lib/company-care-guidance.ts');
 const common={customerId:'same-customer',customerName:'Cliente teste',city:'Teste',phone:null,sourceId:'source',dueOn:'2020-01-01',title:'Conferir compra',note:'Observação',href:'/company/acompanhar'};
 const items=[{...common,id:'supp',operation:'Suplementos',kind:'post_sale'},{...common,id:'fit',operation:'Fitness',kind:'post_sale'},{...common,id:'return',operation:'Fitness',kind:'follow_up',dueOn:null}];
 function nodes(node){return !node||typeof node!=='object'?[]:[node,...React.Children.toArray(node.props?.children).flatMap(nodes)];}
-function harness(){const slots=[],calls=[],pushes=[];let cursor=0;const hooks={...React,useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>slots[i]=typeof value==='function'?value(slots[i]):value]},useMemo:fn=>fn()};const {CompanyCareWorkspace:View}=load('../src/components/company-care-workspace.tsx',{react:hooks,'next/link':{__esModule:true,default:()=>null},'next/navigation':{useRouter:()=>({push:href=>pushes.push(href),refresh(){}})},'@/lib/supabase/client':{createClient:()=>({rpc:async(name,params)=>{calls.push({name,params});return {error:null}}})},'@/lib/format':{formatCurrency:String,formatDateOnly:String},'@/lib/company-care-guidance':guidance,'@/components/company-workflow-sync':{notifyCompanyWorkflowUpdated(){}}});return {calls,pushes,view(){cursor=0;return View({items,initialFilter:'all'})}};}
+function harness(input=items){const slots=[],calls=[],pushes=[];let cursor=0;const hooks={...React,useState(initial){const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>slots[i]=typeof value==='function'?value(slots[i]):value]},useMemo:fn=>fn()};const {CompanyCareWorkspace:View}=load('../src/components/company-care-workspace.tsx',{react:hooks,'next/link':{__esModule:true,default:()=>null},'next/navigation':{useRouter:()=>({push:href=>pushes.push(href),refresh(){}})},'@/lib/supabase/client':{createClient:()=>({rpc:async(name,params)=>{calls.push({name,params});return {error:null}}})},'@/lib/format':{formatCurrency:String,formatDateOnly:String},'@/lib/company-care-guidance':guidance,'@/components/fitness-opportunity-contact-actions':{FitnessOpportunityContactActions:'fitness-contact-actions'},'@/components/company-workflow-sync':{notifyCompanyWorkflowUpdated(){}}});return {calls,pushes,view(){cursor=0;return View({items:input,initialFilter:'all',canWriteFitness:true})}};}
 const button=(tree,name)=>nodes(tree).find(n=>n.type==='button'&&n.props.children===name);
 test('same customer has separate operational cards and clear guidance for each care kind',()=>{
  const h=harness(),tree=h.view();assert.equal(nodes(tree).filter(n=>n.type==='article'&&n.props.className==='company-care-person').length,2);
@@ -25,4 +25,12 @@ test('every operation has its own contact identity; each kind has a concrete act
  assert.notEqual(guidance.careContactKey(items[0]),guidance.careContactKey(items[1]));
  assert.equal(guidance.careGuidance('waiting').openLabel,'Atualizar contato');
  assert.equal(guidance.careGuidance('follow_up').completeLabel,'Concluir retorno');
+});
+
+test('Fitness contact opens its own status/date controls without querying supplement history or writing feedback',async()=>{
+ const previous=global.fetch;let fetched=0;global.fetch=async()=>{fetched++;throw new Error('Must not fetch supplement history')};
+ try{const contact={customer_id:'fitness',status:'later',next_contact_on:'2099-01-01',notes:'Retornar na data combinada',revision:2,updated_at:'2026-10-19T15:00:00Z'};
+ const h=harness([{...common,id:'fitness-contact',customerId:'fitness',operation:'Fitness',kind:'follow_up',dueOn:contact.next_contact_on,title:'Ficou para depois',fitnessContact:contact}]);
+ await button(h.view(),'Atualizar contato Fitness').props.onClick();const tree=h.view(),control=nodes(tree).find(n=>n.type==='fitness-contact-actions');assert.ok(control);assert.equal(control.props.contact,contact);assert.equal(control.props.canWrite,true);assert.equal(fetched,0);assert.equal(h.calls.length,0);assert.ok(nodes(tree).some(n=>n.type==='small'&&String(n.props.children).includes('2099-01-01')));
+ }finally{global.fetch=previous;}
 });

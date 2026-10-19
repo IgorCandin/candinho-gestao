@@ -1,9 +1,11 @@
+import { fitnessContactLabel } from "@/lib/fitness-opportunity-contact";
 import Link from "next/link";
 import { ArrowLeft, Construction } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
 import { getOperationInvestmentSnapshot } from "@/lib/bank-data";
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
+import { getFitnessOpportunityContacts } from "@/lib/fitness-opportunity-contact-data";
 import { getFitnessSizeOpportunities } from "@/lib/fitness-size-opportunities-data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
@@ -65,7 +67,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const canSupplements = access.role === "admin" || access.canAccessSupplements;
     const canFitness = access.role === "admin" || access.canAccessFitness;
     const supabase = await createClient();
-    const [opportunitiesResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers, contactStateResult, fitnessSizes] = await Promise.all([
+    const [opportunitiesResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers, contactStateResult, fitnessSizes, fitnessContacts] = await Promise.all([
       canSupplements ? supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(250) : Promise.resolve({data:[],error:null}),
       canSupplements ? supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(100) : Promise.resolve({data:[],error:null}),
       canSupplements ? supabase.from("products").select("id,image_url,banner_image_url").eq("active", true) : Promise.resolve({data:[],error:null}),
@@ -74,6 +76,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       access.role === "admin" || access.canAccessFitness ? getFitnessCustomers() : Promise.resolve([]),
       canSupplements ? supabase.from("customer_commercial_contact_state_v1").select("customer_id,pause_until") : Promise.resolve({data:[],error:null}),
       canFitness ? getFitnessSizeOpportunities() : Promise.resolve({ opportunities: [], sampledSales: 0 }),
+      canFitness ? getFitnessOpportunityContacts() : Promise.resolve([]),
     ]);
     if (opportunitiesResult.error) throw new Error(opportunitiesResult.error.message);
     if (leadsResult.error) throw new Error(leadsResult.error.message);
@@ -116,7 +119,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
 
     const productMedia = Object.fromEntries((mediaResult.data ?? []).map((row) => [row.id, { photo1: row.image_url, photo2: row.banner_image_url }]));
     const sellQuery = await searchParams;
-    return <CompanySalesWorkspace initialOperation={sellQuery.operacao === "Suplementos" || sellQuery.operacao === "Fitness" ? sellQuery.operacao : "all"} allowedOperations={[...(canSupplements ? ["Suplementos" as const] : []), ...(canFitness ? ["Fitness" as const] : [])]} canWriteSupplements={access.role === "admin" || access.canWriteSupplements} canWriteFitness={access.role === "admin" || access.canWriteFitness} fitnessSizeOpportunities={fitnessSizes.opportunities} sampledFitnessSales={fitnessSizes.sampledSales} opportunities={opportunities} leads={(leadsResult.data ?? []) as LeadRow[]} fitnessCustomers={fitnessCustomers} productMedia={productMedia} blockedCustomerIds={blockedCustomerIds} />;
+    return <CompanySalesWorkspace fitnessContacts={fitnessContacts} initialOperation={sellQuery.operacao === "Suplementos" || sellQuery.operacao === "Fitness" ? sellQuery.operacao : "all"} allowedOperations={[...(canSupplements ? ["Suplementos" as const] : []), ...(canFitness ? ["Fitness" as const] : [])]} canWriteSupplements={access.role === "admin" || access.canWriteSupplements} canWriteFitness={access.role === "admin" || access.canWriteFitness} fitnessSizeOpportunities={fitnessSizes.opportunities} sampledFitnessSales={fitnessSizes.sampledSales} opportunities={opportunities} leads={(leadsResult.data ?? []) as LeadRow[]} fitnessCustomers={fitnessCustomers} productMedia={productMedia} blockedCustomerIds={blockedCustomerIds} />;
   }
 
   if (sector === "concluir") {
@@ -194,16 +197,25 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const supabase = await createClient();
     const canSupplements = access.role === "admin" || access.canAccessSupplements;
     const canFitness = access.role === "admin" || access.canAccessFitness;
-    const [suppPost, fitnessPost, crm, feedback] = await Promise.all([
+    const [suppPost, fitnessPost, crm, feedback, fitnessContacts, fitnessCustomers] = await Promise.all([
       canSupplements ? supabase.from("post_sale_batch_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
       canFitness ? supabase.from("fitness_post_sale_overview").select("*").order("due_on").limit(500) : Promise.resolve({ data: [], error: null }),
       canSupplements ? supabase.from("customer_crm_overview").select("*").eq("active", true).order("radar_rank").limit(400) : Promise.resolve({ data: [], error: null }),
       canSupplements ? supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,opportunity_subtype,feedback_status,next_action_on,created_at").order("created_at", { ascending: false }).limit(500) : Promise.resolve({ data: [], error: null }),
+      canFitness ? getFitnessOpportunityContacts() : Promise.resolve([]),
+      canFitness ? getFitnessCustomers() : Promise.resolve([]),
     ]);
     for (const result of [suppPost, fitnessPost, crm, feedback]) if (result.error) throw new Error(result.error.message);
     const items: CompanyCareItem[] = [];
     for (const row of suppPost.data ?? []) if (row.status === "planned") items.push({ id: `sup-post-${row.id}`, sourceId: row.id, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Suplementos", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/suplementos/${row.id}` });
     for (const row of fitnessPost.data ?? []) if (row.status === "planned") items.push({ id: `fit-post-${row.id}`, sourceId: row.id, customerId: row.customer_id, customerName: row.customer_name ?? "Cliente", phone: row.customer_phone, city: row.city, operation: "Fitness", kind: "post_sale", dueOn: row.due_on, title: row.product_summary ?? "Pós-venda Fitness", note: `${Number(row.sale_count ?? 0)} compra(s) · ${Number(row.total_amount ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}`, href: `/company/acompanhar/fitness/${row.id}` });
+    const fitnessById = new Map(fitnessCustomers.filter(customer => customer.active).map(customer => [customer.id, customer]));
+    const contactToday = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date());
+    for (const contact of fitnessContacts) {
+      const customer = fitnessById.get(contact.customer_id);
+      if (!customer) continue;
+      items.push({ id: `fit-contact-${customer.id}`, sourceId: customer.id, customerId: customer.id, customerName: customer.name, phone: customer.phone, city: null, operation: "Fitness", kind: contact.status === "contacted" ? "waiting" : "follow_up", dueOn: contact.next_contact_on, title: fitnessContactLabel(contact, contactToday), note: contact.notes || "Contato iniciado nas oportunidades de Fitness", href: `/company/clientes/fitness/${customer.id}`, fitnessContact: contact });
+    }
     const crmById = new Map((crm.data ?? []).map((row) => [row.id, row]));
     for (const row of crm.data ?? []) if (Number(row.pending_followup_count ?? 0) > 0 && row.next_followup_at && row.next_followup_id) items.push({ id: `follow-${row.next_followup_id}`, sourceId: row.next_followup_id, customerId: row.id, customerName: row.name, phone: row.phone, city: row.city, operation: "Suplementos", kind: "follow_up", dueOn: row.next_followup_at, title: row.next_action_label ?? "Retorno combinado", note: row.next_followup_notes ?? row.last_contact_outcome ?? "Retorno registrado no CRM", href: `/company/clientes/${row.id}` });
     const seenWaiting = new Set<string>();
@@ -211,7 +223,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const query = await searchParams;
     const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
     const initialFilter = query.fila === "post_sale" || query.fila === "follow_up" || query.fila === "waiting" || query.fila === "all" ? query.fila : "today";
-    return <><CompanyWorkflowSync/><CompanyCareWorkspace key={`${initialOperation}:${initialFilter}`} items={items} initialOperation={initialOperation} initialFilter={initialFilter}/></>;
+    return <><CompanyWorkflowSync/><CompanyCareWorkspace key={`${initialOperation}:${initialFilter}`} items={items} canWriteFitness={access.role === "admin" || access.canWriteFitness} initialOperation={initialOperation} initialFilter={initialFilter}/></>;
   }
 
   if (sector === "produtos") {

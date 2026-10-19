@@ -1,0 +1,10 @@
+.fitness-contact-console{display:grid;gap:12px;border-top:1px solid #335064;padding-top:18px;margin-top:10px}
+.fitness-contact-console>strong{color:#bee6ff;font-size:14px}
+.fitness-contact-console small,.fitness-contact-console p{color:#b1c6d5;font-size:12px;line-height:1.7;margin:0}
+.fitness-contact-console label{display:grid;gap:8px;min-width:0;color:#c3dae9;font-size:12px}
+.fitness-contact-console textarea,.fitness-contact-console input{width:100%;min-width:0;min-height:44px;border:1px solid #405d72;border-radius:8px;padding:10px;background:#0b1923;color:#eef8ff;font:inherit}
+.fitness-contact-buttons,.fitness-contact-schedule{display:flex;gap:8px;flex-wrap:wrap}
+.fitness-contact-console button{min-height:44px;padding:10px 12px;border:1px solid #427696;border-radius:8px;background:#173449;color:#e2f3ff;font:inherit;font-size:12px;line-height:1.5;cursor:pointer}
+.fitness-contact-console button:disabled{opacity:.6;cursor:default}
+.fitness-contact-console [role=alert]{color:#ffb6ab}
+@media(max-width:600px){.fitness-contact-buttons{display:grid;grid-template-columns:1fr}.fitness-contact-schedule{display:grid;grid-template-columns:1fr}}
