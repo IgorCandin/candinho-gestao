@@ -335,3 +335,13 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Company exige login na prévia. Componentes reais foram renderizados isoladamente com dados simulados e todas as folhas CSS atuais: 1280×720 mostra as seis ações com textos dentro dos cartões; 390×844 não apresenta overflow horizontal; expansão das áreas aumenta o conteúdo e o contêiner mantém rolagem (992px de conteúdo em 720px de área). Troca de operação/autenticação e registros reais não foram exercitados nesse teste.
 - Cupom vigente é apresentado no atendimento; a gestão existente em `/company/vitrine` permite marcar usado/cancelar. Salvos guarda apenas produtos, sem checkout ou aplicação automática do cupom. Nenhum novo fluxo de resgate foi criado nesta rodada.
 - Limitação de navegador registrada acima foi resolvida para a conferência pública e isolada. Publicação/commit final devem ser comprovados pelo PR e produção READY.
+
+
+### OBS-020 — Enviar Salvos com cupom pelo WhatsApp
+
+- Data: 18/10/2026. Responsável autorizou abrir WhatsApp com produtos e cupom juntos; confirmou atendimento público 5532998318385.
+- Em Salvos, a seleção usa todos os favoritos das duas operações, independentemente de filtros. Mensagem inclui nomes, links oficiais, tamanhos disponíveis Fitness sem assumir uma variante escolhida, indicação de indisponibilidade e cupom opcional. Não calcula desconto, cria pedido, reserva estoque nem marca cupom usado.
+- Cupom emitido pela função existente é compartilhado com Salvos. Código sem dados pessoais permanece somente no sessionStorage da aba, com memória temporária se armazenamento estiver bloqueado. Campo aceita colar/corrigir/apagar código recebido antes. Nenhum código pessoal é fixado para todos os visitantes.
+- Botão abre wa.me no atendimento confirmado, com mensagem codificada para revisão/envio pelo próprio visitante. Nenhuma mensagem real deve ser enviada para teste. Estética prateada/carvão/ocre e tipografia preservadas; painel de seleção com duas colunas no computador e uma no celular.
+- Validações e publicação serão registradas no PR/entrega; sem mudanças de schema ou regras da campanha.
+- Verificação complementar: navegador desktop e 390×844 conferiu seleção mista, filtro que oculta um favorito sem removê-lo da mensagem, destino exato do WhatsApp, links canônicos, cupom opcional e bloqueio de código malformado. Inspeção do href decodificado, sem clicar em enviar no WhatsApp. Cupom BEMVINDO-EXEMPLO digitado somente na interface; nenhuma emissão real. Testes do cadastro usam RPC simulada para sucesso/falha, compartilhando somente o código retornado. Lint dos seis módulos aprovado; build/TypeScript da prévia 72122fb READY.

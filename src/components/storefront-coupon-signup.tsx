@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { Gift, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useStorefrontCoupon } from "./use-storefront-coupon";
 
-export function StorefrontCouponSignup({ initialRemaining }: { initialRemaining: number | null }) {
+export function StorefrontCouponSignup({ initialRemaining, onUseCoupon }: { initialRemaining: number | null; onUseCoupon?: () => void }) {
+  const { setCoupon: rememberCoupon } = useStorefrontCoupon();
   const [message, setMessage] = useState("");
   const [coupon, setCoupon] = useState("");
   const [remaining, setRemaining] = useState(initialRemaining);
@@ -22,13 +24,15 @@ export function StorefrontCouponSignup({ initialRemaining }: { initialRemaining:
       });
       if (error) throw error;
       const row = Array.isArray(data) ? data[0] : data;
-      setCoupon(row?.coupon_code || ""); setRemaining(Number(row?.remaining ?? 0));
+      const code = typeof row?.coupon_code === "string" ? row.coupon_code : "";
+      if (!code) throw new Error("Não foi possível obter o código do cupom. Confira com o atendimento.");
+      setCoupon(code); rememberCoupon(code); setRemaining(Number(row?.remaining ?? 0));
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível gerar o cupom.");
     } finally { setLoading(false); }
   }
 
-  if (coupon) return <section className="storefront-coupon-success"><CheckCircle2/><span>Seu cupom de 25%</span><strong>{coupon}</strong><p>Guarde este código e apresente no atendimento. Restam {remaining} cupom(ns) nesta campanha.</p></section>;
+  if (coupon) return <section className="storefront-coupon-success"><CheckCircle2/><span>Seu cupom de 25%</span><strong>{coupon}</strong><p>Guarde este código e apresente no atendimento. Restam {remaining} cupom(ns) nesta campanha.</p>{onUseCoupon && <button type="button" onClick={onUseCoupon}>Usar com meus salvos</button>}</section>;
   return <section className="storefront-growth-section" id="cupom-primeira-compra">
     <div className="storefront-growth-copy"><Gift/><span>Boas-vindas Candinho</span><h2>Cadastre-se e ganhe 25% na primeira compra.</h2><p>Você escolhe por onde quer receber ofertas. Sem mensagens em canais que não autorizou.</p>{remaining !== null && <strong>{remaining} cupom(ns) disponíveis nesta campanha</strong>}</div>
     <form className="storefront-growth-form" onSubmit={submit}>
