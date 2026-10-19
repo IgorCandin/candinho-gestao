@@ -8,3 +8,5 @@
 .fitness-contact-console button:disabled{opacity:.6;cursor:default}
 .fitness-contact-console [role=alert]{color:#ffb6ab}
 @media(max-width:600px){.fitness-contact-buttons{display:grid;grid-template-columns:1fr}.fitness-contact-schedule{display:grid;grid-template-columns:1fr}}
+
+.fitness-contact-console>a{color:#bee6ff;font-size:13px;text-decoration:underline;text-underline-offset:3px}
