@@ -33,3 +33,5 @@ Isso não prova resolução do 418 de 17/10: faltam RSC/streaming do Next, módu
 ## Gate de entrega
 
 Rodar suite Node, lint direcionado e diff-check; build/TypeScript remotos devem passar no commit final antes de publicar. Não encerrar processos de outros trabalhos nem executar build pesado concorrente no computador compartilhado. Evidência de PR/deployment é necessária para afirmar que a mudança está online.
+
+Integração de `fdde449` preservou as melhorias paralelas da Vitrine e o cabeçalho responsivo PR #57. Ensaio da Vitrine repetido com a nova folha do cabeçalho, sem overflow nos 12 casos; aceite no iPhone permanece pendente. Hidratação 418 não foi declarada resolvida.
