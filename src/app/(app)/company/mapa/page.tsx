@@ -85,7 +85,8 @@ blocks.push({ title: "Fluxo diário · solicitações de 17/10", scope: "Conferi
 ]});
 
 blocks.push({ title: "Última etapa · Menus, cabeçalhos e zoom", scope: "Executar depois das demais entregas do mapa, preservando desktop e celular", steps: [
-    { label: "Adaptar navegação ao zoom e à largura disponível", state: "todo", detail: "Revisar menus e cabeçalhos em 80%, 100%, 125%, 150% e 200%, incluindo janelas estreitas e mobile. Reorganizar itens sem sobreposição, corte ou perda de acesso; evitar travar a tela em 100%.", href: "/company/inicio" },
+    { label: "Adaptar navegação ao zoom e à largura disponível", state: "doing", detail: "Menu da conta ganhou limite de altura e rolagem; guard respeita espaço real sem mínimo de 180 px. Geometria isolada conferida em 285–1708 px, não equivale a Safari ou zoom físico. Falta revisar cabeçalhos completos e reproduzir o corte da Vitrine em 285 px; manter zoom livre e todas as funções. Evidências: docs/engineering/MOBILE-MENUS-2026-10-19.md.", href: "/company/inicio" },
+    { label: "Doctor: separar sinais recentes de histórico", state: "doing", detail: "Consulta somente leitura: Vitrine teve corte de 129 px em 18/10; React 418 em nova venda teve ocorrência em 17/10. Não são apenas alertas antigos. Causa ainda não confirmada; 441 e Load failed também seguem sem encerramento. Nenhum sinal apagado ou resolvido artificialmente.", href: "/company/qualidade" },
   ]});
 
 const auditRows: MigrationAuditRow[] = [

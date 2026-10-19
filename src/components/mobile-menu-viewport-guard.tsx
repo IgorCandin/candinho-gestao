@@ -26,7 +26,7 @@ export function MobileMenuViewportGuard() {
 
         const panels =
           document.querySelectorAll<HTMLElement>(
-            ".mobile-menu[open] .mobile-menu-panel",
+            ".mobile-menu[open] .mobile-menu-panel, .company-account-menu[open] > div",
           );
 
         for (const panel of panels) {
@@ -38,7 +38,7 @@ export function MobileMenuViewportGuard() {
 
           const rect = panel.getBoundingClientRect();
           const available = Math.max(
-            180,
+            0,
             Math.floor(viewportBottom - rect.top - 8),
           );
 
@@ -55,7 +55,8 @@ export function MobileMenuViewportGuard() {
 
       if (
         target instanceof HTMLDetailsElement &&
-        target.classList.contains("mobile-menu") &&
+        (target.classList.contains("mobile-menu") ||
+          target.classList.contains("company-account-menu")) &&
         target.open
       ) {
         update();
@@ -82,7 +83,7 @@ export function MobileMenuViewportGuard() {
     });
 
     document
-      .querySelectorAll(".mobile-menu")
+      .querySelectorAll(".mobile-menu, .company-account-menu")
       .forEach((menu) =>
         observer.observe(menu, {
           attributes: true,

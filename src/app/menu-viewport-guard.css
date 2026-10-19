@@ -1,0 +1,16 @@
+/* Keep all account actions available, including on short/zoomed viewports. */
+.company-account-menu > div {
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
+  max-height: var(--v4519-mobile-menu-max-height, calc(100dvh - 100px));
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  overflow-wrap: anywhere;
+  -webkit-overflow-scrolling: touch;
+}
+.company-account-menu > div a,
+.company-account-menu > div button {
+  min-height: 44px;
+  flex-shrink: 0;
+}
