@@ -24,6 +24,14 @@
 
 # Observações de desenvolvimento
 
+### Doctor: sessão autenticada e falhas de carregamento — 19/10/2026
+
+- Contexto: continuar 418/Load failed em Company/Bank sem gravar operações reais ou remover funções.
+- Evidência: sessão real abriu/recarregou nova venda e Bank, inclusive largura móvel; nova venda pelo seletor e botão local de produto funcionaram sem erros capturados. Retorno móvel à fila e recuperação da aba tiveram limites da automação, causa não confirmada. Assets antigos/atuais responderam 200 agora. Nenhuma prova de resolução dos erros originais.
+- Lacuna: error listener não capturava recurso não-bubbling e registros genéricos careciam de contexto. Adicionado contexto técnico limitado e captura de JS/CSS Next da mesma origem com caminho sem query/hash, preservando mensagens, dedupe e propagação.
+- Verificação: ciclo/privacidade em Node e quatro eventos em Chromium com fetch simulado; nenhuma falha injetada no ERP. Sem formulário, pagamento, cadastro ou limpeza de histórico. Telemetria normal da navegação real preservada.
+- Status: investigação em andamento; instrumentação precisa do gate de build/publicação e nova ocorrência real para orientar a correção. Evidências em DOCTOR-AUTENTICADO-2026-10-19.md; iPhone físico permanece com o responsável.
+
 ### Doctor: zoom da Vitrine e compatibilidade semanal Bank — 19/10/2026
 
 - Contexto: investigar corte de Vitrine e erros React sem apagar registros ou mexer nos dados reais.
