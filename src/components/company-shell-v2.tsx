@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import "./company-header-responsive.css";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {

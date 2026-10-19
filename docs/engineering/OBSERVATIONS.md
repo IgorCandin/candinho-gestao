@@ -1,3 +1,11 @@
+## 19/10/2026 — Gestão por tarefa e cabeçalho no zoom
+
+- Contexto: Gestão apresentava atalhos sem agrupamento; cabeçalho de desktop com zoom caía em regras conflitantes abaixo de 1100 px. A regra display:contents nos dois menus removia as suas colunas, comprimindo setores diferentes.
+- Correção: Gestão separa Suplementos/Fitness e Dia a dia/Cadastros e estoque/Valores e resultados/Sistema; busca, limpeza, descrição da tarefa e destinos Company por operação. Atalhos compartilhados identificados; investimento mensal acompanha a operação. Agenda e ações existentes preservadas em seção explicitamente compartilhada, independente do filtro dos atalhos. Bank respeita acesso; custos respeitam escrita. Destinos administrativos anteriores mantidos.
+- Cabeçalho: CSS limitado ao shell Company com mouse, sem alterar Bank/Physique nem a barra móvel. A partir de 1100 px, seis setores e logo em uma linha estável; entre 701 e 1099 px, logo acima e seis setores equilibrados. Altura estável, área de conteúdo reservada e rótulos visíveis, inclusive em hover/foco; ponto de quebra é largura CSS disponível, portanto responde ao zoom.
+- Evidência: TypeScript e lint direcionado sem erros; 94 testes Node aprovados. Fixture do shell/componente reais, com dados fictícios, testada em 1536/1366/1100/1099/1071/1024/911/854/768/701/700/584/390/320 px: filtros, links por operação, busca, limpeza, seis setores sem colisão, rótulos sem corte, conteúdo abaixo do cabeçalho e ausência de overflow/erros JS. Desktop conferido em normal/hover/foco. Faixas cobrem larguras CSS produzidas por zoom usual em Windows; não constituem teste físico de escala do sistema/Safari.
+- Status: implementação validada localmente; build e conferência oficial condicionam publicação. Nenhum compromisso, cadastro, saldo ou pagamento real alterado. Teste do responsável pendente.
+
 ## 19/10/2026 — Produtos por operação e ação
 
 - Contexto: operação, combos, promoções e parceiros compartilhavam a mesma barra; edição e estoque por produto ficavam pouco explícitos.
@@ -353,3 +361,11 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Botão abre wa.me no atendimento confirmado, com mensagem codificada para revisão/envio pelo próprio visitante. Nenhuma mensagem real deve ser enviada para teste. Estética prateada/carvão/ocre e tipografia preservadas; painel de seleção com duas colunas no computador e uma no celular.
 - Validações e publicação serão registradas no PR/entrega; sem mudanças de schema ou regras da campanha.
 - Verificação complementar: navegador desktop e 390×844 conferiu seleção mista, filtro que oculta um favorito sem removê-lo da mensagem, destino exato do WhatsApp, links canônicos, cupom opcional e bloqueio de código malformado. Inspeção do href decodificado, sem clicar em enviar no WhatsApp. Cupom BEMVINDO-EXEMPLO digitado somente na interface; nenhuma emissão real. Testes do cadastro usam RPC simulada para sucesso/falha, compartilhando somente o código retornado. Lint dos seis módulos aprovado; build/TypeScript da prévia 72122fb READY.
+
+### OBS-021 — Quantidade e variante nos Salvos
+
+- Data: 19/10/2026. Pedido: escolher quantidade e, em Fitness, tamanho e cor antes de abrir o WhatsApp.
+- Escolhas controladas na Vitrine permanecem ao alternar Produtos/Salvos e filtros durante a visita. Painel lista todos os favoritos para revisar inclusive itens ocultos pelos filtros. Quantidade inteira positiva; roupas usam somente combinacoes com saldo positivo da consulta publica existente, com cor dependente do tamanho e limite por combinacao. Sem opcoes publicas, mensagem indica consulta ao atendimento sem inventar variante.
+- Mensagem leva quantidade e variante escolhida, links e cupom opcional. Nenhuma reserva, pedido, baixa de estoque ou uso de cupom automatico. Testes nao enviam mensagem real.
+- Evidencia local: 15 testes Node de mensagem, validacao, cupom, tamanhos, colecoes e movimento aprovados. Conferencia visual e build registrados no PR antes da publicacao.
+- Conferencia de previa 1260f31 READY: selecao mista com 2 creatinas e Blusa de Tule M/Branco, cupom de exemplo e destino confirmado no href decodificado. Quantidade 999 bloqueia por saldo de 1; limpar tamanho limpa/desabilita cor. Alternar Produtos/Salvos preserva escolhas. Celular 390x844 sem overflow horizontal e campos legiveis. Nenhuma mensagem enviada ou cupom emitido. Lint dos tres modulos alterados aprovado. Merge das mudancas concorrentes de Company preservado.
