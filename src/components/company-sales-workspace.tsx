@@ -2,8 +2,8 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, CalendarClock, ContactRound, FileText, Flame, MessageCircle, PackageSearch, Repeat2, Search, ShoppingBag, Sparkles, UserRoundPlus } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { ArrowRight, ContactRound, FileText, Flame, MessageCircle, PackageSearch, Repeat2, Search, X, ShoppingBag, Sparkles, UserRoundPlus } from "lucide-react";
+import { useMemo, useState } from "react";
 import { CompanySalesQueueActions } from "@/components/company-sales-queue-actions";
 import { CompanyWorkflowSync } from "@/components/company-workflow-sync";
 import { LeadConvertButton } from "@/components/lead-convert-button";
@@ -11,8 +11,12 @@ import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow } from "@/lib/types";
 import type { FitnessCustomerRow } from "@/lib/types";
 import { formatCurrency, formatDateOnly } from "@/lib/format";
+import type { SizeOpportunity } from "@/lib/fitness-size-opportunities";
+import "./company-completion-filters.css";
+import "./company-sales-workspace.css";
 
-type Queue = "today" | "repurchase" | "leads" | "complementary" | "fitness";
+type Queue = "today" | "repurchase" | "leads" | "complementary" | "fitness" | "sizes";
+type Operation = "all" | "Suplementos" | "Fitness";
 type ProductMedia = Record<string, { photo1: string | null; photo2: string | null }>;
 
 const QUEUES: Array<{ key: Queue; label: string; icon: typeof Flame }> = [
@@ -20,7 +24,8 @@ const QUEUES: Array<{ key: Queue; label: string; icon: typeof Flame }> = [
   { key: "repurchase", label: "Recompras", icon: Repeat2 },
   { key: "leads", label: "Leads quentes", icon: ContactRound },
   { key: "complementary", label: "Complementares", icon: Sparkles },
-  { key: "fitness", label: "Fitness", icon: ShoppingBag },
+  { key: "sizes", label: "Tamanho + estoque", icon: ShoppingBag },
+  { key: "fitness", label: "Reativar clientes", icon: Repeat2 },
 ];
 
 const LEAD_RANK: Record<string, number> = {
@@ -61,7 +66,7 @@ function ProductVisual({ name, media }: { name: string; media?: { photo1: string
   );
 }
 
-function OpportunityCard({ row, relatedRows = [row], featured = false, media }: { row: SalesOpportunity; relatedRows?: SalesOpportunity[]; featured?: boolean; media?: { photo1: string | null; photo2: string | null } }) {
+function OpportunityCard({ row, relatedRows = [row], featured = false, media, canWrite = false }: { row: SalesOpportunity; relatedRows?: SalesOpportunity[]; featured?: boolean; media?: { photo1: string | null; photo2: string | null }; canWrite?: boolean }) {
   return (
     <article className={`company-sale-card ${featured ? "featured" : ""}`}>
       <header>
@@ -79,12 +84,13 @@ function OpportunityCard({ row, relatedRows = [row], featured = false, media }: 
       </div>
       {relatedRows.length > 1 ? <div className="company-sale-more-offers"><span>{relatedRows.length} oportunidades reunidas</span>{relatedRows.slice(1).map((item) => <small key={`${item.opportunity_group}-${item.recommended_product_id ?? item.opportunity_subtype}`}>+ {item.recommended_product_name || item.opportunity_subtype.replaceAll("_", " ")}</small>)}</div> : null}
       <p>{row.reason}</p>
-      <CompanySalesQueueActions opportunity={row} />
+      <div className="sales-next-step"><strong>O que fazer</strong><p>{row.scheduled_return ? "Retome a conversa combinada e confirme se o cliente quer preparar o pedido." : row.last_feedback_status === "contacted" ? "Confira se houve resposta antes de chamar novamente." : "Confirme a necessidade e a disponibilidade do produto antes de oferecer."}</p>{canWrite && <Link href={`/company/vendas/nova/suplementos?cliente=${encodeURIComponent(row.customer_id)}${row.recommended_product_id ? `&produto=${encodeURIComponent(row.recommended_product_id)}` : ""}`}>Preparar venda com este cliente</Link>}</div>
+      {canWrite && <details className="sales-contact-outcome"><summary>Registrar resultado do contato</summary><CompanySalesQueueActions opportunity={row}/></details>}
     </article>
   );
 }
 
-function LeadCard({ lead }: { lead: LeadRow }) {
+function LeadCard({ lead, canWrite = false }: { lead: LeadRow; canWrite?: boolean }) {
   const whatsapp = whatsappHref(lead.phone, `Olá, ${lead.customer_name}! Tudo bem? Estou retornando sobre ${lead.product_summary || "seu interesse"}.`);
   return (
     <article className="company-sale-card lead-card">
@@ -92,22 +98,30 @@ function LeadCard({ lead }: { lead: LeadRow }) {
       <div className="company-sale-person"><div><strong>{lead.customer_name}</strong><small>{[lead.city, lead.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div><Link href={`/company/leads/${lead.id}`}><ArrowRight size={17} /></Link></div>
       <div className="company-sale-offer"><PackageSearch size={18} /><div><span>Interesse registrado</span><strong>{lead.product_summary || "Produto não informado"}</strong></div></div>
       {lead.notes ? <p>{lead.notes}</p> : <p>Abra o lead, confirme a necessidade e deixe a próxima ação marcada.</p>}
-      <div className="company-sale-actions">{whatsapp ? <a className="company-whatsapp" href={whatsapp}><MessageCircle size={15} /> WhatsApp</a> : null}<Link href={`/company/leads/${lead.id}`}><ContactRound size={15} /> Abrir lead</Link><LeadConvertButton leadId={lead.id} companyMode /></div>
+      <div className="company-sale-actions">{whatsapp ? <a className="company-whatsapp" href={whatsapp}><MessageCircle size={15} /> WhatsApp</a> : null}<Link href={`/company/leads/${lead.id}`}><ContactRound size={15} /> Abrir lead</Link>{canWrite && <LeadConvertButton leadId={lead.id} companyMode />}</div>
     </article>
   );
 }
 
-function FitnessOpportunityCard({ customer }: { customer: FitnessCustomerRow }) {
+function FitnessOpportunityCard({ customer, canWrite = false }: { customer: FitnessCustomerRow; canWrite?: boolean }) {
   const whatsapp = whatsappHref(customer.phone, `Olá, ${customer.name}! Tudo bem? Chegaram novidades da Candinho Fitness e lembrei de você.`);
-  return <article className="company-sale-card lead-card"><header><span className="company-priority priority-media">Fitness</span><span className="company-sale-score">{customer.classification}</span></header><div className="company-sale-person"><div><strong>{customer.name}</strong><small>{[customer.city, customer.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div><Link href={`/company/clientes/fitness/${customer.id}`}><ArrowRight size={17}/></Link></div><div className="company-sale-offer"><ShoppingBag size={18}/><div><span>Oportunidade Fitness</span><strong>{customer.total_purchases ? `Reativar após ${customer.days_without_purchase ?? 0} dias` : "Primeira compra"}</strong><small>{customer.total_purchases} compra(s) · {formatCurrency(customer.total_spent)}</small></div></div><p>{customer.total_purchases ? "Revise os tamanhos e produtos anteriores antes de sugerir uma nova peça." : "Cliente cadastrado ainda sem compra Fitness."}</p><div className="company-sale-actions">{whatsapp ? <a className="company-whatsapp" href={whatsapp}><MessageCircle size={15}/> WhatsApp</a> : null}<Link href={`/company/clientes/fitness/${customer.id}`}><ContactRound size={15}/> Abrir ficha</Link></div></article>;
+  return <article className="company-sale-card lead-card"><header><span className="company-priority priority-media">Fitness</span><span className="company-sale-score">{customer.classification}</span></header><div className="company-sale-person"><div><strong>{customer.name}</strong><small>{[customer.city, customer.phone].filter(Boolean).join(" · ") || "Sem contato informado"}</small></div><Link href={`/company/clientes/fitness/${customer.id}`}><ArrowRight size={17}/></Link></div><div className="company-sale-offer"><ShoppingBag size={18}/><div><span>Reativação Fitness</span><strong>{customer.total_purchases ? `Reativar após ${customer.days_without_purchase ?? 0} dias` : "Primeira compra"}</strong><small>{customer.total_purchases} compra(s) · {formatCurrency(customer.total_spent)}</small></div></div><p>{customer.total_purchases ? "Revise os tamanhos e produtos anteriores antes de sugerir uma nova peça." : "Cliente cadastrado ainda sem compra Fitness."}</p><div className="company-sale-actions">{whatsapp ? <a className="company-whatsapp" href={whatsapp}><MessageCircle size={15}/> WhatsApp</a> : null}<Link href={`/company/clientes/fitness/${customer.id}`}><ContactRound size={15}/> Abrir ficha</Link>{canWrite && <Link href={`/company/vendas/nova/fitness?cliente=${encodeURIComponent(customer.id)}`}>Preparar venda com esta cliente</Link>}</div></article>;
 }
 
-export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, productMedia, blockedCustomerIds }: { opportunities: SalesOpportunity[]; leads: LeadRow[]; fitnessCustomers: FitnessCustomerRow[]; productMedia: ProductMedia; blockedCustomerIds: string[] }) {
-  const [queue, setQueue] = useState<Queue>("today");
+function FitnessSizeCard({ item, canWrite, customer }: { item: SizeOpportunity; canWrite: boolean; customer?: FitnessCustomerRow }) {
+  const { evidence, products } = item;
+  const whatsapp = whatsappHref(customer?.phone ?? null, `Olá, ${evidence.customerName}! Tudo bem? Separei algumas opções de ${evidence.category} da Candinho Fitness. Posso confirmar seu tamanho e o que procura?`);
+  return <article className="company-sale-card fitness-size-card"><header><span className="company-priority priority-media">Fitness · tamanho + estoque</span><small>{products.length} peça(s) para conferir</small></header><div className="company-sale-person"><div><strong>{evidence.customerName}</strong><small>{evidence.category} · tamanho observado {evidence.size}</small></div><Link href={`/company/clientes/fitness/${evidence.customerId}`} aria-label={`Abrir ficha de ${evidence.customerName}`}><ArrowRight size={17}/></Link></div><p>Compra anterior: {evidence.productName} · {evidence.size} · {formatDateOnly(evidence.date)}.</p><div className="sales-next-step"><strong>O que fazer</strong><p>Confirme o tamanho e o interesse com a cliente. A compra anterior pode ter sido presente; o tamanho também varia por modelo.</p><div className="company-sale-actions">{whatsapp ? <a href={whatsapp} className="company-whatsapp"><MessageCircle size={15}/>Conversar com a cliente</a> : <Link href="/company/clientes/telefones?operacao=Fitness">Conferir telefone da cliente</Link>}</div></div><div className="fitness-size-offers">{products.map(product=><div key={product.variant_id}><Link href={`/company/produtos/fitness/${product.product_id}`}><strong>{product.product_name}</strong></Link><span>{product.size} · {product.color} · {product.available_quantity} disponível</span><b>{formatCurrency(product.sale_price)}</b>{canWrite && <Link className="fitness-prepare-sale" href={`/company/vendas/nova/fitness?cliente=${encodeURIComponent(evidence.customerId)}&variante=${encodeURIComponent(product.variant_id)}`}>Preparar venda com esta peça</Link>}</div>)}</div></article>;
+}
+
+export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, productMedia, blockedCustomerIds, fitnessSizeOpportunities = [], sampledFitnessSales = 0, allowedOperations = ["Suplementos", "Fitness"], canWriteSupplements = false, canWriteFitness = false, initialOperation = "all" }: { opportunities: SalesOpportunity[]; leads: LeadRow[]; fitnessCustomers: FitnessCustomerRow[]; productMedia: ProductMedia; blockedCustomerIds: string[]; fitnessSizeOpportunities?: SizeOpportunity[]; sampledFitnessSales?: number; allowedOperations?: Array<Exclude<Operation,"all">>; canWriteSupplements?: boolean; canWriteFitness?: boolean; initialOperation?: Operation }) {
+  const initialScope = initialOperation !== "all" && !allowedOperations.includes(initialOperation) ? "all" : initialOperation;
+  const [operation, setOperation] = useState<Operation>(initialScope);
+  const [queue, setQueue] = useState<Queue>(initialScope === "Fitness" || !allowedOperations.includes("Suplementos") ? "sizes" : "today");
   const [query, setQuery] = useState("");
   const [shown, setShown] = useState(24);
-  const queueSectionRef = useRef<HTMLElement | null>(null);
-  function openQueue(nextQueue: Queue) { setQueue(nextQueue); setShown(24); window.setTimeout(() => queueSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 0); }
+  function openQueue(nextQueue: Queue) { setQueue(nextQueue); setShown(24); }
+  function selectOperation(value: Operation) { setOperation(value); setShown(24); if(value === "Fitness" && !["sizes","fitness"].includes(queue)) setQueue("sizes"); if(value === "Suplementos" && ["sizes","fitness"].includes(queue)) setQueue("today"); }
   const hotLeads = useMemo(() => leads.filter((lead) => lead.general_status === "pending").sort((a, b) => (LEAD_RANK[a.lead_status ?? ""] ?? 99) - (LEAD_RANK[b.lead_status ?? ""] ?? 99) || b.lead_date.localeCompare(a.lead_date)), [leads]);
   const blockedPeople = useMemo(() => new Set(blockedCustomerIds), [blockedCustomerIds]);
   const today = brazilToday();
@@ -159,46 +173,39 @@ export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, 
     const needle = query.trim().toLocaleLowerCase("pt-BR");
     return needle ? hotLeads.filter((lead) => [lead.customer_name, lead.city, lead.phone, lead.product_summary, lead.lead_status].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle))) : hotLeads;
   }, [hotLeads, query]);
-  const visibleFitness = useMemo(() => fitnessCustomers.filter((customer) => customer.active && customer.total_purchases > 0 && (customer.days_without_purchase ?? 0) >= 45).filter((customer) => { const needle = query.trim().toLocaleLowerCase("pt-BR"); return !needle || [customer.name, customer.city, customer.phone].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle)); }).sort((a, b) => (b.days_without_purchase ?? 0) - (a.days_without_purchase ?? 0)), [fitnessCustomers, query]);
+  const fitnessCandidates = useMemo(() => fitnessCustomers.filter(customer => customer.active && customer.total_purchases > 0 && (customer.days_without_purchase ?? 0) >= 45).sort((a,b)=>(b.days_without_purchase ?? 0)-(a.days_without_purchase ?? 0)), [fitnessCustomers]);
   const needle = query.trim().toLocaleLowerCase("pt-BR");
   const visibleToday = todayCandidates.filter((item) => {
     if (!needle) return true;
     const values = item.kind === "lead" ? [item.lead.customer_name, item.lead.product_summary, item.lead.city] : [item.row.customer_name, item.row.recommended_product_name, item.row.city];
     return values.some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle));
   });
-  const featured = todayCandidates[0] ?? null;
-  const repurchases = opportunities.filter((row) => row.opportunity_group === "recompra").length;
-  const complementary = opportunities.filter((row) => row.opportunity_group === "produto_complementar").length;
-  const totalRows = queue === "today" ? visibleToday.length : queue === "leads" ? visibleLeads.length : queue === "fitness" ? visibleFitness.length : groupedRows.length;
+  const visibleFitness = fitnessCandidates.filter(customer => !needle || [customer.name,customer.city,customer.phone].some(value=>value?.toLocaleLowerCase("pt-BR").includes(needle)));
+  const visibleSizes = fitnessSizeOpportunities.filter(item=>!needle || `${item.evidence.customerName} ${item.evidence.category} ${item.evidence.size} ${item.products.map(product=>`${product.product_name} ${product.color}`).join(" ")}`.toLocaleLowerCase("pt-BR").includes(needle));
+  const featured = queue === "today" && operation !== "Fitness" ? visibleToday[0] ?? null : null;
+  const totalRows = queue === "today" ? visibleToday.length : queue === "leads" ? visibleLeads.length : queue === "fitness" ? visibleFitness.length : queue === "sizes" ? visibleSizes.length : groupedRows.length;
 
+  const availableQueues = QUEUES.filter(item => ["sizes","fitness"].includes(item.key) ? operation !== "Suplementos" && allowedOperations.includes("Fitness") : operation !== "Fitness" && allowedOperations.includes("Suplementos"));
+  const counts: Record<Queue,number> = { today: todayCandidates.length, repurchase: new Set(opportunities.filter(row=>row.opportunity_group === "recompra").map(row=>row.customer_id)).size, complementary: new Set(opportunities.filter(row=>row.opportunity_group === "produto_complementar").map(row=>row.customer_id)).size, leads: hotLeads.length, sizes: fitnessSizeOpportunities.length, fitness: fitnessCandidates.length };
+  const queueHelp: Record<Queue,string> = { today:"Suplementos: até 10 pessoas com retorno combinado, interesse recente ou confirmação do cliente. Confira o histórico antes de chamar.", repurchase:"Suplementos: estimativa de recompra. Confirme com o cliente; prazo estimado não significa urgência confirmada.", leads:"Suplementos: interesses registrados, ordenados pelo estágio. Confira o pedido e prepare a venda a partir do lead.", complementary:"Suplementos: sugestões complementares. Confirme se fazem sentido para a necessidade do cliente.", sizes:`Fitness: combinações de tamanho observado e estoque disponível, na amostra das últimas ${sampledFitnessSales} vendas válidas (máximo 500). Não é certeza de tamanho nem reserva de estoque.`, fitness:"Fitness: clientes ativos com compra anterior e pelo menos 45 dias sem comprar. Revise o histórico e confirme se há interesse; tempo sem compra não indica urgência." };
   return (
-    <div className="company-sales-v2"><CompanyWorkflowSync />
-      <header className="company-sales-head">
-        <div><span>Company · Comercial</span><h1>Vender agora</h1><p>Falar agora mostra até 10 pessoas com sinal concreto. Recompras por prazo ficam na aba de consulta, sem virar urgência automaticamente.</p></div>
-        <div><Link href="/company/leads/novo" className="button ghost"><UserRoundPlus size={16} /> Novo lead</Link><Link href="/company/orcamentos" className="button ghost"><FileText size={16} /> Orçamentos</Link><Link href="/company/vendas/nova" className="button company-blue"><Sparkles size={16} /> Nova venda</Link></div>
-      </header>
-
-      <section className="company-sales-metrics">
-        <button type="button" onClick={() => openQueue("today")}><Flame size={18} /><span>Falar agora</span><strong>{todayCandidates.length}</strong></button>
-        <button type="button" onClick={() => openQueue("repurchase")}><Repeat2 size={18} /><span>Recompras</span><strong>{repurchases}</strong></button>
-        <button type="button" onClick={() => openQueue("leads")}><ContactRound size={18} /><span>Leads abertos</span><strong>{hotLeads.length}</strong></button>
-        <button type="button" onClick={() => openQueue("complementary")}><Sparkles size={18} /><span>Complementares</span><strong>{complementary}</strong></button>
-        <button type="button" onClick={() => openQueue("fitness")}><ShoppingBag size={18}/><span>Fitness</span><strong>{visibleFitness.length}</strong></button>
-      </section>
-
+    <div className="company-sales-v2 company-queue-workspace company-selling-workspace"><CompanyWorkflowSync />
+      <header className="company-sales-head"><div><span>Company · Comercial</span><h1>Vender agora</h1><p>Escolha a operação, confira o motivo da oportunidade e prepare a venda com o cliente selecionado.</p></div><div>{canWriteSupplements && operation !== "Fitness" && <Link href="/company/leads/novo" className="button ghost"><UserRoundPlus size={16}/>Novo lead de Suplementos</Link>}<Link href="/company/orcamentos" className="button ghost"><FileText size={16}/>Orçamentos</Link>{(operation === "Fitness" ? canWriteFitness : operation === "Suplementos" ? canWriteSupplements : canWriteSupplements || canWriteFitness) && <Link href={operation === "all" ? "/company/vendas/nova" : `/company/vendas/nova/${operation === "Fitness" ? "fitness" : "suplementos"}`} className="button company-blue"><ShoppingBag size={16}/>Nova venda{operation !== "all" ? ` · ${operation}` : ""}</Link>}</div></header>
+      <section className="company-sales-queue">
+        <div className="completion-filters">
+          <fieldset className="completion-operation"><legend>Operação</legend><div className="completion-segments">{(["all",...allowedOperations] as const).map(value=><button type="button" key={value} aria-pressed={operation===value} onClick={()=>selectOperation(value)}>{value==="all"?"Todas":value}</button>)}</div></fieldset>
+          <label className="completion-search"><span>Buscar cliente ou oportunidade</span><div><Search size={17}/><input type="search" value={query} onChange={event=>{setQuery(event.target.value);setShown(24)}} placeholder="Cliente, produto, tamanho ou cor"/>{query&&<button type="button" aria-label="Limpar busca" onClick={()=>setQuery("")}><X size={17}/></button>}</div></label>
+          <fieldset className="completion-status"><legend>Qual oportunidade você quer atender?</legend><div className="completion-segments">{availableQueues.map(({key,label})=><button type="button" key={key} aria-pressed={queue===key} onClick={()=>openQueue(key)}><span>{label}</span><span className="completion-filter-count">{counts[key]}</span></button>)}</div></fieldset>
+        </div>
+        <div className="completion-filter-result"><p role="status" aria-live="polite">{totalRows} {queue === "sizes" ? "combinação(ões) de cliente e categoria" : queue === "leads" ? "lead(s)" : "pessoa(s)"} · {queue === "sizes" || queue === "fitness" ? "Fitness" : "Suplementos"}</p>{(operation!=="all"||query||queue!=="today")&&<button type="button" onClick={()=>{setOperation("all");setQuery("");setQueue(allowedOperations.includes("Suplementos")?"today":"sizes");setShown(24)}}>Limpar filtros</button>}</div>
+        <p className="selling-queue-help">{queueHelp[queue]}</p>
       {featured ? <section className="company-sales-feature"><div><span><Flame size={14} /> Comece por aqui</span><h2>{featured.kind === "lead" ? featured.lead.customer_name : featured.row.customer_name}</h2><p>{featured.kind === "lead" ? "Interesse recente registrado. Confira o lead antes de chamar." : featured.row.scheduled_return ? "Chegou a data combinada com o cliente. Confira o histórico antes do contato." : featured.row.last_feedback_status === "contacted" ? "Verifique se respondeu ao contato anterior antes de enviar outra mensagem." : "Cliente informou que o produto acabou. Confirme se ainda precisa comprar."}</p></div></section> : null}
 
-      <section className="company-sales-queue" ref={queueSectionRef}>
-        <div className="company-sales-toolbar">
-          <div className="company-sales-tabs">{QUEUES.map(({ key, label, icon: Icon }) => <button type="button" className={queue === key ? "active" : ""} onClick={() => openQueue(key)} key={key}><Icon size={15} />{label}</button>)}</div>
-          <label><Search size={16} /><input value={query} onChange={(event) => { setQuery(event.target.value); setShown(24); }} placeholder="Buscar cliente ou produto" /></label>
-        </div>
-        <div className="company-sales-count"><CalendarClock size={15} /><span>{totalRows} pessoa(s) nesta fila</span><small>Conclua uma ação por vez</small></div>
         <div className="company-sales-grid">
-          {queue === "today" ? visibleToday.map((item) => item.kind === "lead" ? <LeadCard lead={item.lead} key={`lead-${item.lead.id}`} /> : <OpportunityCard row={item.row} relatedRows={opportunities.filter((row) => row.customer_id === item.row.customer_id)} featured media={item.row.recommended_product_id ? productMedia[item.row.recommended_product_id] : undefined} key={`opportunity-${item.row.customer_id}`} />) : queue === "leads" ? visibleLeads.slice(0, shown).map((lead) => <LeadCard lead={lead} key={`${lead.id}-${lead.item_id ?? "lead"}`} />) : queue === "fitness" ? visibleFitness.slice(0, shown).map((customer) => <FitnessOpportunityCard customer={customer} key={customer.id}/>) : groupedRows.slice(0, shown).map((group) => <OpportunityCard row={group[0]} relatedRows={group} media={group[0].recommended_product_id ? productMedia[group[0].recommended_product_id] : undefined} key={group[0].customer_id} />)}
+          {queue === "today" ? visibleToday.map((item) => item.kind === "lead" ? <LeadCard lead={item.lead} canWrite={canWriteSupplements} key={`lead-${item.lead.id}`} /> : <OpportunityCard row={item.row} canWrite={canWriteSupplements} relatedRows={opportunities.filter((row) => row.customer_id === item.row.customer_id)} featured media={item.row.recommended_product_id ? productMedia[item.row.recommended_product_id] : undefined} key={`opportunity-${item.row.customer_id}`} />) : queue === "leads" ? visibleLeads.slice(0, shown).map((lead) => <LeadCard lead={lead} canWrite={canWriteSupplements} key={`${lead.id}-${lead.item_id ?? "lead"}`} />) : queue === "fitness" ? visibleFitness.slice(0, shown).map((customer) => <FitnessOpportunityCard customer={customer} canWrite={canWriteFitness} key={customer.id}/>) : queue === "sizes" ? visibleSizes.slice(0,shown).map(item=><FitnessSizeCard item={item} customer={fitnessCustomers.find(customer=>customer.id===item.evidence.customerId)} canWrite={canWriteFitness} key={`${item.evidence.customerId}:${item.evidence.category}`}/>) : groupedRows.slice(0, shown).map((group) => <OpportunityCard row={group[0]} canWrite={canWriteSupplements} relatedRows={group} media={group[0].recommended_product_id ? productMedia[group[0].recommended_product_id] : undefined} key={group[0].customer_id} />)}
         </div>
-        {queue !== "today" && totalRows > shown ? <button className="button ghost company-sales-more" type="button" onClick={() => setShown((current) => current + 24)}>Mostrar mais 24 pessoas</button> : null}
-        {totalRows === 0 ? <div className="company-empty-state"><PackageSearch size={25} /><strong>Nenhuma oportunidade encontrada</strong><span>Troque a fila ou ajuste a busca.</span></div> : null}
+        {queue !== "today" && totalRows > shown ? <button className="button ghost company-sales-more" type="button" onClick={() => setShown((current) => current + 24)}>Mostrar mais 24 registros</button> : null}
+        {totalRows === 0 ? <div className="company-empty-state"><PackageSearch size={25} /><strong>Nenhuma oportunidade encontrada</strong><span>Troque a fila ou ajuste a busca. A ausência de combinações Fitness neste recorte não significa ausência de oportunidades fora da amostra.</span></div> : null}
       </section>
     </div>
   );

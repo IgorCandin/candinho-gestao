@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
 import { getOperationInvestmentSnapshot } from "@/lib/bank-data";
 import { getActivePromotionRows } from "@/lib/active-promotion-data";
+import { getFitnessSizeOpportunities } from "@/lib/fitness-size-opportunities-data";
 import { CompanySalesWorkspace } from "@/components/company-sales-workspace";
 import { CompanyCompletionWorkspace } from "@/components/company-completion-workspace";
 import type { CompletionOrder } from "@/components/company-completion-workspace";
@@ -61,15 +62,18 @@ export default async function CompanySectorPage({ params, searchParams }: { para
   if (!config) notFound();
 
   if (sector === "vender") {
+    const canSupplements = access.role === "admin" || access.canAccessSupplements;
+    const canFitness = access.role === "admin" || access.canAccessFitness;
     const supabase = await createClient();
-    const [opportunitiesResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers, contactStateResult] = await Promise.all([
-      supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(250),
-      supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(100),
-      supabase.from("products").select("id,image_url,banner_image_url").eq("active", true),
-      supabase.from("customer_sales_opportunities_v1").select("*").order("opportunity_score", { ascending: false }).limit(300),
-      supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,feedback_status,next_action_on,created_at,notes").order("created_at", { ascending: false }).limit(600),
+    const [opportunitiesResult, leadsResult, mediaResult, baseResult, feedbackResult, fitnessCustomers, contactStateResult, fitnessSizes] = await Promise.all([
+      canSupplements ? supabase.from("customer_sales_opportunities_actionable_v2").select("*").order("opportunity_score", { ascending: false }).limit(250) : Promise.resolve({data:[],error:null}),
+      canSupplements ? supabase.from("leads_history").select("*").eq("general_status", "pending").order("lead_date", { ascending: false }).limit(100) : Promise.resolve({data:[],error:null}),
+      canSupplements ? supabase.from("products").select("id,image_url,banner_image_url").eq("active", true) : Promise.resolve({data:[],error:null}),
+      canSupplements ? supabase.from("customer_sales_opportunities_v1").select("*").order("opportunity_score", { ascending: false }).limit(300) : Promise.resolve({data:[],error:null}),
+      canSupplements ? supabase.from("customer_sales_opportunity_feedback").select("customer_id,recommended_product_id,opportunity_group,feedback_status,next_action_on,created_at,notes").order("created_at", { ascending: false }).limit(600) : Promise.resolve({data:[],error:null}),
       access.role === "admin" || access.canAccessFitness ? getFitnessCustomers() : Promise.resolve([]),
-      supabase.from("customer_commercial_contact_state_v1").select("customer_id,pause_until"),
+      canSupplements ? supabase.from("customer_commercial_contact_state_v1").select("customer_id,pause_until") : Promise.resolve({data:[],error:null}),
+      canFitness ? getFitnessSizeOpportunities() : Promise.resolve({ opportunities: [], sampledSales: 0 }),
     ]);
     if (opportunitiesResult.error) throw new Error(opportunitiesResult.error.message);
     if (leadsResult.error) throw new Error(leadsResult.error.message);
@@ -111,7 +115,8 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const opportunities = [...opportunityMap.values()].filter((row) => !blockedPeople.has(row.customer_id)).sort((a, b) => b.opportunity_score - a.opportunity_score);
 
     const productMedia = Object.fromEntries((mediaResult.data ?? []).map((row) => [row.id, { photo1: row.image_url, photo2: row.banner_image_url }]));
-    return <CompanySalesWorkspace opportunities={opportunities} leads={(leadsResult.data ?? []) as LeadRow[]} fitnessCustomers={fitnessCustomers} productMedia={productMedia} blockedCustomerIds={blockedCustomerIds} />;
+    const sellQuery = await searchParams;
+    return <CompanySalesWorkspace initialOperation={sellQuery.operacao === "Suplementos" || sellQuery.operacao === "Fitness" ? sellQuery.operacao : "all"} allowedOperations={[...(canSupplements ? ["Suplementos" as const] : []), ...(canFitness ? ["Fitness" as const] : [])]} canWriteSupplements={access.role === "admin" || access.canWriteSupplements} canWriteFitness={access.role === "admin" || access.canWriteFitness} fitnessSizeOpportunities={fitnessSizes.opportunities} sampledFitnessSales={fitnessSizes.sampledSales} opportunities={opportunities} leads={(leadsResult.data ?? []) as LeadRow[]} fitnessCustomers={fitnessCustomers} productMedia={productMedia} blockedCustomerIds={blockedCustomerIds} />;
   }
 
   if (sector === "concluir") {
