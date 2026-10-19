@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, BarChart3, Boxes, Construction, FileText, GitBranch, Handshake, Keyboard, Landmark, MapPinned, Printer, ShieldCheck, ShoppingBag, Truck } from "lucide-react";
+import { ArrowLeft, Construction } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { getAgendaEvents, getAgendaPurchaseOrderOptions, getAgendaSaleOptions, getAgendaUsers, getCurrentUserAccess, getCustomerOptions, getFitnessCustomers, getFitnessDashboardPendingSales, getFitnessProducts, getFitnessStock, getInventoryOverview, getProductCatalog, getProductCombos } from "@/lib/data";
 import { getOperationInvestmentSnapshot } from "@/lib/bank-data";
@@ -21,7 +21,7 @@ import type { SalesOpportunity } from "@/lib/commercial-opportunity-types";
 import type { LeadRow, PendingOrderRow } from "@/lib/types";
 import { createClient } from "@/lib/supabase/server";
 import { CompanyWorkflowSync } from "@/components/company-workflow-sync";
-import { OperationInvestmentPanel } from "@/components/operation-investment-panel";
+import { CompanyManagementWorkspace } from "@/components/company-management-workspace";
 
 export const dynamic = "force-dynamic";
 
@@ -273,33 +273,15 @@ export default async function CompanySectorPage({ params, searchParams }: { para
       completed_month_count: events.filter((event) => event.status === "completed" && event.due_date.startsWith(month)).length + (commercialQueue.completed ? 1 : 0),
     };
     const canWrite = access.role === "admin" || access.canWriteSupplements || access.canWriteFitness;
-    return <div className="company-workspace-v2 company-global-agenda"><CompanyWorkflowSync/>
-      <header className="company-workspace-heading"><span>COMPANY · GESTÃO</span><h1>Visão da empresa</h1><p>Confira os números, organize a agenda e abra cadastros administrativos sem procurar por várias operações.</p></header>
-      <section className="company-management-links">
-        <Link href="/company/ferramentas"><Boxes/><div><strong>Ferramentas de Suplementos e Fitness</strong><span>Consignações, estoque inteligente, PDFs, Nexus e hábitos</span></div><b>→</b></Link>
-        {access.role === "admin" || access.canAccessFitness ? <Link href="/company/fitness/oportunidades"><ShoppingBag/><div><strong>Fitness · possibilidades de venda</strong><span>Tamanho observado, categoria e estoque disponível</span></div><b>→</b></Link> : null}
-        <Link href="/company/escritorio"><GitBranch/><div><strong>Escritório de operações</strong><span>Salas, personagens e pendências reais por área</span></div><b>→</b></Link>
-        <Link href="/company/central"><BarChart3/><div><strong>Sala do Dono</strong><span>Valores, resultados e atalhos executivos</span></div><b>→</b></Link>
-        <Link href="/company/resultados"><BarChart3/><div><strong>Resultados</strong><span>Company, Suplementos e Fitness desde a primeira venda</span></div><b>→</b></Link>
-        <Link href="/company/rotas"><MapPinned/><div><strong>Rotas</strong><span>Planejamento, clientes e entregas por cidade</span></div><b>→</b></Link>
-        <Link href="/company/parceiros/gerencial"><Handshake/><div><strong>Parceiros</strong><span>Produtos, vendas, percentuais e acertos</span></div><b>→</b></Link>
-        <Link href="/company/fornecedores"><Truck/><div><strong>Fornecedores</strong><span>Suplementos e Fitness em uma visão única</span></div><b>→</b></Link>
-        <Link href="/company/custos-insumos"><Boxes/><div><strong>Custos e insumos</strong><span>Materiais e custos das duas operações</span></div><b>→</b></Link>
-        <Link href="/company/estoque"><Boxes/><div><strong>Estoque</strong><span>Saldos, locais, lotes, contagem e movimentações</span></div><b>→</b></Link>
-        <Link href="/company/gestao/etiquetas"><Printer/><div><strong>Imprimir etiquetas</strong><span>Códigos, barras e preços para Suplementos e Fitness</span></div><b>→</b></Link>
-        <Link href="/company/orcamentos"><FileText/><div><strong>Histórico de orçamentos</strong><span>Todos, Suplementos e Fitness; cancelar e reabrir propostas</span></div><b>→</b></Link>
-        <Link href="/company/atalhos"><Keyboard/><div><strong>Atalhos</strong><span>Consulte e remova combinações com Alt</span></div><b>→</b></Link>
-        <Link href="/company/mapa"><GitBranch/><div><strong>Mapa da migração</strong><span>Andamento do ERP 2.0 e DNA da Company</span></div><b>→</b></Link>
-        <Link href="/company/qualidade"><ShieldCheck/><div><strong>Qualidade e atritos</strong><span>Erros, lentidão e rotas que mais precisam de revisão</span></div><b>→</b></Link>
-        <Link href="/bank"><Landmark/><div><strong>Candinho Bank</strong><span>Entradas, contas, faturas e fechamento financeiro</span></div><b>→</b></Link>
-      </section>
-      <OperationInvestmentPanel data={investment}/>
-      <header className="company-management-agenda-head"><span>AGENDA GLOBAL</span><h2>Organizar compromissos</h2><p>Suplementos e Fitness aparecem juntas e podem ser reorganizadas arrastando.</p></header>
+    const query = await searchParams;
+    const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
+    return <CompanyManagementWorkspace allowedOperations={[...(access.role === "admin" || access.canAccessSupplements ? ["Suplementos" as const] : []), ...(access.role === "admin" || access.canAccessFitness ? ["Fitness" as const] : [])]} canWriteSupplements={access.role === "admin" || access.canWriteSupplements} canWriteFitness={access.role === "admin" || access.canWriteFitness} canAccessBank={access.role === "admin" || access.canAccessBank} investment={investment} initialOperation={initialOperation}>
+      <CompanyWorkflowSync/>
       {canWrite ? <GoogleCalendarConnectionCard status={googleCalendar} /> : null}
       {!commercialQueue.skipped ? <CommercialContactAgendaCard snapshot={commercialQueue} companyMode /> : null}
       <AgendaDragDropV4532 events={events} enabled={canWrite} />
       <OperationalCalendar events={events} summary={summary} customers={customers} sales={sales} purchaseOrders={purchaseOrders} users={users} canWrite={canWrite} />
-    </div>;
+    </CompanyManagementWorkspace>;
   }
 
   return <div className="company-v2-page"><div className="company-coming-soon"><Construction size={34} /><span>ERP 2.0 · Próximo módulo</span><h1>{config.title}</h1><p>{config.description}</p><Link className="button ghost" href="/company/inicio"><ArrowLeft size={16} />Voltar à Company</Link></div></div>;

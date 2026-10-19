@@ -1,0 +1,21 @@
+.company-management-workspace .management-agenda-link{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;border:1px solid #34556c;border-radius:10px;color:#c0e6ff;text-decoration:none;font-size:13px;flex-shrink:0}
+.company-management-workspace .completion-filter-result p,.company-management-workspace .management-scope-note{font-size:12px;color:#a9bfce;line-height:1.7}
+.company-management-workspace .management-shortcut-section{margin-top:26px}
+.company-management-workspace .management-shortcut-section h2{font-size:20px;margin:0 0 14px}
+.company-management-workspace .management-shortcut-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.company-management-workspace .management-shortcut-grid>a{display:flex;align-items:start;justify-content:space-between;gap:16px;min-width:0;min-height:130px;padding:20px;border:1px solid #2c4050;border-radius:14px;background:#0d1822;color:#e8f4fc;text-decoration:none}
+.company-management-workspace .management-shortcut-grid strong{font-size:15px;line-height:1.5}
+.company-management-workspace .management-shortcut-grid p{font-size:13px;color:#a9c0d1;line-height:1.6;margin:10px 0 0}
+.company-management-workspace .management-shortcut-grid svg{flex-shrink:0;color:#83ccff;margin-top:3px}
+.company-management-workspace .management-shortcut-grid>a:hover{border-color:#67b7e5;background:#122636}
+.company-management-workspace .management-investment{padding:4px 18px;border:1px solid #2a4050;border-radius:14px}
+.company-management-workspace .management-investment>summary{padding:14px 0;min-height:48px;cursor:pointer;color:#c7dfef;font-size:14px}
+.company-management-workspace .management-investment .operation-investment-panel{margin-block:14px}
+.company-management-workspace .management-shared-agenda{min-width:0;scroll-margin-top:160px}
+.company-management-workspace .management-shared-agenda>header{margin-block:18px 24px}
+.company-management-workspace .management-shared-agenda>header>span{color:#9db8ca;font-size:12px}
+.company-management-workspace .management-shared-agenda h2{margin:8px 0;font-size:24px}
+.company-management-workspace .management-shared-agenda>header p{color:#a9c0d1;font-size:14px;line-height:1.7}
+.company-management-workspace a:focus-visible,.company-management-workspace summary:focus-visible{outline:2px solid #a1dcff;outline-offset:3px}
+@media(max-width:1000px){.company-management-workspace .management-shortcut-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:600px){.company-management-workspace .management-shortcut-grid{grid-template-columns:1fr}.company-management-workspace .completion-status .completion-segments{grid-template-columns:repeat(2,minmax(0,1fr))}.company-management-workspace .management-shortcut-grid>a{padding:17px;min-height:110px}}
