@@ -1,3 +1,11 @@
+## 19/10/2026 — Produtos por operação e ação
+
+- Contexto: operação, combos, promoções e parceiros compartilhavam a mesma barra; edição e estoque por produto ficavam pouco explícitos.
+- Correção: operação separada do tipo de consulta, com contagens e busca; cadastro direto na operação selecionada; ações Editar cadastro e Conferir estoque em cada produto, ancoradas no saldo/variações da própria ficha. Atalhos de estoque geral preservam a operação. Combos e parceiros mantidos em Suplementos; promoções e indicadores respeitam a operação. Filtros de categoria/marca são reiniciados ao trocar a operação.
+- Permissões: edição/cadastro conforme escrita da operação; promoções enviadas ao cliente somente das operações autorizadas. Consulta de saldo preservada para leitura. Nenhuma regra de preço, reserva ou estoque alterada.
+- Evidência: TypeScript e lint direcionado sem erros; 82 testes Node aprovados, incluindo troca de operação, links, promoções, leitura e limpeza. Componente real conferido com dados fictícios em 1071/390/320 px, sem overflow/erros JS e com ações por produto de pelo menos 44 px. Nenhum cadastro ou saldo real alterado.
+- Status: validação local concluída; build remoto e conferência no domínio oficial condicionam publicação. Teste do responsável pendente.
+
 ## 18/10/2026 — Comprar e repor por operação e etapa
 
 - Contexto: sugestões, configuração e pedidos estavam misturados; Suplementos carregava só os primeiros 20 pedidos.

@@ -253,7 +253,7 @@ export default async function CompanySectorPage({ params, searchParams }: { para
     const query = await searchParams;
     const initialOperation = query.operacao === "Suplementos" || query.operacao === "Fitness" ? query.operacao : "all";
     const initialView = query.visualizacao === "combos" || query.visualizacao === "promotions" || query.visualizacao === "partners" ? query.visualizacao : initialOperation;
-    return <CompanyProductsWorkspace products={products} combos={combos} promotions={promotions} partnerStock={partnerStock} initialView={initialView} />;
+    return <CompanyProductsWorkspace products={products} combos={combos} promotions={promotions.filter(item => access.role === "admin" || (item.operation_scope === "fitness" ? access.canAccessFitness : access.canAccessSupplements))} partnerStock={partnerStock} initialView={initialView} initialOperation={initialOperation} allowedOperations={[...(access.role === "admin" || access.canAccessSupplements ? ["Suplementos" as const] : []), ...(access.role === "admin" || access.canAccessFitness ? ["Fitness" as const] : [])]} canWriteSupplements={access.role === "admin" || access.canWriteSupplements} canWriteFitness={access.role === "admin" || access.canWriteFitness} />;
   }
 
   if (sector === "gestao") {
