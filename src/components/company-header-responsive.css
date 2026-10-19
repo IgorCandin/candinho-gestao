@@ -1,0 +1,27 @@
+/* Company: reserve real space for each sector; zoom changes CSS viewport width. */
+@media(min-width:701px) and (hover:hover){
+ .company-shell-v2>.company-command-header,.company-shell-v2>.company-command-header:hover,.company-shell-v2>.company-command-header:focus-within{position:fixed!important;left:50%!important;transform:translateX(-50%)!important;top:10px!important;width:min(1180px,calc(100% - 24px))!important;height:88px!important;overflow:visible!important}
+ .company-shell-v2>.company-command-header .company-header-inner{display:grid!important;grid-template-columns:minmax(0,1fr) 160px minmax(0,1fr)!important;grid-template-rows:1fr!important;gap:8px!important;min-width:0!important;height:100%!important;padding:8px 52px!important;align-items:center!important}
+ .company-shell-v2>.company-command-header .company-primary-nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important;width:100%!important;margin:0!important;min-width:0!important;padding:0!important;grid-row:1!important}
+ .company-shell-v2>.company-command-header .company-header-brand{display:grid!important;position:static!important;width:160px!important;min-width:0!important;height:62px!important;grid-row:1!important;transform:none!important;pointer-events:auto!important}
+ .company-shell-v2>.company-command-header .company-header-brand img{width:148px!important;max-height:54px!important;transform:none!important}
+ .company-shell-v2>.company-command-header .company-primary-nav a{display:grid!important;grid-row:auto!important;grid-template-rows:28px minmax(0,1fr)!important;align-content:center!important;min-width:0!important;width:100%!important;height:66px!important;padding:4px 2px!important}
+ .company-shell-v2>.company-command-header .company-primary-nav a .company-nav-label{display:block!important;width:100%!important;max-width:100%!important;min-height:28px!important;overflow:visible!important;color:inherit!important;font-size:11px!important;line-height:1.25!important;white-space:normal!important;opacity:1!important;transform:none!important}
+ .company-shell-v2>.company-command-header .company-primary-nav a .company-nav-icon{min-height:26px!important;height:26px!important;width:30px!important}
+ .company-shell-v2>.company-command-header .company-refresh-button,.company-shell-v2>.company-command-header .company-account-menu{top:50%!important;transform:translateY(-50%)!important}
+ .company-shell-v2>.company-command-header .company-account-menu{right:10px!important}
+ .company-shell-v2>.company-command-header .company-account-menu>summary{width:36px!important;height:36px!important}
+ .company-shell-v2>.operation-mobile-bottom-nav{display:none!important}
+ .company-shell-v2>.company-shell-content{padding-top:120px!important}
+}
+@media(min-width:701px) and (max-width:1099px) and (hover:hover){
+ .company-shell-v2>.company-command-header,.company-shell-v2>.company-command-header:hover,.company-shell-v2>.company-command-header:focus-within{height:126px!important}
+ .company-shell-v2>.company-command-header .company-header-inner{grid-template-columns:minmax(0,1fr) 8px minmax(0,1fr)!important;grid-template-rows:44px 58px!important;gap:4px!important;padding:7px 14px!important}
+ .company-shell-v2>.company-command-header .company-header-brand{grid-column:1/-1!important;grid-row:1!important;width:100%!important;height:44px!important}
+ .company-shell-v2>.company-command-header .company-header-brand img{width:132px!important;max-height:42px!important}
+ .company-shell-v2>.company-command-header .company-primary-nav{grid-row:2!important}
+ .company-shell-v2>.company-command-header .company-primary-nav a{height:58px!important}
+ .company-shell-v2>.company-command-header .company-refresh-button,.company-shell-v2>.company-command-header .company-account-menu{top:14px!important;transform:none!important}
+ .company-shell-v2>.company-shell-content{padding-top:154px!important}
+}
+@media(prefers-reduced-motion:reduce){.company-shell-v2>.company-command-header,.company-shell-v2>.company-command-header *{transition:none!important}}
