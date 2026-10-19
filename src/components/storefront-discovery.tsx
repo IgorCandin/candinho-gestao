@@ -16,7 +16,7 @@ import { discoveryCutout, discoveryImage, discoveryOriginal } from "@/lib/storef
 import { availableSizes, discoveryCollections } from "@/lib/storefront-discovery-selection";
 import { StorefrontSupport } from "./storefront-support";
 import { StorefrontSavedShare } from "./storefront-saved-share";
-import { STOREFRONT_WHATSAPP } from "@/lib/storefront-selection-message";
+import { defaultSelectionChoice, type SavedSelectionChoice, STOREFRONT_WHATSAPP } from "@/lib/storefront-selection-message";
 import type { StorefrontTestimonial } from "./storefront-testimonials";
 import { useStorefrontScroll } from "./use-storefront-scroll";
 
@@ -33,6 +33,7 @@ export function StorefrontDiscovery({ snapshot, links, availability, testimonial
   const [category, setCategory] = useState("");
   const [query, setQuery] = useState("");
   const [saved, setSaved] = useState<string[]>([]);
+  const [choices, setChoices] = useState<Record<string, SavedSelectionChoice>>({});
   const [savedOnly, setSavedOnly] = useState(false);
   const [selected, setSelected] = useState<PublicStorefrontProduct | null>(null);
   const [photo, setPhoto] = useState(0);
@@ -121,7 +122,7 @@ export function StorefrontDiscovery({ snapshot, links, availability, testimonial
       <div className={styles.filters}><label className={styles.search}><Search size={18} /><input aria-label="Buscar produto" placeholder="Já sabe o que procura?" value={query} onChange={e => { setQuery(e.target.value); }} /></label><select aria-label="Categoria" value={category} onChange={e => { setCategory(e.target.value); }}><option value="">Todas as categorias</option>{categories.map(c => <option key={c}>{c}</option>)}</select></div>
       {(operation === "fitness" || savedOnly) && sizes.length > 0 && <div className={styles.sizeFilters} role="group" aria-label="Filtrar roupas por tamanho"><span>Seu tamanho</span><button aria-pressed={!size} onClick={() => setSize("")}>Todos</button>{sizes.map(value => <button key={value} aria-pressed={size === value} onClick={() => setSize(value)}>{value}</button>)}</div>}
       {savedOnly && <div className={styles.savedHint}>Salvos durante esta visita. <button onClick={() => setSavedOnly(false)}>Voltar a todos os produtos</button></div>}
-      {savedOnly && <StorefrontSavedShare phone={STOREFRONT_WHATSAPP} items={products.filter(p => saved.includes(key(p))).map(p => ({ operation: p.operation, name: p.name, available: p.available, path: href(p), sizes: availableSizes(p, availability) }))} />}
+      {savedOnly && <StorefrontSavedShare phone={STOREFRONT_WHATSAPP} onChange={(id, choice) => setChoices(previous => ({ ...previous, [id]: choice }))} items={products.filter(p => saved.includes(key(p))).map(p => ({ id: key(p), operation: p.operation, name: p.name, available: p.available, path: href(p), options: p.operation === "fitness" ? (availability[p.id] ?? []).filter(o => o.available_quantity > 0) : [], choice: choices[key(p)] ?? defaultSelectionChoice }))} />}
       <p className={styles.resultCount} aria-live="polite">{available.length} {available.length === 1 ? "produto disponível" : "produtos disponíveis"}{size ? ` no tamanho ${size}` : ""}</p>
       {available.length ? <div className={styles.collections}>{discoveryCollections(available).map(([group, items]) => <section key={group} className={styles.collection} aria-label={group}><div className={styles.collectionHeading} data-scroll-scene data-section-reveal><h3>{group}</h3><span>{items.length} {items.length === 1 ? "escolha" : "escolhas"}</span></div><div className={styles.grid}>{items.map(card)}</div></section>)}</div> : <div className={styles.empty}><h3>{savedOnly ? "Sua seleção começa aqui" : "Não encontramos opções disponíveis"}</h3><p>{savedOnly ? "Toque no coração de um produto para guardar enquanto explora." : "Experimente outro tamanho, busca ou categoria."}</p>{isFiltering && <button onClick={() => { setQuery(""); setCategory(""); setSize(""); setSavedOnly(false); }}>Limpar filtros</button>}</div>}
       {unavailable.length > 0 && <details className={styles.unavailable}><summary>Não encontrou o seu? Ver {unavailable.length} produtos indisponíveis</summary><p>Estes produtos não estão disponíveis agora. Consulte as opções de atendimento na página do produto.</p><div className={styles.grid}>{unavailable.map(card)}</div></details>}
