@@ -1,0 +1,32 @@
+.company-selling-workspace .company-sales-queue{min-width:0;scroll-margin-top:150px}
+.company-selling-workspace .selling-queue-help,.company-selling-workspace .completion-filter-result p{font-size:13px;line-height:1.7;color:#b1c6d5}
+.company-selling-workspace .selling-queue-help{margin:0 0 24px;padding:14px 16px;border-left:3px solid #6fbcdf;background:#101d27;border-radius:0 10px 10px 0}
+.company-selling-workspace .company-sales-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+.company-selling-workspace .company-sale-card{min-width:0;padding:20px;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:14px}
+.company-selling-workspace .company-sale-card>header{flex-wrap:wrap;gap:10px}
+.company-selling-workspace .company-sale-card>header>small{font-size:12px;color:#b1c6d5}
+.company-selling-workspace .company-sale-person{min-width:0}
+.company-selling-workspace .company-sale-person>div{min-width:0}
+.company-selling-workspace .company-sale-person strong{font-size:19px;white-space:normal;line-height:1.5}
+.company-selling-workspace .company-sale-person small{font-size:12px;line-height:1.6;color:#a9bdcd}
+.company-selling-workspace .company-sale-card>p,.company-selling-workspace .sales-next-step p{margin:0;font-size:13px;line-height:1.7;color:#b1c6d5}
+.company-selling-workspace .sales-next-step{padding:14px;border:1px solid #2b4252;border-radius:12px;background:#101f2b;display:grid;gap:10px}
+.company-selling-workspace .sales-next-step>strong{font-size:13px;color:#d9efff}
+.company-selling-workspace .sales-next-step>a,.company-selling-workspace .fitness-prepare-sale{display:flex;align-items:center;justify-content:center;min-height:44px;padding:10px 14px;border:1px solid #408bb7;border-radius:9px;background:#17384d;color:#def4ff;font-size:13px;font-weight:600;text-decoration:none;line-height:1.5}
+.company-selling-workspace .sales-contact-outcome{margin-top:auto}
+.company-selling-workspace .sales-contact-outcome>summary{min-height:44px;padding:12px 0;cursor:pointer;font-size:13px;color:#b3d6ed}
+.company-selling-workspace .fitness-size-offers{display:grid;gap:12px}
+.company-selling-workspace .fitness-size-offers>div{display:grid;gap:8px;padding:15px;border:1px solid #293f50;border-radius:12px;background:#0c1720}
+.company-selling-workspace .fitness-size-offers>div>a:first-child{color:#dcefff;font-size:14px;line-height:1.5;text-decoration:underline;text-underline-offset:3px}
+.company-selling-workspace .fitness-size-offers>div>span{color:#a9c3d5;font-size:12px;line-height:1.6}
+.company-selling-workspace .fitness-size-offers>div>b{font-size:18px}
+.company-selling-workspace .company-sale-actions{display:flex;flex-wrap:wrap;gap:10px}
+.company-selling-workspace .company-sale-actions>a{min-height:44px;display:inline-flex;align-items:center;gap:7px;padding:10px;font-size:12px;line-height:1.5}
+.company-selling-workspace .company-sales-feature{margin:0 0 22px;min-height:0}
+.company-selling-workspace .company-sales-feature h2{font-size:23px}
+.company-selling-workspace .company-sales-head>div:last-child{flex-wrap:wrap;justify-content:flex-end}
+.company-selling-workspace .company-sales-head .button{min-height:44px;font-size:13px}
+.company-selling-workspace a:focus-visible,.company-selling-workspace summary:focus-visible{outline:2px solid #a1dcff;outline-offset:3px}
+@media(max-width:850px){.company-selling-workspace .company-sales-grid{grid-template-columns:1fr}.company-selling-workspace .company-sales-head{flex-direction:column;align-items:stretch}.company-selling-workspace .company-sales-head>div:last-child{justify-content:flex-start}}
+@media(max-width:600px){.company-selling-workspace .completion-status .completion-segments{grid-template-columns:repeat(2,minmax(0,1fr))}.company-selling-workspace .company-sale-card{padding:16px}.company-selling-workspace .company-sales-queue{padding:14px}.company-selling-workspace .company-sales-head>div:last-child{display:grid;grid-template-columns:1fr}.company-selling-workspace .company-sales-head .button{justify-content:center}.company-selling-workspace .company-sale-actions>a{flex:1 1 130px;justify-content:center}}
+.company-selling-workspace .company-sales-head .button{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border:1px solid #34556c;border-radius:10px;color:#d9edfa;text-decoration:none;line-height:1.5;background:#10202b}

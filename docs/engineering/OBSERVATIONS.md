@@ -1,3 +1,12 @@
+## 19/10/2026 — Vender agora integra possibilidades Fitness
+
+- Contexto: operação Fitness era uma aba de reativação por inatividade, enquanto as combinações de tamanho e estoque ficavam isoladas em outra área. A preparação da venda era pouco explícita.
+- Correção: operação separada do tipo de oportunidade; Fitness abre Tamanho + estoque e mantém Reativar clientes como fila distinta. Reutiliza exatamente getFitnessSizeOpportunities (até 500 vendas válidas, mesma categoria/tamanho e disponibilidade positiva, exclusões e limite por combinação preservados). Mostra evidência, data, peças, cor, tamanho, preço e disponibilidade, com confirmação do tamanho/interesse antes da oferta. Preparar venda leva cliente+variante à rota Company existente. Reativação mantém regra de cliente ativo, compra anterior e 45 dias.
+- Suplementos: mantém seleção de até dez pessoas com sinal concreto e bloqueios/retornos existentes; estimativas de recompra/complementares continuam em consulta. Ação direta prepara cliente+produto; registro do contato fica em disclosure separado. Lead conserva conversão existente e passa a rotular Preparar venda do lead. Nenhuma mutação foi acrescentada ao abrir filtros ou links.
+- Permissões: consultas Suplementos e dados Fitness condicionados ao acesso; ações de preparação/feedback conforme escrita. Busca, contagens da fila e limpeza aplicadas ao contexto atual. Rota antiga das possibilidades Fitness preservada.
+- Evidência: TypeScript e lint direcionado sem erros; 108 testes Node aprovados, com novos testes de seleção exata, filas, bloqueios, reativação, leitura e busca. Componente real com dados fictícios em 1071/390/320 px: links, contato, preparação, operação, tamanho/cor, busca e leitura sem ações de escrita, sem overflow/erros JS. Nenhuma mensagem enviada nem venda/contato/estoque real alterado.
+- Status: validação local concluída; build remoto e conferência oficial condicionam publicação. Teste do responsável pendente.
+
 ## 19/10/2026 — Gestão por tarefa e cabeçalho no zoom
 
 - Contexto: Gestão apresentava atalhos sem agrupamento; cabeçalho de desktop com zoom caía em regras conflitantes abaixo de 1100 px. A regra display:contents nos dois menus removia as suas colunas, comprimindo setores diferentes.
