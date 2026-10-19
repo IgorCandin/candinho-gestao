@@ -31,6 +31,43 @@ function layoutViewport() {
   };
 }
 
+function browserErrorContext(error?: unknown) {
+  // Only technical fields: never serialize Error/stack, forms, cookies,
+  // storage contents, request bodies or full resource URLs.
+  const occurredAt = new Date().toISOString();
+  try {
+    const candidate = error instanceof Error ? error as Error & { digest?: unknown } : null;
+    const digest = typeof candidate?.digest === "string" && /^\d+(?:@E\d+)?$/.test(candidate.digest) && candidate.digest.length <= 80
+      ? candidate.digest : null;
+    const navigation = window.performance?.getEntriesByType("navigation")[0] as PerformanceNavigationTiming | undefined;
+    return {
+      occurred_at: occurredAt,
+      online: window.navigator?.onLine ?? null,
+      visibility: document.visibilityState ?? null,
+      navigation_type: navigation?.type ?? null,
+      service_worker_controlled: window.navigator?.serviceWorker ? Boolean(window.navigator.serviceWorker.controller) : null,
+      digest,
+    };
+  } catch {
+    return { occurred_at: occurredAt };
+  }
+}
+
+function interfaceResourcePath(target: Element) {
+  const tag = target.tagName.toLowerCase();
+  const raw = tag === "script" ? target.getAttribute("src")
+    : tag === "link" && target.getAttribute("rel")?.toLowerCase().split(/\s+/).includes("stylesheet")
+      ? target.getAttribute("href") : null;
+  if (!raw) return null;
+  try {
+    const url = new URL(raw, window.location.origin);
+    return url.origin === window.location.origin && /^\/_next\/static\/[A-Za-z0-9_./-]+\.(?:js|css)$/.test(url.pathname)
+      ? url.pathname : null;
+  } catch {
+    return null;
+  }
+}
+
 function sessionSeen(key: string) {
   try {
     return window.sessionStorage.getItem(key) === "1";
@@ -302,6 +339,20 @@ export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
     };
 
     const onError = (event: ErrorEvent) => {
+      if (event.target instanceof Element) {
+        const resourcePath = interfaceResourcePath(event.target);
+        if (!resourcePath) return;
+        void sendSignal(pathname, "client_error", {
+          dedupeKey: `resource:${resourcePath}`,
+          payload: {
+            ...browserErrorContext(),
+            message: `Falha ao carregar JavaScript/CSS da interface: ${resourcePath}`,
+            source: "resource_error",
+            resource_path: resourcePath,
+          },
+        });
+        return;
+      }
       const message = [event.message, event.filename, event.lineno]
         .filter(Boolean)
         .join(" · ")
@@ -310,6 +361,7 @@ export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
       void sendSignal(pathname, "client_error", {
         dedupeKey: message.slice(0, 120),
         payload: {
+          ...browserErrorContext(event.error),
           message,
           filename: event.filename || null,
           line: event.lineno || null,
@@ -329,6 +381,7 @@ export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
       void sendSignal(pathname, "client_error", {
         dedupeKey: message.slice(0, 120),
         payload: {
+          ...browserErrorContext(event.reason),
           message: message.slice(0, 700),
           source: "unhandledrejection",
         },
@@ -336,14 +389,14 @@ export function NexusUxDoctorProbe({ enabled = true }: { enabled?: boolean }) {
     };
 
     window.addEventListener("resize", onResize, { passive: true });
-    window.addEventListener("error", onError);
+    window.addEventListener("error", onError, true);
     window.addEventListener("unhandledrejection", onRejection);
 
     return () => {
       timers.forEach((timer) => window.clearTimeout(timer));
       window.clearTimeout(resizeTimer);
       window.removeEventListener("resize", onResize);
-      window.removeEventListener("error", onError);
+      window.removeEventListener("error", onError, true);
       window.removeEventListener("unhandledrejection", onRejection);
     };
   }, [enabled, pathname]);
