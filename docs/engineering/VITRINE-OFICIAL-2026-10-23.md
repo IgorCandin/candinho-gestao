@@ -8,6 +8,8 @@ Cabeçalho separa Minha conta de Área interna / Company no celular. Não modifi
 
 Oito testes focados de rotas, filtros, UI, consentimentos e limites de acesso passaram; suíte completa 187/187; lint direcionado sem erros. Testes são isolados, sem OTP, cupons ou histórico real. Build/TypeScript, conferência visual e publicação precisam ser confirmados por SHA. Detalhes de produto devem ser conferidos por HTTP/fixture, sem disparar o POST de telemetria de PublicProductViewTracker.
 
+Preview do primeiro SHA compilou (READY). Conferido no navegador real em 320/390/414/1024/1366px: Área interna e Minha conta visíveis, sem transbordamento. Teclado alcançou o skip link e o destino ficou abaixo do cabeçalho; alvo recebeu `tabIndex=-1` após a revisão para também mover foco. Canonical oficial e robots index/follow confirmados no DOM. Não equivale a ensaio especializado de acessibilidade ou Safari físico.
+
 Rollback: reverter somente este PR e republicar. Nenhuma migration ou limpeza de dados necessária; links antigos continuam existindo como redirecionamentos.
 
 Pendências separadas: portal completo exige vínculo explícito/auditável e decisão de envio OTP/SMTP, não associação automática por telefone. Google segue aguardando consentimento do titular. Alerta de compra tem reprodução isolada existente; não repetir auditoria nem apagar tarefa manual.

@@ -13,6 +13,7 @@ test('public header separates client and internal access, with skip link and no 
  const tree=discovery()(),links=nodes(tree).filter(n=>n.type==='a');
  assert.ok(links.some(n=>n.props.href==='/company/inicio'&&String(n.props.children).includes('Área interna')));
  assert.ok(links.some(n=>n.props.href==='/minha-conta'));assert.ok(links.some(n=>n.props.href==='#discovery-products'));
+ assert.equal(nodes(tree).find(n=>n.props?.id==='discovery-products').props.tabIndex,-1);
  assert.ok(!links.some(n=>n.props.href==='/vitrine'||n.props.href==='/catalogo'));
  assert.ok(links.some(n=>n.props.href==='/politica-de-privacidade'));
 });
