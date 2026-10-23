@@ -1,4 +1,5 @@
 "use server";
+import { parseBankMoneyInput } from "@/lib/bank-money-input";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -9,7 +10,7 @@ const date = /^\d{4}-\d{2}-\d{2}$/;
 function money(value: FormDataEntryValue | null, required = false) {
   const raw = String(value ?? "").trim();
   if (!raw && !required) return null;
-  const parsed = Number(raw.includes(",") ? raw.replace(/\./g, "").replace(",", ".") : raw);
+  const parsed = parseBankMoneyInput(raw);
   if (!Number.isFinite(parsed) || parsed < 0 || (required && parsed <= 0)) throw new Error("Revise os valores informados.");
   return Math.round(parsed * 100) / 100;
 }
