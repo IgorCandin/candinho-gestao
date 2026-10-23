@@ -5,11 +5,13 @@ import { getPublicFitnessAvailabilityMap } from "@/lib/public-fitness-availabili
 import { getPublicSupplementBackorders } from "@/lib/public-backorder-data";
 import { createClient } from "@/lib/supabase/server";
 import { getStorefrontTestimonials } from "@/lib/storefront-testimonial-data";
+import { discoveryFilters, type StorefrontSearchParams } from "@/lib/storefront-navigation";
 
 export const revalidate = 10;
-export const metadata = { title: "Descobrir | Vitrine Candinho", robots: { index: false, follow: true } };
+export const metadata = { title: "Vitrine Candinho | Suplementos e Fitness", robots: { index: true, follow: true }, alternates: { canonical: "/catalogo/descobrir" }, openGraph: { title: "Vitrine Candinho", url: "/catalogo/descobrir", type: "website" } };
 
-export default async function DiscoveryPage() {
+export default async function DiscoveryPage({ searchParams }: { searchParams: Promise<StorefrontSearchParams> }) {
+  const initialFilters = discoveryFilters(await searchParams);
   const supabase = await createClient();
   const [snapshot, links, availability, backorders, testimonialResult, campaignResult] = await Promise.all([
     getPublicStorefrontSnapshot(), getCachedPublicStorefrontSlugMap(), getPublicFitnessAvailabilityMap(), getPublicSupplementBackorders(),
@@ -23,5 +25,5 @@ export default async function DiscoveryPage() {
     installment_price: null, installments_max: null, installment_value: null, available: false, notes: null, images: [],
   }))];
   const summary = Array.isArray(campaignResult.data) ? campaignResult.data[0] : campaignResult.data;
-  return <StorefrontDiscovery snapshot={{ ...snapshot, products: { ...snapshot.products, supplements } }} links={links} availability={availability} testimonials={testimonialResult} remaining={summary ? Number(summary.remaining) : null} />;
+  return <StorefrontDiscovery key={`${initialFilters.initialOperation}:${initialFilters.initialQuery}`} {...initialFilters} snapshot={{ ...snapshot, products: { ...snapshot.products, supplements } }} links={links} availability={availability} testimonials={testimonialResult} remaining={summary ? Number(summary.remaining) : null} />;
 }

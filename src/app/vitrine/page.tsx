@@ -1,8 +1,6 @@
-import PublicCatalogPage from "@/app/catalogo/page";
-import styles from "./vitrine.module.css";
+import { redirect } from "next/navigation";
+import { discoveryUrl, type StorefrontSearchParams } from "@/lib/storefront-navigation";
 
-export const revalidate = 10;
-
-export default async function StorefrontV2Page() {
-  return <div className={styles.page}><PublicCatalogPage /></div>;
+export default async function VitrinePage({ searchParams }: { searchParams: Promise<StorefrontSearchParams> }) {
+  redirect(discoveryUrl(await searchParams));
 }

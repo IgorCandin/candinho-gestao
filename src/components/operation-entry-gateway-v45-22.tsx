@@ -92,7 +92,7 @@ const CONFIG = {
     rgb: "255, 126, 73",
     items: [
       { href: "/vitrine", label: "Visão geral", note: "Organize a experiência da vitrine", icon: Home },
-      { href: "/catalogo", label: "Abrir vitrine pública", note: "Veja o catálogo como o cliente", icon: ShoppingBag },
+      { href: "/catalogo/descobrir", label: "Abrir vitrine pública", note: "Veja o catálogo como o cliente", icon: ShoppingBag },
       { href: "/produtos", label: "Suplementos", note: "Produtos, preços e imagens", icon: PackageSearch },
       { href: "/fitness/produtos", label: "Fitness", note: "Peças, tamanhos e cores", icon: PackageOpen },
       { href: "/central/promocoes", label: "Promoções", note: "Campanhas que alimentam a vitrine", icon: BarChart3 },

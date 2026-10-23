@@ -35,13 +35,14 @@ export function StorefrontCouponSignup({ initialRemaining, onUseCoupon }: { init
   if (coupon) return <section className="storefront-coupon-success"><CheckCircle2/><span>Seu cupom de 25%</span><strong>{coupon}</strong><p>Guarde este código e apresente no atendimento. Restam {remaining} cupom(ns) nesta campanha.</p>{onUseCoupon && <button type="button" onClick={onUseCoupon}>Usar com meus salvos</button>}</section>;
   return <section className="storefront-growth-section" id="cupom-primeira-compra">
     <div className="storefront-growth-copy"><Gift/><span>Boas-vindas Candinho</span><h2>Cadastre-se e ganhe 25% na primeira compra.</h2><p>Você escolhe por onde quer receber ofertas. Sem mensagens em canais que não autorizou.</p>{remaining !== null && <strong>{remaining} cupom(ns) disponíveis nesta campanha</strong>}</div>
-    <form className="storefront-growth-form" onSubmit={submit}>
-      <label><span>Nome</span><input name="name" required minLength={2}/></label>
-      <label><span>E-mail</span><input name="email" type="email"/></label>
-      <label><span>WhatsApp / telefone</span><input name="phone" inputMode="tel"/></label>
+    <form className="storefront-growth-form" aria-busy={loading} onSubmit={submit}>
+      <label><span>Nome</span><input name="name" autoComplete="name" required minLength={2}/></label>
+      <label><span>E-mail</span><input name="email" autoComplete="email" type="email"/></label>
+      <label><span>WhatsApp / telefone</span><input name="phone" autoComplete="tel" type="tel" inputMode="tel"/></label>
       <fieldset><legend>Quero receber promoções por:</legend><label><input type="checkbox" name="consent_whatsapp"/> WhatsApp</label><label><input type="checkbox" name="consent_email"/> E-mail</label><label><input type="checkbox" name="consent_sms"/> SMS</label></fieldset>
       <label className="storefront-terms"><input type="checkbox" name="terms" required/> Aceito participar da campanha e autorizo mensagens somente nos canais marcados. Posso cancelar a autorização quando quiser.</label>
-      {message && <p className="storefront-form-error">{message}</p>}
+      <p>Leia a <a href="/politica-de-privacidade" target="_blank" rel="noopener noreferrer">Política de Privacidade (nova aba)</a>.</p>
+      {message && <p className="storefront-form-error" role="alert">{message}</p>}
       <button disabled={loading}>{loading ? "Gerando..." : "Gerar meu cupom"}</button>
     </form>
   </section>;
