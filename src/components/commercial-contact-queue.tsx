@@ -24,6 +24,7 @@ import type {
   CommercialContactQueueSnapshot,
 } from "@/lib/commercial-contact-types";
 import { formatDateOnly } from "@/lib/format";
+import { companyDestination } from "@/lib/company-destination";
 
 function whatsappUrl(phone: string | null) {
   if (!phone) return null;
@@ -67,8 +68,10 @@ function previewText(item: CommercialContactQueueItem) {
 
 export function CommercialContactQueue({
   snapshot,
+  companyMode = false,
 }: {
   snapshot: CommercialContactQueueSnapshot;
+  companyMode?: boolean;
 }) {
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -317,7 +320,7 @@ export function CommercialContactQueue({
               </>
             )}
 
-            <Link className="button ghost" href={current.href}>
+            <Link className="button ghost" href={companyMode ? companyDestination(current.href) : current.href}>
               <ExternalLink size={15} /> Abrir cliente
             </Link>
           </div>
