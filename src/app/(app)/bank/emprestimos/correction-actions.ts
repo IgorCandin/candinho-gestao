@@ -1,4 +1,5 @@
 "use server";
+import { parseBankMoneyInput } from "@/lib/bank-money-input";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -15,11 +16,7 @@ function parseMoney(value: FormDataEntryValue | null) {
 
   if (!raw) throw new Error("Informe o total pago correto.");
 
-  const normalized = raw.includes(",")
-    ? raw.replace(/\./g, "").replace(",", ".")
-    : raw;
-
-  const parsed = Number(normalized);
+  const parsed = parseBankMoneyInput(raw);
 
   if (!Number.isFinite(parsed) || parsed < 0) {
     throw new Error("Informe um total pago válido.");

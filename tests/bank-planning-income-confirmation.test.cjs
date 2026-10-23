@@ -8,7 +8,7 @@ function load(error = null) {
   const calls = [];
   const file = path.resolve(__dirname, '../src/app/(app)/bank/entradas/receipt-actions.ts');
   const compiled = new Module(file, module);
-  compiled.require = id => id === 'next/cache' ? { revalidatePath: () => {} } : id === 'next/navigation' ? { redirect: () => { throw Error('unexpected redirect'); } } : id === '@/lib/supabase/server' ? { createClient: async () => ({ rpc: async (...args) => { calls.push(args); return { error }; } }) } : require(id);
+  compiled.require = id => id === 'next/cache' ? { revalidatePath: () => {} } : id === 'next/navigation' ? { redirect: () => { throw Error('unexpected redirect'); } } : id === '@/lib/supabase/server' ? { createClient: async () => ({ rpc: async (...args) => { calls.push(args); return { error }; } }) } : id === "@/lib/bank-money-input" ? require("./helpers/company-navigation-fixtures.cjs").load("src/lib/bank-money-input.ts") : require(id);
   compiled._compile(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText, file);
   return { action: compiled.exports.confirmPlannerIncome, calls };
 }
@@ -34,4 +34,16 @@ test('invalid amount does not invoke RPC; denied receipt is not shown as success
   assert.equal(valid.calls.length, 0);
   const denied = load({ message: 'permission denied' });
   assert.equal((await denied.action({}, form())).ok, false);
+});
+
+test('ambiguous thousands and malformed amounts never reach receipt RPC; explicit BR amount is preserved', async () => {
+  for (const raw of ['1.234', '2.000', '1e3', '1,2,3']) {
+    const fixture = load();
+    const response = await fixture.action({}, form(raw));
+    assert.equal(response.ok, false);
+    assert.equal(fixture.calls.length, 0);
+  }
+  const fixture = load();
+  assert.equal((await fixture.action({}, form('1.234,56'))).ok, true);
+  assert.equal(fixture.calls[0][1].p_amount, 1234.56);
 });

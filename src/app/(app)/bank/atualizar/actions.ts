@@ -1,4 +1,5 @@
 "use server";
+import { parseBankMoneyInput } from "@/lib/bank-money-input";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -16,11 +17,7 @@ function parseMoney(value: FormDataEntryValue | null) {
 
   if (!raw) return null;
 
-  const normalized = raw.includes(",")
-    ? raw.replace(/\./g, "").replace(",", ".")
-    : raw;
-
-  const parsed = Number(normalized);
+  const parsed = parseBankMoneyInput(raw);
 
   if (!Number.isFinite(parsed)) {
     throw new Error("Um dos saldos informados é inválido.");

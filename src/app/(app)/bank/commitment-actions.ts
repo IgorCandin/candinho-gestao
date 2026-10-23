@@ -1,4 +1,5 @@
 "use server";
+import { parseBankMoneyInput } from "@/lib/bank-money-input";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
@@ -14,11 +15,7 @@ function parseMoney(value: FormDataEntryValue | null) {
 
   if (!raw) throw new Error("Informe o valor deste mês.");
 
-  const normalized = raw.includes(",")
-    ? raw.replace(/\./g, "").replace(",", ".")
-    : raw;
-
-  const parsed = Number(normalized);
+  const parsed = parseBankMoneyInput(raw);
 
   if (!Number.isFinite(parsed) || parsed < 0) {
     throw new Error("Informe um valor válido igual ou maior que zero.");
