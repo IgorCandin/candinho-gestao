@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
-import { ArrowUpRight, ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, ChevronRight, Pause, Play, Plus } from "lucide-react";
 import type { PublicStorefrontProduct } from "@/lib/public-storefront-data";
 import { discoveryCutout, discoveryImage } from "@/lib/storefront-discovery-images";
 import { StorefrontDiscoveryImage } from "./storefront-discovery-image";
@@ -22,9 +22,10 @@ export function StorefrontCampaign({ products, operation, motion, suspended, onO
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [manuallyPaused, setManuallyPaused] = useState(false);
   const gesture = useRef<{ id: number; x: number; y: number; time: number; scroll: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
-  const paused = hovered || focused || dragging || suspended || !motion;
+  const paused = manuallyPaused || hovered || focused || dragging || suspended || !motion;
   const pauseRef = useRef(paused);
   useEffect(() => { pauseRef.current = paused; const rect = windowRef.current?.getBoundingClientRect(); if (paused || document.hidden || !rect || rect.bottom <= 0 || rect.top >= innerHeight) animation.current?.pause(); else animation.current?.play(); }, [paused]);
   useEffect(() => {
@@ -108,7 +109,7 @@ export function StorefrontCampaign({ products, operation, motion, suspended, onO
             <span className={styles.campaignPhoto}><StorefrontDiscoveryImage src={discoveryImage(product)!} fallback={product.image_url} data-cutout={Boolean(discoveryCutout(product))} alt={product.name} fill sizes="(max-width:650px) 65vw, 280px" loading={copy === 0 ? "eager" : "lazy"} /><span><Plus size={17} /></span></span><strong>{product.name}</strong><span>{price(product)}</span>
           </button>)}</div>)}</div>
         </div>
-        <div className={styles.campaignNavigation}><span>{!motion ? "Arraste para explorar ou use as setas" : dragging ? "Você conduz a vitrine" : hovered || focused ? "Arraste para explorar · solte para olhar de perto" : "Deslize, arraste e descubra"}</span><div><button aria-label="Produto anterior" onClick={() => step(-1)}><ChevronLeft size={17} /></button><button aria-label="Próximo produto" onClick={() => step(1)}><ChevronRight size={17} /></button></div></div>
+        <div className={styles.campaignNavigation}><span>{!motion ? "Arraste para explorar ou use as setas" : manuallyPaused ? "Movimento pausado · explore pelas setas" : dragging ? "Você conduz a vitrine" : hovered || focused ? "Arraste para explorar · solte para olhar de perto" : "Deslize, arraste e descubra"}</span><div>{motion && stock.length > 1 && <button aria-label={manuallyPaused ? "Retomar animação de produtos" : "Pausar animação de produtos"} aria-pressed={manuallyPaused} onClick={() => setManuallyPaused(value => !value)}>{manuallyPaused ? <Play size={17} aria-hidden="true" /> : <Pause size={17} aria-hidden="true" />}</button>}<button aria-label="Produto anterior" onClick={() => step(-1)}><ChevronLeft size={17} /></button><button aria-label="Próximo produto" onClick={() => step(1)}><ChevronRight size={17} /></button></div></div>
       </div>
     </div>
   </section>;
