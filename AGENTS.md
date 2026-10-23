@@ -53,5 +53,7 @@ Para alterações de banco, complemente com os testes de `supabase/tests/` e val
 
 ## Registro de correções
 
+- Ao comando humano "Ei agente, pode trabalhar", executar fila segura sequencial do Trello, priorizar PRs existentes e estacionar dependências humanas sem bloquear tarefas independentes. Sem agendamentos ou merge/deploy/dados reais por autorização genérica. Reusar QA existente; registrar evidências e estado parado ao encerrar. Limites e controlador: `docs/engineering/AGENTE-SOB-DEMANDA.md`.
+
 Registre correções e padrões em `docs/engineering/OBSERVATIONS.md` com contexto, evidência, sugestão e status. Um comentário isolado não autoriza mudar automaticamente uma regra de negócio. Quando uma observação se repetir ou for confirmada, transforme-a em documentação, teste ou melhoria de fluxo.
 
