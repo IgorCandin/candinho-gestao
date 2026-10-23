@@ -130,7 +130,7 @@ const marketingNav: NavItem[] = [
 const vitrineNav: NavItem[] = [
   { href: "/vitrine/inicio", label: "Menu", icon: Home },
   { href: "/vitrine", label: "Visão geral", icon: BarChart3 },
-  { href: "/catalogo", label: "Vitrine pública", icon: ShoppingBag },
+  { href: "/catalogo/descobrir", label: "Vitrine pública", icon: ShoppingBag },
   { href: "/produtos", label: "Suplementos", icon: PackageSearch },
   { href: "/fitness/produtos", label: "Fitness", icon: PackageSearch },
   { href: "/central/promocoes", label: "Promoções", icon: BadgePercent },

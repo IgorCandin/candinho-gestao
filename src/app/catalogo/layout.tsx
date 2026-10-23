@@ -8,11 +8,11 @@ export const metadata: Metadata = {
   title,
   description,
   alternates: {
-    canonical: "/catalogo",
+    canonical: "/catalogo/descobrir",
   },
   openGraph: {
     type: "website",
-    url: "/catalogo",
+    url: "/catalogo/descobrir",
     siteName: "Candinho Company",
     title,
     description,

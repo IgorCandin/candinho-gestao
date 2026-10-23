@@ -10,7 +10,7 @@ type Operation = "company" | "bank" | "atletas";
 const subscribeToClient = () => () => undefined;
 
 const destinations = [
-  { id: "vitrine", href: "/catalogo", label: "Vitrine", note: "Catálogo público", icon: Store },
+  { id: "vitrine", href: "/catalogo/descobrir", label: "Vitrine", note: "Catálogo público", icon: Store },
   { id: "company", href: "/company/inicio", label: "Company", note: "ERP 2.0", icon: Home },
   { id: "bank", href: "/bank/inicio", label: "Bank", note: "Financeiro", icon: Landmark },
   { id: "atletas", href: "/atletas/inicio", label: "Atletas", note: "Treinos e fichas", icon: Dumbbell },

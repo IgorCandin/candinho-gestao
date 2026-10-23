@@ -20,18 +20,18 @@ import { defaultSelectionChoice, type SavedSelectionChoice, STOREFRONT_WHATSAPP 
 import type { StorefrontTestimonial } from "./storefront-testimonials";
 import { useStorefrontScroll } from "./use-storefront-scroll";
 
-type Props = { snapshot: PublicStorefrontSnapshot; links: PublicStorefrontSlugRow[]; availability: PublicFitnessAvailabilityMap; testimonials: StorefrontTestimonial[]; remaining: number | null };
+type Props = { snapshot: PublicStorefrontSnapshot; links: PublicStorefrontSlugRow[]; availability: PublicFitnessAvailabilityMap; testimonials: StorefrontTestimonial[]; remaining: number | null; initialOperation?: "fitness" | "supplements"; initialQuery?: string };
 const key = (p: PublicStorefrontProduct) => `${p.operation}:${p.id}`;
 const normalize = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
-export function StorefrontDiscovery({ snapshot, links, availability, testimonials, remaining }: Props) {
+export function StorefrontDiscovery({ snapshot, links, availability, testimonials, remaining, initialOperation = "supplements", initialQuery = "" }: Props) {
   const page = useRef<HTMLElement>(null);
   const { enabled: motion } = useStorefrontMotion();
   useStorefrontScroll(page, motion);
   const [size, setSize] = useState("");
-  const [operation, setOperation] = useState("supplements");
+  const [operation, setOperation] = useState(initialOperation);
   const [category, setCategory] = useState("");
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [saved, setSaved] = useState<string[]>([]);
   const [choices, setChoices] = useState<Record<string, SavedSelectionChoice>>({});
   const [savedOnly, setSavedOnly] = useState(false);
@@ -73,6 +73,7 @@ export function StorefrontDiscovery({ snapshot, links, availability, testimonial
     setSaved(previous => previous.includes(key(p)) ? previous.filter(id => id !== key(p)) : [...previous, key(p)]);
   }
   function changeOperation(value: string) {
+    if (value !== "fitness" && value !== "supplements") return;
     setOperation(value); setCategory(""); setQuery(""); setSize(""); setSavedOnly(false);
   }
   function browse(savedView: boolean) {
@@ -85,7 +86,7 @@ export function StorefrontDiscovery({ snapshot, links, availability, testimonial
   }
   function href(p: PublicStorefrontProduct) {
     const slug = links.find(l => l.product_id === p.id)?.slug;
-    return p.operation === "supplements" && slug ? `/catalogo/${slug}` : `/catalogo/${p.operation === "fitness" ? "fitness" : "suplementos"}`;
+    return p.operation === "supplements" && slug ? `/catalogo/${slug}` : `/catalogo/descobrir?operacao=${p.operation}&busca=${encodeURIComponent(p.name)}`;
   }
   function price(p: PublicStorefrontProduct) {
     const promotion = [...snapshot.promotions.supplements, ...snapshot.promotions.fitness]
@@ -114,7 +115,8 @@ export function StorefrontDiscovery({ snapshot, links, availability, testimonial
 
   return <main ref={page} className={styles.page} data-operation={operation} data-motion-choice={motion ? "on" : "off"}>
     <div className={styles.readingProgress} aria-hidden="true" />
-    <header className={styles.header}><Link href="/catalogo" aria-label="Vitrine Candinho"><Image src="/candinho-company-logo.png" width={170} height={56} alt="Candinho Company" priority /></Link><div className={styles.operationSwitch} data-operation={operation} role="group" aria-label="Suplementos ou Fitness">{[["supplements", "Suplementos"], ["fitness", "Fitness"]].map(([value,label]) => <button key={value} aria-pressed={operation === value} onClick={() => changeOperation(value)}>{label}</button>)}</div><nav aria-label="Vitrine"><button aria-pressed={!savedOnly} onClick={() => browse(false)}>Produtos</button><button onClick={() => browse(true)} aria-pressed={savedOnly}><Heart size={16} /> Salvos ({saved.length})</button><Link href="/minha-conta" className={styles.account}>Minha conta <ArrowUpRight size={16} /></Link></nav></header>
+    <a href="#discovery-products" className={styles.skipLink}>Pular para os produtos</a>
+    <header className={styles.header}><Link href="/catalogo/descobrir" aria-label="Vitrine Candinho"><Image src="/candinho-company-logo.png" width={170} height={56} alt="Candinho Company" priority /></Link><div className={styles.operationSwitch} data-operation={operation} role="group" aria-label="Suplementos ou Fitness">{[["supplements", "Suplementos"], ["fitness", "Fitness"]].map(([value,label]) => <button key={value} aria-pressed={operation === value} onClick={() => changeOperation(value)}>{label}</button>)}</div><nav aria-label="Vitrine"><button aria-pressed={!savedOnly} onClick={() => browse(false)}>Produtos</button><button onClick={() => browse(true)} aria-pressed={savedOnly}><Heart size={16} /> Salvos ({saved.length})</button><Link href="/minha-conta" className={styles.account}>Minha conta <ArrowUpRight size={16} /></Link></nav><Link href="/company/inicio" className={styles.internalAccess}>Área interna / Company <ArrowUpRight size={16}/></Link></header>
 
     <StorefrontCampaign key={operation} operation={operation} products={products} motion={motion} suspended={Boolean(selected)} price={price} onOpen={p => { setSelected(p); setPhoto(0); }} onExplore={explore} />
     <a className={styles.nexusIntro} href="#catalogo-assistido" data-scroll-scene data-section-reveal><span className={styles.candinMark} aria-hidden="true">C.</span><span><small>Candin apresenta</small><strong>Seu próximo favorito tem uma ajuda especial.</strong><span>O Nexus é o assistente oficial da Candinho. Conte o que procura e explore com ele.</span></span><ArrowUpRight size={24} /></a>
@@ -128,7 +130,7 @@ export function StorefrontDiscovery({ snapshot, links, availability, testimonial
       {unavailable.length > 0 && <details className={styles.unavailable}><summary>Não encontrou o seu? Ver {unavailable.length} produtos indisponíveis</summary><p>Estes produtos não estão disponíveis agora. Consulte as opções de atendimento na página do produto.</p><div className={styles.grid}>{unavailable.map(card)}</div></details>}
     </section>
     <StorefrontSupport testimonials={testimonials} remaining={remaining} onUseCoupon={() => browse(true)} />
-    <footer className={styles.footer}><span>Seu treino. Seu estilo. Suas escolhas.</span><strong>CANDINHO.</strong><div><span>Suplementos & Fitness</span><Link href="/vitrine">Vitrine original <ArrowUpRight size={16} /></Link><Link href="/minha-conta">Minha conta</Link></div></footer>
+    <footer className={styles.footer}><span>Seu treino. Seu estilo. Suas escolhas.</span><strong>CANDINHO.</strong><div><span>Suplementos & Fitness</span><Link href="/politica-de-privacidade">Política de Privacidade</Link><Link href="/minha-conta">Minha conta</Link></div></footer>
     <dialog ref={dialog} className={styles.dialog} onClose={() => setSelected(null)} onCancel={e => { e.preventDefault(); closeDetails(); }} onClick={e => { if (e.target === e.currentTarget) closeDetails(); }} aria-labelledby="discovery-detail-title">
       {selected && <><button className={styles.close} aria-label="Fechar detalhes" onClick={closeDetails}><X size={22} /></button><div className={styles.detailMedia}>{(selected.images[photo]?.url ?? selected.image_url) ? <StorefrontDiscoveryImage src={discoveryOriginal(selected.images[photo]?.url ?? selected.image_url!)} fallback={selected.images[photo]?.url ?? selected.image_url} alt={selected.name} fill sizes="(max-width: 700px) 85vw, 400px" /> : <PackageCheck size={64} />}</div><div className={styles.detailCopy}><span className={styles.muted}>{selected.category}</span><h2 id="discovery-detail-title">{selected.name}</h2><strong className={styles.detailPrice}>{price(selected)}</strong><p>{selected.available ? "Disponível no estoque agora. Confira as condições e opções na página de compra." : "Indisponível no momento. Consulte o atendimento antes de fazer seu pedido."}</p>{selected.images.length > 1 && <div className={styles.photos} role="group" aria-label="Fotos do produto">{selected.images.map((image, i) => <button key={`${image.url}:${i}`} aria-pressed={photo === i} onClick={() => setPhoto(i)}>{image.label || image.color || `Foto ${i + 1}`}</button>)}</div>}{selected.operation === "fitness" && <div><h3>Tamanhos e cores disponíveis</h3>{availability[selected.id]?.length ? <ul>{availability[selected.id].map(o => <li key={`${o.size}:${o.color}`}>{o.size} · {o.color}</li>)}</ul> : <p>Confirme os tamanhos e as cores no atendimento.</p>}</div>}<Link className={styles.buy} href={href(selected)}>{selected.operation === "fitness" ? "Ver opções no catálogo Fitness" : "Ver produto e como comprar"}<ArrowRight size={18} /></Link><button className={styles.saveDetail} aria-pressed={saved.includes(key(selected))} onClick={() => toggleSave(selected)}><Heart size={17} />{saved.includes(key(selected)) ? "Salvo nesta visita" : "Guardar para decidir depois"}</button></div></>}
     </dialog>

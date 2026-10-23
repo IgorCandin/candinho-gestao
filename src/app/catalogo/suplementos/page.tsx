@@ -1,9 +1,6 @@
-import { PublicCatalogOperationPage } from "@/components/public-catalog-operation-page";
+import { redirect } from "next/navigation";
+import { discoveryUrl, type StorefrontSearchParams } from "@/lib/storefront-navigation";
 
-export const revalidate = 10;
-
-export default function SupplementsCatalogPage() {
-  return (
-    <PublicCatalogOperationPage operation="supplements" />
-  );
+export default async function SupplementsCatalogPage({ searchParams }: { searchParams: Promise<StorefrontSearchParams> }) {
+  redirect(discoveryUrl(await searchParams, "supplements"));
 }

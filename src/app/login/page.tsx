@@ -39,12 +39,13 @@ export default function LoginPage() {
         </div>
 
         <div className="login-card login-card-v2">
-          <h2>Entrar</h2>
+          <h2>Acesso da equipe</h2>
+          <p>É cliente? <Link href="/minha-conta">Acesse Minha conta</Link>.</p>
           <LoginForm />
 
           <div className="login-public-storefront">
             <span>ou</span>
-            <Link className="login-public-storefront-link" href="/catalogo">
+            <Link className="login-public-storefront-link" href="/catalogo/descobrir">
               <Store size={17} />
               <span>
                 Ver Produtos <b>|</b> Promoções

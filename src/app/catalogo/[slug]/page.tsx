@@ -49,10 +49,12 @@ export async function generateMetadata({
   return {
     title,
     description,
+    alternates: { canonical: `/catalogo/${encodeURIComponent(slug)}` },
     openGraph: {
       title,
       description,
       type: "website",
+      url: `/catalogo/${encodeURIComponent(slug)}`,
       images: image ? [{ url: image }] : undefined,
     },
   };
@@ -87,7 +89,7 @@ export default async function CatalogProductPage({
       <PublicProductViewTracker productId={product.id} />
 
       <header className={styles.pageHeader}>
-        <Link className={styles.backLink} href="/catalogo">
+        <Link className={styles.backLink} href="/catalogo/descobrir">
           <ArrowLeft size={15} />
           Voltar ao catálogo
         </Link>
