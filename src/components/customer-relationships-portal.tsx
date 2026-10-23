@@ -87,7 +87,7 @@ export function CustomerRelationshipsPortal({ enabled = true }: { enabled?: bool
   const pathname = usePathname();
   const customerId = useMemo(() => {
     const match = pathname?.match(
-      /^\/clientes\/([0-9a-f]{8}-[0-9a-f-]{27,})$/i,
+      /^\/(?:company\/)?clientes\/([0-9a-f]{8}-[0-9a-f-]{27,})$/i,
     );
     return match?.[1] ?? null;
   }, [pathname]);
@@ -493,7 +493,7 @@ export function CustomerRelationshipsPortal({ enabled = true }: { enabled?: bool
                     <div className="customer-network-row-actions">
                       <Link
                         className="button ghost compact-button"
-                        href={`/clientes/${relation.relatedCustomerId}`}
+                        href={`${pathname.startsWith("/company/") ? "/company" : ""}/clientes/${relation.relatedCustomerId}`}
                       >
                         Abrir
                       </Link>

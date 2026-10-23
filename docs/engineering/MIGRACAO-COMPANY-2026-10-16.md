@@ -6,6 +6,8 @@ Este checkpoint prevalece sobre os registros históricos abaixo; publicado não 
 
 ### Publicado; aguarda teste humano
 
+- PR #77: Fila Comercial profunda em `/company/fila-comercial`, compartilhada com legado. Merge `dd9b31a1ceb789b2368e29ac74684d44f186e46c`; produção READY `dpl_3yx7DBd8L4WDMwr3BxCm4oB3WZoC`. 194 testes, lint focado e build/TypeScript aprovados. Oficial autenticado: Fila Única → fila comercial → cliente Company;320/390px sem overflow, console observado limpo; nenhuma ação comercial enviada. Ver `COMPANY-FILA-COMERCIAL-2026-10-23.md`.
+
 - PR #74: Vitrine oficial em `/catalogo/descobrir`, atalhos internos/clientes separados e visíveis no celular, URLs antigas preservadas por redirecionamento com filtros e detalhes com canonical próprio. Merge `49649d34c6a45f69fd7a57c2e951d3c55b2799f0`; produção READY `dpl_F9mhgsHxd8oZxQP67DfPvw45Jsbe`. Suíte 187/187 e lint focado aprovados; navegação real, teclado e larguras 320/390/414/1024/1366 conferidas no preview. Sem alterações comerciais ou dados reais. Evidências: `VITRINE-OFICIAL-2026-10-23.md`, https://trello.com/c/Eardsan4.
 - Acessibilidade complementar: controle local de pausa/retomada do carrossel, com alvos 44px; respeita movimento reduzido e mantém arraste/setas. Dois testes de regressão isolados (primeiro reproduziu ausência do controle). Publicação deste complemento só após preview/produção READY.
 - Portal do cliente: acesso móvel entregue; vínculo de histórico não foi alterado. Evolução exige vínculo explícito/auditável de conta e cliente; telefone informado não comprova identidade. https://trello.com/c/AQsgfno9.
@@ -21,6 +23,8 @@ Este checkpoint prevalece sobre os registros históricos abaixo; publicado não 
 - Validação manual no iPhone dos menus, zoom, campos, navegação e resultados permanece com o responsável; não registrar aprovação por ausência de relato.
 
 ### Próximas melhorias e dependências distintas do mobile
+
+- Vínculos após cadastro: painel existente `CustomerRelationshipsPortal` passa a reconhecer a ficha `/company/clientes/:id`; relacionados abrem Company, sem confundir IDs Fitness nem ampliar gates/API. Criação/resolvedores, payloads e permissões permanecem intactos. Dois testes vermelhos antes;197/197 após, lint comparado à main com dois erros antigos idênticos e zero introduzido. Publicação deste complemento exige PR/SHA/READY no Trello. Rascunhos de vínculo antes do cadastro e retorno ao lead ainda não têm paridade integral; rotinas exigem compatibilidade de chegada persistida, sem teste real que avance etapas.
 
 - Fila Comercial profunda: entrada `/company/fila-comercial` compartilha integralmente servidor/cliente/ações com o legado; Fila Única e agenda encaminham ao fluxo exato. `Abrir cliente` preserva ID/query/hash em Company. Contratos das quatro ações testados com stubs em ambos os contextos;194/194 testes e lint focado aprovados. SHA/PR/READY final no cartão P0 antes de declarar publicado. `COMPANY-FILA-COMERCIAL-2026-10-23.md` descreve rollback e diferenças de cadastro/rotinas que continuam abertas.
 

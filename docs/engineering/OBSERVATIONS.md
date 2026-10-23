@@ -1,3 +1,10 @@
+## 23/10/2026 — Vínculos disponíveis na ficha Company
+
+- Contexto: componente global de vínculos só aceitava `/clientes/:id`, embora a criação Company retornasse `/company/clientes/:id`. Painel e API já existiam, com gate ativo/escrita Suplementos e validação própria do servidor. Não duplicar cadastro ou associação por telefone.
+- Correção mínima: mesmo painel aceita o prefixo Company e preserva esse contexto ao abrir relacionado. Rotas Fitness/edição/lista e componente desabilitado continuam excluídos. Sem alterações nas permissões, API, resolvedores, payloads ou regras de parceria.
+- Evidência: dois testes reproduziram ausência do painel antes;197/197 após, leitura GET e limpeza do anchor exercitadas com fixtures. Comparação ESLint com main: dois erros React já existentes, dois atuais, zero introduzido; não foi aberta refatoração de efeitos.
+- Limites: painel na ficha após salvar não equivale a migrar rascunhos de relacionamentos anteriores à criação ou retorno ao lead. Build/READY e smoke real devem constar no Trello antes de declarar publicado. Nenhum vínculo comercial real foi modificado em testes.
+
 ## 23/10/2026 — Fila Comercial profunda preserva contexto Company
 
 - Contexto/evidência: item real da Fila Única apontava `/suplementos/fila-comercial`; a fila só possuía entrada legada e `Abrir cliente` usava href cru. Dois testes reproduziram as lacunas antes do ajuste.
