@@ -631,7 +631,7 @@ export function NewLeadForm({
             Cliente novo?{" "}
             <Link
               className="inline-link"
-              href="/clientes/novo"
+              href={companyMode ? "/company/clientes/novo" : "/clientes/novo"}
             >
               Cadastrar cliente
             </Link>

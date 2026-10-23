@@ -19,6 +19,14 @@ import type { NexusDailySnapshot } from "@/lib/nexus-daily-types";
 import type { NexusBrief } from "@/lib/nexus-operating-types";
 import type { NexusUnifiedQueueSnapshot } from "@/lib/nexus-unified-types";
 import { nexusRouteHref, nexusRouteLabel } from "@/lib/nexus-route-labels";
+import { companyDestination } from "@/lib/company-destination";
+
+function navigationHref(pathname: string, href: string) {
+  if (pathname !== "/company" && !pathname.startsWith("/company/")) return href;
+  // Creating a lead is not a sale; the historical mapper conflates these workflows.
+  if (/^\/(?:suplementos\/)?leads\/novo(?:[?#]|$)/.test(href)) return href;
+  return companyDestination(href);
+}
 
 export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
   const pathname = usePathname() || "/suplementos";
@@ -139,7 +147,7 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
               <span className="eyebrow">Nexus</span>
               <strong>Copiloto da operação</strong>
             </div>
-            <Link href="/nexus/fila">
+            <Link href={navigationHref(pathname, "/nexus/fila")}>
               Fila Única <ChevronRight size={13} />
             </Link>
           </div>
@@ -167,7 +175,7 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
                 </div>
 
                 <div className="nexus-dock-global-v454">
-                  <Link href="/nexus/fila">
+                  <Link href={navigationHref(pathname, "/nexus/fila")}>
                     <ListChecks size={14} />
                     <span>
                       <strong>Fila Única</strong>
@@ -196,14 +204,14 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
                         const href = nexusRouteHref(shortcut.to_route);
                         if (!href) return null;
                         return (
-                          <Link href={href} key={shortcut.to_route}>
+                          <Link href={navigationHref(pathname, href)} key={shortcut.to_route}>
                             {nexusRouteLabel(shortcut.to_route)}
                             <small>{shortcut.transitions_30d}×</small>
                           </Link>
                         );
                       })}
                     </nav>
-                    <Link href="/suplementos/nexus/habitos">
+                    <Link href={navigationHref(pathname, "/suplementos/nexus/habitos")}>
                       Como o Nexus aprendeu isso <ChevronRight size={12} />
                     </Link>
                   </div>
@@ -212,7 +220,7 @@ export function NexusCopilotDock({ enabled = true }: { enabled?: boolean }) {
                 <div className="nexus-dock-signals">
                   {brief.signals.slice(0, 3).map((signal) => (
                     <Link
-                      href={signal.actionHref ?? "/suplementos/nexus"}
+                      href={navigationHref(pathname, signal.actionHref ?? "/suplementos/nexus")}
                       key={signal.id}
                     >
                       <Sparkles size={13} />
