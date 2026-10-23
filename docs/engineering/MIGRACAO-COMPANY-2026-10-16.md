@@ -22,6 +22,8 @@ Este checkpoint prevalece sobre os registros históricos abaixo; publicado não 
 
 ### Próximas melhorias e dependências distintas do mobile
 
+- Fila Comercial profunda: entrada `/company/fila-comercial` compartilha integralmente servidor/cliente/ações com o legado; Fila Única e agenda encaminham ao fluxo exato. `Abrir cliente` preserva ID/query/hash em Company. Contratos das quatro ações testados com stubs em ambos os contextos;194/194 testes e lint focado aprovados. SHA/PR/READY final no cartão P0 antes de declarar publicado. `COMPANY-FILA-COMERCIAL-2026-10-23.md` descreve rollback e diferenças de cadastro/rotinas que continuam abertas.
+
 - Continuidade P0 nesta sessão: Fila Única em `/company/nexus/fila` usa o mesmo componente servidor/cliente e RPC do legado. Copilot/paleta/atalhos já contextualizados passam a reconhecer esse destino. Foco e linhas preservam query/hash e ações; leads/rotinas sem paridade ficam intactos. Dois testes reproduziram a lacuna; suíte191/191 e lint focado passaram. Publicação exige registrar PR/SHA/READY no cartão P0 antes de declarar concluído. Não desligar legado.
 - Google Reviews agora conectado: Work confirmou Conectado na gestão e três cartões reais na Vitrine oficial; redeploy b1953d8 READY `dpl_6b1wmD3MpbZCk6V4nAzGzi5BxAf2`. Falta durabilidade OAuth Testing/Audience, não credenciais nem primeiro consentimento. `GOOGLE_REVIEWS.md` e cartão Google prevalecem sobre as referências antigas abaixo.
 

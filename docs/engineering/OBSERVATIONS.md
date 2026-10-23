@@ -1,3 +1,10 @@
+## 23/10/2026 — Fila Comercial profunda preserva contexto Company
+
+- Contexto/evidência: item real da Fila Única apontava `/suplementos/fila-comercial`; a fila só possuía entrada legada e `Abrir cliente` usava href cru. Dois testes reproduziram as lacunas antes do ajuste.
+- Mudança: entradas compartilham servidor/cliente e mesmas RPCs; apenas navegação contextual, retorno e rótulo Company. Agenda abre a fila comercial exata. Nenhum registro, payload, meta, ordem, permissão ou regra foi alterado.
+- Validação:194/194 testes, lint focado exit0 e diff-check. Ações executadas somente com fixtures, incluindo sucesso/erro. Build e READY por SHA registrados no cartão P0; não afirmar homologação iPhone sem retorno do responsável.
+- Próximos: compor relacionamentos sem trocar resolvedor de clientes; rotinas precisam teste isolado da chegada persistida. Legado preservado.
+
 ## 23/10/2026 — Fila Única contextualizada sem duplicar operação
 
 - Contexto: após #65/#66, o Copilot ainda levava a `/nexus/fila`; foco e linhas usavam URLs legadas cruas. Causa reproduzida por renderização do componente real com fixture isolada.

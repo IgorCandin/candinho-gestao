@@ -19,7 +19,7 @@ export function CommercialContactAgendaCard({
   return (
     <Link
       className={`v4530-agenda-commercial ${snapshot.completed ? "completed" : ""}`}
-      href={companyMode ? "/company/vender" : "/suplementos/fila-comercial"}
+      href={companyMode ? "/company/fila-comercial" : "/suplementos/fila-comercial"}
     >
       <span className="v4530-agenda-commercial-icon">
         {snapshot.completed ? <CheckCircle2 size={20} /> : <Target size={20} />}
