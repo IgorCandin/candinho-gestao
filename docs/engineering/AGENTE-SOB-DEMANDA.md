@@ -37,4 +37,12 @@ Arquivo `STOP` no diretório de estado interrompe antes do próximo worker, não
 
 Não criar duplicata de https://trello.com/c/xqAHYKEL para #66. Preview pediu login próprio em 23/10; QA autenticada continua pendente. A sessão registrou essa dependência e avançou para outra tarefa independente. Evidência do teste CLI real, revisão/PR e comentários será registrada nos cartões, distinguindo simulação de execução e implantação de auditoria.
 
+### Resultado real de 23/10 — parcialmente bloqueado
+
+O CLI autenticado iniciou de fato e produziu saída estruturada. A política do ambiente rejeitou os comandos locais, inclusive o git diff solicitado: a revisão retornou `needs_human`, explicitamente sem certificar código/autenticação. Checkpoint persistido, estado final `stopped`, motivo `budget`; uso reportado de entrada+saída 104.774 tokens na primeira tarefa. Essa soma não mede preço nem franquia faturada e pode incluir contexto em cache. A contagem entre tarefas protegeu contra iniciar a segunda, mas **não limitou o gasto dentro da primeira**. Não repetir como prova de sucesso.
+
+Seis testes unitários com workers fictícios aprovam sequência de duas tarefas, deduplicação, parada, orçamento e falha. Isso NÃO comprova duas tarefas reais pelo CLI. A sessão Work real leu/atualizou o cartão QA #66, estacionou login e avançou para implementar/testar o controlador em branch separada. O encadeamento nativo dentro do turno foi observado; serviço independente do PC e controlador Trello→código completo NÃO foram validados.
+
+Não recomendar `--execute` para rotina diária neste ambiente até resolver a incompatibilidade de política em executor suportado e calibrar custo/contexto. Não contornar com danger-full-access, copiar credenciais, contratar API ou ficar repetindo canários. Preview #66 continua aguardando login; nenhum dado real foi alterado.
+
 Fontes oficiais consultadas em 23/10/2026: https://learn.chatgpt.com/docs/non-interactive-mode e https://learn.chatgpt.com/docs/codex-sdk . CLI escolhido por já existir; instalar SDK agora duplicaria capacidade. `codex exec --json`, saída estruturada e `resume` são recursos oficiais; este MVP usa checkpoint próprio por tarefa, não resume uma ação interrompida automaticamente.
