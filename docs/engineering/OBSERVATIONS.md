@@ -445,3 +445,10 @@ Ao finalizar uma etapa, revisar observações confirmadas e promover as úteis p
 - Evidências: 150 testes Node após integrar main; TypeScript sem erros; testes visuais em 1071/390/320px para Vender e Acompanhar, sem overflow/erro de cliente; erro 409 não remove oportunidade nem simula sucesso. Lint dos arquivos alterados sem saída.
 - Skills: setup confirma quatro skills locais fixadas; ponytail e verification-before-completion aplicadas junto de React, testes e Supabase. Sem novas dependências ou serviços.
 - Status: código e banco verificados; publicação e teste manual do responsável devem ser confirmados separadamente.
+
+## 23/10/2026 — Gestão: lucro escondido e navegação repetida
+
+- Contexto/evidência: categoria inicial Dia a dia ocultava o gráfico de Resultados; o diretório repetia seis destinos do cabeçalho por operação. Inventário conferido sem executar ações reais.
+- Mudança: destaque canônico de lucro mensal e agenda; diretório por tarefa com default Tudo, busca e categoria opcional. Atalhos do cabeçalho recolhidos, não removidos. Mesmos gates, filhos de agenda e investimento. Sem duplicar gráfico ou alterar dados.
+- Validação: seis testes do módulo, lint direcionado e componente real hidratado em quatro dimensões Chromium aprovados. Build remoto e homologação autenticada/Safari continuam gates explícitos, sem inferir publicação.
+- Status: branch separada de #66/#67. Matriz/evidências/checkpoint em GESTAO-NAVEGACAO-2026-10-23.md; cartão https://trello.com/c/enKmbXUn . Registro anexado ao final para evitar conflito com o registro inicial do #66.
