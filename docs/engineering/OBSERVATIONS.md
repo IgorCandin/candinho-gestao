@@ -1,3 +1,10 @@
+## 23/10/2026 — Fila Única contextualizada sem duplicar operação
+
+- Contexto: após #65/#66, o Copilot ainda levava a `/nexus/fila`; foco e linhas usavam URLs legadas cruas. Causa reproduzida por renderização do componente real com fixture isolada.
+- Mudança: entrada Company compõe o mesmo servidor/cliente, mesma RPC e guard; só links conhecidos são contextualizados. Cadastro de lead não vira venda, rotinas não são remapeadas, ações de sinais preservam payload/identidade. Seleção estática dos mesmos ícones elimina diagnóstico React já existente no arquivo tocado.
+- Evidência: dois testes vermelhos antes, dez focados e suíte191/191 verdes após; lint focado limpo. Build/preview/produção dependem da evidência do PR registrado no Trello. Nenhuma migration, permissão ou dado comercial alterado.
+- Próximo: paridade de cadastro/retorno e rotinas com teste isolado de chegada; não desligar legado. Controlador #67 continua bloqueado e não foi reexecutado.
+
 ## 23/10/2026 — P0 publicado e continuidade separada
 
 - Evidência: PR #65 integrado sob autorização expressa; main 1546f82712a111db7b85f95451cfe3a5e0712cf3, Vercel produção READY dpl_CGME2VeAPXMTxgT28Z12CCNvQWSZ e alias oficial confirmado. Conferidos pedido→venda e busca→ficha Fitness no domínio oficial, sem operações reais. Teste inicial Safari positivo informado pelo responsável.

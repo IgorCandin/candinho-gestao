@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { NexusActionPreviewButton } from "@/components/nexus-action-preview-button";
+import { companyDestination } from "@/lib/company-destination";
 import type {
   NexusUnifiedQueueItem,
   NexusUnifiedQueueSnapshot,
@@ -37,12 +38,12 @@ const SEVERITIES = [
   { key: "info", label: "Info" },
 ] as const;
 
-function iconFor(operation: string) {
-  if (operation === "fitness") return Dumbbell;
-  if (operation === "bank") return Landmark;
-  if (operation === "company" || operation === "marketing") return Building2;
-  return Sparkles;
-}
+const operationIcons: Record<string, typeof Sparkles> = {
+  fitness: Dumbbell,
+  bank: Landmark,
+  company: Building2,
+  marketing: Building2,
+};
 
 function dueLabel(value: string | null) {
   if (!value) return null;
@@ -83,14 +84,22 @@ function visibleSummary(item: NexusUnifiedQueueItem) {
   return withoutZeroAmount || null;
 }
 
+function queueHref(href: string, companyMode: boolean) {
+  // Lead registration has no validated parity yet; never turn it into a sale.
+  if (!companyMode || /^\/(?:suplementos\/)?leads\/novo(?:[?#]|$)/.test(href)) return href;
+  return companyDestination(href);
+}
+
 function QueueRow({
   item,
   onSignalChanged,
+  companyMode,
 }: {
   item: NexusUnifiedQueueItem;
   onSignalChanged: (queueId: string) => void;
+  companyMode: boolean;
 }) {
-  const Icon = iconFor(item.operation_scope);
+  const Icon = operationIcons[item.operation_scope] ?? Sparkles;
   const summary = visibleSummary(item);
 
   return (
@@ -113,7 +122,7 @@ function QueueRow({
       </div>
 
       <div className="nexus-unified-actions-v454">
-        <Link className="button gold compact-button" href={item.href}>
+        <Link className="button gold compact-button" href={queueHref(item.href, companyMode)}>
           Abrir <ArrowRight size={13} />
         </Link>
 
@@ -139,8 +148,10 @@ function QueueRow({
 
 export function NexusUnifiedQueue({
   initialSnapshot,
+  companyMode = false,
 }: {
   initialSnapshot: NexusUnifiedQueueSnapshot;
+  companyMode?: boolean;
 }) {
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [operation, setOperation] = useState("all");
@@ -241,7 +252,7 @@ export function NexusUnifiedQueue({
               {focus.due_at ? ` · ${dueLabel(focus.due_at)}` : ""}
             </small>
           </div>
-          <Link className="button gold" href={focus.href}>
+          <Link className="button gold" href={queueHref(focus.href, companyMode)}>
             Resolver agora <ArrowRight size={14} />
           </Link>
         </article>
@@ -299,6 +310,7 @@ export function NexusUnifiedQueue({
               item={item}
               key={item.queue_id}
               onSignalChanged={removeSignal}
+              companyMode={companyMode}
             />
           ))
         ) : (

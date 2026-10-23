@@ -2,6 +2,16 @@
 
 ## Estado
 
+### Checkpoint confirmado em 23/10/2026 (prevalece sobre os passos históricos)
+
+- Responsável concluiu APIs, OAuth da conta administradora, seleção explícita do perfil e cinco variáveis privadas Production; redeploy `b1953d8631f66a0f92e1e9011a60e91ac7fbc16e` READY `dpl_6b1wmD3MpbZCk6V4nAzGzi5BxAf2`.
+- Conferência Work no navegador autenticado: `/company/vitrine` mostra **Conectado**, quatro diagnósticos positivos e três avaliações com texto. `/catalogo/descobrir` apresenta três cartões Google, com nome público, estrelas, texto original e link do perfil; não mistura os cinco depoimentos manuais. Nenhum formulário ou configuração foi enviado.
+- Não refazer OAuth, pedir credenciais nem reconstruir a integração #58. Evidência e próxima ação ficam em https://trello.com/c/2abs7whk.
+- Pendência de durabilidade: confirmar o estado do aplicativo em Google Auth Platform → Audience. Se External/Testing, o refresh token para `business.manage` está sujeito a sete dias. O responsável precisa revisar publicação/verification aplicável; não mudar audiência/publicação nem ampliar acesso automaticamente. Token de teste não se torna comprovadamente permanente só por republicar o ERP. Após a regularização, verificar se é necessário novo consentimento privado; não repetir enquanto a conexão atual estiver válida sem motivo.
+- Referências oficiais conferidas: https://support.google.com/cloud/answer/15549945 e https://developers.google.com/identity/protocols/oauth2 . Publicar o aplicativo não equivale a garantir token eterno; revogação e outras expirações continuam possíveis.
+
+### Histórico de preparação (não executar novamente)
+
 Integração preparada. Em 23/10/2026, o responsável informou aprovação do projeto `923790320974`, protocolo `7-3896000042034`, com cota de 300 QPM. Essa informação não comprova conexão OAuth ou sincronização: faltam credenciais privadas do cliente desktop, consentimento do administrador, seleção da unidade e configuração na hospedagem. Link informado pelo responsável: https://maps.app.goo.gl/jBwJKoXhCydht8Vd8. Não afirmar que está sincronizando antes de validar uma resposta real.
 
 Pedido de acesso enviado pelo responsável em 19/10/2026: protocolo `7-3896000042034`, projeto **My Maps Project**, ID `stable-glass-489311-m7`, número `923790320974`. O Google informou 7–10 dias úteis; não abrir pedidos duplicados. O projeto anterior `trans-opus-425801-b7` pertencia à conta incorreta e não deve ser usado. Data de verificação do perfil informada pelo responsável: 2 de março; não foi comprovada por API.
