@@ -1,3 +1,10 @@
+## 23/10/2026 — Gestão: lucro escondido e navegação repetida
+
+- Contexto/evidência: categoria inicial Dia a dia ocultava o gráfico de Resultados; o diretório repetia seis destinos do cabeçalho por operação. Inventário conferido sem executar ações reais.
+- Mudança: destaque canônico de lucro mensal e agenda; diretório por tarefa com default Tudo, busca e categoria opcional. Atalhos do cabeçalho recolhidos, não removidos. Mesmos gates, filhos de agenda e investimento. Sem duplicar gráfico ou alterar dados.
+- Validação: seis testes do módulo, lint direcionado e componente real hidratado em quatro dimensões Chromium aprovados. Build remoto e homologação autenticada/Safari continuam gates explícitos, sem inferir publicação.
+- Status: branch separada de #66/#67. Matriz/evidências/checkpoint em GESTAO-NAVEGACAO-2026-10-23.md; cartão https://trello.com/c/enKmbXUn .
+
 ## 23/10/2026 — P0 navegação Company, primeiro lote
 
 - Contexto confirmado no Trello/main: reserva em compra Company apontava a venda legada. Ficha da venda, logo e busca de cliente Fitness também escapavam; canonicalizador global interferia na Company.
