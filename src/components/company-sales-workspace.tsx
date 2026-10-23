@@ -1,5 +1,6 @@
 /* eslint-disable @next/next/no-img-element */
 "use client";
+import { phoneMatchesQuery } from "@/lib/phone-search";
 
 import Link from "next/link";
 import { FitnessOpportunityContactActions } from "@/components/fitness-opportunity-contact-actions";
@@ -168,7 +169,7 @@ export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, 
     const source = queue === "repurchase" ? opportunities.filter((row) => row.opportunity_group === "recompra") : queue === "complementary" ? opportunities.filter((row) => row.opportunity_group === "produto_complementar") : [];
     const needle = query.trim().toLocaleLowerCase("pt-BR");
     if (!needle) return source;
-    return source.filter((row) => [row.customer_name, row.city, row.phone, row.recommended_product_name, row.reason].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle)));
+    return source.filter((row) => phoneMatchesQuery(needle, row.phone) || [row.customer_name, row.city, row.phone, row.recommended_product_name, row.reason].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle)));
   }, [opportunities, query, queue]);
   const groupedRows = useMemo(() => {
     const groups = new Map<string, SalesOpportunity[]>();
@@ -177,20 +178,20 @@ export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, 
   }, [rows]);
   const visibleLeads = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("pt-BR");
-    return needle ? hotLeads.filter((lead) => [lead.customer_name, lead.city, lead.phone, lead.product_summary, lead.lead_status].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle))) : hotLeads;
+    return needle ? hotLeads.filter((lead) => phoneMatchesQuery(needle, lead.phone) || [lead.customer_name, lead.city, lead.phone, lead.product_summary, lead.lead_status].some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle))) : hotLeads;
   }, [hotLeads, query]);
   const fitnessCandidates = useMemo(() => fitnessCustomers.filter(customer => customer.active && customer.total_purchases > 0 && (customer.days_without_purchase ?? 0) >= 45 && fitnessContactDue(contacts[customer.id],today)).sort((a,b)=>(b.days_without_purchase ?? 0)-(a.days_without_purchase ?? 0)), [fitnessCustomers, contacts, today]);
   const needle = query.trim().toLocaleLowerCase("pt-BR");
   const visibleToday = todayCandidates.filter((item) => {
     if (!needle) return true;
     const values = item.kind === "lead" ? [item.lead.customer_name, item.lead.product_summary, item.lead.city] : [item.row.customer_name, item.row.recommended_product_name, item.row.city];
-    return values.some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle));
+    return phoneMatchesQuery(needle, item.kind === "lead" ? item.lead.phone : item.row.phone) || values.some((value) => value?.toLocaleLowerCase("pt-BR").includes(needle));
   });
-  const visibleFitness = fitnessCandidates.filter(customer => !needle || [customer.name,customer.city,customer.phone].some(value=>value?.toLocaleLowerCase("pt-BR").includes(needle)));
+  const visibleFitness = fitnessCandidates.filter(customer => !needle || phoneMatchesQuery(needle, customer.phone) || [customer.name,customer.city,customer.phone].some(value=>value?.toLocaleLowerCase("pt-BR").includes(needle)));
   const pendingSizes=fitnessSizeOpportunities.filter(item=>fitnessContactDue(contacts[item.evidence.customerId],today));
   const registered=Object.values(contacts).filter(contact=>fitnessCustomers.some(customer=>customer.id===contact.customer_id&&customer.active));
-  const visibleContacts=registered.filter(contact=>{const customer=fitnessCustomers.find(row=>row.id===contact.customer_id);return !needle||`${customer?.name} ${contact.notes??""} ${contact.status}`.toLocaleLowerCase("pt-BR").includes(needle)}).sort((a,b)=>b.updated_at.localeCompare(a.updated_at));
-  const visibleSizes = pendingSizes.filter(item=>!needle || `${item.evidence.customerName} ${item.evidence.category} ${item.evidence.size} ${item.products.map(product=>`${product.product_name} ${product.color}`).join(" ")}`.toLocaleLowerCase("pt-BR").includes(needle));
+  const visibleContacts=registered.filter(contact=>{const customer=fitnessCustomers.find(row=>row.id===contact.customer_id);return !needle||phoneMatchesQuery(needle, customer?.phone)||`${customer?.name} ${contact.notes??""} ${contact.status}`.toLocaleLowerCase("pt-BR").includes(needle)}).sort((a,b)=>b.updated_at.localeCompare(a.updated_at));
+  const visibleSizes = pendingSizes.filter(item=>!needle || phoneMatchesQuery(needle, fitnessCustomers.find(customer=>customer.id===item.evidence.customerId)?.phone) || `${item.evidence.customerName} ${item.evidence.category} ${item.evidence.size} ${item.products.map(product=>`${product.product_name} ${product.color}`).join(" ")}`.toLocaleLowerCase("pt-BR").includes(needle));
   const featured = queue === "today" && operation !== "Fitness" ? visibleToday[0] ?? null : null;
   const totalRows = queue === "today" ? visibleToday.length : queue === "leads" ? visibleLeads.length : queue === "fitness" ? visibleFitness.length : queue === "sizes" ? visibleSizes.length : queue === "contacts" ? visibleContacts.length : groupedRows.length;
 
@@ -203,7 +204,7 @@ export function CompanySalesWorkspace({ opportunities, leads, fitnessCustomers, 
       <section className="company-sales-queue">
         <div className="completion-filters">
           <fieldset className="completion-operation"><legend>Operação</legend><div className="completion-segments">{(["all",...allowedOperations] as const).map(value=><button type="button" key={value} aria-pressed={operation===value} onClick={()=>selectOperation(value)}>{value==="all"?"Todas":value}</button>)}</div></fieldset>
-          <label className="completion-search"><span>Buscar cliente ou oportunidade</span><div><Search size={17}/><input type="search" value={query} onChange={event=>{setQuery(event.target.value);setShown(24)}} placeholder="Cliente, produto, tamanho ou cor"/>{query&&<button type="button" aria-label="Limpar busca" onClick={()=>setQuery("")}><X size={17}/></button>}</div></label>
+          <label className="completion-search"><span>Buscar cliente ou oportunidade</span><div><Search size={17}/><input type="search" value={query} onChange={event=>{setQuery(event.target.value);setShown(24)}} placeholder="Cliente, telefone, produto, tamanho ou cor"/>{query&&<button type="button" aria-label="Limpar busca" onClick={()=>setQuery("")}><X size={17}/></button>}</div></label>
           <fieldset className="completion-status"><legend>Qual oportunidade você quer atender?</legend><div className="completion-segments">{availableQueues.map(({key,label})=><button type="button" key={key} aria-pressed={queue===key} onClick={()=>openQueue(key)}><span>{label}</span><span className="completion-filter-count">{counts[key]}</span></button>)}</div></fieldset>
         </div>
         <div className="completion-filter-result"><p role="status" aria-live="polite">{totalRows} {queue === "sizes" ? "combinação(ões) de cliente e categoria" : queue === "leads" ? "lead(s)" : "pessoa(s)"} · {["sizes","fitness","contacts"].includes(queue) ? "Fitness" : "Suplementos"}</p>{(operation!=="all"||query||queue!=="today")&&<button type="button" onClick={()=>{setOperation("all");setQuery("");setQueue(allowedOperations.includes("Suplementos")?"today":"sizes");setShown(24)}}>Limpar filtros</button>}</div>

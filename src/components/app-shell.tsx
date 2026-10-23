@@ -701,7 +701,7 @@ export function AppShell({
       </aside>
 
       <header className="mobile-header">
-        <button className="mobile-back-button" type="button" onClick={goBack}>
+        <button className="mobile-back-button" type="button" aria-label="Voltar" onClick={goBack}>
           <ArrowLeft size={22} />
         </button>
 
