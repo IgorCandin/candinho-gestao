@@ -1,3 +1,9 @@
+## 23/10/2026 — P0 publicado e continuidade separada
+
+- Evidência: PR #65 integrado sob autorização expressa; main 1546f82712a111db7b85f95451cfe3a5e0712cf3, Vercel produção READY dpl_CGME2VeAPXMTxgT28Z12CCNvQWSZ e alias oficial confirmado. Conferidos pedido→venda e busca→ficha Fitness no domínio oficial, sem operações reais. Teste inicial Safari positivo informado pelo responsável.
+- Continuidade: link cadastro no lead e destinos conhecidos do Copilot contextualizados em branch separada; 164 testes e lint direcionado aprovados. Ainda não publicados em produção. Rotinas exigem compatibilidade também com a comparação de chegada no RPC: não fazer troca cega de href nem testar avanço real.
+- Pendências/paridade e limites: COMPANY-P0-CONTINUIDADE-2026-10-23.md. ERP antigo preservado. Sem migrations, regras comerciais ou dados reais alterados.
+
 ## 23/10/2026 — P0 navegação Company, primeiro lote
 
 - Contexto confirmado no Trello/main: reserva em compra Company apontava a venda legada. Ficha da venda, logo e busca de cliente Fitness também escapavam; canonicalizador global interferia na Company.
