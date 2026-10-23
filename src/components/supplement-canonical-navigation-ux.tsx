@@ -200,6 +200,8 @@ export function SupplementCanonicalNavigationUX() {
   const router = useRouter();
 
   useEffect(() => {
+    // Company owns its navigation; legacy rewriting must not override its links.
+    if (pathname === "/company" || pathname.startsWith("/company/")) return;
     let frame = 0;
 
     function syncAnchors() {

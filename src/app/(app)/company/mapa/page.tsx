@@ -158,7 +158,8 @@ export default async function CompanyMigrationMapPage() {
   const stateOf = (row:MigrationAuditRow)=>savedByKey.get(row.key) ?? (row.relatedKeys?.length && row.relatedKeys.every(key=>savedByKey.get(key)==="approved") ? "approved" : "pending");
   const count = (state:string)=>[...auditRows,...roadmapRows].filter(row=>stateOf(row)===state).length;
   return <div className="company-map-page company-migration-board">
-    <header><span>COMPANY · FECHAMENTO MOBILE</span><h1>Fechar o mobile sem perder o roteiro</h1><p>Conferência de 19/10. O fechamento mobile está separado das melhorias futuras e da aposentadoria do ERP antigo.</p></header>
+    <header><span>COMPANY · FECHAMENTO</span><h1>Fechamento Company e mobile</h1><p>Retomada de 23/10. As conferências mobile continuam separadas das melhorias futuras e da aposentadoria do ERP antigo.</p></header>
+    <section className="panel"><h2>P0 · Permanecer na Company</h2><p>Primeiro lote: venda aguardando sabor no pedido de fornecedor, cliente/produto na ficha da venda, logo inicial, cliente Fitness na busca e destinos conhecidos do Nexus. Mesmas telas e ações; nenhum saldo ou reserva alterado.</p><p>A migração completa continua aberta: cadastro de lead, destinos dinâmicos de rotinas/Copilot e paridade de todas as rotas ainda exigem conferência. O botão ERP 1.0 e as funções antigas não foram removidos.</p><Link href="https://trello.com/c/Fftoz6V9">Acompanhar P0 e evidências no Trello</Link> · <Link href="/company/compras">Conferir compras</Link></section>
     <section className="panel"><h2>Cinco grupos de teste, sem recomeçar do zero</h2>
       <ol>
         <li><strong>Menus e janelas:</strong> abrir, rolar até o último item, fechar, voltar e ampliar sem cortes.</li>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { companyDestination } from "@/lib/company-destination";
 import {
   ArrowRight,
   Bot,
@@ -32,6 +33,13 @@ function normalize(value: string) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase();
+}
+
+function navigationHref(pathname: string, href: string) {
+  if (pathname !== "/company" && !pathname.startsWith("/company/")) return href;
+  // The historical helper sends a new lead to a sale; preserve that distinct workflow.
+  if (/^\/(?:suplementos\/)?leads\/novo(?:[?#]|$)/.test(href)) return href;
+  return companyDestination(href);
 }
 
 async function recordUse(id: string) {
@@ -269,7 +277,7 @@ export function NexusCommandPalette({
                     {pinned.map((item: NexusPersonalShortcut, index) => (
                       <div className="nexus-command-route-row-v455" key={item.id}>
                         <Link
-                          href={item.href}
+                          href={navigationHref(pathname, item.href)}
                           onClick={() => {
                             void recordUse(item.id);
                             close();
@@ -300,7 +308,7 @@ export function NexusCommandPalette({
 
                 <div className="nexus-command-suggestions-head-v454">
                   <span>{query.trim() ? "Atalhos encontrados" : "Rotas rápidas"}</span>
-                  <Link href="/nexus/foco" onClick={close}>
+                  <Link href={navigationHref(pathname, "/nexus/foco")} onClick={close}>
                     Meu Dia <ArrowRight size={12} />
                   </Link>
                 </div>
@@ -317,7 +325,7 @@ export function NexusCommandPalette({
                       className="nexus-command-route-row-v455"
                       key={`${item.operation}-${item.href}`}
                     >
-                      <Link href={item.href} onClick={close}>
+                      <Link href={navigationHref(pathname, item.href)} onClick={close}>
                         <span>
                           <strong>{item.label}</strong>
                           <small>
@@ -371,7 +379,7 @@ export function NexusCommandPalette({
                 <div className="nexus-command-result-actions-v454">
                   {result.intent === "navigate" && result.href && (
                     <>
-                      <Link className="button gold" href={result.href} onClick={close}>
+                      <Link className="button gold" href={navigationHref(pathname, result.href)} onClick={close}>
                         Abrir tela <ArrowRight size={14} />
                       </Link>
                       <NexusPinShortcutButton
@@ -421,7 +429,7 @@ export function NexusCommandPalette({
                     action.href ? (
                       <Link
                         className="button ghost compact-button"
-                        href={action.href}
+                        href={navigationHref(pathname, action.href)}
                         key={`${action.label}-${action.href}`}
                         onClick={close}
                       >

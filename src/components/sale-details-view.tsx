@@ -83,6 +83,7 @@ export function SaleDetailsView({
   eyebrow?: string;
   flavorByItem?: Record<string, string>;
 }) {
+  const inCompany = backHref === "/company" || backHref.startsWith("/company/");
   return (
     <>
       <DemoBanner />
@@ -155,7 +156,7 @@ export function SaleDetailsView({
                     <div className="sale-item-copy">
                       <Link
                         className="table-link"
-                        href={`/produtos/${item.product_id}`}
+                        href={inCompany ? `/company/produtos/${item.product_id}` : `/produtos/${item.product_id}`}
                       >
                         <strong>{item.product_name}</strong>
                       </Link>
@@ -365,7 +366,7 @@ export function SaleDetailsView({
                   sale.customer_id ? (
                     <Link
                       className="table-link"
-                      href={`/clientes/${sale.customer_id}`}
+                      href={inCompany ? `/company/clientes/${sale.customer_id}` : `/clientes/${sale.customer_id}`}
                     >
                       {sale.customer_name}
                     </Link>
