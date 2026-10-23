@@ -18,7 +18,7 @@ export default async function CompanyEntryPage() {
     <div className="company-v2-glow glow-one" aria-hidden="true" />
     <div className="company-v2-glow glow-two" aria-hidden="true" />
     <nav className="company-v2-topbar">
-      <Link href="/dashboard" className="company-v2-wordmark"><strong>CANDINHO</strong><span>COMPANY</span></Link>
+      <Link href="/company/inicio" className="company-v2-wordmark"><strong>CANDINHO</strong><span>COMPANY</span></Link>
       <div><span>ERP 2.0</span><OperationSwitcher current="company" /></div>
     </nav>
     <header className="company-v2-hero">

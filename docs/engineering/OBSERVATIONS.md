@@ -1,3 +1,10 @@
+## 23/10/2026 — P0 navegação Company, primeiro lote
+
+- Contexto confirmado no Trello/main: reserva em compra Company apontava a venda legada. Ficha da venda, logo e busca de cliente Fitness também escapavam; canonicalizador global interferia na Company.
+- Correção: destinos Company somente em contexto Company; SupplierOrderDetails compartilhado fora de page.tsx, sem duplicar consulta/ações. Nexus/Alt preservam destinos conhecidos e deixam desconhecidos/lead sem equivalência inventada. Nenhuma operação real alterada.
+- Evidência: quatro testes falharam antes, 12 focados passam após; suíte 162/162, revisão separada e fixture real SSR/hidratação em 320/390/414/1366 px. Lint tem dívida explícita (global249 erros/28avisos; erro preexistente confirmado no teclado). Build/TypeScript e publicação ainda exigem evidência remota por SHA.
+- Status: lote técnico implementado; P0 completo continua aberto até matriz/paridade, testes e publicação correspondentes. Relatório: COMPANY-NAVEGACAO-P0-2026-10-23.md; cartão https://trello.com/c/Fftoz6V9 . Skills verificadas/reutilizadas, sem reinstalar; ZIP inspecionado, não aplicado em massa. Google OAuth não bloqueia este lote.
+
 ## 19/10/2026 — Fechamento mobile com limite e skills compartilhadas
 
 - Contexto: mapa misturava homologação mobile, migração, investigações e melhorias futuras, dando impressão de trabalho sem fim.

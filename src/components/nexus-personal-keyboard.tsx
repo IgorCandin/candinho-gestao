@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { companyDestination } from "@/lib/company-destination";
 import type {
   NexusPersonalShortcut,
   NexusPersonalWorkspace,
@@ -18,6 +19,13 @@ function isTypingTarget(target: EventTarget | null) {
     tag === "select" ||
     element.isContentEditable
   );
+}
+
+function navigationHref(pathname: string, href: string) {
+  if (pathname !== "/company" && !pathname.startsWith("/company/")) return href;
+  // Do not turn a saved lead-registration shortcut into a sale.
+  if (/^\/(?:suplementos\/)?leads\/novo(?:[?#]|$)/.test(href)) return href;
+  return companyDestination(href);
 }
 
 async function recordUse(id: string) {
@@ -86,12 +94,12 @@ export function NexusPersonalKeyboard({
 
       event.preventDefault();
       void recordUse(shortcut.id);
-      router.push(shortcut.href);
+      router.push(navigationHref(pathname, shortcut.href));
     }
 
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [enabled, router, shortcuts]);
+  }, [enabled, pathname, router, shortcuts]);
 
   return null;
 }

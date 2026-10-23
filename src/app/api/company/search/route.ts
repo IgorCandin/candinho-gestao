@@ -40,7 +40,7 @@ export async function GET(request: Request) {
         id: row.id,
         name: row.name,
         detail: kind === "product" ? [row.category, row.brand].filter(Boolean).join(" · ") || "Produto" : [row.city, row.phone].filter(Boolean).join(" · ") || "Ficha do cliente",
-        href: kind === "product" ? (operation === "Fitness" ? `/company/produtos/fitness/${row.id}` : `/company/produtos/${row.id}`) : (operation === "Fitness" ? `/fitness/clientes/${row.id}` : `/company/clientes/${row.id}`),
+        href: kind === "product" ? (operation === "Fitness" ? `/company/produtos/fitness/${row.id}` : `/company/produtos/${row.id}`) : (operation === "Fitness" ? `/company/clientes/fitness/${row.id}` : `/company/clientes/${row.id}`),
         operation, kind,
       });
     }
