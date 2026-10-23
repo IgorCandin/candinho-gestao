@@ -1,5 +1,30 @@
 # Company: pendências de migração e validação
 
+## Checkpoint de execução — 23/10/2026
+
+Este checkpoint prevalece sobre os registros históricos abaixo; publicado não significa homologado pelo responsável.
+
+### Publicado; aguarda teste humano
+
+- PR #68: Gestão reorganizada, lucro em um clique, agenda preservada. Merge `c21e3ab58f424171e30b09bd707968bf14951372`; produção READY `dpl_EfXeK6639e2ioHVzGbokasmxubmv`. Seis testes focados e lint aprovados. Smoke autenticado confirmou Gestão e destino Resultados. QA existente: https://trello.com/c/Ds7w57lG.
+- PR #66: Lead/Copilot e destinos Company. Merge `f41592e8585344470f9b227586b5edd112f263f2`; produção READY `dpl_GE8p4Ao8u4S6pKQDnTxAJFHrFdqr`. Vinte testes focados e lint aprovados; navegação autenticada Lead → Cadastrar cliente sem enviar formulário. QA existente: https://trello.com/c/xqAHYKEL.
+- PR #69: formatos monetários consistentes em 12 fluxos Bank; ambiguidade `1.234` rejeitada, sem converter silenciosamente para centavos errados. Merge `6135406606b36e81c032e701c08d8e39d67b6e6e`; produção READY e domínio oficial confirmados em `dpl_EnVLHK4HsVbQpmq1vwMvQK7fRJtN`. Suite 169/169, testes adicionais de rejeição antes do RPC e lint sem erros. Detalhes em `BANK-VALORES-2026-10-23.md`; cartão https://trello.com/c/W0dF6isP.
+
+### Fechamento mobile / lote ainda não entregue
+
+- Busca por telefone normalizado em Vender/Acompanhar e alvo de toque do botão voltar: inventário iniciado, sem implementação neste lote. Cartão https://trello.com/c/GawwPeMb. Preservar todas as filas, filtros, permissões e ações.
+- Validação manual no iPhone dos menus, zoom, campos, navegação e resultados permanece com o responsável; não registrar aprovação por ausência de relato.
+
+### Próximas melhorias e dependências distintas do mobile
+
+- Sabores em produto provisório: ampliar RPC transacional e validar em banco isolado; não criar produto e sabor em operações independentes. https://trello.com/c/6AHJkivO.
+- Fitness “Já chamei” com data opcional: SQL atual rejeita data para `contacted` e fixa +6 dias. Precisa migration compatível e teste isolado; não publicar apenas campo visual. https://trello.com/c/TDF3ZIuf.
+- Compra já encomendada: causa do aviso duplicado não confirmada. Rastrear aviso/produto/sabor/local e entrada livre versus reservada, sem ocultar tarefas indiscriminadamente. https://trello.com/c/ujIqjwSJ.
+- Google Reviews: aprovação informada recebida; falta OAuth privado/consentimento/configuração. Reutilizar #58; ver `GOOGLE_REVIEWS.md`. https://trello.com/c/2abs7whk.
+- Controlador #67 permanece separado e intocado; nenhuma execução autônoma permanente foi ativada.
+
+Não foram realizadas alterações em registros comerciais, migrations, RLS ou autenticação. Evidências e bloqueios registrados nos cartões existentes. Esta sessão não constitui agente em execução em segundo plano.
+
 Atualização: 16/10/2026. Auditoria de código e rotas; não equivale a homologação completa das operações online.
 
 ## Pacote implementado

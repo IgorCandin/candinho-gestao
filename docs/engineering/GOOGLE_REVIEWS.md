@@ -2,13 +2,13 @@
 
 ## Estado
 
-Integração preparada; ativação depende do projeto Google aprovado e da autorização OAuth do administrador. Link informado pelo responsável: https://maps.app.goo.gl/jBwJKoXhCydht8Vd8. A confirmação de acesso de administrador não substitui a autorização técnica OAuth. Não afirmar que está sincronizando antes de validar uma resposta real.
+Integração preparada. Em 23/10/2026, o responsável informou aprovação do projeto `923790320974`, protocolo `7-3896000042034`, com cota de 300 QPM. Essa informação não comprova conexão OAuth ou sincronização: faltam credenciais privadas do cliente desktop, consentimento do administrador, seleção da unidade e configuração na hospedagem. Link informado pelo responsável: https://maps.app.goo.gl/jBwJKoXhCydht8Vd8. Não afirmar que está sincronizando antes de validar uma resposta real.
 
 Pedido de acesso enviado pelo responsável em 19/10/2026: protocolo `7-3896000042034`, projeto **My Maps Project**, ID `stable-glass-489311-m7`, número `923790320974`. O Google informou 7–10 dias úteis; não abrir pedidos duplicados. O projeto anterior `trans-opus-425801-b7` pertencia à conta incorreta e não deve ser usado. Data de verificação do perfil informada pelo responsável: 2 de março; não foi comprovada por API.
 
 ## Preparação do cliente OAuth e conexão assistida
 
-Esta preparação pode ser feita antes da resposta da análise; a consulta real das avaliações continua dependendo da liberação do Google.
+Reutilizar o assistente existente; não repetir o pedido de aprovação. A consulta real depende de habilitação das APIs, OAuth e validação da unidade. Em 23/10, `--help` foi verificado sem iniciar OAuth ou salvar credenciais; a conexão real continua pendente.
 
 1. No projeto **stable-glass-489311-m7**, abrir Google Auth Platform e configurar nome do aplicativo (Candinho — avaliações da Vitrine), contato do responsável e audiência adequada à conta administradora. Solicitar somente `https://www.googleapis.com/auth/business.manage`, exigido pelo Google mesmo para ler avaliações. A implementação não escreve no perfil. Conferir os requisitos de publicação/verificação que o Google apresentar. Modo externo **Testing** pode expirar o refresh token em sete dias para esse escopo: não considerar uma conexão de teste como solução permanente.
 2. Criar cliente OAuth do tipo **Aplicativo para computador** para o assistente local e baixar o JSON em uma pasta privada fora do repositório. O assistente rejeita cliente de outro projeto ou tipo web; não cadastrar um redirect de produção para esse cliente. JSON e refresh token nunca vão para o chat. Arquivos padrão `client_secret*.json` e `.env*` também estão ignorados no Git.
