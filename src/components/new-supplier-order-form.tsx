@@ -33,7 +33,7 @@ type OrderItemDraft = {
   quantity: string;
   unitCost: string;
   notes: string;
-  draftProduct?: { name: string; category: string };
+  draftProduct?: { name: string; category: string; draft_key: string; flavors: string[] };
 };
 
 type FlavorOption = {
@@ -123,6 +123,7 @@ export function NewSupplierOrderForm({
   const [draftItemKey, setDraftItemKey] = useState<string | null>(null);
   const [draftName, setDraftName] = useState("");
   const [draftCategory, setDraftCategory] = useState("");
+  const [draftFlavors, setDraftFlavors] = useState("");
   const [flavors, setFlavors] = useState<FlavorOption[]>([]);
   const [flavorStock, setFlavorStock] = useState<FlavorStock[]>([]);
 
@@ -199,6 +200,8 @@ export function NewSupplierOrderForm({
   );
 
   function flavorsFor(productId: string) {
+    const draft = items.find(item => item.productId === productId && item.draftProduct)?.draftProduct;
+    if (draft) return draft.flavors.map(name => ({ id: name, name, productId }));
     return flavors.filter(
       (flavor) => flavor.productId === productId,
     );
@@ -237,13 +240,13 @@ export function NewSupplierOrderForm({
     const product = products.find(
       (row) => row.id === productId,
     );
-    const currentItem = items.find((item) => item.key === key);
-    const keepDraft = currentItem?.draftProduct && currentItem.productId === productId;
+    const currentItem = items.find((item) => item.productId === productId && item.draftProduct);
+    const keepDraft = currentItem?.draftProduct;
 
     updateItem(key, {
       productId,
       draftProduct: keepDraft ? currentItem.draftProduct : undefined,
-      flavorId: "",
+      flavorId: keepDraft?.flavors.length === 1 ? keepDraft.flavors[0] : "",
       unitCost: product
         ? String(product.cost_price.toFixed(2))
         : keepDraft ? currentItem.unitCost : "",
@@ -273,6 +276,7 @@ export function NewSupplierOrderForm({
   }
 
   function toggleNewFlavor(item: OrderItemDraft) {
+    if (item.draftProduct) { openDraftProduct(item); return; }
     if (newFlavorForKey === item.key) {
       setNewFlavorForKey(null);
       setNewFlavorName("");
@@ -392,6 +396,23 @@ export function NewSupplierOrderForm({
     } finally {
       setSavingFlavorKey(null);
     }
+  }
+
+  function openDraftProduct(item: OrderItemDraft) {
+    setDraftItemKey(item.key); setDraftName(item.draftProduct?.name ?? "");
+    setDraftCategory(item.draftProduct?.category ?? ""); setDraftFlavors(item.draftProduct?.flavors.join("\n") ?? ""); setMessage("");
+  }
+
+  function useDraftProduct() {
+    const name = draftName.trim();
+    const names = draftFlavors.trim() ? draftFlavors.split(/\r?\n/).map(value => value.trim()) : [];
+    if (!name) { setMessage("Informe o nome do novo produto."); return; }
+    if (names.length > 20 || names.some(value => !value || value.length > 80) || new Set(names.map(value => value.toLocaleLowerCase("pt-BR"))).size !== names.length) { setMessage("Informe até 20 sabores distintos, um por linha, sem nomes vazios (máximo 80 caracteres)."); return; }
+    const previous = items.find(item => item.key === draftItemKey);
+    const productId = previous?.draftProduct ? previous.productId : crypto.randomUUID();
+    const draftProduct = { name, category: draftCategory.trim() || "Sem categoria", draft_key: productId, flavors: names };
+    setItems(current => current.map(item => item.key === draftItemKey || item.productId === productId ? { ...item, productId, draftProduct, flavorId: names.includes(item.flavorId) ? item.flavorId : names.length === 1 ? names[0] : "", unitCost: item.unitCost || "0" } : item));
+    setDraftItemKey(null); setMessage("");
   }
 
   async function createSupplier() {
@@ -528,11 +549,11 @@ export function NewSupplierOrderForm({
           p_destination_location_id: locationId,
           p_items: items.map((item) => ({
             product_id: item.productId,
-            flavor_id: item.flavorId || null,
+            flavor_id: item.draftProduct ? null : item.flavorId || null,
             quantity: Number(item.quantity),
             unit_cost: Number(item.unitCost),
             notes: item.notes.trim() || null,
-            ...(item.draftProduct ? { draft_product: item.draftProduct } : {}),
+            ...(item.draftProduct ? { draft_product: item.draftProduct, draft_flavor: item.flavorId || null } : {}),
           })),
           p_notes: notes.trim() || null,
         },
@@ -861,7 +882,7 @@ export function NewSupplierOrderForm({
                         <option value="">
                           Selecione o produto
                         </option>
-                        {item.draftProduct ? <option value={item.productId}>{item.draftProduct.name} · novo (será salvo com o pedido)</option> : null}
+                        {[...new Map(items.filter(row=>row.draftProduct).map(row=>[row.productId,row.draftProduct!])).entries()].map(([id,draft])=><option key={id} value={id}>{draft.name} · novo (será salvo com o pedido)</option>)}
                         {products.map((row) => (
                           <option
                             key={row.id}
@@ -872,7 +893,7 @@ export function NewSupplierOrderForm({
                         ))}
                       </select>
                     </label>
-                    {companyMode ? <button className="button ghost supplier-draft-product-button" type="button" onClick={() => { setDraftItemKey(item.key); setDraftName(item.draftProduct?.name ?? ""); setDraftCategory(item.draftProduct?.category ?? ""); }}>Não encontrou? Cadastrar produto</button> : null}
+                    {companyMode ? <button className="button ghost supplier-draft-product-button" type="button" onClick={() => openDraftProduct(item)}>Não encontrou? Cadastrar produto</button> : null}
 
                     {productFlavors.length > 0 && (
                       <label className="field">
@@ -1219,7 +1240,7 @@ export function NewSupplierOrderForm({
         )}
       </aside>
     </form>
-    {draftItemKey ? <div className="company-quick-register-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDraftItemKey(null); }}><div className="company-quick-register-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-supplement-product-title"><h2 id="quick-supplement-product-title">Cadastrar produto para este pedido</h2><p>O produto só será cadastrado quando você criar o pedido. Se cancelar, nada será salvo.</p><label className="field"><span>Nome do produto</span><input className="input" autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)}/></label><CompanyCategoryPicker key={draftItemKey} categories={products.map((product) => product.category)} value={draftCategory} onChange={setDraftCategory}/><div className="company-quick-register-actions"><button className="button ghost" type="button" onClick={() => setDraftItemKey(null)}>Cancelar</button><button className="button gold" type="button" onClick={() => { if (!draftName.trim()) { setMessage("Informe o nome do novo produto."); return; } const previous = items.find((item) => item.key === draftItemKey); updateItem(draftItemKey, { productId: previous?.draftProduct ? previous.productId : crypto.randomUUID(), draftProduct: { name: draftName.trim(), category: draftCategory.trim() || "Sem categoria" }, flavorId: "", unitCost: previous?.unitCost || "0" }); setDraftItemKey(null); setMessage(""); }}>Usar neste pedido</button></div></div></div> : null}
+    {draftItemKey ? <div className="company-quick-register-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDraftItemKey(null); }}><div className="company-quick-register-dialog" role="dialog" aria-modal="true" aria-labelledby="quick-supplement-product-title"><h2 id="quick-supplement-product-title">Cadastrar produto para este pedido</h2><p>O produto só será cadastrado quando você criar o pedido. Se cancelar, nada será salvo.</p><label className="field"><span>Nome do produto</span><input className="input" autoFocus value={draftName} onChange={(event) => setDraftName(event.target.value)}/></label><label className="field"><span>Sabores (opcional, um por linha)</span><textarea className="textarea" value={draftFlavors} onChange={event=>setDraftFlavors(event.target.value)} placeholder={"Morango\nLimão"}/><small>Deixe vazio para produto sem sabor. Cada item do pedido terá seu sabor selecionado.</small></label>{message && <p role="alert">{message}</p>}<CompanyCategoryPicker key={draftItemKey} categories={products.map((product) => product.category)} value={draftCategory} onChange={setDraftCategory}/><div className="company-quick-register-actions"><button className="button ghost" type="button" onClick={() => setDraftItemKey(null)}>Cancelar</button><button className="button gold" type="button" onClick={useDraftProduct}>Usar neste pedido</button></div></div></div> : null}
     </>
   );
 }

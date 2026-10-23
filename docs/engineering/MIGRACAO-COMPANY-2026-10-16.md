@@ -10,20 +10,20 @@ Este checkpoint prevalece sobre os registros históricos abaixo; publicado não 
 - PR #66: Lead/Copilot e destinos Company. Merge `f41592e8585344470f9b227586b5edd112f263f2`; produção READY `dpl_GE8p4Ao8u4S6pKQDnTxAJFHrFdqr`. Vinte testes focados e lint aprovados; navegação autenticada Lead → Cadastrar cliente sem enviar formulário. QA existente: https://trello.com/c/xqAHYKEL.
 - PR #69: formatos monetários consistentes em 12 fluxos Bank; ambiguidade `1.234` rejeitada, sem converter silenciosamente para centavos errados. Merge `6135406606b36e81c032e701c08d8e39d67b6e6e`; produção READY e domínio oficial confirmados em `dpl_EnVLHK4HsVbQpmq1vwMvQK7fRJtN`. Suite 169/169, testes adicionais de rejeição antes do RPC e lint sem erros. Detalhes em `BANK-VALORES-2026-10-23.md`; cartão https://trello.com/c/W0dF6isP.
 
-### Fechamento mobile / lote ainda não entregue
+### Fechamento mobile / acompanhamento
 
-- Busca por telefone normalizado em Vender/Acompanhar e alvo de toque do botão voltar: inventário iniciado, sem implementação neste lote. Cartão https://trello.com/c/GawwPeMb. Preservar todas as filas, filtros, permissões e ações.
+- Busca por telefone normalizado em todas as filas Vender/Acompanhar e Voltar 44px publicados pelo PR #71: merge `d0f99ace761694511ba5cd121803c4d4197afd3e`, produção READY `dpl_9GCFARq125ea96Qk1GDDBh1sR4Sc`. Suíte 174/174; menus/mapa #63 reutilizados; CSS real em 320/390/414px sem colisão/transbordamento. Smoke autenticado oficial confirmou a busca nova. Cartão https://trello.com/c/GawwPeMb.
 - Validação manual no iPhone dos menus, zoom, campos, navegação e resultados permanece com o responsável; não registrar aprovação por ausência de relato.
 
 ### Próximas melhorias e dependências distintas do mobile
 
-- Sabores em produto provisório: ampliar RPC transacional e validar em banco isolado; não criar produto e sabor em operações independentes. https://trello.com/c/6AHJkivO.
-- Fitness “Já chamei” com data opcional: SQL atual rejeita data para `contacted` e fixa +6 dias. Precisa migration compatível e teste isolado; não publicar apenas campo visual. https://trello.com/c/TDF3ZIuf.
-- Compra já encomendada: causa do aviso duplicado não confirmada. Rastrear aviso/produto/sabor/local e entrada livre versus reservada, sem ocultar tarefas indiscriminadamente. https://trello.com/c/ujIqjwSJ.
+- Sabores em produto provisório implementados no PR #73, com um produto/múltiplos sabores e atomicidade. Teste PostgreSQL isolado reproduz a perda antiga e verifica contrato/rollback; CRUDs delegados usam stubs. Suíte179/179 e preview READY no SHA `2edc569488111dfc76a3b79331142263bbd1602b`; publicação final deve ser conferida no cartão, não presumida pelo preview. Ver `COMPRAS-SABORES-2026-10-23.md`. https://trello.com/c/6AHJkivO.
+- Fitness “Já chamei” com data opcional publicado pelo PR #72: merge `a288fb237fb394ecb814789ac26fa213ab09964d`, produção READY `dpl_D3t7WynTrXc4GgyXoxEgzuv55vDA`. Sugestão +6 dias, status/permissões/histórico preservados. Migration só função, contagens/ACL conferidas antes/depois sem registros alterados. Ver `FITNESS-RETORNO-2026-10-23.md`. https://trello.com/c/TDF3ZIuf.
+- Compra já encomendada: counterexample confirmado em PostgreSQL isolado (`node scripts/reproduce-purchase-task-sql.cjs`): sincronizador cria tarefa de compra ignorando pedidos. Consulta real encontrou zero tarefas automáticas planejadas no momento; não foi possível vincular ao aviso original. Correção integral ainda precisa conciliar fila/reservas por sabor/local e sincronização após compras/recebimento/cancelamento, com cuidado para tarefas manuais e locks. Não ocultar/apagar avisos indiscriminadamente. https://trello.com/c/ujIqjwSJ.
 - Google Reviews: aprovação informada recebida; falta OAuth privado/consentimento/configuração. Reutilizar #58; ver `GOOGLE_REVIEWS.md`. https://trello.com/c/2abs7whk.
 - Controlador #67 permanece separado e intocado; nenhuma execução autônoma permanente foi ativada.
 
-Não foram realizadas alterações em registros comerciais, migrations, RLS ou autenticação. Evidências e bloqueios registrados nos cartões existentes. Esta sessão não constitui agente em execução em segundo plano.
+Nenhum registro comercial real foi criado ou alterado para teste. Os lotes anteriores não alteravam migrations; os novos lotes Fitness/sabores incluem migrations aditivas de funções, sem backfill ou mudança de RLS/autenticação. Evidências e bloqueios nos cartões existentes. Esta sessão não constitui agente em execução em segundo plano.
 
 Atualização: 16/10/2026. Auditoria de código e rotas; não equivale a homologação completa das operações online.
 
