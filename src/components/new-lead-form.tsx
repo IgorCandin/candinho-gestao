@@ -632,9 +632,15 @@ export function NewLeadForm({
             <Link
               className="inline-link"
               href={companyMode ? "/company/clientes/novo" : "/clientes/novo"}
+              target={companyMode ? "_blank" : undefined}
+              rel={companyMode ? "noopener noreferrer" : undefined}
             >
-              Cadastrar cliente
+              {companyMode ? "Cadastrar cliente em outra aba" : "Cadastrar cliente"}
             </Link>
+            {companyMode ? <>
+              <span style={{ display: "block", marginTop: 8 }}>Mantenha este lead aberto. Depois de cadastrar, volte aqui e atualize a lista. Fechar ou recarregar esta aba descarta o rascunho.</span>
+              <button className="button ghost compact-button" type="button" style={{ width: "100%", minHeight: 44, marginTop: 8, fontSize: 12 }} onClick={() => router.refresh()}>Atualizar lista de clientes</button>
+            </> : null}
           </small>
         </label>
 
