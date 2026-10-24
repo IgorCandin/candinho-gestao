@@ -1,27 +1,25 @@
 "use client";
 
-import { LoaderCircle, Save, UserRound } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { UserRound } from "lucide-react";
+import { useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { NewCustomerForm, type PartnerOption } from "@/components/new-customer-form";
+import type { CustomerOption } from "@/lib/types";
+import "./company-customer-drafts.css";
 
-export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness }: { canWriteSupplements: boolean; canWriteFitness: boolean }) {
-  const router = useRouter();
+export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness, customers = [], partners = [] }: { canWriteSupplements: boolean; canWriteFitness: boolean; customers?: CustomerOption[]; partners?: PartnerOption[] }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [city, setCity] = useState("");
   const [notes, setNotes] = useState("");
   const [instagram, setInstagram] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [identified, setIdentified] = useState(false);
+  const resolvedId = useRef<string | null>(null);
 
-  async function submit(event: React.FormEvent) {
-    event.preventDefault();
-    setLoading(true); setMessage(null);
-    try {
+  async function resolveCustomer() {
       const supabase = createClient();
-      let coreId: string | null = null;
-      if (canWriteFitness) {
+      let coreId: string | null = resolvedId.current;
+      if (!coreId && canWriteFitness) {
         // The resolver creates/links both records in a single database transaction.
         // This prevents the half-saved Company customer that used to remain after
         // the Fitness step failed.
@@ -30,7 +28,7 @@ export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness }:
         const { data: linked, error: linkedError } = await supabase.from("fitness_customers").select("core_customer_id").eq("id", String(fitnessId)).single();
         if (linkedError) throw linkedError;
         coreId = typeof linked.core_customer_id === "string" ? linked.core_customer_id : null;
-      } else if (canWriteSupplements) {
+      } else if (!coreId && canWriteSupplements) {
         const digits = phone.replace(/\D/g, "");
         if (digits) {
           const { data: existing, error: lookupError } = await supabase
@@ -48,16 +46,16 @@ export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness }:
           coreId = String(data);
         }
       }
-      router.push(coreId ? `/company/clientes/${coreId}` : "/company/clientes");
-      router.refresh();
-    } catch (error) {
-      const detail = error && typeof error === "object" && "message" in error ? String(error.message) : null;
-      setMessage(detail || "Não foi possível criar o cliente.");
-    }
-    finally { setLoading(false); }
+      if (!coreId) throw new Error("Cliente identificado sem ficha Company. Confira o cadastro antes de tentar novamente.");
+      resolvedId.current = coreId;
+      setIdentified(true);
+      if (!canWriteSupplements) return { id: coreId, name };
+      const { data: customer, error: customerError } = await supabase.from("customers").select("name").eq("id", coreId).single();
+      if (customerError) throw customerError;
+      return { id: coreId, name: String(customer.name) };
   }
 
-  return <form className="company-new-customer" onSubmit={submit}>
+  return <div className="company-new-customer"><NewCustomerForm customers={customers} partners={partners} companyMode allowRelationships={canWriteSupplements} createCustomer={resolveCustomer} basicFields={<fieldset disabled={identified} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
     <div className="company-new-customer-intro"><UserRound/><div><strong>Cliente da Company</strong><p>Cadastre a pessoa uma vez. Suplementos e Fitness serão identificados automaticamente quando houver compra.</p></div></div>
     <div className="company-new-customer-grid">
       <label className="field field-span-two"><span>Nome</span><input className="input" required value={name} onChange={(event) => setName(event.target.value)}/></label>
@@ -66,7 +64,5 @@ export function CompanyNewCustomerForm({ canWriteSupplements, canWriteFitness }:
       {canWriteFitness ? <label className="field"><span>Instagram</span><input className="input" value={instagram} onChange={(event) => setInstagram(event.target.value)}/></label> : null}
       <label className="field field-span-two"><span>Observações</span><textarea className="textarea" rows={4} value={notes} onChange={(event) => setNotes(event.target.value)}/></label>
     </div>
-    {message ? <p className="company-registry-message">{message}</p> : null}
-    <button className="company-new-customer-save" disabled={loading}>{loading ? <LoaderCircle className="spin"/> : <Save/>} Salvar cliente</button>
-  </form>;
+  </fieldset>}/></div>;
 }
