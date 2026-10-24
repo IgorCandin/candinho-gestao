@@ -1,3 +1,9 @@
+## 24/10/2026 — Cadastro sem abandonar o rascunho de lead
+
+- Causa: link do lead saía da página contendo o rascunho em memória. Menor solução: somente Company abre cadastro em outra aba e oferece atualização explícita da lista via router.refresh, sem submit, storage ou seleção automática de pessoa. Legado preservado.
+- Evidência: três testes vermelhos antes e verdes após;212/212 suíte, TypeScript/lint/diff-check aprovados. Fixture real hidratada produto/combos320/390/1366px recebe novas opções sem perder campos, sem overflow/erros. Build/READY e smoke oficial do transporte Next registrados no Trello antes de declarar publicado.
+- Limite: original deve permanecer aberta; fechar/recarregar descarta rascunho, conforme aviso. Não é recuperação durável nem conversão comercial de lead. Nenhum registro real criado em QA.
+
 ## 24/10/2026 — Rascunhos de vínculos no cadastro Company
 
 - Contexto: o cadastro Company não compunha o editor de vínculos existente no legado. Agora reutiliza o mesmo componente/API, conservando resolvedor de identidade, flags e permissões. Escrita somente Fitness não carrega opções CRM de Suplementos.
