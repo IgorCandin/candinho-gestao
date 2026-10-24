@@ -1,3 +1,10 @@
+## 24/10/2026 — compatibilidade de rotinas preparada, não aplicada
+
+- Evidência: definição real da RPC consultada somente leitura; chegada Company não equivale ao href literal salvo. Teste PostgreSQL isolado reproduz. Validação só no Next seria insuficiente contra repetição concorrente.
+- Preparação: helper restrito, gestão/dock compartilhados, expected_step e adaptador transacional que mantém proprietário/lock e delega ao motor existente. Sessão, repetição, divergência, skip/cancel, ACL e auditoria exercitados sem rotinas reais.
+- Status: responsável escolheu preparar PR sem aplicar migration. SQL em docs/engineering/prepared, não executado. Não integrar/publicar dependência ausente nem simular avanço real. Conteção simultânea em PostgreSQL com múltiplas conexões segue pendente.
+- Próximo: aprovação/validação do adaptador conforme COMPANY-ROTINAS-2026-10-24.md; rascunhos pré-cadastro e retorno ao lead em lote independente, sem alterar resolvedores.
+
 ## 23/10/2026 — Vínculos disponíveis na ficha Company
 
 - Contexto: componente global de vínculos só aceitava `/clientes/:id`, embora a criação Company retornasse `/company/clientes/:id`. Painel e API já existiam, com gate ativo/escrita Suplementos e validação própria do servidor. Não duplicar cadastro ou associação por telefone.

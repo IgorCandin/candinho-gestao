@@ -32,7 +32,8 @@ for (const file of ['components/nexus-command-palette.tsx', 'components/nexus-pe
   });
   test(`${file}: unknown destinations and lead registration are not replaced`, () => {
     const href = loadFunction(file, 'navigationHref', { companyDestination });
-    for (const target of ['/leads/novo', '/leads/novo?cliente=fixture#dados', '/suplementos/leads/novo', '/suplementos/leads/novo#dados', '/nexus/rotinas', '/bank/planejamento', '/company/clientes', 'https://example.invalid/']) {
+    assert.equal(href('/company/inicio', '/nexus/rotinas'), '/company/nexus/rotinas');
+    for (const target of ['/leads/novo', '/leads/novo?cliente=fixture#dados', '/suplementos/leads/novo', '/suplementos/leads/novo#dados', '/bank/planejamento', '/company/clientes', 'https://example.invalid/']) {
       assert.equal(href('/company/inicio', target), target);
     }
   });

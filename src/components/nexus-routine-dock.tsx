@@ -15,11 +15,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { NexusActiveRoutine } from "@/lib/nexus-routine-types";
 import { nexusRouteLabel } from "@/lib/nexus-route-labels";
-
-function routePath(value: string | null | undefined) {
-  if (!value) return "";
-  return value.split("?")[0].split("#")[0];
-}
+import { routineHref, routinePath as routePath } from "@/lib/company-routine-navigation";
 
 async function post(payload: Record<string, unknown>) {
   const response = await fetch("/api/nexus/routines", {
@@ -51,6 +47,7 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
   const [loading, setLoading] = useState(false);
   const [completed, setCompleted] = useState<string | null>(null);
   const arrivalKey = useRef<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!enabled) return;
@@ -75,7 +72,7 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
   useEffect(() => {
     if (!enabled || !active?.current) return;
 
-    const expected = routePath(active.current.href);
+    const expected = routePath(routineHref(pathname, active.current.href));
     const current = routePath(pathname);
     if (!expected || expected !== current) return;
 
@@ -90,6 +87,7 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
           run_id: active.run_id,
           mode: "arrive",
           href: pathname,
+          expected_step: active.current_step,
         });
 
         if (response && "run_id" in response) {
@@ -101,8 +99,8 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
         }
 
         window.dispatchEvent(new Event("nexus:routine-changed"));
-      } catch {
-        // Não avança se o backend não confirmar a chegada.
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Não foi possível confirmar a etapa.");
       }
     })();
   }, [active, enabled, pathname]);
@@ -119,6 +117,7 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
         run_id: active.run_id,
         mode: "skip",
         href: pathname,
+        expected_step: active.current_step,
       });
 
       if (response && "run_id" in response) {
@@ -129,6 +128,8 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
         window.setTimeout(() => setCompleted(null), 4500);
       }
       window.dispatchEvent(new Event("nexus:routine-changed"));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível pular a etapa.");
     } finally {
       setLoading(false);
     }
@@ -145,6 +146,8 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
       });
       setActive(null);
       window.dispatchEvent(new Event("nexus:routine-changed"));
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Não foi possível encerrar a rotina.");
     } finally {
       setLoading(false);
     }
@@ -206,13 +209,13 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
               <strong>
                 {active.current.label || nexusRouteLabel(active.current.href)}
               </strong>
-              <span>{active.current.href}</span>
+              <span>{routineHref(pathname, active.current.href)}</span>
             </div>
           )}
 
           <footer>
-            {active.current && routePath(active.current.href) !== routePath(pathname) && (
-              <Link className="button gold compact-button" href={active.current.href}>
+            {active.current && routePath(routineHref(pathname, active.current.href)) !== routePath(pathname) && (
+              <Link className="button gold compact-button" href={routineHref(pathname, active.current.href)}>
                 Abrir próxima <ArrowRight size={12} />
               </Link>
             )}
@@ -240,10 +243,11 @@ export function NexusRoutineDock({ enabled = true }: { enabled?: boolean }) {
               <Square size={11} /> Encerrar
             </button>
 
-            <Link className="nexus-routine-manage-v456" href="/nexus/rotinas">
+            <Link className="nexus-routine-manage-v456" href={routineHref(pathname, "/nexus/rotinas")}>
               Gerenciar
             </Link>
           </footer>
+          {message && <div role="alert"><p>{message}</p><button type="button" className="button ghost compact-button" onClick={() => { setMessage(null); void load(); }}>Atualizar rotina</button></div>}
         </>
       )}
     </aside>

@@ -5,6 +5,8 @@ import {
   type NexusRoutineStep,
 } from "@/lib/nexus-routine-types";
 import { createClient } from "@/lib/supabase/server";
+import { routineArrivalHref } from "@/lib/company-routine-navigation";
+import type { NexusActiveRoutine } from "@/lib/nexus-routine-types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -138,6 +140,29 @@ export async function POST(request: Request) {
     }
 
     const mode = body.mode === "skip" ? "skip" : "arrive";
+
+    if (body.expected_step !== undefined) {
+      const step = body.expected_step;
+      if (typeof step !== "number" || !Number.isSafeInteger(step) || step < 0) {
+        return NextResponse.json({ error: "Etapa esperada inválida." }, { status: 400 });
+      }
+      const { data: activeData, error: activeError } = await supabase.rpc("nexus_active_routine_v1");
+      if (activeError) return NextResponse.json({ error: activeError.message }, { status: 400 });
+      const active = activeData as NexusActiveRoutine | null;
+      if (!active?.current || active.run_id !== runId || active.current_step !== step) {
+        return NextResponse.json({ error: "A rotina mudou. Atualize antes de continuar." }, { status: 409 });
+      }
+      const observed = clean(body.href, 320);
+      const href = mode === "arrive" ? routineArrivalHref(active.current.href, observed ?? "") : observed;
+      if (mode === "arrive" && !href) {
+        return NextResponse.json({ error: "A tela não corresponde à etapa atual." }, { status: 409 });
+      }
+      const { data, error } = await supabase.rpc("nexus_advance_routine_step_v1", {
+        p_run_id: runId, p_expected_step: step, p_action: mode, p_href: href, p_observed_href: observed,
+      });
+      if (error) return NextResponse.json({ error: error.message }, { status: error.code === "40001" ? 409 : 400 });
+      return NextResponse.json(data ?? null);
+    }
 
     const { data, error } = await supabase.rpc("nexus_advance_routine_v1", {
       p_run_id: runId,

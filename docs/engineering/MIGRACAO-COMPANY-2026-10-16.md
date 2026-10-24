@@ -2,6 +2,13 @@
 
 ## Checkpoint de execução — 23/10/2026
 
+### Atualização 24/10 — rotinas preparadas, bloqueadas por autorização
+
+- Responsável escolheu **Preparar PR, sem aplicar migration**. Lote de rotinas não deve ser integrado/publicado antes da aprovação do adaptador SQL. Produção #78 preservada.
+- Causa reproduzida em PostgreSQL isolado: motor atual compara href literal. Preparação usa helper de navegação com aliases restritos e adaptador CAS com lock/proprietário que delega à mesma RPC. Sem regravar passos, dados ou permissões atuais.
+- Contrato SQL cobre chegada, repetição, divergência, sessão/proprietário, ACL, skip/cancel e conclusão; contenção entre conexões reais ainda não foi exercitada. `COMPANY-ROTINAS-2026-10-24.md` contém ordem de implantação e limites.
+- Rascunhos pré-cadastro/retorno ao lead continuam separados: preservar resolvedores; painel pós-cadastro #78 já entregue. Não tratar esse PR preparado como paridade total ou homologação humana.
+
 Este checkpoint prevalece sobre os registros históricos abaixo; publicado não significa homologado pelo responsável.
 
 ### Publicado; aguarda teste humano
