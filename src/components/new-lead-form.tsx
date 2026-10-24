@@ -595,10 +595,11 @@ export function NewLeadForm({
           </div>
         </label>
 
-        <label className="field">
-          <span>Cliente</span>
+        <div className="field">
+          <label htmlFor="new-lead-customer">Cliente</label>
 
           <select
+            id="new-lead-customer"
             className="select"
             required
             value={customerId}
@@ -642,7 +643,7 @@ export function NewLeadForm({
               <button className="button ghost compact-button" type="button" style={{ width: "100%", minHeight: 44, marginTop: 8, fontSize: 12 }} onClick={() => router.refresh()}>Atualizar lista de clientes</button>
             </> : null}
           </small>
-        </label>
+        </div>
 
         <label className="field">
           <span>
