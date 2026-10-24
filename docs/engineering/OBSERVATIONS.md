@@ -1,3 +1,10 @@
+## 24/10/2026 — Pedido parcial continua encontrável em A caminho
+
+- Contexto/evidência: pedido aberto com saldo pendente era classificado exclusivamente como recebimento parcial; a aba A caminho excluía esse pedido. Teste de regressão do componente real reproduziu a ausência antes da correção, com fixture 7 pedidas/4 recebidas/3 pendentes.
+- Correção mínima: A caminho inclui todos os pedidos abertos com saldo a chegar; Falta receber mantém o subconjunto parcial. Tudo, contagens por operação e unidades continuam sem duplicação. Rótulo/ação explicitam recebimento parcial e saldo restante. Busca por produto/fornecedor e ações existentes preservadas.
+- Validação: suíte201/201, TypeScript e lint direcionado aprovados. Fixture do detalhe preserva somente formulário do item pendente, quantidade3 e sabor, sem executar RPC. Evidências de build, mobile e publicação devem constar no Trello antes de declarar publicado.
+- Limites: nenhuma mudança em RPCs, estoque, reserva, permissões ou dados reais. Não equivale a provar idempotência/concorrência de recebimento no banco nem a confirmar chegada física. Rotinas PR79 continuam DRAFT, SQL não aplicado.
+
 ## 23/10/2026 — Vínculos disponíveis na ficha Company
 
 - Contexto: componente global de vínculos só aceitava `/clientes/:id`, embora a criação Company retornasse `/company/clientes/:id`. Painel e API já existiam, com gate ativo/escrita Suplementos e validação própria do servidor. Não duplicar cadastro ou associação por telefone.

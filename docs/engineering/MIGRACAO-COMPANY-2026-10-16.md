@@ -1,5 +1,11 @@
 # Company: pendências de migração e validação
 
+## Lote seguro em validação — 24/10/2026
+
+- Comprar e repor: A caminho inclui pedidos parcialmente recebidos com saldo pendente, sem duplicar Tudo/unidades; Falta receber continua disponível. Busca por produto/fornecedor, detalhe com quantidade/sabor e ações originais preservados.201 testes, TypeScript e lint direcionado aprovados; publicação e QA remoto registrados no cartão SUPLEMENTOS1/2, testes humanos no2/2. Nenhum recebimento real executado.
+- Rotinas PR79 seguem DRAFT por decisão expressa: preparar PR, sem aplicar migration. Não integrar nem testar avanço em rotina real. SQL/locks e pendências detalhados nesse PR; produção permanece sem esse adaptador.
+- Próxima frente independente: paridade de rascunhos de vínculos no cadastro Company, mantendo confirmação de identidade e API/permissões existentes. Retorno ao lead e equivalência integral do legado não devem ser presumidos concluídos.
+
 ## Checkpoint de execução — 23/10/2026
 
 Este checkpoint prevalece sobre os registros históricos abaixo; publicado não significa homologado pelo responsável.
