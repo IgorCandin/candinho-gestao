@@ -19,11 +19,11 @@ export function CompanyPurchaseWorkspace({ suggestions, orders, leanMode, allowe
   const openOrders = useMemo(() => orders.filter(order => purchaseStage(order)), [orders]);
   const scopedOrders = useMemo(() => openOrders.filter(order => operation === "all" || order.operation === operation), [openOrders, operation]);
   const scopedSuggestions = useMemo(() => suggestions.filter(item => operation === "all" || item.operation === operation), [suggestions, operation]);
-  const counts = { buy: scopedSuggestions.length, incoming: scopedOrders.filter(order => purchaseStage(order) === "incoming").length, receive: scopedOrders.filter(order => purchaseStage(order) === "receive").length, all: scopedSuggestions.length + scopedOrders.length };
+  const counts = { buy: scopedSuggestions.length, incoming: scopedOrders.length, receive: scopedOrders.filter(order => purchaseStage(order) === "receive").length, all: scopedSuggestions.length + scopedOrders.length };
   const needle = query.trim().toLocaleLowerCase("pt-BR");
   const visibleOrders = scopedOrders.filter(order => !needle || `${order.supplierName} ${order.summary} ${order.operation}`.toLocaleLowerCase("pt-BR").includes(needle));
   const visibleSuggestions = scopedSuggestions.filter(item => !needle || `${item.name} ${item.detail}`.toLocaleLowerCase("pt-BR").includes(needle));
-  const visibleCount = (stage === "all" || stage === "buy" ? visibleSuggestions.length : 0) + visibleOrders.filter(order => stage === "all" || purchaseStage(order) === stage).length;
+  const visibleCount = (stage === "all" || stage === "buy" ? visibleSuggestions.length : 0) + visibleOrders.filter(order => stage === "all" || stage === "incoming" || purchaseStage(order) === stage).length;
   const stages: Array<{ id: PurchaseStage; label: string }> = [{ id: "buy", label: "Comprar" }, { id: "incoming", label: "A caminho" }, { id: "receive", label: "Falta receber" }, { id: "all", label: "Tudo" }];
   return <div className="company-workspace-v2 company-queue-workspace company-purchase-workspace">
     <section className="company-workspace-metrics" aria-label={`Resumo: ${operation === "all" ? "todas as operações" : operation}`}>
@@ -39,21 +39,21 @@ export function CompanyPurchaseWorkspace({ suggestions, orders, leanMode, allowe
         <fieldset className="completion-status"><legend>Em qual etapa você precisa agir?</legend><div className="completion-segments">{stages.map(item => <button type="button" key={item.id} aria-pressed={stage === item.id} onClick={() => setStage(item.id)}><span>{item.label}</span><span className="completion-filter-count">{counts[item.id]}</span></button>)}</div></fieldset>
       </div>
       <div className="completion-filter-result"><p className="company-workspace-count" role="status" aria-live="polite">{visibleCount} aviso(s) · {operation === "all" ? "Todas as operações" : operation}</p>{(operation !== "all" || stage !== "all" || query) && <button type="button" onClick={() => { setOperation("all"); setStage("all"); setQuery(""); }}>Limpar filtros</button>}</div>
-      <p className="purchase-count-help">Cada aviso é uma sugestão de compra ou um pedido. As unidades a receber somam o que falta chegar dos pedidos em aberto.</p>
+      <p className="purchase-count-help">A caminho inclui os pedidos recebidos em parte, também disponíveis em Falta receber. Em Tudo, cada pedido aparece uma única vez. As unidades a receber somam somente o que falta chegar.</p>
       {(stage === "buy" || stage === "all") && <CompanyPurchaseSuggestions suggestions={suggestions} leanMode={leanMode} controlledOperation={operation} searchQuery={query} hideToolbar canWriteSupplements={canWriteSupplements} canWriteFitness={canWriteFitness}/>}
       {(["incoming", "receive"] as const).filter(value => stage === "all" || stage === value).map(value => {
-        const rows = visibleOrders.filter(order => purchaseStage(order) === value);
-        return <section className="purchase-order-stage" key={value}><header><h2>{value === "incoming" ? "A caminho" : "Falta receber"}</h2><p>{value === "incoming" ? "Pedidos em aberto, ainda sem recebimento registrado. Confira com o fornecedor a previsão de chegada." : "Pedidos recebidos em parte. Confira e registre somente as unidades que ainda faltam chegar."}</p></header>
+        const rows = visibleOrders.filter(order => stage === "incoming" || purchaseStage(order) === value);
+        return <section className="purchase-order-stage" key={value}><header><h2>{value === "incoming" ? "A caminho" : "Falta receber"}</h2><p>{value === "incoming" ? "Pedidos com mercadoria ainda a chegar, incluindo recebidos em parte. Confira com o fornecedor a previsão de chegada." : "Pedidos recebidos em parte. Confira e registre somente as unidades que ainda faltam chegar."}</p></header>
           <div className="purchase-workflow-orders">{rows.map(order => {
             const canWrite = order.operation === "Fitness" ? canWriteFitness : canWriteSupplements;
             return <article className="purchase-workflow-order" key={`${order.operation}-${order.id}`}>
-              <header><div><span className="purchase-operation-tag">{order.operation}</span><h3>{order.supplierName}</h3></div><strong>{formatCurrency(order.total)}</strong></header>
+              <header><div><span className="purchase-operation-tag">{order.operation}{purchaseStage(order) === "receive" ? " · Recebido em parte" : ""}</span><h3>{order.supplierName}</h3></div><strong>{formatCurrency(order.total)}</strong></header>
               <p>{order.summary || "Confira os itens no pedido."}</p>
               <div className="purchase-order-dates"><span>Pedido em {formatDateOnly(order.orderedOn)}</span><span className={order.expectedOn && order.expectedOn < today ? "purchase-overdue" : ""}>{order.expectedOn ? `Previsão: ${formatDateOnly(order.expectedOn)}${order.expectedOn < today ? " · vencida" : ""}` : "Previsão não informada"}</span></div>
               <dl className="purchase-receipt-numbers"><div><dt>Pedido</dt><dd>{order.orderedUnits}</dd></div><div><dt>Recebido</dt><dd>{order.receivedUnits}</dd></div><div><dt>Falta receber</dt><dd>{order.pendingUnits}</dd></div></dl>
               <progress max={Math.max(order.orderedUnits, 1)} value={Math.max(0, Math.min(order.receivedUnits, order.orderedUnits))} aria-label={`${order.receivedUnits} de ${order.orderedUnits} unidades recebidas`}/>
               {order.waitingSales > 0 && <p className="purchase-waiting-sales">{order.waitingSales} venda(s) aguardam esta mercadoria.</p>}
-              <div className="purchase-next-action"><span>O que fazer</span><p>{value === "receive" ? `Confira as ${order.pendingUnits} unidade(s) restantes e registre a chegada por item.` : "Ao chegar, confira os itens e registre as quantidades recebidas."}</p><Link href={order.href}>{canWrite ? "Conferir e receber itens" : "Ver itens e recebimentos"}</Link></div>
+              <div className="purchase-next-action"><span>O que fazer</span><p>{purchaseStage(order) === "receive" ? `Confira as ${order.pendingUnits} unidade(s) restantes e registre a chegada por item.` : "Ao chegar, confira os itens e registre as quantidades recebidas."}</p><Link href={order.href}>{canWrite ? "Conferir e receber itens" : "Ver itens e recebimentos"}</Link></div>
               {canWrite && order.operation === "Suplementos" && <details className="purchase-other-actions"><summary>Outras ações do pedido</summary><PurchaseOrderCancelAction orderId={order.id} status={order.status}/></details>}
             </article>;
           })}</div>
