@@ -1,0 +1,20 @@
+.company-new-customer .customer-create-network-block > div:first-child strong,
+.company-new-customer .customer-create-draft strong { font-size: 13px; }
+.company-new-customer .customer-create-network-block > div:first-child small,
+.company-new-customer .customer-create-draft small { font-size: 12px; line-height: 1.5; }
+.company-new-customer .customer-create-draft > span { min-width: 0; overflow-wrap: anywhere; }
+.company-new-customer .customer-create-network-block select { width: 100%; min-width: 0; }
+.company-new-customer .customer-create-network-block > div:first-child > svg { color: #bcc4ce; }
+.company-new-customer .customer-create-network-block.partner { border-color: var(--line); }
+.company-new-customer .form-message { overflow-wrap: anywhere; line-height: 1.6; }
+.company-new-customer .form-message a { text-decoration: underline; }
+.company-new-customer .form-footer { display: flex; flex-wrap: wrap; gap: 10px; }
+.company-new-customer .form-footer > * { min-height: 44px; white-space: normal; text-align: center; }
+.company-new-customer .customer-create-network-block button { font-size: 12px; }
+.company-new-customer .form-footer .button.gold { color: #0a0c0f; border-color: #c2c8d0; background: linear-gradient(135deg, #c4cad2, #929ca8); }
+@media (max-width: 650px) {
+  .company-new-customer .customer-create-network-body { grid-template-columns: minmax(0, 1fr); }
+  .company-new-customer .customer-create-network-block :is(input, select, button) { min-height: 44px; }
+  .company-new-customer .form-footer { flex-direction: column; flex-wrap: nowrap; padding: 0; }
+  .company-new-customer .form-footer > * { flex: 0 0 auto; width: 100%; min-width: 0; }
+}

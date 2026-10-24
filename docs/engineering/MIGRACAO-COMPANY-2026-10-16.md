@@ -2,9 +2,10 @@
 
 ## Lote seguro em validação — 24/10/2026
 
-- Comprar e repor: A caminho inclui pedidos parcialmente recebidos com saldo pendente, sem duplicar Tudo/unidades; Falta receber continua disponível. Busca por produto/fornecedor, detalhe com quantidade/sabor e ações originais preservados.201 testes, TypeScript e lint direcionado aprovados; publicação e QA remoto registrados no cartão SUPLEMENTOS1/2, testes humanos no2/2. Nenhum recebimento real executado.
+- PR80 publicado: Comprar e repor inclui parciais em A caminho, sem duplicar Tudo/unidades. Merge221093e40513783e4d894c0962611a010b9c680a; produçãoREADY dpl_FVeKoV1PF6yF949krcntY8JKsmbn, alias oficial confirmado.201 testes, TypeScript/lint/build aprovados; fixture320/390/414/1366px. Smoke oficial autenticado: Shopee7/4/3, buscaTouro, detalheCompany e formulárioquantidade/max3, fechado SEM confirmar. Nenhum recebimento real executado. QA humano em SUPLEMENTOS2/2 não bloqueia novas entregas.
 - Rotinas PR79 seguem DRAFT por decisão expressa: preparar PR, sem aplicar migration. Não integrar nem testar avanço em rotina real. SQL/locks e pendências detalhados nesse PR; produção permanece sem esse adaptador.
-- Próxima frente independente: paridade de rascunhos de vínculos no cadastro Company, mantendo confirmação de identidade e API/permissões existentes. Retorno ao lead e equivalência integral do legado não devem ser presumidos concluídos.
+- Frente B implementada: rascunhos de vínculos no cadastro Company pelo editor/API existentes, confirmação da pessoa resolvida, falha preserva rascunhos e permite revisar ficha.209 testes/TypeScript/lint focado aprovados; fixture320/390/1366px, sem dados reais. Publicação/READY devem ser conferidos no cartão COMPANY1/2. Ver COMPANY-CADASTRO-VINCULOS-2026-10-24.md.
+- Próximos: retorno ao lead sem perder rascunho e paridade das observações Fitness. Propostas de crédito/inadimplência e conversão transacional de leads exigem aprovação própria antes de ativar. Equivalência integral e retirada do legado NÃO concluídas.
 
 ## Checkpoint de execução — 23/10/2026
 

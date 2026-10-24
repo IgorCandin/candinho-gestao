@@ -10,12 +10,12 @@ import {
   UserRoundPlus,
   UsersRound,
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, ReactNode, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { CustomerOption } from "@/lib/types";
 
-type PartnerOption = {
+export type PartnerOption = {
   id: string;
   name: string;
   partner_type: string | null;
@@ -70,9 +70,17 @@ const key = () =>
 export function NewCustomerForm({
   customers,
   partners,
+  companyMode = false,
+  allowRelationships = true,
+  basicFields,
+  createCustomer,
 }: {
   customers: CustomerOption[];
   partners: PartnerOption[];
+  companyMode?: boolean;
+  allowRelationships?: boolean;
+  basicFields?: ReactNode;
+  createCustomer?: () => Promise<{ id: string; name: string }>;
 }) {
   const router = useRouter();
   const [name, setName] = useState("");
@@ -92,6 +100,9 @@ export function NewCustomerForm({
   const [partnerRelation, setPartnerRelation] = useState("student_of_partner");
   const [partnerCustom, setPartnerCustom] = useState("");
   const [partnerDrafts, setPartnerDrafts] = useState<PartnerDraft[]>([]);
+  const [resolvedCustomer, setResolvedCustomer] = useState<{ id: string; name: string } | null>(null);
+  const submitting = useRef(false);
+  const customerBase = companyMode ? "/company/clientes" : "/clientes";
 
   const customerName = useMemo(
     () => new Map(customers.map((customer) => [customer.id, customer.name])),
@@ -151,25 +162,38 @@ export function NewCustomerForm({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
     setLoading(true);
     setMessage(null);
 
     try {
-      const supabase = createClient();
-      const { data, error } = await supabase.rpc("create_customer", {
+      let customer = resolvedCustomer;
+      if (!customer && createCustomer) customer = await createCustomer();
+      if (!customer) {
+        const supabase = createClient();
+        const { data, error } = await supabase.rpc("create_customer", {
         p_name: name,
         p_phone: phone || null,
         p_city: city || null,
         p_reference: reference || null,
         p_notes: notes || null,
-      });
+        });
 
-      if (error) throw error;
+        if (error) throw error;
+        customer = { id: String(data ?? ""), name };
+      }
 
-      const customerId = String(data ?? "");
+      const customerId = customer.id;
       if (!customerId) throw new Error("Cliente criado sem identificador.");
+      const hasDrafts = allowRelationships && (relationships.length || partnerDrafts.length);
+      // Company may resolve an existing person: confirm that identity before linking.
+      if (companyMode && hasDrafts && !resolvedCustomer) {
+        setResolvedCustomer(customer);
+        return;
+      }
 
-      if (relationships.length || partnerDrafts.length) {
+      if (hasDrafts) {
         const relationResponse = await fetch(
           `/api/customers/${customerId}/relationships`,
           {
@@ -193,27 +217,32 @@ export function NewCustomerForm({
               })),
             }),
           },
-        );
+        ).catch(() => null);
 
-        if (!relationResponse.ok) {
-          router.push(`/clientes/${customerId}?relacao=review`);
+        if (!relationResponse?.ok) {
+          if (companyMode) {
+            setMessage("O cadastro foi identificado ou salvo, mas não foi possível confirmar todos os vínculos. Os rascunhos continuam aqui. Confira a ficha antes de tentar novamente: alguns vínculos podem ter sido salvos.");
+            return;
+          }
+          router.push(`${customerBase}/${customerId}?relacao=review`);
           router.refresh();
           return;
         }
       }
 
-      router.push(`/clientes/${customerId}`);
+      router.push(`${customerBase}/${customerId}`);
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Não foi possível salvar.");
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   }
 
   return (
     <form className="customer-create-layout-v2" onSubmit={submit}>
-      <article className="panel">
+      {basicFields ? <fieldset disabled={loading || Boolean(resolvedCustomer)} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>{basicFields}</fieldset> : <article className="panel">
         <div className="panel-head">
           <div>
             <h2>Dados básicos</h2>
@@ -267,9 +296,9 @@ export function NewCustomerForm({
             />
           </label>
         </div>
-      </article>
+      </article>}
 
-      <article className="panel customer-create-network-card">
+      {allowRelationships ? <article className="panel customer-create-network-card">
         <div className="panel-head">
           <div>
             <h2><UsersRound size={18} /> Vínculos</h2>
@@ -291,6 +320,7 @@ export function NewCustomerForm({
             </div>
             <select
               className="select"
+              aria-label="Cliente relacionado"
               value={relatedCustomerId}
               onChange={(event) => setRelatedCustomerId(event.target.value)}
             >
@@ -304,6 +334,7 @@ export function NewCustomerForm({
             </select>
             <select
               className="select"
+              aria-label="Tipo de vínculo com cliente"
               value={relationType}
               onChange={(event) => setRelationType(event.target.value)}
             >
@@ -343,6 +374,7 @@ export function NewCustomerForm({
                 <button
                   className="icon-button"
                   type="button"
+                  aria-label="Remover vínculo com cliente do rascunho"
                   onClick={() =>
                     setRelationships((current) =>
                       current.filter((row) => row.key !== item.key),
@@ -365,6 +397,7 @@ export function NewCustomerForm({
             </div>
             <select
               className="select"
+              aria-label="Parceiro vinculado"
               value={partnerId}
               onChange={(event) => setPartnerId(event.target.value)}
             >
@@ -377,6 +410,7 @@ export function NewCustomerForm({
             </select>
             <select
               className="select"
+              aria-label="Tipo de vínculo com parceiro"
               value={partnerRelation}
               onChange={(event) => setPartnerRelation(event.target.value)}
             >
@@ -410,6 +444,7 @@ export function NewCustomerForm({
                 <button
                   className="icon-button"
                   type="button"
+                  aria-label="Remover parceiro do rascunho"
                   onClick={() =>
                     setPartnerDrafts((current) =>
                       current.filter((row) => row.key !== item.key),
@@ -422,12 +457,14 @@ export function NewCustomerForm({
             ))}
           </div>
         </div>
-      </article>
+      </article> : null}
+
+      {resolvedCustomer ? <div className="form-message" role="status"><strong>Cliente identificado: {resolvedCustomer.name}</strong><p>Confira a pessoa e os vínculos antes de confirmar. O cadastro já foi identificado ou salvo; confirmar só envia os vínculos selecionados.</p><Link href={`${customerBase}/${resolvedCustomer.id}`}>Abrir ficha para conferir</Link></div> : null}
 
       <div className="form-footer">
-        <Link className="button ghost" href="/clientes">Cancelar</Link>
+        <Link className="button ghost" href={resolvedCustomer ? `${customerBase}/${resolvedCustomer.id}` : customerBase}>{resolvedCustomer ? "Ir à ficha sem vincular" : "Cancelar"}</Link>
         <button className="button gold" disabled={loading}>
-          <Save size={17} /> {loading ? "Salvando..." : "Salvar cliente"}
+          <Save size={17} /> {loading ? "Salvando..." : resolvedCustomer ? "Confirmar vínculos desta pessoa" : "Salvar cliente"}
         </button>
       </div>
 

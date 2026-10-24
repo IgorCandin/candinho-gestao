@@ -1,3 +1,10 @@
+## 24/10/2026 — Rascunhos de vínculos no cadastro Company
+
+- Contexto: o cadastro Company não compunha o editor de vínculos existente no legado. Agora reutiliza o mesmo componente/API, conservando resolvedor de identidade, flags e permissões. Escrita somente Fitness não carrega opções CRM de Suplementos.
+- Segurança: a Company pode identificar pessoa já cadastrada; havendo rascunhos, exige confirmação explícita do nome resolvido antes do bulk. Falha HTTP/rede conserva rascunhos, avisa sobre possível gravação parcial e oferece conferir ficha. Sem retry automático, armazenamento persistente de PII ou nova associação por telefone.
+- Evidência: oito contratos focados (cinco falharam antes),209/209 na suíte após main#80, TypeScript/lint direcionado/diff-check aprovados; fixture hidratada320/390/1366px, criação única com stubs, sem overflow/erros. Build/READY e smoke oficial registrados no Trello antes de declarar publicado.
+- Limites: bulk existente não atômico; revisão da ficha necessária se falhar. Retorno ao lead com preservação do rascunho e observações no resolvedor Fitness ainda pendentes. Crédito/conversão de leads não ativados. Sem SQL ou dados reais alterados em QA; PR79 continua DRAFT.
+
 ## 24/10/2026 — Pedido parcial continua encontrável em A caminho
 
 - Contexto/evidência: pedido aberto com saldo pendente era classificado exclusivamente como recebimento parcial; a aba A caminho excluía esse pedido. Teste de regressão do componente real reproduziu a ausência antes da correção, com fixture 7 pedidas/4 recebidas/3 pendentes.
