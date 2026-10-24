@@ -22,7 +22,8 @@ test('queue Company contextualizes both focus and rows, preserving unknown workf
   assert.equal((html.match(new RegExp(`/company/concluir/${ids.sale}\\?origem=fila#itens`,'g'))||[]).length,2,'focus and row map to the same sale');
   assert.ok(html.includes(`/company/clientes/fitness/${ids.customer}`));
   assert.ok(html.includes('/company/gestao/central/agenda?dia=2026-10-23'));
-  for(const href of routes.slice(3)) assert.ok(html.includes(`href="${href}"`),href);
+  assert.ok(html.includes('href="/company/nexus/rotinas"'));
+  for(const href of routes.slice(3).filter(href=>href!=='/nexus/rotinas')) assert.ok(html.includes(`href="${href}"`),href);
   assert.equal(JSON.stringify(initial),before,'never rewrites the source data');
   assert.deepEqual(previews[0].payload,{signal_id:'fixture',action:'snooze',snooze_days:3});
   assert.equal(previews[0].component,'unified_queue');

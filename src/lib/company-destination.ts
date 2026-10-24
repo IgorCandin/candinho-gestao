@@ -13,6 +13,7 @@ export function companyDestination(href: string): string {
   const fitnessConsignment = path.match(/^\/fitness\/consignacoes(?:\/([0-9a-f-]{36}|nova))?$/i);
   if (fitnessConsignment) return `/company/fitness/consignacoes${fitnessConsignment[1] ? `/${fitnessConsignment[1]}` : ""}${suffix}`;
   const extra: Record<string, string> = {
+    "/nexus/rotinas": "/company/nexus/rotinas",
     "/suplementos/fila-comercial": "/company/fila-comercial",
     "/nexus/fila": "/company/nexus/fila",
     "/produtos/sabores/historico": "/company/produtos/sabores/historico",

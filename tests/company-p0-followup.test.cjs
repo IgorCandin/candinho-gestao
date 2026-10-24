@@ -36,7 +36,8 @@ test('Copilot contextualizes only known navigation and preserves unmigrated work
     assert.equal(href(current,'/suplementos/nexus/habitos?origem=teste#lista'),'/company/suplementos/nexus/habitos?origem=teste#lista');
     assert.equal(href(current,'/fitness/clientes/11111111-1111-4111-8111-111111111111'),'/company/clientes/fitness/11111111-1111-4111-8111-111111111111');
     assert.equal(href(current,'/nexus/fila?origem=copilot#lista'),'/company/nexus/fila?origem=copilot#lista');
-    for(const original of ['/nexus/rotinas','/leads/novo?x=1','/suplementos/leads/novo#dados','/bank/planejamento']) assert.equal(href(current,original),original);
+    assert.equal(href(current,'/nexus/rotinas'),'/company/nexus/rotinas');
+    for(const original of ['/leads/novo?x=1','/suplementos/leads/novo#dados','/bank/planejamento']) assert.equal(href(current,original),original);
   }
   for(const current of ['/company-other','/suplementos','/bank']) assert.equal(href(current,'/suplementos/nexus/habitos'),'/suplementos/nexus/habitos');
   const text=fs.readFileSync('src/components/nexus-copilot-dock.tsx','utf8');

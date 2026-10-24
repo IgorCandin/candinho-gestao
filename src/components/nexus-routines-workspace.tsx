@@ -24,6 +24,7 @@ import type {
   NexusRoutinesWorkspace,
 } from "@/lib/nexus-routine-types";
 import { nexusRouteLabel } from "@/lib/nexus-route-labels";
+import { routineHref } from "@/lib/company-routine-navigation";
 
 function routineTitleFromSuggestion(item: NexusRoutineSuggestion) {
   const first = item.steps[0]?.href ? nexusRouteLabel(item.steps[0].href) : "Início";
@@ -68,9 +69,11 @@ async function post(payload: Record<string, unknown>) {
 function ActiveRoutineCard({
   active,
   onChanged,
+  companyMode,
 }: {
   active: NexusActiveRoutine;
   onChanged: () => void;
+  companyMode: boolean;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -104,7 +107,7 @@ function ActiveRoutineCard({
       </div>
 
       {active.current && (
-        <Link className="button gold" href={active.current.href}>
+        <Link className="button gold" href={routineHref(companyMode ? "/company/nexus/rotinas" : "/nexus/rotinas", active.current.href)}>
           Ir para {active.current.label || nexusRouteLabel(active.current.href)}
           <ArrowRight size={13} />
         </Link>
@@ -214,9 +217,11 @@ function RoutineCard({
 export function NexusRoutinesWorkspace({
   initialWorkspace,
   pinnedShortcuts,
+  companyMode = false,
 }: {
   initialWorkspace: NexusRoutinesWorkspace;
   pinnedShortcuts: NexusPersonalShortcut[];
+  companyMode?: boolean;
 }) {
   const [workspace, setWorkspace] = useState(initialWorkspace);
   const [title, setTitle] = useState("");
@@ -326,7 +331,7 @@ export function NexusRoutinesWorkspace({
         </div>
 
         <div>
-          <Link className="button ghost compact-button" href="/nexus/foco">
+          <Link className="button ghost compact-button" href={companyMode ? "/company/gestao/central/meu-dia" : "/nexus/foco"}>
             Meu Dia
           </Link>
           <button
@@ -365,7 +370,7 @@ export function NexusRoutinesWorkspace({
       </div>
 
       {workspace.active_run && (
-        <ActiveRoutineCard active={workspace.active_run} onChanged={() => void reload()} />
+        <ActiveRoutineCard active={workspace.active_run} companyMode={companyMode} onChanged={() => void reload()} />
       )}
 
       {workspace.suggestions.length > 0 && (
